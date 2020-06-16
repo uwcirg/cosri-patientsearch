@@ -1,0 +1,14 @@
+---
+version: "3.4"
+services:
+  web:
+    image: "uwcirg/stayhome-dashboard:${DOCKER_IMAGE_TAG:-develop}"
+    build:
+      context: .
+    ports:
+      # allow override of published port
+      - ${EXTERNAL_PORT:-8000}:8000
+    env_file:
+      - dashboard.env
+    volumes:
+      - ./client_secrets.json:/opt/stayhome-dashboard/client_secrets.json:ro

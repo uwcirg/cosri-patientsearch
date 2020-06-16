@@ -1,0 +1,4 @@
+flask
+flask-oidc
+gunicorn
+requests

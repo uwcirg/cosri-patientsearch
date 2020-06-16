@@ -1,0 +1,11 @@
+*.env
+*.egg-info
+*__pycache__
+client_secrets.json
+dashboard.env
+dashboard/static
+dashboard/dist
+dashboard/templates/index.html
+report.*
+package-lock.json
+node_modules
