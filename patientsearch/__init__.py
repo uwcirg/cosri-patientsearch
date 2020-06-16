@@ -1,13 +1,13 @@
 from flask import Flask
 
-from dashboard.api import api_blueprint
-from dashboard.extensions import oidc
+from patientsearch.api import api_blueprint
+from patientsearch.extensions import oidc
 
 
 def create_app(testing=False):
     """Application factory, used to create and configure application"""
     app = Flask(__name__)
-    app.config.from_object('dashboard.config')
+    app.config.from_object('patientsearch.config')
 
     if testing is True:
         app.config['SECRET_KEY'] = 'nonsense-testing-key'

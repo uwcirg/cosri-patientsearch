@@ -12,11 +12,11 @@ from flask import (
 import requests
 from werkzeug.exceptions import Unauthorized
 
-from dashboard.bearer_auth import BearerAuth
-from dashboard.extensions import oidc
+from patientsearch.bearer_auth import BearerAuth
+from patientsearch.extensions import oidc
 
 
-api_blueprint = Blueprint('dashboard-api', __name__)
+api_blueprint = Blueprint('patientsearch-api', __name__)
 
 
 def terminate_session():

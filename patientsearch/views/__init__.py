@@ -1,2 +1,2 @@
 
-from dashboard.views.index import main
+from patientsearch.views.index import main

@@ -5,7 +5,7 @@ set -x
 
 # Set up environment for Flask debug server
 export FLASK_DEBUG=True
-export FLASK_APP=dashboard
+export FLASK_APP=patientsearch
 
 # Compile js in the background
  npm run watch &
