@@ -130,7 +130,7 @@ def resource_by_id(resource_type, resource_id, methods=["GET"]):
 def external_search(resource_type, methods=["GET"]):
     """Query external source for resource_type
 
-    Query configured external source (EXTERNAL_SEARCH_URL) for resource
+    Query configured external source (EXTERNAL_FHIR_API) for resource
     such as Patient.
 
     NB not decorated with `@oidc.require_login` as that does an implicit
@@ -143,7 +143,7 @@ def external_search(resource_type, methods=["GET"]):
 
     """
     token = validate_auth()
-    url = current_app.config.get('EXTERNAL_SEARCH_URL') + resource_type
+    url = current_app.config.get('EXTERNAL_FHIR_API') + resource_type
     resp = requests.get(url, auth=BearerAuth(token), params=request.args)
     try:
         resp.raise_for_status()
