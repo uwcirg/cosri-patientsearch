@@ -11,3 +11,13 @@ $color-muter: rgba(165, 158, 158, 0.64);
 .text-right {
   text-align: right;
 }
+#timeout-modal-description {
+  .buttons-container {
+      display: flex;
+      margin-top: 16px;
+      justify-content: center;
+      button {
+          margin: 8px;
+      }
+  }
+}

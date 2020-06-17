@@ -3,6 +3,9 @@ import {makeStyles} from '@material-ui/core/styles';
 import AppBar from '@material-ui/core/AppBar';
 import Avatar from '@material-ui/core/Avatar';
 import Box from '@material-ui/core/Box';
+import Button from '@material-ui/core/Button';
+import ExitToAppIcon from '@material-ui/icons/ExitToApp';
+import Link from '@material-ui/core/Link';
 import HowToRegIcon from '@material-ui/icons/HowToReg';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
@@ -39,11 +42,17 @@ const useStyles = makeStyles((theme) => ({
     },
     welcomeContainer: {
         display: "flex",
-        marginRight: theme.spacing(2)
+        flexDirection: "column",
+        alignItems: "center",
+        marginRight: theme.spacing(3)
     },
     welcomeText: {
         marginTop: theme.spacing(0.5),
+        marginBottom: theme.spacing(0.5),
         fontWeight: 400,
+        display: "flex",
+        flexDirection: "row",
+        alignItems: "center"
     },
     avatar: {
         color: theme.palette.primary.dark,
@@ -51,8 +60,24 @@ const useStyles = makeStyles((theme) => ({
         borderWidth: "1px",
         borderStyle: "solid",
         background: "transparent",
-        marginRight: theme.spacing(1)
+        marginRight: theme.spacing(1),
+        width: "32px",
+        height: "32px"
     },
+    buttonContainer: {
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "flex-end",
+        width: "100%",
+        marginLeft: theme.spacing(1),
+        '& > *': {
+            fontWeight: 400,
+            marginRight: theme.spacing(0.5)
+        },
+    },
+    linkIcon: {
+        color: theme.palette.secondary.light
+    }
 }));
 
 export default function Header() {
@@ -62,12 +87,20 @@ export default function Header() {
             <Toolbar className={classes.topBar}>
                 <img src={logo} alt="Logo"/>
                 <Box className={classes.welcomeContainer}>
-                    <Avatar className={classes.avatar}>
-                        <HowToRegIcon />
-                    </Avatar>
-                    <Typography component="h6" variant="h6" color="textPrimary" noWrap gutterBottom={true} className={classes.welcomeText}>
-                        Welcome
-                    </Typography>
+                    <div>
+                        <Typography component="h6" variant="h6" color="textPrimary" noWrap className={classes.welcomeText}>
+                            <Avatar className={classes.avatar}>
+                                <HowToRegIcon />
+                            </Avatar>
+                            Welcome
+                        </Typography>
+                    </div>
+                    <div className={classes.buttonContainer}>
+                        <Link color="secondary" variant="body1" href="/logout" >
+                            Logout
+                        </Link>
+                        <ExitToAppIcon color="secondary" fontSize="default" className={classes.linkIcon}></ExitToAppIcon>
+                    </div>
                 </Box>
             </Toolbar>
             <Toolbar className={classes.toolbar} disableGutters variant="dense">

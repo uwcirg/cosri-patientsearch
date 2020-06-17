@@ -11,6 +11,10 @@ const theme = createMuiTheme({
         main: cyan[800],
         dark: cyan[900]
     },
+    secondary: {
+      main: "#3c3535",
+      light: "#524949"
+    },
     table: {
         heading: {
             background: cyan[700],

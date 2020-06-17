@@ -19,7 +19,7 @@ const useStyles = makeStyles((theme) => ({
     position: 'absolute',
     width: 400,
     backgroundColor: theme.palette.background.paper,
-    border: '2px solid #5634BC',
+    border: `2px solid ${theme.palette.primary.main}`,
     boxShadow: theme.shadows[5],
     padding: theme.spacing(2, 4, 3),
   },

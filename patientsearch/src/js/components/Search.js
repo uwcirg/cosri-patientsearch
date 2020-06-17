@@ -178,10 +178,12 @@ export default function Search() {
             setLoading(false);
             //TODO get the correct Launch URL
             if (process.env.LAUNCH_URL) {
+                //reset();
                 window.location = process.env.LAUNCH_URL;
                 return;
+            }  else {
+                setErrorMessage('Launch URL is not set.');
             }
-            setErrorMessage('Launch URL is not set.');
         
         }).catch(e => {
             setErrorMessage(`Patient search error: ${e}`);
@@ -212,11 +214,7 @@ export default function Search() {
         return firstName || lastName || dob;
     }
     
-    const resetFields = (event) => {
-        event.preventDefault();
-        if (!isAnyFullfilled()) {
-            return false;
-        }
+    const reset = () => {
         setFirstName("");
         setLastName("");
         setDOB(null);
@@ -224,7 +222,15 @@ export default function Search() {
         setSuccess(false);
         setTimeout(() => {
             focusInput.current.focus();
-        }, 100);
+        }, 150);
+    }
+
+    const resetFields = (event) => {
+        event.preventDefault();
+        if (!isAnyFullfilled()) {
+            return false;
+        }
+        reset();
     }
     let errorStyle = {
         "display" : errorMessage? "block": "none"
