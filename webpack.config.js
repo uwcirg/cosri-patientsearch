@@ -35,8 +35,6 @@ module.exports = function(_env, argv) {
       console.log("Error occurred processing .env config ", e);
     }
   }
-
-  console.log("Output directory? ", outputDirectory)
   
   return {
     entry:  ['whatwg-fetch', path.join(__dirname, '/patientsearch/src/js/Entry.js')],
