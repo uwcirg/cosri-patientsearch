@@ -1,22 +1,20 @@
 import React, { Component } from "react";
 import CssBaseline from '@material-ui/core/CssBaseline';
-import Header from "./components/Header";
-import Table from "./components/Table";
-import Footer from "./components/Footer";
-import TimeoutModal from "./components/TimeoutModal";
-import "../less/index.less";
+import { ThemeProvider } from '@material-ui/styles';
+import Header from './components/Header';
+import Search from './components/Search';
+import theme from './context/theme';
+import '../styles/app.scss';
 
-export default class App extends React.Component {
+export default class App extends Component {
   render () {
     return (
       <React.Fragment>
-        <CssBaseline />
-        <div className="landing">
-            <Header />
-            <Table />
-            <Footer />
-            <TimeoutModal />
-        </div>
+        <ThemeProvider theme={theme}>
+          <CssBaseline />
+          <Header />
+          <Search />
+        </ThemeProvider>
       </React.Fragment>
     );
   }
