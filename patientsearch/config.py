@@ -2,6 +2,7 @@ import os
 
 SERVER_NAME = os.getenv("SERVER_NAME")
 SECRET_KEY = os.getenv("SECRET_KEY")
+EXTERNAL_SEARCH_URL = os.getenv("EXTERNAL_SEARCH_URL")
 MAP_API = os.getenv("MAP_API")
 
 OIDC_CLIENT_SECRETS = 'client_secrets.json'

@@ -125,8 +125,36 @@ def resource_by_id(resource_type, resource_id, methods=["GET"]):
     return jsonify(resp.json())
 
 
+@api_blueprint.route(
+    '/external_search/<string:resource_type>', methods=["GET"])
+def external_search(resource_type, methods=["GET"]):
+    """Query external source for resource_type
+
+    Query configured external source (EXTERNAL_SEARCH_URL) for resource
+    such as Patient.
+
+    NB not decorated with `@oidc.require_login` as that does an implicit
+    redirect.  Client should watch for 401 and redirect appropriately.
+
+    :param resource_type: The FHIR Resource type, i.e. `Patient`
+    :param search criteria: Include query string arguments to include
+      as additional search criteria.
+      i.e. /Patient?subject:Patient.name.given=luke&subject:Patient.birthdate=eq1977-01-12
+
+    """
+    token = validate_auth()
+    url = current_app.config.get('EXTERNAL_SEARCH_URL') + resource_type
+    resp = requests.get(url, auth=BearerAuth(token), params=request.args)
+    try:
+        resp.raise_for_status()
+    except requests.exceptions.HTTPError as err:
+        abort(err.response.status_code, err)
+
+    return jsonify(resp.json())
+
+
 @api_blueprint.route('/logout', methods=["GET"])
 def logout(methods=["GET"]):
     terminate_session()
-    message = 'Logged out.  Return to <a href="/">Stayhome Dashboard</a>'
+    message = 'Logged out.  Return to <a href="/">COSRI Patient Search</a>'
     return make_response(message)
