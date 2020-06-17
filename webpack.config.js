@@ -16,26 +16,7 @@ module.exports = function(_env, argv) {
   const outputDirectory = isDevelopment?"/patientsearch/static":"/patientsearch/dist";
   const jsDirectory = `${outputDirectory}/js`;
   const templateDirectory = `${outputDirectory}/templates`;
-  /*
-   * output to static file for ease of development
-   */
-  const envConfig = dotenv.config();
-  // call dotenv and it will return an Object with a parsed key 
-  const env = envConfig ? envConfig.parsed : null;
-  let envKeys = {};
-
-  if (env) {
-    // reduce it to a object
-    try {
-      envKeys = Object.keys(env).reduce((prev, next) => {
-        prev[`process.env.${next}`] = JSON.stringify(env[next]);
-        return prev;
-      }, {});
-    } catch(e) {
-      console.log("Error occurred processing .env config ", e);
-    }
-  }
-  
+ 
   return {
     entry:  ['whatwg-fetch', path.join(__dirname, '/patientsearch/src/js/Entry.js')],
     watchOptions: {
@@ -102,7 +83,6 @@ module.exports = function(_env, argv) {
         Promise: 'es6-promise'
       }), 
       new webpack.DefinePlugin({
-        ...envKeys,
         "process.env.NODE_ENV": JSON.stringify(
           isProduction ? "production" : "development"
         )
