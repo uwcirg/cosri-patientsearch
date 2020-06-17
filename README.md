@@ -1,5 +1,7 @@
 # COSRI Patient Search
 
+[![Docker Image Version (latest semver)](https://img.shields.io/docker/v/uwcirg/cosri-patientsearch?label=latest%20release&sort=semver)](https://hub.docker.com/repository/docker/uwcirg/cosri-patientsearch)
+
 All views require Keycloak authentication.  Keycloak roles determine authorization scopes.
 
 ### Setup
