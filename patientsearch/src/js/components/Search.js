@@ -154,9 +154,14 @@ export default function Search() {
     const buttonClassname = clsx({
         [classes.buttonSuccess]: success,
     });
+
+    //TODO this is not a correct one!
+    const getLaunchURL = () => {
+        return "https://cosri-dev.cirg.washington.edu/auth/launch?launch=eyJhIjoiMSIsImIiOiI0MTcwMiIsImUiOiJTTUFSVC0xMjM0In0&iss=https%3A%2F%2Fsmart-dev-sandbox-launcher.cirg.washington.edu%2Fv%2Fr2%2Ffhir";
+    }
  
     const getPatientSearchURL = () => {
-        const dataURL = process.env.PATIENT_SEARCH_URL;
+        const dataURL = "/external_search/Patient";
         let formattedDate = format(new Date(dob), "yyyy-MM-dd");
         const params = [
             `subject:Patient.name.given=${firstName}`,
@@ -179,7 +184,7 @@ export default function Search() {
             //TODO get the correct Launch URL
             if (process.env.LAUNCH_URL) {
                 //reset();
-                window.location = process.env.LAUNCH_URL;
+                window.location = getLaunchURL();
                 return;
             }  else {
                 setErrorMessage('Launch URL is not set.');
