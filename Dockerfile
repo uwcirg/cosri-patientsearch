@@ -13,13 +13,13 @@ RUN npm run build
 # -----------------------------------------------------------------------------
 FROM python:3.7 as backend
 
-RUN mkdir /opt/stayhome-dashboard
-WORKDIR /opt/stayhome-dashboard
+RUN mkdir /opt/cosri-patientsearch
+WORKDIR /opt/cosri-patientsearch
 
 # Copy front-end files built in previous stage
-COPY --from=frontend /tmp/frontend/dashboard/dist/ /opt/stayhome-dashboard/dashboard/static/
+COPY --from=frontend /tmp/frontend/patientsearch/dist/ /opt/cosri-patientsearch/patientsearch/static/
 
-ENV FLASK_APP=dashboard:create_app
+ENV FLASK_APP=patientsearch:create_app
 
 # cache hack; very fragile
 COPY requirements.txt ./
@@ -27,6 +27,6 @@ RUN pip install --requirement requirements.txt
 
 COPY . .
 
-CMD gunicorn --bind "0.0.0.0:${PORT:-8000}" 'dashboard:create_app()'
+CMD gunicorn --bind "0.0.0.0:${PORT:-8000}" 'patientsearch:create_app()'
 
 EXPOSE 8000

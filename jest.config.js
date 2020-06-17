@@ -7,8 +7,8 @@ module.exports = {
     testPathIgnorePatterns: ['\\\\node_modules\\\\'],
     transformIgnorePatterns: ['./node_modules/'],
     moduleNameMapper: {
-        "^[./a-zA-Z0-9$_-]+\\.(png|jpeg|tiff)$": "<rootDir>/dashboard/src/__mocks__/fileMock.js",
-        "^[./a-zA-Z0-9$_-]+\\.(css|less)$": "<rootDir>/dashboard/src/__mocks__/styleMock.js"
+        "^[./a-zA-Z0-9$_-]+\\.(png|jpeg|tiff)$": "<rootDir>/patientsearch/src/__mocks__/fileMock.js",
+        "^[./a-zA-Z0-9$_-]+\\.(css|less|scss)$": "<rootDir>/patientsearch/src/__mocks__/styleMock.js"
         },
     verbose: true
 }

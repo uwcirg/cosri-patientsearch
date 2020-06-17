@@ -1,0 +1,23 @@
+$color-blue: #217684;
+$color-muted: #777;
+$color-muter: rgba(165, 158, 158, 0.64);
+
+.menu-icon {
+  margin-left: 8px;
+}
+.muted-text {
+  color: $color-muted;
+}
+.text-right {
+  text-align: right;
+}
+#timeout-modal-description {
+  .buttons-container {
+      display: flex;
+      margin-top: 16px;
+      justify-content: center;
+      button {
+          margin: 8px;
+      }
+  }
+}

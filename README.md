@@ -1,6 +1,4 @@
-# Stayhome Dashboard
-
-Dashboard presentation of Stayhome.app useage and protected resources.
+# COSRI Patient Search
 
 All views require Keycloak authentication.  Keycloak roles determine authorization scopes.
 
@@ -8,8 +6,8 @@ All views require Keycloak authentication.  Keycloak roles determine authorizati
 #
 1) `git clone <this repository>`
 2) `cp client_secrets.json.default client_secrets.json`  # Edit to fit
-3) `cp dashboard.env.default dashboard.env`  # Edit to fit
-4) `mkvirtualenv stayhome-dashboard`  # Python 3.7
+3) `cp patientsearch.env.default patientsearch.env`  # Edit to fit
+4) `mkvirtualenv patientsearch`  # Python 3.7
 5) `pip install nodeenv`
 6) `nodeenv --python-virtualenv`
 7) `pip install -e .`
@@ -17,13 +15,8 @@ All views require Keycloak authentication.  Keycloak roles determine authorizati
 
 ### Run
 #
-1) Run the script located in the `dashboard/bin` directory:
-   * `dashboard/bin/dashboardrun.sh`
-
-Head over to `localhost:8000`, you should see a list of patients as a Keycloak user with the `admin` role
-
-Try `localhost:8000/Patient` as a Keycloak user with the `admin` role to see
-a json list of all patients.
+1) Run the script located in the `patientsearch/bin` directory:
+   * `patientsearch/bin/patientsearchrun.sh`
 
 ### Run in docker
 1) `sudo docker-compose build web`

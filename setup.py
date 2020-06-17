@@ -2,9 +2,9 @@
 from setuptools import setup
 
 setup(
-    name="dashboard",
+    name="patientsearch",
     version="1.0",
-    packages=["dashboard"],
+    packages=["patientsearch"],
     include_package_data=True,
     install_requires=[
         'Flask',

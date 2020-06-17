@@ -3,7 +3,9 @@ const path = require('path');
 const TerserWebpackPlugin = require("terser-webpack-plugin");
 const OptimizeCssAssetsPlugin = require("optimize-css-assets-webpack-plugin");
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const FileManagerPlugin = require('filemanager-webpack-plugin');
+const dotenv = require('dotenv');
 
 module.exports = function(_env, argv) {
   const isProduction = argv.mode === "production";
@@ -11,12 +13,12 @@ module.exports = function(_env, argv) {
   /*
    * output to static file for ease of development
    */
-  const outputDirectory = isDevelopment?"/dashboard/static":"/dashboard/dist";
+  const outputDirectory = isDevelopment?"/patientsearch/static":"/patientsearch/dist";
   const jsDirectory = `${outputDirectory}/js`;
   const templateDirectory = `${outputDirectory}/templates`;
-  
+ 
   return {
-    entry:  path.join(__dirname, '/dashboard/src/js/Index.js'),
+    entry:  ['whatwg-fetch', path.join(__dirname, '/patientsearch/src/js/Entry.js')],
     watchOptions: {
       aggregateTimeout: 300,
       poll: 1000
@@ -37,7 +39,14 @@ module.exports = function(_env, argv) {
           //parse css files
           {
             test: /\.css$/,
-            loader:[ 'style-loader', 'css-loader']
+            use:[ {
+              loader: 'style-loader'
+            }, {
+              loader: 'css-loader',
+              options: {
+                "sourceMap": !isProduction
+              }
+            }]
           },
           {
             test: /\.(png|jpe?g|gif)$/i,
@@ -49,31 +58,30 @@ module.exports = function(_env, argv) {
             use: 'babel-loader'
           },
           {
-            test: /\.less$/,
+            test: /\.s[ac]ss$/i,
             use: [
-              {
-                loader: 'style-loader', // creates style nodes from JS strings
-              },
-              {
-                loader: 'css-loader', // translates CSS into CommonJS
-              },
-              {
-                loader: 'less-loader', // compiles Less to CSS
-                options: {
-                  sourceMap: isDevelopment
-                },
-              },
+              // Creates `style` nodes from JS strings
+              'style-loader',
+              // Translates CSS into CommonJS
+              'css-loader',
+              // Compiles Sass to CSS
+              'sass-loader',
             ],
           },
         ]
     },
     plugins: [
+      new CleanWebpackPlugin(),
       new HtmlWebpackPlugin({
-        title: "StayHome Dashboard",
-        template: path.join(__dirname, '/dashboard/src/index.html'),
+        title: "CORSI Patient Search",
+        template: path.join(__dirname, '/patientsearch/src/index.html'),
         filename: path.join(__dirname, `${templateDirectory}/index.html`),
-        favicon: path.join(__dirname, '/dashboard/src/assets/img/favicon.ico'),
+        favicon: path.join(__dirname, '/patientsearch/src/assets/favicon.ico'),
       }),
+      new webpack.ProvidePlugin({ 
+        React: 'react', 
+        Promise: 'es6-promise'
+      }), 
       new webpack.DefinePlugin({
         "process.env.NODE_ENV": JSON.stringify(
           isProduction ? "production" : "development"
@@ -82,11 +90,26 @@ module.exports = function(_env, argv) {
       new FileManagerPlugin({
         onStart: {
           delete: [
-            path.join(__dirname, '/dashboard/dist')
+            path.join(__dirname, '/patientsearch/dist')
+          ]
+        },
+        onEnd: {
+          copy: [
+            {
+              source:  path.join(__dirname, '/patientsearch/src/public'),
+              destination: path.join(__dirname, '/patientsearch/dist/public')
+            }
           ]
         }
       })
     ],
+    devServer: {
+      compress: true,
+      historyApiFallback: true,
+      open: true,
+      overlay: true,
+      contentBase: './dist',
+    },
     optimization: {
       minimize: isProduction,
       minimizer: [
@@ -102,10 +125,13 @@ module.exports = function(_env, argv) {
               comments: false,
               ascii_only: true
             },
+            sourceMap: !isProduction,
             warnings: false
           }
         }),
-        new OptimizeCssAssetsPlugin(),
+        new OptimizeCssAssetsPlugin({
+          verbose: true
+        }),
       ],
       splitChunks: {
         chunks: "all",
