@@ -1,8 +1,11 @@
 attrs==19.3.0
 certifi==2020.4.5.2
+cffi==1.14.0
 chardet==3.0.4
 click==7.1.2
+cryptography==2.9.2
 Flask==1.1.2
+Flask-JWT-Extended==3.24.1
 # pin to last hash of master, to remove requirement of freestanding JSON config file
 git+https://github.com/puiterwijk/flask-oidc.git@7f16e27#egg=flask-oidc
 flask-pytest==0.0.5
@@ -13,6 +16,7 @@ importlib-metadata==1.6.1
 itsdangerous==1.1.0
 Jinja2==2.11.2
 jmespath==0.10.0
+jwt==1.0.0
 MarkupSafe==1.1.1
 more-itertools==8.4.0
 nodeenv==1.4.0
@@ -22,6 +26,8 @@ pluggy==0.13.1
 py==1.8.2
 pyasn1==0.4.8
 pyasn1-modules==0.2.8
+pycparser==2.20
+PyJWT==1.7.1
 pyparsing==2.4.7
 pytest==5.4.3
 requests==2.23.0
