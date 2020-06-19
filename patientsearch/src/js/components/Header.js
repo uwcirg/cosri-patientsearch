@@ -87,7 +87,7 @@ export default function Header() {
     const classes = useStyles();
     const [userInfo, setUserInfo] = React.useState();
     const hasUserInfo = () => {
-        return userInfo && (userInfo.name);
+        return userInfo && (userInfo.name || userInfo.email);
     };
 
     React.useEffect(() => {
@@ -120,7 +120,7 @@ export default function Header() {
                                 <HowToRegIcon />
                             </Avatar>
                             Welcome
-                            {hasUserInfo() && <span className={classes.userinfo}>{userInfo.name}</span>}
+                            {hasUserInfo() && <span className={classes.userinfo}>{userInfo.name || userInfo.email}</span>}
                         </Typography>
                     </div>
                     <div className={classes.buttonContainer}>
