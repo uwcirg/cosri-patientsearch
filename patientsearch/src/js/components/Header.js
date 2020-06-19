@@ -91,6 +91,9 @@ export default function Header() {
     };
 
     React.useEffect(() => {
+        /*
+         * get logged in user information for displaying purpose
+         */
         sendRequest("./user_info").then(response => {
             let info = null
             try {

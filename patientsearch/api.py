@@ -12,7 +12,6 @@ from flask import (
 import requests
 
 from werkzeug.exceptions import Unauthorized
-
 from patientsearch.bearer_auth import BearerAuth
 from patientsearch.extensions import oidc
 

@@ -195,7 +195,6 @@ export default function Search() {
         let launchParams = "patient=" + patientId;
 
         return `${baseURL}/auth/launch?launch=${launchParams}&iss=${iss}`; 
-
         // return "https://cosri-dev.cirg.washington.edu/auth/launch?launch=eyJhIjoiMSIsImIiOiI0MTcwMiIsImUiOiJTTUFSVC0xMjM0In0&iss=https%3A%2F%2Fsmart-dev-sandbox-launcher.cirg.washington.edu%2Fv%2Fr2%2Ffhir";
     }
  
@@ -223,7 +222,6 @@ export default function Search() {
             setPop(true);
             setLoading(false);
             let formattedResult = response.entry;
-            console.log("wtf!")
             formattedResult = formattedResult.map(item => {
                 let fullName = "";
                 if (item.name) {
