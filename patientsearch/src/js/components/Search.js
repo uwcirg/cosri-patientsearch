@@ -5,6 +5,7 @@ import clsx from 'clsx';
 import React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import Box from '@material-ui/core/Box';
+import Backdrop from '@material-ui/core/Backdrop';
 import Button from '@material-ui/core/Button';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import Container from '@material-ui/core/Container';
@@ -13,9 +14,13 @@ import Fade from '@material-ui/core/Fade';
 import Grid from '@material-ui/core/Grid';
 import  {MuiPickersUtilsProvider, KeyboardDatePicker } from '@material-ui/pickers';
 import Link from '@material-ui/core/Link';
+import Modal from '@material-ui/core/Modal';
+import MuiAlert from '@material-ui/lab/Alert';
+import Snackbar from '@material-ui/core/Snackbar';
 import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
 import ZoomInIcon from '@material-ui/icons/ZoomIn';
+import ResultTable from "./ResultTable";
 import Error from "./Error";
 
 
@@ -51,6 +56,11 @@ const useStyles = makeStyles((theme) => ({
     avatar: {
         marginLeft: theme.spacing(1)
     },
+    modal: {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
     submit: {
         margin: theme.spacing(3, 0, 2),
     },
@@ -79,6 +89,20 @@ const useStyles = makeStyles((theme) => ({
         textDecoration: "underline",
         cursor: "auto",
         color: "#777"
+    },
+    modal: {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+    },
+    modalBody: {
+        backgroundColor: theme.palette.background.paper,
+        boxShadow: theme.shadows[4],
+        padding: theme.spacing(2, 4, 3),
+        border: 0
+    },
+    modalButtonContainer: {
+        marginTop: theme.spacing(2.5)
     },
     wrapper: {
         margin: theme.spacing(1, 0, 0),
@@ -140,13 +164,19 @@ async function fetchData(url) {
     }
 
     return json;
-  }
+}
 
+function Alert(props) {
+    return <MuiAlert elevation={6} variant="filled" {...props} />;
+}
+  
 export default function Search() {
     let focusInput = React.useRef(null);
     const classes = useStyles();
     const [loading, setLoading] = React.useState(false);
     const [errorMessage, setErrorMessage] = React.useState("");
+    const [popOpen, setPop] = React.useState(false);
+    const [resultOpen, setResultOpen] = React.useState(false);
     const [firstName, setFirstName] = React.useState("");
     const [lastName, setLastName] = React.useState("");
     const [dob, setDOB] = React.useState(null);
@@ -154,10 +184,19 @@ export default function Search() {
     const buttonClassname = clsx({
         [classes.buttonSuccess]: success,
     });
+    const [searchResults, setSearchResults] = React.useState([]);
 
     //TODO this is not a correct one!
-    const getLaunchURL = () => {
-        return "https://cosri-dev.cirg.washington.edu/auth/launch?launch=eyJhIjoiMSIsImIiOiI0MTcwMiIsImUiOiJTTUFSVC0xMjM0In0&iss=https%3A%2F%2Fsmart-dev-sandbox-launcher.cirg.washington.edu%2Fv%2Fr2%2Ffhir";
+    const getLaunchURL = (patientId) => {
+        //TODO ALL OF THESE, hardcoded
+        patientId = patientId || 1102;
+        let baseURL = "https://backend.cosri-demo.cirg.washington.edu";
+        let iss = "https://fhir.cosri-demo.cirg.washington.edu/hapi-fhir-jpaserver/fhir/";
+        let launchParams = "patient=" + patientId;
+
+        return `${baseURL}/auth/launch?launch=${launchParams}&iss=${iss}`; 
+
+        // return "https://cosri-dev.cirg.washington.edu/auth/launch?launch=eyJhIjoiMSIsImIiOiI0MTcwMiIsImUiOiJTTUFSVC0xMjM0In0&iss=https%3A%2F%2Fsmart-dev-sandbox-launcher.cirg.washington.edu%2Fv%2Fr2%2Ffhir";
     }
  
     const getPatientSearchURL = () => {
@@ -172,6 +211,7 @@ export default function Search() {
     };
     const searchPatient = () => {
         setLoading(true);
+        setErrorMessage('');
         fetchData(getPatientSearchURL()).then(response => {
             if (!response || !response.entry || !response.entry.length) {
                 setErrorMessage("No patient found.");
@@ -180,15 +220,25 @@ export default function Search() {
             }
             setErrorMessage('');
             setSuccess(true);
+            setPop(true);
             setLoading(false);
-            //TODO get the correct Launch URL
-            if (process.env.LAUNCH_URL) {
-                //reset();
-                window.location = getLaunchURL();
-                return;
-            }  else {
-                setErrorMessage('Launch URL is not set.');
-            }
+            let formattedResult = response.entry;
+            console.log("wtf!")
+            formattedResult = formattedResult.map(item => {
+                let fullName = "";
+                if (item.name) {
+                    if (item.name.given) fullName += item.name.given;
+                    if (item.name.family) fullName += (fullName ? " ": "") + item.name.family;
+                }
+                item.fullName = fullName;
+                item.launchURL = encodeURI(getLaunchURL(item.id));
+                return item;
+            });
+            setSearchResults(formattedResult);
+            setTimeout(function() {
+                setResultOpen(true);
+            }, 500);
+          
         
         }).catch(e => {
             setErrorMessage(`Patient search error: ${e}`);
@@ -209,7 +259,19 @@ export default function Search() {
     }
     const handleLastNameChange = (event) => {
         setLastName(event.target.value);
-    } 
+    }
+
+    const handlePopClose = (event, reason) => {
+        if (reason === 'clickaway') {
+            return;
+        }
+        setPop(false);
+    }
+
+    const handleResultClose = () => {
+        setSuccess(false);
+        setResultOpen(false);
+      };
 
     const isRequiredFullfilled = () => {
         return firstName && lastName && dob;
@@ -268,6 +330,7 @@ export default function Search() {
                                     autoFocus
                                     onChange={handleFirstNameChange}
                                     inputRef={focusInput}
+                                    inputProps={{"data-lpignore": true}}
                                 />
                                 <TextField
                                     variant="standard"
@@ -280,6 +343,7 @@ export default function Search() {
                                     autoComplete="lastName"
                                     value={lastName}
                                     onChange={handleLastNameChange}
+                                    inputProps={{"data-lpignore": true}}
                                 />
                                 <MuiPickersUtilsProvider utils={DateFnsUtils}>
                                     <KeyboardDatePicker
@@ -290,13 +354,15 @@ export default function Search() {
                                         disableFuture
                                         clearable
                                         format="yyyy-MM-dd"
-                                        helperText="(YYYY-MM-DD format)"
+                                        helperText="(YYYY-MM-DD format), example: 1950-01-02"
                                         id="birthDate"
                                         minDate={new Date("1900-01-01")}
                                         maxDate={new Date()}
                                         label="Birth Date *"
                                         value={dob}
+                                        orientation="landscape"
                                         onChange={handleDateChange}
+                                        KeyboardButtonProps={{className: "icon-container"}}
 
                                     />
                                 </MuiPickersUtilsProvider>
@@ -327,6 +393,35 @@ export default function Search() {
                                 </Grid>
                             </form>
                         </div>
+                        <Snackbar open={popOpen} autoHideDuration={1000} onClose={handlePopClose}>
+                            <Alert onClose={handlePopClose} severity="success">
+                                Success!
+                            </Alert>
+                        </Snackbar>
+                        <Modal
+                            aria-labelledby="result-modal-title"
+                            aria-describedby="result-modal-description"
+                            className={classes.modal}
+                            open={resultOpen}
+                            onClose={handleResultClose}
+                            closeAfterTransition
+                            BackdropComponent={Backdrop}
+                            BackdropProps={{
+                            timeout: 500,
+                            }}
+                        >
+                            <Fade in={resultOpen}>
+                                <div className={classes.modalBody}>
+                                    <h2 id="result-modal-title">Search Result</h2>
+                                    <div id="result-modal-description">
+                                        <ResultTable rows={searchResults}></ResultTable>
+                                    </div>
+                                    <Box align="center" className={classes.modalButtonContainer}>
+                                        <Button variant="contained" onClick={handleResultClose}>Cancel</Button>
+                                    </Box>
+                                </div>
+                            </Fade>
+                        </Modal>
                         <Error message={errorMessage} style={errorStyle} className={classes.error}/>
                     </Container>
                 </Fade>

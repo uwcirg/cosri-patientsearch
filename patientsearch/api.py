@@ -10,6 +10,7 @@ from flask import (
     send_from_directory,
 )
 import requests
+
 from werkzeug.exceptions import Unauthorized
 
 from patientsearch.bearer_auth import BearerAuth
@@ -64,6 +65,16 @@ def main(methods=["GET"]):
         'index.html',
         cache_timeout=-1
     )
+
+@api_blueprint.route('/user_info', methods=["GET"])
+def user_info():
+    validate_auth()
+    user_info = []
+    try:
+        user_info = oidc.user_getinfo(['name', 'email'])
+    except Unauthorized:
+        raise Unauthorized("Unauthorized")
+    return jsonify(user_info)
 
 
 @api_blueprint.route('/validate_token', methods=["GET"])

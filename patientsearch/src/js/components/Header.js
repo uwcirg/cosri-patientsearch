@@ -3,12 +3,12 @@ import {makeStyles} from '@material-ui/core/styles';
 import AppBar from '@material-ui/core/AppBar';
 import Avatar from '@material-ui/core/Avatar';
 import Box from '@material-ui/core/Box';
-import Button from '@material-ui/core/Button';
 import ExitToAppIcon from '@material-ui/icons/ExitToApp';
 import Link from '@material-ui/core/Link';
 import HowToRegIcon from '@material-ui/icons/HowToReg';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
+import {sendRequest} from './Utility';
 import logo from "../../assets/logo_horizontal.png";
 
 
@@ -44,7 +44,7 @@ const useStyles = makeStyles((theme) => ({
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        marginRight: theme.spacing(3)
+        marginRight: theme.spacing(4)
     },
     welcomeText: {
         marginTop: theme.spacing(0.5),
@@ -77,11 +77,35 @@ const useStyles = makeStyles((theme) => ({
     },
     linkIcon: {
         color: theme.palette.secondary.light
+    },
+    userinfo: {
+        marginLeft: "8px"
     }
 }));
 
 export default function Header() {
     const classes = useStyles();
+    const [userInfo, setUserInfo] = React.useState();
+    const hasUserInfo = () => {
+        return userInfo && (userInfo.name);
+    };
+
+    React.useEffect(() => {
+        sendRequest("./user_info").then(response => {
+            let info = null
+            try {
+                info = JSON.parse(response);
+            } catch(e) {
+                console.log("error parsing user info ", e);
+            }
+            if (info) {
+                setUserInfo(info);
+            }
+        }, error => {
+            console.log("Failed to retrieve user data", error.statusText);
+        });
+    }, []);
+
     return (
         <AppBar position="absolute" className={classes.appBar}>
             <Toolbar className={classes.topBar}>
@@ -93,6 +117,7 @@ export default function Header() {
                                 <HowToRegIcon />
                             </Avatar>
                             Welcome
+                            {hasUserInfo() && <span className={classes.userinfo}>{userInfo.name}</span>}
                         </Typography>
                     </div>
                     <div className={classes.buttonContainer}>
