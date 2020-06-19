@@ -78,6 +78,10 @@ const useStyles = makeStyles((theme) => ({
     linkIcon: {
         color: theme.palette.secondary.light
     },
+    linkText: {
+        position: "relative",
+        top: "-2px"
+    },
     userinfo: {
         marginLeft: "8px"
     }
@@ -124,10 +128,12 @@ export default function Header() {
                         </Typography>
                     </div>
                     <div className={classes.buttonContainer}>
-                        <Link color="secondary" variant="body1" href="/logout" >
+                        <Link className={classes.linkText} color="secondary" variant="body1" href="/logout" >
                             Logout
                         </Link>
-                        <ExitToAppIcon color="secondary" fontSize="default" className={classes.linkIcon}></ExitToAppIcon>
+                        <Link color="secondary" variant="body1" href="/logout" >
+                            <ExitToAppIcon color="secondary" fontSize="default" className={classes.linkIcon}></ExitToAppIcon>
+                        </Link>
                     </div>
                 </Box>
             </Toolbar>

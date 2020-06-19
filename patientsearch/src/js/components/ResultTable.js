@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/core/styles';
-import Link from '@material-ui/core/Link';
+import Button from '@material-ui/core/Button';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
@@ -36,7 +36,7 @@ export default function ResultTable(props) {
           {rows.map((row) => (
             <TableRow key={row.name}>
               <TableCell component="th" scope="row">
-                <Link href={row.launchURL}>Launch</Link>
+                <Button href={row.launchURL} variant="contained" color="primary">Launch</Button>
               </TableCell>
               <TableCell align="center">{row.fullName}</TableCell>
               <TableCell align="center">{row.birthDate}</TableCell>
