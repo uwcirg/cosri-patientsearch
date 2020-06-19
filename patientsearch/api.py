@@ -10,8 +10,8 @@ from flask import (
     send_from_directory,
 )
 import requests
-
 from werkzeug.exceptions import Unauthorized
+
 from patientsearch.bearer_auth import BearerAuth
 from patientsearch.extensions import oidc
 
