@@ -67,6 +67,7 @@ def main(methods=["GET"]):
 
 @api_blueprint.route('/user_info', methods=["GET"])
 def user_info():
+     """ API to retrieve user profile info """
     validate_auth()
     user_info = []
     try:
