@@ -215,6 +215,7 @@ export default function Search() {
             if (!response || !response.entry || !response.entry.length) {
                 setErrorMessage("No patient found.");
                 setSuccess(false);
+                setLoading(false);
                 return;
             }
             setErrorMessage('');
@@ -245,6 +246,7 @@ export default function Search() {
         });
     };
     const handleDateChange = (date) => {
+        setErrorMessage("");
         let convoDate = new Date(date);
         if (!isValid(convoDate)) {
             return;
@@ -253,9 +255,11 @@ export default function Search() {
     };
 
     const handleFirstNameChange = (event) => {
+        setErrorMessage("");
         setFirstName(event.target.value);
     }
     const handleLastNameChange = (event) => {
+        setErrorMessage("");
         setLastName(event.target.value);
     }
 
