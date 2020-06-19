@@ -1,4 +1,5 @@
 flask
-flask-oidc
+# pin to last hash of master, to remove requirement of freestanding JSON config file
+git+https://github.com/puiterwijk/flask-oidc.git@7f16e27#egg=flask-oidc
 gunicorn
 requests
