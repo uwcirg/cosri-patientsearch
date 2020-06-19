@@ -1,7 +1,6 @@
 from datetime import datetime
 from flask import (
     Blueprint,
-    abort,
     current_app,
     jsonify,
     make_response,
@@ -12,7 +11,12 @@ from flask import (
 import requests
 from werkzeug.exceptions import Unauthorized
 
-from patientsearch.bearer_auth import BearerAuth
+from patientsearch.models import (
+    BearerAuth,
+    HAPI_request,
+    external_request,
+    sync_bundle,
+)
 from patientsearch.extensions import oidc
 
 
@@ -73,7 +77,7 @@ def validate_token():
     :returns: JSON with `valid` and `expires_in` (seconds) filled in
     """
     try:
-        token = validate_auth()
+        validate_auth()
     except Unauthorized:
         return jsonify(valid=False, expires_in=0)
     expires = oidc.user_getfield('exp')
@@ -94,16 +98,10 @@ def resource_bundle(resource_type, methods=["GET"]):
 
     """
     token = validate_auth()
-    url = current_app.config.get('MAP_API') + resource_type
     params = {'_count': 1000}
     params.update(request.args)
-    resp = requests.get(url, auth=BearerAuth(token), params=params)
-    try:
-        resp.raise_for_status()
-    except requests.exceptions.HTTPError as err:
-        abort(err.response.status_code, err)
-
-    return jsonify(resp.json())
+    return jsonify(HAPI_request(
+        token=token, resource_type=resource_type, params=params))
 
 
 @api_blueprint.route(
@@ -115,14 +113,7 @@ def resource_by_id(resource_type, resource_id, methods=["GET"]):
     redirect.  Client should watch for 401 and redirect appropriately.
     """
     token = validate_auth()
-    url = f"{current_app.config.get('MAP_API')}{resource_type}/{resource_id}"
-    resp = requests.get(url, auth=BearerAuth(token))
-    try:
-        resp.raise_for_status()
-    except requests.exceptions.HTTPError as err:
-        abort(err.response.status_code, err)
-
-    return jsonify(resp.json())
+    return jsonify(HAPI_request(resource_type, resource_id, token))
 
 
 @api_blueprint.route(
@@ -143,14 +134,11 @@ def external_search(resource_type, methods=["GET"]):
 
     """
     token = validate_auth()
-    url = current_app.config.get('EXTERNAL_FHIR_API') + resource_type
-    resp = requests.get(url, auth=BearerAuth(token), params=request.args)
-    try:
-        resp.raise_for_status()
-    except requests.exceptions.HTTPError as err:
-        abort(err.response.status_code, err)
+    search_bundle = external_request(token, resource_type, request.args)
+    patient_id = sync_bundle(token, search_bundle)
 
-    return jsonify(resp.json())
+    # TODO: communicate the HAPI patient_id for launch
+    return jsonify(search_bundle)
 
 
 @api_blueprint.route('/logout', methods=["GET"])
