@@ -20,16 +20,16 @@ const useStyles = makeStyles({
 export default function ResultTable(props) {
   const classes = useStyles();
   const rows = props.rows || [];
+  const header = ['','Name', 'Birth Date', 'Gender'].map(item => {
+    return  <TableCell>{item}</TableCell>
+  });
 
   return (
     <TableContainer component={Paper}>
       <Table className={classes.table} aria-label="result table">
         <TableHead>
           <TableRow>
-            <TableCell></TableCell>
-            <TableCell align="center">Name</TableCell>
-            <TableCell align="center">Birth Date</TableCell>
-            <TableCell align="center">Gender</TableCell>
+            {header}
           </TableRow>
         </TableHead>
         <TableBody>
@@ -38,9 +38,9 @@ export default function ResultTable(props) {
               <TableCell component="th" scope="row">
                 <Button href={row.launchURL} variant="contained" color="primary">Launch</Button>
               </TableCell>
-              <TableCell align="center">{row.fullName}</TableCell>
-              <TableCell align="center">{row.birthDate}</TableCell>
-              <TableCell align="center">{row.gender}</TableCell>
+              {['fullName', 'birthDate', 'gender'].map(item => {
+                return (<TableCell align="center">{row[item]}</TableCell>)
+              })}
             </TableRow>
           ))}
         </TableBody>
@@ -51,5 +51,3 @@ export default function ResultTable(props) {
 ResultTable.propTypes = {
   rows: PropTypes.array.isRequired
 };
-
-
