@@ -5,40 +5,30 @@ import os
 from patientsearch.models import sync_bundle
 
 
-@fixture
-def external_patient_search(request):
-    data_dir, _ = os.path.splitext(request.module.__file__)
-    with open(os.path.join(
-            data_dir, "external_patient_search.json"), 'r') as json_file:
+def load_json(datadir, filename):
+    with open(os.path.join(datadir, filename), 'r') as json_file:
         data = json.load(json_file)
     return data
 
 
 @fixture
-def new_patient(request):
-    data_dir, _ = os.path.splitext(request.module.__file__)
-    with open(os.path.join(
-            data_dir, "new_patient_result.json"), 'r') as json_file:
-        data = json.load(json_file)
-    return data
+def external_patient_search(datadir):
+    return load_json(datadir, "external_patient_search.json")
 
 
 @fixture
-def internal_patient_miss(request):
-    data_dir, _ = os.path.splitext(request.module.__file__)
-    with open(os.path.join(
-            data_dir, "internal_patient_miss.json"), 'r') as json_file:
-        data = json.load(json_file)
-    return data
+def new_patient(datadir):
+    return load_json(datadir, "new_patient_result.json")
 
 
 @fixture
-def internal_patient_match(request):
-    data_dir, _ = os.path.splitext(request.module.__file__)
-    with open(os.path.join(
-            data_dir, "internal_patient_match.json"), 'r') as json_file:
-        data = json.load(json_file)
-    return data
+def internal_patient_miss(datadir):
+    return load_json(datadir, "internal_patient_miss.json")
+
+
+@fixture
+def internal_patient_match(datadir):
+    return load_json(datadir, "internal_patient_match.json")
 
 
 def test_new_upsert(

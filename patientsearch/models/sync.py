@@ -1,6 +1,6 @@
 """Manages synchronization of Model data, between external and internal stores"""
 from flask import abort, current_app
-from jmespath import search
+from jmespath import search as json_search
 import requests
 from .bearer_auth import BearerAuth
 
@@ -76,7 +76,9 @@ def sync_bundle(token, bundle):
     :returns: synchronized resource if only one in bundle
 
     """
-    assert bundle.get('resourceType') == 'Bundle'
+    if bundle.get('resourceType') != 'Bundle':
+        raise ValueError(
+            f"Expected bundle; can't process {bundle.get('resourceType')}")
 
     for entry in bundle.get('entry'):
         # Restrict to what is expected for now
@@ -92,25 +94,29 @@ def sync_bundle(token, bundle):
 
 def sync_patient(token, patient):
     """Sync single patient resource - insert or update as needed"""
-    args = {}
-
     # Use same parameters sent to external src looking for existing Patient
-    family = search('name.family', patient)
-    if family:
-        args['family'] = family
-    given = search('name.given', patient)
-    if given:
-        args['given'] = given
-    dob = search('birthDate', patient)
-    if dob:
-        # HAPI requires lowercase birhtdate despite the camelCase in FHIR
-        args['birthdate'] = "eq" + dob
+    search_map = (
+        ('name.family', 'family', ''),
+        ('name.given', 'given', ''),
+        ('birthDate', 'birthdate', 'eq')
+    )
+    search_params = {}
+
+    for path, queryterm, compstr in search_map:
+        match = json_search(path, patient)
+        if match:
+            search_params[queryterm] = compstr + match
 
     internal_search = HAPI_request(
-        token=token, resource_type='Patient', params=args)
+        token=token, resource_type='Patient', params=search_params)
 
     # If found, return the Patient
-    if internal_search['total'] > 0:
+    match_count = internal_search['total']
+    if match_count > 0:
+        if match_count > 1:
+            current_app.logger.warn(
+                f"expected ONE matching patient, found {match_count}")
+
         # TODO: manage sync issues when both exist and multiple matches
         return internal_search['entry'][0]['resource']
 
