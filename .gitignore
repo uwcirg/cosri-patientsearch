@@ -1,3 +1,4 @@
+*.env
 *.egg-info
 patient*.env
 *__pycache__
