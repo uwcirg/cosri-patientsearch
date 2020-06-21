@@ -21,6 +21,8 @@ jobs:
         run: tox
 
   build:
+    # only build if tests pass
+    needs: [test]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout git commit
