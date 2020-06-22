@@ -60,7 +60,7 @@ export default function TimeoutModal() {
             handleLogout();
             return;
           }
-          if (Math.floor(tokenData["expires_in"]) <= 60) {
+          if (Math.floor(expiresIn) <= 60) {
             cleanUpModal();
             if (!open) handleOpen();
           }

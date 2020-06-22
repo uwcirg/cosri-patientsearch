@@ -33,8 +33,8 @@ export default function ResultTable(props) {
           </TableRow>
         </TableHead>
         <TableBody>
-          {rows.map((row) => (
-            <TableRow key={row.name}>
+          {rows.map((row, index) => (
+            <TableRow key={`${row.name}_${index}`}>
               <TableCell component="th" scope="row">
                 <Button href={row.launchURL} variant="contained" color="primary">Launch</Button>
               </TableCell>

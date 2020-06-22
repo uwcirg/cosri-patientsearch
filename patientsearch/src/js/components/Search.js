@@ -22,6 +22,8 @@ import Typography from '@material-ui/core/Typography';
 import ZoomInIcon from '@material-ui/icons/ZoomIn';
 import ResultTable from "./ResultTable";
 import Error from "./Error";
+import Spinner from "./Spinner";
+import {sendRequest} from './Utility';
 
 
 const useStyles = makeStyles((theme) => ({
@@ -30,6 +32,12 @@ const useStyles = makeStyles((theme) => ({
         display: 'flex',
         paddingRight: theme.spacing(2),
         paddingLeft: theme.spacing(2)
+    },
+    ready: {
+        opacity: 1,
+    },
+    notReady: {
+        opacity: 0,
     },
     appBarSpacer: theme.mixins.toolbar,
     content: {
@@ -173,6 +181,8 @@ function Alert(props) {
 export default function Search() {
     let focusInput = React.useRef(null);
     const classes = useStyles();
+    const [appReady, setAppReady] = React.useState(false);
+    const [appSettings, setAppSettings] = React.useState({});
     const [loading, setLoading] = React.useState(false);
     const [errorMessage, setErrorMessage] = React.useState("");
     const [popOpen, setPop] = React.useState(false);
@@ -181,21 +191,23 @@ export default function Search() {
     const [lastName, setLastName] = React.useState("");
     const [dob, setDOB] = React.useState(null);
     const [success, setSuccess] = React.useState(false);
+    const rootClass = clsx(classes.root, {
+        [classes.ready]: appReady,
+        [classes.notReady]: !appReady
+    });
     const buttonClassname = clsx({
         [classes.buttonSuccess]: success,
     });
     const [searchResults, setSearchResults] = React.useState([]);
 
-    //TODO this is not a correct one!
     const getLaunchURL = (patientId) => {
-        //TODO ALL OF THESE, hardcoded
-        patientId = patientId || 1102;
-        let baseURL = "https://backend.cosri-demo.cirg.washington.edu";
-        let iss = "https://fhir.cosri-demo.cirg.washington.edu/hapi-fhir-jpaserver/fhir/";
-        let launchParams = "patient=" + patientId;
-
-        return `${baseURL}/auth/launch?launch=${launchParams}&iss=${iss}`; 
-        // return "https://cosri-dev.cirg.washington.edu/auth/launch?launch=eyJhIjoiMSIsImIiOiI0MTcwMiIsImUiOiJTTUFSVC0xMjM0In0&iss=https%3A%2F%2Fsmart-dev-sandbox-launcher.cirg.washington.edu%2Fv%2Fr2%2Ffhir";
+        if (!patientId) {
+            console.log("Missing information: patient Id");
+        }
+        let baseURL = appSettings["SOF_CLIENT_LAUNCH_URL"];
+        let iss = appSettings["SOF_HOST_FHIR_URL"];
+        let launchParam = btoa(JSON.stringify({"b":patientId}));
+        return `${baseURL}/auth/launch?launch=${launchParam}&iss=${iss}`; 
     }
  
     const getPatientSearchURL = () => {
@@ -304,130 +316,154 @@ export default function Search() {
     let errorStyle = {
         "display" : errorMessage? "block": "none"
     };
-    
-    return (
-        <div id="searchContainer" className={classes.root}>
-            <section className={classes.content}>
-                <div className={classes.appBarSpacer} />
-                <Fade
-                     in={true} mountOnEnter unmountOnExit {...{ timeout: 1000 }}>
-                    <Container maxWidth="lg" className={classes.container}>
-                        <div className={classes.paper}>
-                            <Box className={classes.titleHeader}>
-                                <Typography component="h4" variant="h5">
-                                    Patient Selector
-                                </Typography>
-                            </Box>
-                            <form className={classes.form} noValidate>
-                                <TextField
-                                    variant="standard"
-                                    margin="normal"
-                                    required
-                                    fullWidth
-                                    id="firstName"
-                                    label="First Name"
-                                    name="firstName"
-                                    autoComplete="firstName"
-                                    value={firstName}
-                                    autoFocus
-                                    onChange={handleFirstNameChange}
-                                    inputRef={focusInput}
-                                    inputProps={{"data-lpignore": true}}
-                                />
-                                <TextField
-                                    variant="standard"
-                                    margin="normal"
-                                    required
-                                    fullWidth
-                                    name="lastName"
-                                    label="Last Name"
-                                    id="lastName"
-                                    autoComplete="lastName"
-                                    value={lastName}
-                                    onChange={handleLastNameChange}
-                                    inputProps={{"data-lpignore": true}}
-                                />
-                                <MuiPickersUtilsProvider utils={DateFnsUtils}>
-                                    <KeyboardDatePicker
-                                        className={classes.datePickerContainer}
-                                        autoOk
-                                        variant="dialog"
-                                        openTo="year"
-                                        disableFuture
-                                        clearable
-                                        format="yyyy-MM-dd"
-                                        helperText="(YYYY-MM-DD format), example: 1950-01-02"
-                                        id="birthDate"
-                                        minDate={new Date("1900-01-01")}
-                                        maxDate={new Date()}
-                                        label="Birth Date *"
-                                        value={dob}
-                                        orientation="landscape"
-                                        onChange={handleDateChange}
-                                        KeyboardButtonProps={{className: "icon-container"}}
 
+    React.useEffect(() => {
+        /*
+         * get app settings
+         */
+        sendRequest("./settings").then(response => {
+            let settings = null
+            try {
+                settings = JSON.parse(response);
+            } catch(e) {
+                console.log("error parsing data ", e);
+            }
+            if (settings) {
+                setAppSettings(settings);
+            }
+            setAppReady(true);
+        }, error => {
+            console.log("Failed to retrieve data", error.statusText);
+            setAppReady(true);
+        });
+    }, [appReady]);
+
+    return (
+        <React.Fragment>
+            <div id="searchContainer" className={rootClass}>
+                <section className={`${classes.content}`}>
+                    <div className={classes.appBarSpacer} />
+                    <Fade
+                        in={true} mountOnEnter unmountOnExit {...{ timeout: 1000 }}>
+                        <Container maxWidth="lg" className={classes.container}>
+                            <div className={classes.paper}>
+                                <Box className={classes.titleHeader}>
+                                    <Typography component="h4" variant="h5">
+                                        Patient Selector
+                                    </Typography>
+                                </Box>
+                                <form className={classes.form} noValidate>
+                                    <TextField
+                                        variant="standard"
+                                        margin="normal"
+                                        required
+                                        fullWidth
+                                        id="firstName"
+                                        label="First Name"
+                                        name="firstName"
+                                        autoComplete="firstName"
+                                        value={firstName}
+                                        autoFocus
+                                        onChange={handleFirstNameChange}
+                                        inputRef={focusInput}
+                                        inputProps={{"data-lpignore": true}}
                                     />
-                                </MuiPickersUtilsProvider>
-                                <Box className={classes.divider}/>
-                                <Grid container direction="row" justify="center" alignItems="center">
-                                    <Grid item xs={12} md={4} lg={4}>
-                                        <div className={classes.wrapper}>
-                                            <Button
-                                                fullWidth
-                                                variant="contained"
-                                                color="primary"
-                                                size="large"
-                                                className={`${buttonClassname} ${classes.submit}`}
-                                                disabled={loading || !isRequiredFullfilled()}
-                                                onClick={searchPatient}
-                                            >
-                                                Search
-                                                <ZoomInIcon className={classes.avatar}/>
-                                            </Button>
-                                            {loading && <CircularProgress size={24} className={classes.buttonProgress} />}
-                                        </div>
-                                        <div className="text-right">
-                                            <Link variant="body2" color="primary" className={!isAnyFullfilled() ? `${classes.linkDisabled} muted-text` : classes.link} onClick={resetFields} disabled={!isAnyFullfilled()} align="right">
-                                                Reset
-                                            </Link>
-                                        </div>
+                                    <TextField
+                                        variant="standard"
+                                        margin="normal"
+                                        required
+                                        fullWidth
+                                        name="lastName"
+                                        label="Last Name"
+                                        id="lastName"
+                                        autoComplete="lastName"
+                                        value={lastName}
+                                        onChange={handleLastNameChange}
+                                        inputProps={{"data-lpignore": true}}
+                                    />
+                                    <MuiPickersUtilsProvider utils={DateFnsUtils}>
+                                        <KeyboardDatePicker
+                                            className={classes.datePickerContainer}
+                                            autoOk
+                                            variant="dialog"
+                                            openTo="year"
+                                            disableFuture
+                                            clearable
+                                            format="yyyy-MM-dd"
+                                            helperText="(YYYY-MM-DD format), example: 1977-01-12"
+                                            id="birthDate"
+                                            minDate={new Date("1900-01-01")}
+                                            maxDate={new Date()}
+                                            label="Birth Date *"
+                                            value={dob}
+                                            orientation="landscape"
+                                            onChange={handleDateChange}
+                                            KeyboardButtonProps={{className: "icon-container"}}
+
+                                        />
+                                    </MuiPickersUtilsProvider>
+                                    <Box className={classes.divider}/>
+                                    <Grid container direction="row" justify="center" alignItems="center">
+                                        <Grid item xs={12} md={4} lg={4}>
+                                            <div className={classes.wrapper}>
+                                                <Button
+                                                    fullWidth
+                                                    variant="contained"
+                                                    color="primary"
+                                                    size="large"
+                                                    className={`${buttonClassname} ${classes.submit}`}
+                                                    disabled={loading || !isRequiredFullfilled()}
+                                                    onClick={searchPatient}
+                                                >
+                                                    Search
+                                                    <ZoomInIcon className={classes.avatar}/>
+                                                </Button>
+                                                {loading && <CircularProgress size={24} className={classes.buttonProgress} />}
+                                            </div>
+                                            <div className="text-right">
+                                                <Link variant="body2" color="primary" className={!isAnyFullfilled() ? `${classes.linkDisabled} muted-text` : classes.link} onClick={resetFields} disabled={!isAnyFullfilled()} align="right">
+                                                    Reset
+                                                </Link>
+                                            </div>
+                                        </Grid>
                                     </Grid>
-                                </Grid>
-                            </form>
-                        </div>
-                        <Snackbar open={popOpen} autoHideDuration={1000} onClose={handlePopClose}>
-                            <Alert onClose={handlePopClose} severity="success">
-                                Success!
-                            </Alert>
-                        </Snackbar>
-                        <Modal
-                            aria-labelledby="result-modal-title"
-                            aria-describedby="result-modal-description"
-                            className={classes.modal}
-                            open={resultOpen}
-                            onClose={handleResultClose}
-                            closeAfterTransition
-                            BackdropComponent={Backdrop}
-                            BackdropProps={{
-                            timeout: 500,
-                            }}
-                        >
-                            <Fade in={resultOpen}>
-                                <div className={classes.modalBody}>
-                                    <h2 id="result-modal-title">Search Result</h2>
-                                    <div id="result-modal-description">
-                                        <ResultTable rows={searchResults}></ResultTable>
+                                </form>
+                            </div>
+                            <Snackbar open={popOpen} autoHideDuration={1000} onClose={handlePopClose}>
+                                <Alert onClose={handlePopClose} severity="success">
+                                    Success!
+                                </Alert>
+                            </Snackbar>
+                            <Modal
+                                aria-labelledby="result-modal-title"
+                                aria-describedby="result-modal-description"
+                                className={classes.modal}
+                                open={resultOpen}
+                                onClose={handleResultClose}
+                                closeAfterTransition
+                                BackdropComponent={Backdrop}
+                                BackdropProps={{
+                                timeout: 500,
+                                }}
+                            >
+                                <Fade in={resultOpen}>
+                                    <div className={classes.modalBody}>
+                                        <h2 id="result-modal-title">Search Result</h2>
+                                        <div id="result-modal-description">
+                                            <ResultTable rows={searchResults}></ResultTable>
+                                        </div>
+                                        <Box align="center" className={classes.modalButtonContainer}>
+                                            <Button variant="contained" onClick={handleResultClose}>Cancel</Button>
+                                        </Box>
                                     </div>
-                                    <Box align="center" className={classes.modalButtonContainer}>
-                                        <Button variant="contained" onClick={handleResultClose}>Cancel</Button>
-                                    </Box>
-                                </div>
-                            </Fade>
-                        </Modal>
-                        <Error message={errorMessage} style={errorStyle} className={classes.error}/>
-                    </Container>
-                </Fade>
-            </section>
-        </div>
+                                </Fade>
+                            </Modal>
+                            <Error message={errorMessage} style={errorStyle} className={classes.error}/>
+                        </Container>
+                    </Fade>
+                </section>
+            </div>
+            <div className={appReady?"hide": "show"}><Spinner className={appReady?"hide": "show"}></Spinner></div>
+        </React.Fragment>
     );
 }

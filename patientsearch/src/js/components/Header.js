@@ -103,13 +103,13 @@ export default function Header() {
             try {
                 info = JSON.parse(response);
             } catch(e) {
-                console.log("error parsing user info ", e);
+                console.log("error parsing data ", e);
             }
             if (info) {
                 setUserInfo(info);
             }
         }, error => {
-            console.log("Failed to retrieve user data", error.statusText);
+            console.log("Failed to retrieve data", error.statusText);
         });
     }, []);
 
@@ -123,7 +123,7 @@ export default function Header() {
                             <Avatar className={classes.avatar}>
                                 <HowToRegIcon />
                             </Avatar>
-                            Welcome
+                            <span className={classes.avatarText}>Welcome</span>
                             {hasUserInfo() && <span className={classes.userinfo}>{userInfo.name || userInfo.email}</span>}
                         </Typography>
                     </div>
