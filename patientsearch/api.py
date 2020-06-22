@@ -166,11 +166,15 @@ def external_search(resource_type, methods=["GET"]):
 
     """
     token = validate_auth()
-    search_bundle = external_request(token, resource_type, request.args)
-    patient_id = sync_bundle(token, search_bundle)
+    external_search_bundle = external_request(token, resource_type, request.args)
+    patient_id = sync_bundle(token, external_search_bundle)
 
-    # TODO: communicate the HAPI patient_id for launch
-    return jsonify(search_bundle)
+    # TODO: handle multiple patient results
+    if len(external_search_bundle['entry']) > 1:
+        current_app.logger.warn('multiple patients returned from PDMP')
+    external_search_bundle['entry'][0].setdefault('id', patient_id)
+
+    return jsonify(external_search_bundle)
 
 
 @api_blueprint.route('/logout', methods=["GET"])
