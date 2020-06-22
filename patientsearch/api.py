@@ -1,6 +1,7 @@
 from datetime import datetime
 from flask import (
     Blueprint,
+    abort,
     current_app,
     jsonify,
     make_response,
@@ -70,11 +71,11 @@ def main(methods=["GET"]):
         cache_timeout=-1
     )
 
+
 @api_blueprint.route('/user_info', methods=["GET"])
 def user_info():
     """API to retrieve user profile info"""
     validate_auth()
-    user_info = []
     try:
         user_info = oidc.user_getinfo(['name', 'email'])
     except Unauthorized:
@@ -185,11 +186,17 @@ def external_search(resource_type, methods=["GET"]):
         current_app.logger.warn('multiple patients returned from PDMP')
     external_search_bundle['entry'][0].setdefault('id', local_fhir_patient['id'])
 
+    # TODO: add user_id to extra (available in token?)
+    current_app.logger.info(
+        "patient search found match",
+        extra={'tags': ['search'], 'subject_id': local_fhir_patient['id']})
     return jsonify(external_search_bundle)
 
 
 @api_blueprint.route('/logout', methods=["GET"])
 def logout(methods=["GET"]):
+    # TODO: add user_id to extra (available in token?)
+    current_app.logger.info("logout on request", extra={'tags': ['logout']})
     terminate_session()
     message = 'Logged out.  Return to <a href="/">COSRI Patient Search</a>'
     return make_response(message)

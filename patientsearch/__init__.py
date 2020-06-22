@@ -1,4 +1,5 @@
 from flask import Flask
+from logging import config as logging_config
 
 from patientsearch.api import api_blueprint
 from patientsearch.extensions import oidc
@@ -21,6 +22,12 @@ def create_app(testing=False):
     if not app.config['SECRET_KEY']:
         raise RuntimeError("SECRET_KEY not defined; can't continue")
 
+    configure_logging(app)
     oidc.init_app(app)
     app.register_blueprint(api_blueprint)
     return app
+
+
+def configure_logging(app):
+    app.logger  # must call to initialize prior to config or it'll replace
+    logging_config.fileConfig('logging.ini', disable_existing_loggers=False)
