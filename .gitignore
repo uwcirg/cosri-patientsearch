@@ -1,11 +1,14 @@
+*.env
 *.egg-info
 patient*.env
 *__pycache__
+.coverage
+.tox
+coverage.xml
 client_secrets.json
 bin
 env
 lib
-patientsearch/bin
 patientsearch/dist
 patientsearch/lib
 patientsearch/static

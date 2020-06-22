@@ -1,0 +1,15 @@
+{
+    "resourceType": "Bundle",
+    "id": "10efbaba-a2f5-4006-b76a-cb3876cc12e5",
+    "meta": {
+        "lastUpdated": "2020-06-19T12:49:24.510+00:00"
+    },
+    "type": "searchset",
+    "total": 0,
+    "link": [
+        {
+            "relation": "self",
+            "url": "http://localhost:8080/hapi-fhir-jpaserver/fhir/Patient?family=skywalker"
+        }
+    ]
+}

@@ -1,7 +1,6 @@
 from datetime import datetime
 from flask import (
     Blueprint,
-    abort,
     current_app,
     jsonify,
     make_response,
@@ -9,10 +8,16 @@ from flask import (
     safe_join,
     send_from_directory,
 )
+from flask.json import JSONEncoder
 import requests
 from werkzeug.exceptions import Unauthorized
 
-from patientsearch.bearer_auth import BearerAuth
+from patientsearch.models import (
+    BearerAuth,
+    HAPI_request,
+    external_request,
+    sync_bundle,
+)
 from patientsearch.extensions import oidc
 
 
@@ -77,6 +82,37 @@ def user_info():
     return jsonify(user_info)
 
 
+@api_blueprint.route('/settings', defaults={'config_key': None})
+@api_blueprint.route('/settings/<string:config_key>')
+def config_settings(config_key):
+    """Non-secret application settings"""
+
+    # workaround no JSON representation for datetime.timedelta
+    class CustomJSONEncoder(JSONEncoder):
+        def default(self, obj):
+            return str(obj)
+    current_app.json_encoder = CustomJSONEncoder
+
+    # return selective keys - not all can be be viewed by users, e.g.secret key
+    blacklist = ('SECRET', 'KEY')
+
+    if config_key:
+        key = config_key.upper()
+        for pattern in blacklist:
+            if pattern in key:
+                abort(400, f"Configuration key {key} not available")
+        return jsonify({key: current_app.config.get(key)})
+
+    config_settings = {}
+    for key in current_app.config:
+        matches = any(pattern for pattern in blacklist if pattern in key)
+        if matches:
+            continue
+        config_settings[key] = current_app.config.get(key)
+
+    return jsonify(config_settings)
+
+
 @api_blueprint.route('/validate_token', methods=["GET"])
 def validate_token():
     """API to confirm header token is still valid
@@ -84,7 +120,7 @@ def validate_token():
     :returns: JSON with `valid` and `expires_in` (seconds) filled in
     """
     try:
-        token = validate_auth()
+        validate_auth()
     except Unauthorized:
         return jsonify(valid=False, expires_in=0)
     expires = oidc.user_getfield('exp')
@@ -105,16 +141,10 @@ def resource_bundle(resource_type, methods=["GET"]):
 
     """
     token = validate_auth()
-    url = current_app.config.get('MAP_API') + resource_type
     params = {'_count': 1000}
     params.update(request.args)
-    resp = requests.get(url, auth=BearerAuth(token), params=params)
-    try:
-        resp.raise_for_status()
-    except requests.exceptions.HTTPError as err:
-        abort(err.response.status_code, err)
-
-    return jsonify(resp.json())
+    return jsonify(HAPI_request(
+        token=token, resource_type=resource_type, params=params))
 
 
 @api_blueprint.route(
@@ -126,14 +156,7 @@ def resource_by_id(resource_type, resource_id, methods=["GET"]):
     redirect.  Client should watch for 401 and redirect appropriately.
     """
     token = validate_auth()
-    url = f"{current_app.config.get('MAP_API')}{resource_type}/{resource_id}"
-    resp = requests.get(url, auth=BearerAuth(token))
-    try:
-        resp.raise_for_status()
-    except requests.exceptions.HTTPError as err:
-        abort(err.response.status_code, err)
-
-    return jsonify(resp.json())
+    return jsonify(HAPI_request(resource_type, resource_id, token))
 
 
 @api_blueprint.route(
@@ -154,14 +177,11 @@ def external_search(resource_type, methods=["GET"]):
 
     """
     token = validate_auth()
-    url = current_app.config.get('EXTERNAL_FHIR_API') + resource_type
-    resp = requests.get(url, auth=BearerAuth(token), params=request.args)
-    try:
-        resp.raise_for_status()
-    except requests.exceptions.HTTPError as err:
-        abort(err.response.status_code, err)
+    search_bundle = external_request(token, resource_type, request.args)
+    patient_id = sync_bundle(token, search_bundle)
 
-    return jsonify(resp.json())
+    # TODO: communicate the HAPI patient_id for launch
+    return jsonify(search_bundle)
 
 
 @api_blueprint.route('/logout', methods=["GET"])
