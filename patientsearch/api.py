@@ -70,6 +70,17 @@ def main(methods=["GET"]):
         cache_timeout=-1
     )
 
+@api_blueprint.route('/user_info', methods=["GET"])
+def user_info():
+    """API to retrieve user profile info"""
+    validate_auth()
+    user_info = []
+    try:
+        user_info = oidc.user_getinfo(['name', 'email'])
+    except Unauthorized:
+        raise Unauthorized("Unauthorized")
+    return jsonify(user_info)
+
 
 @api_blueprint.route('/settings', defaults={'config_key': None})
 @api_blueprint.route('/settings/<string:config_key>')

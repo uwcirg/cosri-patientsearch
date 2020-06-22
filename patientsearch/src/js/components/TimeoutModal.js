@@ -28,7 +28,7 @@ const useStyles = makeStyles((theme) => ({
 let expiredIntervalId = 0;
 let expiresIn = null;
 
-export default function TimeoutModal(props) {
+export default function TimeoutModal() {
   const classes = useStyles();
   const [modalStyle] = React.useState(getModalStyle);
   const [open, setOpen] = React.useState(false);
@@ -53,13 +53,14 @@ export default function TimeoutModal(props) {
         let tokenData = null;
         try {
           tokenData = JSON.parse(response);
+          //in seconds
           expiresIn = tokenData["expires_in"];
          
           if (!tokenData["valid"] || expiresIn <= 1) {
             handleLogout();
             return;
           }
-          if (Math.floor(tokenData["expires_in"]) <= 60) {
+          if (Math.floor(expiresIn) <= 60) {
             cleanUpModal();
             if (!open) handleOpen();
           }
