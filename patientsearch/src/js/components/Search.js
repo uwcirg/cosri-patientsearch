@@ -207,7 +207,7 @@ export default function Search() {
         let baseURL = appSettings["SOF_CLIENT_LAUNCH_URL"];
         let iss = appSettings["SOF_HOST_FHIR_URL"];
         let launchParam = btoa(JSON.stringify({"b":patientId}));
-        return `${baseURL}/auth/launch?launch=${launchParam}&iss=${iss}`; 
+        return `${baseURL}?launch=${launchParam}&iss=${iss}`; 
     }
  
     const getPatientSearchURL = () => {
