@@ -183,7 +183,9 @@ def external_search(resource_type, methods=["GET"]):
     # TODO: handle multiple patient results
     if len(external_search_bundle['entry']) > 1:
         current_app.logger.warn('multiple patients returned from PDMP')
-    external_search_bundle['entry'][0].setdefault('id', local_fhir_patient['id'])
+
+    if len(external_search_bundle['entry']) > 0:
+        external_search_bundle['entry'][0].setdefault('id', local_fhir_patient['id'])
 
     return jsonify(external_search_bundle)
 
