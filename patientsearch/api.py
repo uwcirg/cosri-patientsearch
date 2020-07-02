@@ -177,14 +177,14 @@ def external_search(resource_type, methods=["GET"]):
     """
     token = validate_auth()
     external_search_bundle = external_request(token, resource_type, request.args)
-    local_fhir_patient = sync_bundle(token, external_search_bundle)
+    local_fhir_bundle = sync_bundle(token, external_search_bundle)
 
     # TODO: handle multiple patient results
     if len(external_search_bundle['entry']) > 1:
         current_app.logger.warn('multiple patients returned from PDMP')
 
     if len(external_search_bundle['entry']) > 0:
-        external_search_bundle['entry'][0].setdefault('id', local_fhir_patient['id'])
+        external_search_bundle['entry'][0].setdefault('id', local_fhir_bundle['entry'][0]['id'])
 
     # TODO: is there a PHI safe 'id' for the user (in place of email)?
     user_id = oidc.user_getfield('email')

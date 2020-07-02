@@ -73,20 +73,31 @@ def sync_bundle(token, external_bundle):
     source, to be syncronized with the internal backing store, namely
     HAPI.
 
-    :returns: synchronized resource if only one in bundle
+    :returns: synchronized bundle
 
     """
     if external_bundle.get('resourceType') != 'Bundle':
         raise ValueError(f"Expected bundle; can't process {external_bundle.get('resourceType')}")
 
+    synced_entries = []
+    for entry in external_bundle.get('entry'):
+        if entry['resourceType'] == 'Patient':
+            result = sync_patient(token, entry)
+            synced_entries.append(result)
+            continue
+
+        if entry['resourceType'] == 'MedicationOrder':
+            result = sync_medication(token, entry)
+            synced_entries.append(result)
+            continue
 
         # Restrict to what is expected for now
         raise ValueError(f"Can't sync resourceType {entry['resourceType']}")
 
-        patient = sync_patient(token, entry)
         # TODO handle multiple external matches (if it ever happens!)
-        # currently returning first
-        return patient
+
+    external_bundle['entry'] = synced_entries
+    return external_bundle
 
 
 def sync_patient(token, patient):
