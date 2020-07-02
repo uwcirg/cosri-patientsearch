@@ -147,8 +147,7 @@ def resource_bundle(resource_type, methods=["GET"]):
         token=token, resource_type=resource_type, params=params))
 
 
-@api_blueprint.route(
-    '/<string:resource_type>/<int:resource_id>', methods=["GET"])
+@api_blueprint.route('/<string:resource_type>/<int:resource_id>', methods=["GET"])
 def resource_by_id(resource_type, resource_id, methods=["GET"]):
     """Query HAPI for individual resource; return JSON FHIR Resource
 
@@ -159,8 +158,7 @@ def resource_by_id(resource_type, resource_id, methods=["GET"]):
     return jsonify(HAPI_request(resource_type, resource_id, token))
 
 
-@api_blueprint.route(
-    '/external_search/<string:resource_type>', methods=["GET"])
+@api_blueprint.route('/external_search/<string:resource_type>', methods=["GET"])
 def external_search(resource_type, methods=["GET"]):
     """Query external source for resource_type
 
