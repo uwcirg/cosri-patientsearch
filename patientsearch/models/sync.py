@@ -63,7 +63,7 @@ def external_request(token, resource_type, params):
     return resp.json()
 
 
-def sync_bundle(token, bundle):
+def sync_bundle(token, external_bundle):
     """Given FHIR bundle, insert or update all contained resources
 
     :param token: valid JWT token for use in auth calls
@@ -76,15 +76,12 @@ def sync_bundle(token, bundle):
     :returns: synchronized resource if only one in bundle
 
     """
-    if bundle.get('resourceType') != 'Bundle':
-        raise ValueError(
-            f"Expected bundle; can't process {bundle.get('resourceType')}")
+    if external_bundle.get('resourceType') != 'Bundle':
+        raise ValueError(f"Expected bundle; can't process {external_bundle.get('resourceType')}")
 
-    for entry in bundle.get('entry'):
+
         # Restrict to what is expected for now
-        if entry['resourceType'] != 'Patient':
-            raise ValueError(
-                f"Can't sync resourceType {entry['resourceType']}")
+        raise ValueError(f"Can't sync resourceType {entry['resourceType']}")
 
         patient = sync_patient(token, entry)
         # TODO handle multiple external matches (if it ever happens!)
@@ -107,15 +104,13 @@ def sync_patient(token, patient):
         if match:
             search_params[queryterm] = compstr + match
 
-    internal_search = HAPI_request(
-        token=token, resource_type='Patient', params=search_params)
+    internal_search = HAPI_request(token=token, resource_type='Patient', params=search_params)
 
     # If found, return the Patient
     match_count = internal_search['total']
     if match_count > 0:
         if match_count > 1:
-            current_app.logger.warn(
-                f"expected ONE matching patient, found {match_count}")
+            current_app.logger.warn("expected ONE matching patient, found %s", match_count)
 
         # TODO: manage sync issues when both exist and multiple matches
         return internal_search['entry'][0]['resource']
