@@ -103,4 +103,14 @@ $input-icon-color: #686b6b;
   -webkit-animation-delay: -0.16s;
   animation-delay: -0.16s;
 }
+.patient-info {
+  display: block;
+  .item {
+    margin-right: 8px;
+    font-size: 14px;
+  }
+  .label {
+    color: $color-muted;
+  }
+}
 

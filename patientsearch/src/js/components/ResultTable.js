@@ -20,8 +20,8 @@ const useStyles = makeStyles({
 export default function ResultTable(props) {
   const classes = useStyles();
   const rows = props.rows || [];
-  const header = ['','Name', 'Birth Date', 'Gender'].map(item => {
-    return  <TableCell>{item}</TableCell>
+  const header = (['', ...props.header]).map((item, index) => {
+    return  <TableCell key={`headercell_${index}`}>{item}</TableCell>
   });
 
   return (
@@ -34,12 +34,12 @@ export default function ResultTable(props) {
         </TableHead>
         <TableBody>
           {rows.map((row, index) => (
-            <TableRow key={`${row.name}_${index}`}>
+            <TableRow key={`row_${index}`}>
               <TableCell component="th" scope="row">
-                <Button href={row.launchURL} variant="contained" color="primary">Launch</Button>
+                <Button onClick={() => props.callback(row.launchURL)} variant="contained" color="primary">Launch</Button>
               </TableCell>
-              {['fullName', 'birthDate', 'gender'].map(item => {
-                return (<TableCell align="center">{row[item]}</TableCell>)
+              {(props.fields).map((item, index) => {
+                return (<TableCell key={`cell_${index}`} align="center">{row[item]}</TableCell>)
               })}
             </TableRow>
           ))}
@@ -49,5 +49,9 @@ export default function ResultTable(props) {
   );
 }
 ResultTable.propTypes = {
-  rows: PropTypes.array.isRequired
+  rows: PropTypes.array.isRequired,
+  //header cell titles in array
+  header: PropTypes.array.isRequired,
+  //field names to be rendered in array
+  fields: PropTypes.array.isRequired
 };

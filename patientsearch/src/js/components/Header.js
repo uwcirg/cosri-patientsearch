@@ -8,6 +8,7 @@ import Link from '@material-ui/core/Link';
 import HowToRegIcon from '@material-ui/icons/HowToReg';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
+import Logout from './Logout';
 import {sendRequest} from './Utility';
 import logo from "../../assets/logo_horizontal.png";
 
@@ -43,8 +44,9 @@ const useStyles = makeStyles((theme) => ({
     welcomeContainer: {
         display: "flex",
         flexDirection: "column",
-        alignItems: "center",
-        marginRight: theme.spacing(4)
+        alignItems: "flex-end",
+        marginRight: theme.spacing(3),
+        marginBottom: theme.spacing(0.5)
     },
     welcomeText: {
         marginTop: theme.spacing(0.5),
@@ -52,7 +54,12 @@ const useStyles = makeStyles((theme) => ({
         fontWeight: 400,
         display: "flex",
         flexDirection: "row",
-        alignItems: "center"
+        alignItems: "center",
+        [theme.breakpoints.down('xs')]: {
+            flexWrap: "wrap",
+            justifyContent: "flex-end",
+            fontSize: "1rem"
+        },
     },
     avatar: {
         color: theme.palette.primary.dark,
@@ -61,30 +68,12 @@ const useStyles = makeStyles((theme) => ({
         borderStyle: "solid",
         background: "transparent",
         marginRight: theme.spacing(1),
-        width: "32px",
-        height: "32px"
-    },
-    buttonContainer: {
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "flex-end",
-        width: "100%",
-        marginLeft: theme.spacing(1),
-        '& > *': {
-            fontWeight: 400,
-            marginRight: theme.spacing(0.5)
-        },
-    },
-    linkIcon: {
-        color: theme.palette.secondary.light
-    },
-    linkText: {
-        position: "relative",
-        top: "-2px"
+        width: "28px",
+        height: "28px"
     },
     userinfo: {
         marginLeft: "8px"
-    }
+    },
 }));
 
 export default function Header() {
@@ -124,17 +113,10 @@ export default function Header() {
                                 <HowToRegIcon />
                             </Avatar>
                             <span className={classes.avatarText}>Welcome</span>
-                            {hasUserInfo() && <span className={classes.userinfo}>{userInfo.name || userInfo.email}</span>}
+                            {hasUserInfo() && <div className={classes.userinfo}>{userInfo.name || userInfo.email}</div>}
                         </Typography>
                     </div>
-                    <div className={classes.buttonContainer}>
-                        <Link className={classes.linkText} color="secondary" variant="body1" href="/logout" >
-                            Logout
-                        </Link>
-                        <Link color="secondary" variant="body1" href="/logout" >
-                            <ExitToAppIcon color="secondary" fontSize="default" className={classes.linkIcon}></ExitToAppIcon>
-                        </Link>
-                    </div>
+                    <div className={classes.logoutContainer}><Logout></Logout></div>
                 </Box>
             </Toolbar>
             <Toolbar className={classes.toolbar} disableGutters variant="dense">

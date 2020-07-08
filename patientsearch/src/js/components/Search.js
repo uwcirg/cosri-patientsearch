@@ -22,6 +22,7 @@ import Typography from '@material-ui/core/Typography';
 import ZoomInIcon from '@material-ui/icons/ZoomIn';
 import ResultTable from "./ResultTable";
 import Error from "./Error";
+import PatientViewer from "./PatientViewer";
 import Spinner from "./Spinner";
 import {sendRequest} from './Utility';
 
@@ -131,6 +132,34 @@ const useStyles = makeStyles((theme) => ({
           backgroundColor: green[700],
         },
     },
+    view: {
+        position: "fixed",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        zIndex: -1,
+        background: theme.palette.primary.base,
+       
+    },
+    viewOpen: {
+        transform: "translateY(0)",
+        zIndex: 999,
+        opacity: 1,
+        transition: theme.transitions.create(['transform', 'opacity'], {
+            easing: theme.transitions.easing.slow,
+            duration: 650
+        })
+    },
+    viewClose: {
+        transform: "translateY(-250%)",
+        opacity: 0,
+        zIndex: -1,
+        transition: theme.transitions.create(['transform', 'opacity'], {
+            easing: theme.transitions.easing.sharp,
+            duration: 350,
+        })
+    }
 }));
 
 async function fetchData(url) {
@@ -182,7 +211,7 @@ export default function Search() {
     let focusInput = React.useRef(null);
     const classes = useStyles();
     const [appReady, setAppReady] = React.useState(false);
-    const [appSettings, setAppSettings] = React.useState({});
+    const [appSettings, setAppSettings] = React.useState();
     const [loading, setLoading] = React.useState(false);
     const [errorMessage, setErrorMessage] = React.useState("");
     const [popOpen, setPop] = React.useState(false);
@@ -191,12 +220,22 @@ export default function Search() {
     const [lastName, setLastName] = React.useState("");
     const [dob, setDOB] = React.useState(null);
     const [success, setSuccess] = React.useState(false);
+    const [viewOpen, setView] = React.useState(false);
+    const [currentLaunchURL, setCurrentLaunchURL] = React.useState();
     const rootClass = clsx(classes.root, {
         [classes.ready]: appReady,
         [classes.notReady]: !appReady
     });
     const buttonClassname = clsx({
         [classes.buttonSuccess]: success,
+    });
+    const patientViewClass = clsx(classes.view, {
+        [classes.viewOpen]: viewOpen,
+        [classes.viewClose]: !viewOpen
+    });
+    const spinnerClass = clsx({
+       "hide": appReady,
+       "show": !appReady
     });
     const [searchResults, setSearchResults] = React.useState([]);
 
@@ -282,6 +321,16 @@ export default function Search() {
         setPop(false);
     }
 
+    const handleViewOpen = (launchURL) => {
+        setCurrentLaunchURL(launchURL);
+        handleResultClose();
+        setViewOpen();
+    }
+
+    const setViewOpen = () => {
+        setView(true);
+    }
+
     const handleResultClose = () => {
         setSuccess(false);
         setResultOpen(false);
@@ -301,6 +350,7 @@ export default function Search() {
         setDOB(null);
         setErrorMessage("");
         setSuccess(false);
+        setSearchResults([]);
         setTimeout(() => {
             focusInput.current.focus();
         }, 150);
@@ -336,7 +386,7 @@ export default function Search() {
             console.log("Failed to retrieve data", error.statusText);
             setAppReady(true);
         });
-    }, [appReady]);
+    }, []);
 
     return (
         <React.Fragment>
@@ -450,10 +500,10 @@ export default function Search() {
                                     <div className={classes.modalBody}>
                                         <h2 id="result-modal-title">Search Result</h2>
                                         <div id="result-modal-description">
-                                            <ResultTable rows={searchResults}></ResultTable>
+                                            <ResultTable rows={searchResults} fields={['fullName', 'birthDate', 'gender']} header={['Name', 'Birth Date', 'Gender']} callback={handleViewOpen}></ResultTable>
                                         </div>
-                                        <Box align="center" className={classes.modalButtonContainer}>
-                                            <Button variant="contained" onClick={handleResultClose}>Cancel</Button>
+                                        <Box align="right" className={classes.modalButtonContainer}>
+                                            <Button variant="contained" size="small" onClick={handleResultClose}>Cancel</Button>
                                         </Box>
                                     </div>
                                 </Fade>
@@ -463,7 +513,10 @@ export default function Search() {
                     </Fade>
                 </section>
             </div>
-            <div className={appReady?"hide": "show"}><Spinner className={appReady?"hide": "show"}></Spinner></div>
+            <div className={patientViewClass}>
+                <PatientViewer info={searchResults} launchURL={currentLaunchURL}/>
+            </div>
+            <div className={spinnerClass}><Spinner></Spinner></div>
         </React.Fragment>
     );
 }
