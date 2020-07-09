@@ -7,8 +7,6 @@ import Typography from '@material-ui/core/Typography';
 import ZoomInIcon from '@material-ui/icons/ZoomIn';
 import Logout from './Logout';
 
-const drawerWidth = 252;
-
 const useStyles = makeStyles((theme) => ({
   root: {
     display: 'flex'

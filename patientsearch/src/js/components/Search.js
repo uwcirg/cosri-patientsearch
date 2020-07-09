@@ -154,7 +154,7 @@ const useStyles = makeStyles((theme) => ({
     },
     viewClose: {
         //transform: "translateY(-250%)",
-        transform: "scaleX(0.7)",
+        transform: "scaleX(0.8)",
         opacity: 0,
         zIndex: -1,
         transition: theme.transitions.create(['transform', 'opacity'], {
