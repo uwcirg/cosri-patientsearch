@@ -15,7 +15,8 @@ const useStyles = makeStyles((theme) => ({
         },
     },
     logoutButton: {
-        background: "#FFF"
+        background: "#FFF",
+        boxShadow: "0px 1px 1px 0px rgba(0,0,0,0.14), 0px 2px 2px 0px rgba(0,0,0,0.12)"
     },
     linkIcon: {
         color: theme.palette.secondary.light,

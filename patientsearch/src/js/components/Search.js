@@ -139,20 +139,22 @@ const useStyles = makeStyles((theme) => ({
         right: 0,
         bottom: 0,
         zIndex: -1,
-        background: theme.palette.primary.base,
+        background: theme.palette.primary.base
        
     },
     viewOpen: {
-        transform: "translateY(0)",
+        //transform: "translateY(0)",
+        transform: "scaleX(1)",
         zIndex: 999,
         opacity: 1,
         transition: theme.transitions.create(['transform', 'opacity'], {
             easing: theme.transitions.easing.slow,
-            duration: 650
+            duration: 700
         })
     },
     viewClose: {
-        transform: "translateY(-250%)",
+        //transform: "translateY(-250%)",
+        transform: "scaleX(0.7)",
         opacity: 0,
         zIndex: -1,
         transition: theme.transitions.create(['transform', 'opacity'], {
