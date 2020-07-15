@@ -15,7 +15,7 @@ import Grid from '@material-ui/core/Grid';
 import  {MuiPickersUtilsProvider, KeyboardDatePicker } from '@material-ui/pickers';
 import Link from '@material-ui/core/Link';
 import Modal from '@material-ui/core/Modal';
-import MuiAlert from '@material-ui/lab/Alert';
+import Slide from '@material-ui/core/Slide';
 import Snackbar from '@material-ui/core/Snackbar';
 import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
@@ -147,6 +147,16 @@ const useStyles = makeStyles((theme) => ({
           backgroundColor: green[700],
         },
     },
+    snackbarWrapper: {
+        bottom: "15%",
+    },
+    snackbarContent: {
+        backgroundColor: green[500],
+        color: "#FFF",
+        display: "flex",
+        justifyContent: "center",
+        minWidth: "160px"
+    },
     view: {
         position: "fixed",
         top: 0,
@@ -218,14 +228,9 @@ async function fetchData(url) {
         throw e;
       }
     }
-
     return json;
 }
 
-function Alert(props) {
-    return <MuiAlert elevation={6} variant="filled" {...props} />;
-}
-  
 export default function Search() {
     let focusInput = React.useRef(null);
     const reducer = (state, action) => {
@@ -421,7 +426,7 @@ export default function Search() {
             dispatch({type: "appSettings", settings: []});
         });
     }, []);
-    
+
     return (
         <React.Fragment>
             <div id="searchContainer" className={rootClass}>
@@ -514,9 +519,8 @@ export default function Search() {
                                     </Grid>
                                 </form>
                             </div>
-                            <Snackbar open={state.popOpen} autoHideDuration={1000} onClose={handlePopClose}>
-                                <Alert onClose={handlePopClose} severity="success">Success!</Alert>
-                            </Snackbar>
+                         
+                            <Snackbar open={state.popOpen} onClose={handlePopClose} TransitionComponent={Slide} message="Success!" classes={{anchorOriginBottomCenter: classes.snackbarWrapper}} ContentProps={{classes: {root: classes.snackbarContent}, role:'success'}} autoHideDuration={750} TransitionProps={{timeout: 500}}></Snackbar>
                             <Modal
                                 aria-labelledby="result-modal-title"
                                 aria-describedby="result-modal-description"
