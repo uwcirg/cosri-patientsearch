@@ -74,6 +74,9 @@ const useStyles = makeStyles((theme) => ({
     userinfo: {
         marginLeft: "8px"
     },
+    buttonClass: {
+        paddingTop: theme.spacing(0.5)
+    }
 }));
 
 export default function Header() {
@@ -116,7 +119,7 @@ export default function Header() {
                             {hasUserInfo() && <div className={classes.userinfo}>{userInfo.name || userInfo.email}</div>}
                         </Typography>
                     </div>
-                    <div className={classes.logoutContainer}><Logout></Logout></div>
+                    <div className={classes.logoutContainer}><Logout buttonClass={classes.buttonClass}></Logout></div>
                 </Box>
             </Toolbar>
             <Toolbar className={classes.toolbar} disableGutters variant="dense">

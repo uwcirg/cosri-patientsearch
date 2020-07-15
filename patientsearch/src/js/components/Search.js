@@ -2,7 +2,7 @@ import format from "date-fns/format";
 import isValid from "date-fns/isValid";
 import DateFnsUtils from '@date-io/date-fns';
 import clsx from 'clsx';
-import React from 'react';
+import React, {useReducer} from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import Box from '@material-ui/core/Box';
 import Backdrop from '@material-ui/core/Backdrop';
@@ -110,6 +110,21 @@ const useStyles = makeStyles((theme) => ({
         padding: theme.spacing(2, 4, 3),
         border: 0
     },
+    formOpen: {
+        opacity: 1,
+        transition: theme.transitions.create(['transform', 'opacity'], {
+            easing: theme.transitions.easing.sharp,
+            duration: 150
+        })
+    },
+    formClose: {
+        opacity: 0,
+        //zIndex: -1,
+        transition: theme.transitions.create(['transform', 'opacity'], {
+            easing: theme.transitions.easing.slow,
+            duration: 850,
+        })
+    },
     modalButtonContainer: {
         marginTop: theme.spacing(2.5)
     },
@@ -145,16 +160,18 @@ const useStyles = makeStyles((theme) => ({
     viewOpen: {
         //transform: "translateY(0)",
         transform: "scaleX(1)",
+        transformOrigin: "top left",
         zIndex: 999,
         opacity: 1,
         transition: theme.transitions.create(['transform', 'opacity'], {
             easing: theme.transitions.easing.slow,
-            duration: 700
+            duration: 700,
+            delay: 150
         })
     },
     viewClose: {
         //transform: "translateY(-250%)",
-        transform: "scaleX(0.8)",
+        transform: "scaleX(0.9)",
         opacity: 0,
         zIndex: -1,
         transition: theme.transitions.create(['transform', 'opacity'], {
@@ -211,70 +228,89 @@ function Alert(props) {
   
 export default function Search() {
     let focusInput = React.useRef(null);
+    const reducer = (state, action) => {
+        return {
+            appReady: {...state, appReady: true, loading: false},
+            appSettings: {...state, appSettings: action.settings, appReady: true, loading: false},
+            dob: {...state, dob: action.dob, errorMessage: ""},
+            error: {...state, success: false, loading: false, errorMessage: action.errorMessage},
+            firstName: {...state, firstName: action.firstName, errorMessage: ""},
+            lastName: {...state, lastName: action.lastName, errorMessage: ""},
+            loading: {...state, loading: true, errorMessage: ""},
+            popClose: {...state,loading: false, popOpen: false},
+            popOpen: {...state, loading: false, popOpen: true},
+            resultClose: {...state, resultOpen: false, success: false},
+            reset: {...state, firstName: "", lastName: "", dob: null, errorMessage: "", success: false, searchResults: [], currentLaunchURL: ""},
+            resultOpen: {...state, resultOpen: true},
+            success: {...state, searchResults: action.searchResults, success: true, loading: false, errorMessage: "", popOpen: true},
+            view: {...state, viewOpen: action.viewOpen},
+            viewOpen: {...state, loading: false, viewOpen: true, resultOpen: false, currentLaunchURL: action.currentLaunchURL}
+
+        }[action.type];
+    };
+    const initialState = {
+        appReady: false,
+        appSettings: null,
+        loading: false,
+        errorMessage: "",
+        popOpen: false,
+        resultOpen: false,
+        firstName: "",
+        lastName: "",
+        dob: null,
+        success: false,
+        viewOpen: false,
+        searchResults: [],
+        currentLaunchURL: ""
+    };
+    const [state, dispatch] = useReducer(reducer, initialState);
     const classes = useStyles();
-    const [appReady, setAppReady] = React.useState(false);
-    const [appSettings, setAppSettings] = React.useState();
-    const [loading, setLoading] = React.useState(false);
-    const [errorMessage, setErrorMessage] = React.useState("");
-    const [popOpen, setPop] = React.useState(false);
-    const [resultOpen, setResultOpen] = React.useState(false);
-    const [firstName, setFirstName] = React.useState("");
-    const [lastName, setLastName] = React.useState("");
-    const [dob, setDOB] = React.useState(null);
-    const [success, setSuccess] = React.useState(false);
-    const [viewOpen, setView] = React.useState(false);
-    const [currentLaunchURL, setCurrentLaunchURL] = React.useState();
     const rootClass = clsx(classes.root, {
-        [classes.ready]: appReady,
-        [classes.notReady]: !appReady
+        [classes.ready]: state.appReady,
+        [classes.notReady]: !state.appReady
     });
     const buttonClassname = clsx({
-        [classes.buttonSuccess]: success,
+        [classes.buttonSuccess]: state.success,
     });
     const patientViewClass = clsx(classes.view, {
-        [classes.viewOpen]: viewOpen,
-        [classes.viewClose]: !viewOpen
+        [classes.viewOpen]: state.viewOpen,
+        [classes.viewClose]: !state.viewOpen
+    });
+    const formClass = clsx(classes.form, {
+        [classes.formClose]: state.viewOpen
     });
     const spinnerClass = clsx({
-       "hide": appReady,
-       "show": !appReady
+       "hide": state.appReady,
+       "show": !state.appReady
     });
-    const [searchResults, setSearchResults] = React.useState([]);
 
     const getLaunchURL = (patientId) => {
         if (!patientId) {
             console.log("Missing information: patient Id");
         }
-        let baseURL = appSettings["SOF_CLIENT_LAUNCH_URL"];
-        let iss = appSettings["SOF_HOST_FHIR_URL"];
+        let baseURL = state.appSettings["SOF_CLIENT_LAUNCH_URL"];
+        let iss = state.appSettings["SOF_HOST_FHIR_URL"];
         let launchParam = btoa(JSON.stringify({"b":patientId}));
         return `${baseURL}?launch=${launchParam}&iss=${iss}`; 
     }
  
     const getPatientSearchURL = () => {
         const dataURL = "/external_search/Patient";
-        let formattedDate = format(new Date(dob), "yyyy-MM-dd");
+        let formattedDate = format(new Date(state.dob), "yyyy-MM-dd");
         const params = [
-            `subject:Patient.name.given=${firstName}`,
-            `subject:Patient.name.family=${lastName}`,
+            `subject:Patient.name.given=${state.firstName}`,
+            `subject:Patient.name.family=${state.lastName}`,
             `subject:Patient.birthdate=eq${formattedDate}`
         ];
         return `${dataURL}?${params.join("&")}`;
     };
     const searchPatient = () => {
-        setLoading(true);
-        setErrorMessage('');
+        dispatch({type: "loading"});
         fetchData(getPatientSearchURL()).then(response => {
             if (!response || !response.entry || !response.entry.length) {
-                setErrorMessage("No patient found.");
-                setSuccess(false);
-                setLoading(false);
+                dispatch({type: "error", errorMessage: "No patient found."});
                 return;
             }
-            setErrorMessage('');
-            setSuccess(true);
-            setPop(true);
-            setLoading(false);
             let formattedResult = response.entry;
             formattedResult = formattedResult.map(item => {
                 let fullName = "";
@@ -286,73 +322,67 @@ export default function Search() {
                 item.launchURL = encodeURI(getLaunchURL(item.id));
                 return item;
             });
-            setSearchResults(formattedResult);
+            dispatch({type: "success", searchResults: formattedResult});
             setTimeout(function() {
-                setResultOpen(true);
+                dispatch({type: "resultOpen", resultOpen: true});
             }, 500);
           
         
         }).catch(e => {
-            setErrorMessage(`Patient search error: ${e}`);
-            setSuccess(false);
-            setLoading(false);
+            dispatch({type: "error", errorMessage: `Patient search error: ${e}`});
         });
     };
     const handleDateChange = (date) => {
-        setErrorMessage("");
         let convoDate = new Date(date);
         if (!isValid(convoDate)) {
             return;
         }
-        setDOB(date);
+        dispatch({type: "dob", dob: date});
     };
 
+    const handleKeyEvent = (e) => {
+        if (!e.target.value) {
+            return;
+        }
+        if (e.keyCode === 13) { //enter key pressed
+            if (isRequiredFullfilled()) {
+                searchPatient();
+            }
+        }
+    }
+
     const handleFirstNameChange = (event) => {
-        setErrorMessage("");
-        setFirstName(event.target.value);
+        dispatch({type:"firstName", firstName: event.target.value});
     }
     const handleLastNameChange = (event) => {
-        setErrorMessage("");
-        setLastName(event.target.value);
+        dispatch({type: "lastName", lastName: event.target.value});
     }
 
     const handlePopClose = (event, reason) => {
         if (reason === 'clickaway') {
             return;
         }
-        setPop(false);
+       dispatch({type: "popClose"});
     }
 
     const handleViewOpen = (launchURL) => {
-        setCurrentLaunchURL(launchURL);
-        handleResultClose();
-        setViewOpen();
-    }
-
-    const setViewOpen = () => {
-        setView(true);
+        dispatch({type: "viewOpen", currentLaunchURL: launchURL});
     }
 
     const handleResultClose = () => {
-        setSuccess(false);
-        setResultOpen(false);
-      };
+        dispatch({type: "resultClose"});
+    };
 
     const isRequiredFullfilled = () => {
-        return firstName && lastName && dob;
+        return state.firstName && state.lastName && state.dob;
     }
 
     const isAnyFullfilled = () => {
-        return firstName || lastName || dob;
+        return state.firstName || state.lastName || state.dob;
     }
     
     const reset = () => {
-        setFirstName("");
-        setLastName("");
-        setDOB(null);
-        setErrorMessage("");
-        setSuccess(false);
-        setSearchResults([]);
+        dispatch({type: "reset"});
         setTimeout(() => {
             focusInput.current.focus();
         }, 150);
@@ -366,7 +396,7 @@ export default function Search() {
         reset();
     }
     let errorStyle = {
-        "display" : errorMessage? "block": "none"
+        "display" : state.errorMessage? "block": "none"
     };
 
     React.useEffect(() => {
@@ -381,15 +411,17 @@ export default function Search() {
                 console.log("error parsing data ", e);
             }
             if (settings) {
-                setAppSettings(settings);
+                dispatch({type: "appSettings", settings: settings});
+                return;
             }
-            setAppReady(true);
+            dispatch({type: "appSettings", settings: []});
+            
         }, error => {
             console.log("Failed to retrieve data", error.statusText);
-            setAppReady(true);
+            dispatch({type: "appSettings", settings: []});
         });
     }, []);
-
+    
     return (
         <React.Fragment>
             <div id="searchContainer" className={rootClass}>
@@ -400,37 +432,37 @@ export default function Search() {
                         <Container maxWidth="lg" className={classes.container}>
                             <div className={classes.paper}>
                                 <Box className={classes.titleHeader}>
-                                    <Typography component="h4" variant="h5">
-                                        Patient Selector
-                                    </Typography>
+                                    <Typography component="h4" variant="h5">Patient Selector</Typography>
                                 </Box>
-                                <form className={classes.form} noValidate>
+                                <form className={formClass} noValidate>
                                     <TextField
                                         variant="standard"
-                                        margin="normal"
                                         required
                                         fullWidth
+                                        margin="normal"
                                         id="firstName"
                                         label="First Name"
                                         name="firstName"
                                         autoComplete="firstName"
-                                        value={firstName}
+                                        value={state.firstName}
                                         autoFocus
                                         onChange={handleFirstNameChange}
+                                        onKeyDown={handleKeyEvent}
                                         inputRef={focusInput}
                                         inputProps={{"data-lpignore": true}}
                                     />
                                     <TextField
                                         variant="standard"
-                                        margin="normal"
                                         required
                                         fullWidth
+                                        margin="normal"
                                         name="lastName"
                                         label="Last Name"
                                         id="lastName"
                                         autoComplete="lastName"
-                                        value={lastName}
+                                        value={state.lastName}
                                         onChange={handleLastNameChange}
+                                        onKeyDown={handleKeyEvent}
                                         inputProps={{"data-lpignore": true}}
                                     />
                                     <MuiPickersUtilsProvider utils={DateFnsUtils}>
@@ -447,9 +479,10 @@ export default function Search() {
                                             minDate={new Date("1900-01-01")}
                                             maxDate={new Date()}
                                             label="Birth Date *"
-                                            value={dob}
+                                            value={state.dob}
                                             orientation="landscape"
                                             onChange={handleDateChange}
+                                            onKeyDown={handleKeyEvent}
                                             KeyboardButtonProps={{className: "icon-container"}}
 
                                         />
@@ -464,13 +497,13 @@ export default function Search() {
                                                     color="primary"
                                                     size="large"
                                                     className={`${buttonClassname} ${classes.submit}`}
-                                                    disabled={loading || !isRequiredFullfilled()}
+                                                    disabled={state.loading || !isRequiredFullfilled()}
                                                     onClick={searchPatient}
                                                 >
                                                     Search
                                                     <ZoomInIcon className={classes.avatar}/>
                                                 </Button>
-                                                {loading && <CircularProgress size={24} className={classes.buttonProgress} />}
+                                                {state.loading && <CircularProgress size={24} className={classes.buttonProgress} />}
                                             </div>
                                             <div className="text-right">
                                                 <Link variant="body2" color="primary" className={!isAnyFullfilled() ? `${classes.linkDisabled} muted-text` : classes.link} onClick={resetFields} disabled={!isAnyFullfilled()} align="right">
@@ -481,16 +514,14 @@ export default function Search() {
                                     </Grid>
                                 </form>
                             </div>
-                            <Snackbar open={popOpen} autoHideDuration={1000} onClose={handlePopClose}>
-                                <Alert onClose={handlePopClose} severity="success">
-                                    Success!
-                                </Alert>
+                            <Snackbar open={state.popOpen} autoHideDuration={1000} onClose={handlePopClose}>
+                                <Alert onClose={handlePopClose} severity="success">Success!</Alert>
                             </Snackbar>
                             <Modal
                                 aria-labelledby="result-modal-title"
                                 aria-describedby="result-modal-description"
                                 className={classes.modal}
-                                open={resultOpen}
+                                open={state.resultOpen}
                                 onClose={handleResultClose}
                                 closeAfterTransition
                                 BackdropComponent={Backdrop}
@@ -498,11 +529,11 @@ export default function Search() {
                                 timeout: 500,
                                 }}
                             >
-                                <Fade in={resultOpen}>
+                                <Fade in={state.resultOpen}>
                                     <div className={classes.modalBody}>
                                         <h2 id="result-modal-title">Search Result</h2>
                                         <div id="result-modal-description">
-                                            <ResultTable rows={searchResults} fields={['fullName', 'birthDate', 'gender']} header={['Name', 'Birth Date', 'Gender']} callback={handleViewOpen}></ResultTable>
+                                            <ResultTable rows={state.searchResults} fields={['fullName', 'birthDate', 'gender']} header={['Name', 'Birth Date', 'Gender']} callback={handleViewOpen}></ResultTable>
                                         </div>
                                         <Box align="right" className={classes.modalButtonContainer}>
                                             <Button variant="contained" size="small" onClick={handleResultClose}>Cancel</Button>
@@ -510,13 +541,13 @@ export default function Search() {
                                     </div>
                                 </Fade>
                             </Modal>
-                            <Error message={errorMessage} style={errorStyle} className={classes.error}/>
+                            <Error message={state.errorMessage} style={errorStyle} className={classes.error}/>
                         </Container>
                     </Fade>
                 </section>
             </div>
             <div className={patientViewClass}>
-                <PatientViewer info={searchResults} launchURL={currentLaunchURL}/>
+                <PatientViewer info={state.searchResults} launchURL={state.currentLaunchURL}/>
             </div>
             <div className={spinnerClass}><Spinner></Spinner></div>
         </React.Fragment>
