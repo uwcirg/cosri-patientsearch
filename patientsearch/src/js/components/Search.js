@@ -15,7 +15,7 @@ import Grid from '@material-ui/core/Grid';
 import  {MuiPickersUtilsProvider, KeyboardDatePicker } from '@material-ui/pickers';
 import Link from '@material-ui/core/Link';
 import Modal from '@material-ui/core/Modal';
-import Slide from '@material-ui/core/Slide';
+import MuiAlert from '@material-ui/lab/Alert';
 import Snackbar from '@material-ui/core/Snackbar';
 import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
@@ -155,7 +155,8 @@ const useStyles = makeStyles((theme) => ({
         color: "#FFF",
         display: "flex",
         justifyContent: "center",
-        minWidth: "160px"
+        minWidth: "160px",
+        maxWidth: "160px"
     },
     view: {
         position: "fixed",
@@ -230,6 +231,11 @@ async function fetchData(url) {
     }
     return json;
 }
+
+function Alert(props) {
+    return <MuiAlert elevation={6} variant="filled" {...props} />;
+}
+  
 
 export default function Search() {
     let focusInput = React.useRef(null);
@@ -520,7 +526,9 @@ export default function Search() {
                                 </form>
                             </div>
                          
-                            <Snackbar open={state.popOpen} onClose={handlePopClose} TransitionComponent={Slide} message="Success!" classes={{anchorOriginBottomCenter: classes.snackbarWrapper}} ContentProps={{classes: {root: classes.snackbarContent}, role:'success'}} autoHideDuration={750} TransitionProps={{timeout: 500}}></Snackbar>
+                            <Snackbar open={state.popOpen} onClose={handlePopClose} classes={{anchorOriginBottomCenter: classes.snackbarWrapper}} ContentProps={{classes: {root: classes.snackbarContent}, role:'success'}}  TransitionProps={{timeout: 350}}  autoHideDuration={750} className="success-snackbar">
+                                <Alert severity="success">Success!</Alert>
+                            </Snackbar>
                             <Modal
                                 aria-labelledby="result-modal-title"
                                 aria-describedby="result-modal-description"
