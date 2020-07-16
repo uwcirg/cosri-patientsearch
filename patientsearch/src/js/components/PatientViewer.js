@@ -75,9 +75,15 @@ export default function PatientViewer(props) {
   const getPatientInfo = (info) => {
     if (!info) return "";
     return (<span className="patient-info">
-      <span className="item"><span className="label">name:</span> {info.fullName || "unknown"}</span>
-      <span className="item"><span className="label">DOB:</span> {info.birthDate || "unknown"}</span>
-      <span className="item"><span className="label">gender:</span> {info.gender || "unknown"}</span>
+      {
+        [
+          ["name", info.fullName],
+          ["DOB", info.birthDate],
+          ["gender", info.gender]
+        ].map( (item, index) => {
+          return  <span key={`patientinfo_${index}`}><span className="item"><span className="label">{item[0]}</span> {item[1] || "unknown"}</span></span>
+        })
+      }
     </span>);
   }
   const resetPatientViewer = () => {

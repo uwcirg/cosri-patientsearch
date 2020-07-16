@@ -119,7 +119,6 @@ const useStyles = makeStyles((theme) => ({
     },
     formClose: {
         opacity: 0,
-        //zIndex: -1,
         transition: theme.transitions.create(['transform', 'opacity'], {
             easing: theme.transitions.easing.slow,
             duration: 850,
@@ -169,7 +168,6 @@ const useStyles = makeStyles((theme) => ({
        
     },
     viewOpen: {
-        //transform: "translateY(0)",
         transform: "scaleX(1)",
         transformOrigin: "top left",
         zIndex: 999,
@@ -181,7 +179,6 @@ const useStyles = makeStyles((theme) => ({
         })
     },
     viewClose: {
-        //transform: "translateY(-250%)",
         transform: "scaleX(0.9)",
         opacity: 0,
         zIndex: -1,
@@ -235,7 +232,6 @@ async function fetchData(url) {
 function Alert(props) {
     return <MuiAlert elevation={6} variant="filled" {...props} />;
 }
-  
 
 export default function Search() {
     let focusInput = React.useRef(null);
@@ -254,7 +250,6 @@ export default function Search() {
             reset: {...state, firstName: "", lastName: "", dob: null, errorMessage: "", success: false, searchResults: [], currentLaunchURL: ""},
             resultOpen: {...state, resultOpen: true},
             success: {...state, searchResults: action.searchResults, success: true, loading: false, errorMessage: "", popOpen: true},
-            view: {...state, viewOpen: action.viewOpen},
             viewOpen: {...state, loading: false, viewOpen: true, resultOpen: false, currentLaunchURL: action.currentLaunchURL}
 
         }[action.type];
