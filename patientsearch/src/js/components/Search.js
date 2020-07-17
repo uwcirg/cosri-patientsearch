@@ -147,15 +147,11 @@ const useStyles = makeStyles((theme) => ({
         },
     },
     snackbarWrapper: {
-        bottom: "15%",
+        bottom: "10%"
     },
-    snackbarContent: {
-        backgroundColor: green[500],
-        color: "#FFF",
-        display: "flex",
-        justifyContent: "center",
+    alertWrapper: {
         minWidth: "160px",
-        maxWidth: "160px"
+        justifyContent: "center"
     },
     view: {
         position: "fixed",
@@ -521,8 +517,8 @@ export default function Search() {
                                 </form>
                             </div>
                          
-                            <Snackbar open={state.popOpen} classes={{anchorOriginBottomCenter: classes.snackbarWrapper}} ContentProps={{classes: {root: classes.snackbarContent}, role:'success'}}  TransitionProps={{timeout: 350}}  autoHideDuration={750} onClose={handlePopClose} className="success-snackbar">
-                                <Alert severity="success">Success!</Alert>
+                            <Snackbar open={state.popOpen} classes={{anchorOriginBottomCenter: classes.snackbarWrapper}} TransitionProps={{timeout: 350}} onClose={handlePopClose} autoHideDuration={650}>
+                                <Alert severity="success" classes={{root: classes.alertWrapper}}>Success!</Alert>
                             </Snackbar>
                             <Modal
                                 aria-labelledby="result-modal-title"

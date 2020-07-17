@@ -75,7 +75,7 @@ const useStyles = makeStyles((theme) => ({
         marginLeft: "8px"
     },
     buttonClass: {
-        paddingTop: theme.spacing(0.5)
+        paddingTop: theme.spacing(1)
     }
 }));
 
