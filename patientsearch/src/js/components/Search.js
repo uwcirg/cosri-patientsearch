@@ -244,10 +244,10 @@ export default function Search() {
             firstName: {...state, firstName: action.firstName, errorMessage: ""},
             lastName: {...state, lastName: action.lastName, errorMessage: ""},
             loading: {...state, loading: true, errorMessage: ""},
-            popClose: {...state,loading: false, popOpen: false},
-            popOpen: {...state, loading: false, popOpen: true},
-            resultClose: {...state, resultOpen: false, success: false},
+            popClose: {...state, popOpen: false},
+            popOpen: {...state, popOpen: true}, //control display of snackbar message
             reset: {...state, firstName: "", lastName: "", dob: null, errorMessage: "", success: false, searchResults: [], currentLaunchURL: ""},
+            resultClose: {...state, resultOpen: false, success: false},
             resultOpen: {...state, resultOpen: true},
             success: {...state, searchResults: action.searchResults, success: true, loading: false, errorMessage: "", popOpen: true},
             viewOpen: {...state, loading: false, viewOpen: true, resultOpen: false, currentLaunchURL: action.currentLaunchURL}
@@ -357,18 +357,18 @@ export default function Search() {
         }
     }
 
+    const handlePopClose = (event, reason) => {
+        if (reason === 'clickaway') {
+            return;
+        }
+        dispatch({type: "popClose"});
+    }
+
     const handleFirstNameChange = (event) => {
         dispatch({type:"firstName", firstName: event.target.value});
     }
     const handleLastNameChange = (event) => {
         dispatch({type: "lastName", lastName: event.target.value});
-    }
-
-    const handlePopClose = (event, reason) => {
-        if (reason === 'clickaway') {
-            return;
-        }
-       dispatch({type: "popClose"});
     }
 
     const handleViewOpen = (launchURL) => {
@@ -521,7 +521,7 @@ export default function Search() {
                                 </form>
                             </div>
                          
-                            <Snackbar open={state.popOpen} onClose={handlePopClose} classes={{anchorOriginBottomCenter: classes.snackbarWrapper}} ContentProps={{classes: {root: classes.snackbarContent}, role:'success'}}  TransitionProps={{timeout: 350}}  autoHideDuration={750} className="success-snackbar">
+                            <Snackbar open={state.popOpen} classes={{anchorOriginBottomCenter: classes.snackbarWrapper}} ContentProps={{classes: {root: classes.snackbarContent}, role:'success'}}  TransitionProps={{timeout: 350}}  autoHideDuration={750} onClose={handlePopClose} className="success-snackbar">
                                 <Alert severity="success">Success!</Alert>
                             </Snackbar>
                             <Modal
