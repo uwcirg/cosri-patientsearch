@@ -336,7 +336,7 @@ export default function Search() {
             console.log("Failed to retrieve data", error.statusText);
             setAppReady(true);
         });
-    }, [appReady]);
+    }, []);
 
     return (
         <React.Fragment>
