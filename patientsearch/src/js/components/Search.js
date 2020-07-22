@@ -494,7 +494,7 @@ export default function Search() {
                                     </MuiPickersUtilsProvider>
                                     <Box className={classes.divider}/>
                                     <Grid container direction="row" justify="center" alignItems="center">
-                                        <Grid item xs={12} md={4} lg={4}>
+                                        <Grid item xs={12} md={5} lg={5}>
                                             <div className={classes.wrapper}>
                                                 <Button
                                                     fullWidth
