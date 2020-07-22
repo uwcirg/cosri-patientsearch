@@ -29,10 +29,13 @@ import {sendRequest} from './Utility';
 
 const useStyles = makeStyles((theme) => ({
     root: {
-        marginTop: theme.spacing(3),
+        marginTop: theme.spacing(4.5),
         display: 'flex',
         paddingRight: theme.spacing(2),
-        paddingLeft: theme.spacing(2)
+        paddingLeft: theme.spacing(2),
+        [theme.breakpoints.down('xs')]: {
+            marginTop: theme.spacing(4.5) * 3.5,
+        },
     },
     ready: {
         opacity: 1,
@@ -83,7 +86,7 @@ const useStyles = makeStyles((theme) => ({
         justifyContent: "center",
         alignItems: "center",
         borderBottom: `3px solid ${theme.palette.primary.main}`,
-        marginBottom: theme.spacing(2),
+        marginBottom: theme.spacing(1),
         marginTop: theme.spacing(1),
         paddingBottom: theme.spacing(0.25),
     },

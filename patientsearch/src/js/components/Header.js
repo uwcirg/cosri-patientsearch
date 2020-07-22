@@ -15,14 +15,18 @@ import logo from "../../assets/logo_horizontal.png";
 
 const useStyles = makeStyles((theme) => ({
     toolbar: {
-        paddingRight: 16, // keep right padding when drawer closed
+        padding: theme.spacing(1)
     },
     topBar: {
         padding: 0,
         background: "#FFF",
         display: "flex",
         flexDirection: "row",
-        justifyContent: "space-between"
+        justifyContent: "space-between",
+        [theme.breakpoints.down('xs')]: {
+            flexWrap: "wrap",
+            justifyContent: "center"
+        },
     },
     toolbarIcon: {
         display: 'flex',
@@ -45,8 +49,11 @@ const useStyles = makeStyles((theme) => ({
         display: "flex",
         flexDirection: "column",
         alignItems: "flex-end",
-        marginRight: theme.spacing(3),
-        marginBottom: theme.spacing(0.5)
+        marginRight: theme.spacing(2),
+        marginBottom: theme.spacing(0.5),
+        [theme.breakpoints.down('xs')]: {
+            marginTop: theme.spacing(1)
+        },
     },
     welcomeText: {
         marginTop: theme.spacing(0.5),
