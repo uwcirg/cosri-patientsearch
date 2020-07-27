@@ -316,18 +316,20 @@ export default function Search() {
                 dispatch({type: "error", errorMessage: "No patient found."});
                 return;
             }
-            let formattedResult = response.entry;
-            formattedResult = formattedResult.map(item => {
+            let searchResults = (response.entry).map(item => {
                 let fullName = "";
                 if (item.name) {
                     if (item.name.given) fullName += item.name.given;
                     if (item.name.family) fullName += (fullName ? " ": "") + item.name.family;
                 }
-                item.fullName = fullName;
-                item.launchURL = encodeURI(getLaunchURL(item.id));
-                return item;
+                let result = {};
+                result.Launch_URL = encodeURI(getLaunchURL(item.id));
+                result.Name = fullName;
+                result.Birth_Date = item.birthDate;
+                result.Gender = item.gender;
+                return result;
             });
-            dispatch({type: "success", searchResults: formattedResult});
+            dispatch({type: "success", searchResults: searchResults});
             setTimeout(function() {
                 dispatch({type: "resultOpen", resultOpen: true});
             }, 500);
@@ -400,6 +402,7 @@ export default function Search() {
         }
         reset();
     }
+
     let errorStyle = {
         "display" : state.errorMessage? "block": "none"
     };
@@ -532,14 +535,14 @@ export default function Search() {
                                 closeAfterTransition
                                 BackdropComponent={Backdrop}
                                 BackdropProps={{
-                                timeout: 500,
+                                    timeout: 500,
                                 }}
                             >
                                 <Fade in={state.resultOpen}>
                                     <div className={classes.modalBody}>
                                         <h2 id="result-modal-title">Search Result</h2>
                                         <div id="result-modal-description">
-                                            <ResultTable rows={state.searchResults} fields={['fullName', 'birthDate', 'gender']} header={['Name', 'Birth Date', 'Gender']} callback={handleViewOpen}></ResultTable>
+                                            <ResultTable rows={state.searchResults} callback={handleViewOpen}></ResultTable>
                                         </div>
                                         <Box align="right" className={classes.modalButtonContainer}>
                                             <Button variant="contained" size="small" onClick={handleResultClose}>Cancel</Button>

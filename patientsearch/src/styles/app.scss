@@ -106,11 +106,12 @@ $input-icon-color: #686b6b;
 .patient-info {
   display: block;
   .item {
-    margin-right: 8px;
+    margin-right: 12px;
     font-size: 14px;
   }
   .label {
     color: $color-muted;
+    margin-right: 2px;
   }
 }
 

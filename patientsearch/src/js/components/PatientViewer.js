@@ -76,12 +76,9 @@ export default function PatientViewer(props) {
     if (!info) return "";
     return (<span className="patient-info">
       {
-        [
-          ["name", info.fullName],
-          ["DOB", info.birthDate],
-          ["gender", info.gender]
-        ].map( (item, index) => {
-          return  <span key={`patientinfo_${index}`}><span className="item"><span className="label">{item[0]}</span> {item[1] || "unknown"}</span></span>
+        Object.entries(info).map((item, index) => {
+          if (item[0].toLowerCase().includes("launch")) return "";
+          return  <span key={`patientinfo_${index}`}><span className="item"><span className="label">{item[0].replace(/\_/g, " ")}</span> {item[1] || "unknown"}</span></span>
         })
       }
     </span>);

@@ -20,10 +20,10 @@ const useStyles = makeStyles({
 export default function ResultTable(props) {
   const classes = useStyles();
   const rows = props.rows || [];
-  const header = (['', ...props.header]).map((item, index) => {
-    return  <TableCell key={`headercell_${index}`}>{item}</TableCell>
+  const LAUNCH_FIELD_KEY = "Launch_URL";
+  const header = (Object.keys(rows[0])).map((item, index) => {
+    return  <TableCell key={`headercell_${index}`}>{item == LAUNCH_FIELD_KEY ? "" : item.replace(/\_/g, " ")}</TableCell>
   });
-
   return (
     <TableContainer component={Paper}>
       <Table className={classes.table} aria-label="result table">
@@ -35,11 +35,11 @@ export default function ResultTable(props) {
         <TableBody>
           {rows.map((row, index) => (
             <TableRow key={`row_${index}`}>
-              <TableCell component="th" scope="row">
-                <Button onClick={() => props.callback(row.launchURL)} variant="contained" color="primary">Launch</Button>
-              </TableCell>
-              {(props.fields).map((item, index) => {
-                return (<TableCell key={`cell_${index}`} align="center">{row[item]}</TableCell>)
+              {Object.entries(row).map((item, index) => {
+                if (item[0] == LAUNCH_FIELD_KEY) return (<TableCell key={`cell_launch_${index}`}>
+                  <Button onClick={() => props.callback(row[LAUNCH_FIELD_KEY])} variant="contained" color="primary">Launch</Button>
+                </TableCell>)
+                else return (<TableCell key={`cell_${item[0]}_${index}`} align="center">{item[1]}</TableCell>)
               })}
             </TableRow>
           ))}
@@ -49,9 +49,5 @@ export default function ResultTable(props) {
   );
 }
 ResultTable.propTypes = {
-  rows: PropTypes.array.isRequired,
-  //header cell titles in array
-  header: PropTypes.array.isRequired,
-  //field names to be rendered in array
-  fields: PropTypes.array.isRequired
+  rows: PropTypes.array.isRequired
 };
