@@ -1,6 +1,7 @@
 from datetime import datetime
 from flask import (
     Blueprint,
+    abort,
     current_app,
     jsonify,
     make_response,
@@ -70,11 +71,11 @@ def main(methods=["GET"]):
         cache_timeout=-1
     )
 
+
 @api_blueprint.route('/user_info', methods=["GET"])
 def user_info():
     """API to retrieve user profile info"""
     validate_auth()
-    user_info = []
     try:
         user_info = oidc.user_getinfo(['name', 'email'])
     except Unauthorized:
@@ -187,11 +188,25 @@ def external_search(resource_type, methods=["GET"]):
     if len(external_search_bundle['entry']) > 0:
         external_search_bundle['entry'][0].setdefault('id', local_fhir_patient['id'])
 
+    # TODO: is there a PHI safe 'id' for the user (in place of email)?
+    user_id = oidc.user_getfield('email')
+    current_app.logger.info(
+        "patient search found match",
+        extra={
+            'tags': ['search'],
+            'subject_id': local_fhir_patient['id'],
+            'user_id': user_id}
+    )
     return jsonify(external_search_bundle)
 
 
 @api_blueprint.route('/logout', methods=["GET"])
 def logout(methods=["GET"]):
+    # TODO: is there a PHI safe 'id' for the user (in place of email)?
+    user_id = oidc.user_getfield('email')
+    current_app.logger.info(
+        "logout on request",
+        extra={'tags': ['logout'], 'user_id': user_id})
     terminate_session()
     message = 'Logged out.  Return to <a href="/">COSRI Patient Search</a>'
     return make_response(message)

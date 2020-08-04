@@ -3,6 +3,7 @@
 patient*.env
 *__pycache__
 .coverage
+.eggs
 .tox
 coverage.xml
 client_secrets.json
