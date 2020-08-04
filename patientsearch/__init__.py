@@ -15,8 +15,18 @@ def create_app(testing=False):
         app.config['MAP_API'] = 'http://mock-MAP-API/'
         app.config['EXTERNAL_FHIR_API'] = 'http://mock-EXTERNAL-API/'
         app.config['TESTING'] = True
-        # IDE ignoring py.test working dir, uncomment for IDE debugging
-        # app.config['OIDC_CLIENT_SECRETS'] = "../client_secrets.json"
+        app.config['OIDC_CLIENT_SECRETS'] = {
+            "web": {
+                "auth_uri": "https://keycloak.fake/auth/realms/cosri-launcher/protocol/openid-connect/auth",
+                "client_id": "cosri-patientsearch",
+                "client_secret": "unknown",
+                "issuer": "https://keycloak.fake/auth/realms/cosri-launcher",
+                "redirect_uris": ["http://localhost:8000/oidc_callback"],
+                "userinfo_uri": "https://keycloak.fake/auth/realms/cosri-launcher/protocol/openid-connect/userinfo",
+                "token_uri": "https://keycloak.fake/auth/realms/cosri-launcher/protocol/openid-connect/token",
+                "token_introspection_uri": "https://keycloak.fake/auth/realms/cosri-launcher/protocol/openid-connect/token/introspect"
+            }
+        }
 
     # Confirm presence of SECRET_KEY, or nonsense errors will burn hours
     if not app.config['SECRET_KEY']:
