@@ -67,10 +67,10 @@ def sync_bundle(token, external_bundle):
     """Given FHIR bundle, insert or update all contained resources
 
     :param token: valid JWT token for use in auth calls
-    :param bundle: bundle of FHIR resources to sync
+    :param external_bundle: bundle of FHIR resources to sync
 
     Expecting to receive a bundle of FHIR resources from an external
-    source, to be syncronized with the internal backing store, namely
+    source, to be synchronized with the internal backing store, namely
     HAPI.
 
     :returns: synchronized bundle
