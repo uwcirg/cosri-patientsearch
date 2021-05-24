@@ -203,10 +203,18 @@ def external_search(resource_type, methods=["GET"]):
 @api_blueprint.route('/logout', methods=["GET"])
 def logout(methods=["GET"]):
     # TODO: is there a PHI safe 'id' for the user (in place of email)?
-    user_id = oidc.user_getfield('email')
-    current_app.logger.info(
-        "logout on request",
-        extra={'tags': ['logout'], 'user_id': user_id})
-    terminate_session()
+    try:
+        user_id = oidc.user_getfield('email')
+        current_app.logger.info(
+            "logout on request",
+            extra={'tags': ['logout'], 'user_id': user_id})
+        terminate_session()
+
+    except Exception as ex:
+        # Confirm the exception was simply a logout request
+        # from an unauthenticated user, or re-raise
+        if str(ex) != "User was not authenticated":
+            raise ex
+
     message = 'Logged out.  Return to <a href="/">COSRI Patient Search</a>'
     return make_response(message)
