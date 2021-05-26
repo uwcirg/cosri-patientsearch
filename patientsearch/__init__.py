@@ -1,14 +1,17 @@
 from flask import Flask
+from flask_session import Session
 from logging import config as logging_config
 
 from patientsearch.api import api_blueprint
 from patientsearch.extensions import oidc
 
+session = Session()
 
 def create_app(testing=False):
     """Application factory, used to create and configure application"""
     app = Flask(__name__)
     app.config.from_object('patientsearch.config')
+    session.init_app(app)
 
     if testing is True:
         app.config['SECRET_KEY'] = 'nonsense-testing-key'
