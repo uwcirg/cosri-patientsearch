@@ -7,6 +7,7 @@ from flask import (
     make_response,
     request,
     safe_join,
+    session,
     send_from_directory,
 )
 from flask.json import JSONEncoder
@@ -216,5 +217,6 @@ def logout(methods=["GET"]):
         if str(ex) != "User was not authenticated":
             raise ex
 
+    session.clear()
     message = 'Logged out.  Return to <a href="/">COSRI Patient Search</a>'
     return make_response(message)

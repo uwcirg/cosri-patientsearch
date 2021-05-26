@@ -5,6 +5,7 @@ flask-jwt-extended==3.24.1  # via patientsearch (setup.py)
 # pin to last hash of master, to remove requirement of freestanding JSON config file
 git+https://github.com/puiterwijk/flask-oidc.git@7f16e27#egg=flask-oidc
 flask==1.1.2              # via flask-jwt-extended, patientsearch (setup.py)
+flask-session==0.3.2      # via patientsearch (setup.py)
 gunicorn==20.0.4          # via patientsearch (setup.py)
 idna==2.9                 # via requests
 itsdangerous==1.1.0       # via flask
