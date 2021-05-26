@@ -9,6 +9,7 @@ coverage.xml
 client_secrets.json
 bin
 env
+flask_session
 lib
 patientsearch/dist
 patientsearch/lib
