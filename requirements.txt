@@ -9,7 +9,7 @@ flask-session==0.3.2      # via patientsearch (setup.py)
 gunicorn==20.0.4          # via patientsearch (setup.py)
 idna==2.9                 # via requests
 itsdangerous==1.1.0       # via flask
-jinja2==2.11.2            # via flask
+jinja2==2.11.3            # via flask
 jmespath==0.10.0          # via patientsearch (setup.py)
 markupsafe==1.1.1         # via jinja2
 python-json-logger==0.1.11
