@@ -25,7 +25,6 @@ import Error from "./Error";
 import Spinner from "./Spinner";
 import {sendRequest} from './Utility';
 
-
 const useStyles = makeStyles((theme) => ({
     root: {
         marginTop: theme.spacing(3),
@@ -134,7 +133,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 async function fetchData(url) {
-   
+
     const MAX_WAIT_TIME = 10000;
 
     // Create a promise that rejects in maximum wait time in milliseconds
@@ -177,7 +176,7 @@ async function fetchData(url) {
 function Alert(props) {
     return <MuiAlert elevation={6} variant="filled" {...props} />;
 }
-  
+
 export default function Search() {
     let focusInput = React.useRef(null);
     const classes = useStyles();
@@ -207,9 +206,9 @@ export default function Search() {
         let baseURL = appSettings["SOF_CLIENT_LAUNCH_URL"];
         let iss = appSettings["SOF_HOST_FHIR_URL"];
         let launchParam = btoa(JSON.stringify({"b":patientId}));
-        return `${baseURL}?launch=${launchParam}&iss=${iss}`; 
+        return `${baseURL}?launch=${launchParam}&iss=${iss}`;
     }
- 
+
     const getPatientSearchURL = () => {
         const dataURL = "/external_search/Patient";
         let formattedDate = format(new Date(dob), "yyyy-MM-dd");
@@ -249,8 +248,8 @@ export default function Search() {
             setTimeout(function() {
                 setResultOpen(true);
             }, 500);
-          
-        
+
+
         }).catch(e => {
             setErrorMessage(`Patient search error: ${e}`);
             setSuccess(false);
@@ -294,7 +293,7 @@ export default function Search() {
     const isAnyFullfilled = () => {
         return firstName || lastName || dob;
     }
-    
+
     const reset = () => {
         setFirstName("");
         setLastName("");
