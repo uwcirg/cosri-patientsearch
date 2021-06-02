@@ -16,7 +16,7 @@ module.exports = function(_env, argv) {
   const outputDirectory = isDevelopment?"/patientsearch/static":"/patientsearch/dist";
   const jsDirectory = `${outputDirectory}/js`;
   const templateDirectory = `${outputDirectory}/templates`;
- 
+
   return {
     entry:  ['whatwg-fetch', path.join(__dirname, '/patientsearch/src/js/Entry.js')],
     watchOptions: {
@@ -58,6 +58,11 @@ module.exports = function(_env, argv) {
             use: 'babel-loader'
           },
           {
+            test: /\.json$/,
+            use: 'json-loader',
+            type: "javascript/auto"
+          },
+          {
             test: /\.s[ac]ss$/i,
             use: [
               // Creates `style` nodes from JS strings
@@ -68,7 +73,7 @@ module.exports = function(_env, argv) {
               'sass-loader',
             ],
           },
-        ]
+        ],
     },
     plugins: [
       new CleanWebpackPlugin(),
@@ -78,10 +83,10 @@ module.exports = function(_env, argv) {
         filename: path.join(__dirname, `${templateDirectory}/index.html`),
         favicon: path.join(__dirname, '/patientsearch/src/assets/favicon.ico'),
       }),
-      new webpack.ProvidePlugin({ 
-        React: 'react', 
+      new webpack.ProvidePlugin({
+        React: 'react',
         Promise: 'es6-promise'
-      }), 
+      }),
       new webpack.DefinePlugin({
         "process.env.NODE_ENV": JSON.stringify(
           isProduction ? "production" : "development"
