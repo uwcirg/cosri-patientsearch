@@ -40,8 +40,11 @@ $table-header-bg-color: rgb(224, 242, 241);
 .disabled {
   opacity: 0.4;
 }
-button.disabled {
+button.disabled,
+button.disabled:hover,
+button.disabled:focus {
   background-color: $color-muted;
+  cursor: not-allowed;
 }
 .spinner {
   position: fixed;
@@ -120,7 +123,10 @@ button.disabled {
   }
 }
 #toolbarGoButton {
-  text-align: center;
+  text-align: left;
+  min-width: 20%;
+  padding-left: 8px;
+  padding-right: 8px;
   button {
     padding: 4px 16px;
   }

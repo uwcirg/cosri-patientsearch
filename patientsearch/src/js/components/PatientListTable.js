@@ -89,6 +89,9 @@ const tableIcons = {
   SortArrow: forwardRef((props, ref) => <ArrowDownward {...props} ref={ref} color="primary" />),
 };
 
+let initIntervalId = 0;
+let appSettings = {};
+
 export default function PatientListTable(props) {
   const classes = useStyles();
   const [initialized, setInitialized] = React.useState(false);
@@ -97,18 +100,21 @@ export default function PatientListTable(props) {
   const [loading, setLoading] = React.useState(true);
   const [popOpen, setPop] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState("");
-  const [appSettings, setAppSettings] = React.useState();
   const [filters, setFilters] = React.useState([]);
   const [toolbarActionButtonAdded, setToolbarActionButton] = React.useState(false);
   const tableRef = React.createRef();
   const LAUNCH_BUTTON_LABEL = "GO";
   const TOOLBAR_ACTION_BUTTON_ID = "toolbarGoButton";
+  const CACHE_FILTERS_LABEL = "cosri_filters";
   const columns = [
     {title: "First Name", field: "first_name", filterPlaceholder: "First Name", emptyValue: "--"},
     {title: "Last Name", field: "last_name", filterPlaceholder: "Last Name", emptyValue: "--"},
     {title: "Birth Date", field: "dob", filterPlaceholder: "YYYY-MM-DD", emptyValue: "--"},
   ];
   const errorStyle = {"display" : errorMessage? "block": "none"};
+  const setAppSettings = function(settings) {
+    appSettings = settings;
+  }
   const getPatientSearchURL = (data) => {
     const dataURL = "/external_search/Patient";
     const params = [
@@ -118,7 +124,7 @@ export default function PatientListTable(props) {
       ];
       return `${dataURL}?${params.join("&")}`;
   };
-  const getLaunchURL = (patientId) => {
+  const getLaunchURL = function(patientId) {
     if (!patientId) {
         console.log("Missing information: patient Id");
         return "";
@@ -174,11 +180,11 @@ export default function PatientListTable(props) {
     }
     setPop(false);
   }
-  const handleSearch = (event, rowData) => {
+  const handleSearch = function (event, rowData) {
     setOpenLoadingModal(true);
     setErrorMessage('');
     fetchData(getPatientSearchURL(rowData)).then(response => {
-      console.log("response from search ", response)
+      //console.log("response from search ", response)
       if (!response || !response.entry || !response.entry.length) {
           setErrorMessage("No patient found.");
           setOpenLoadingModal(false);
@@ -186,8 +192,16 @@ export default function PatientListTable(props) {
       }
       setErrorMessage('');
       setOpenLoadingModal(false);
+      let launchURL = "";
+      try {
+        launchURL = getLaunchURL(rowData.id || response.entry[0].id);
+      } catch(e) {
+        setErrorMessage(`Patient search error: ${e}`);
+        setOpenLoadingModal(false);
+        setPop(true);
+      }
       setTimeout(function() {
-        window.location = getLaunchURL(rowData.id || response.entry[0].id)
+        window.location = launchURL;
       }, 150);
     }).catch(e => {
         setErrorMessage(`Patient search error: ${e}`);
@@ -210,9 +224,16 @@ export default function PatientListTable(props) {
         };
     });
   }
-  const getFilterRowData = (filters) => {
+  const getFilterRowData = function() {
+    let filterItems = filters;
+    if (!filterItems || !filterItems.length) {
+      let cacheItem = sessionStorage.getItem(CACHE_FILTERS_LABEL);
+      if (cacheItem) {
+        filterItems = JSON.parse(cacheItem);
+      }
+    }
     let o = {};
-    filters.forEach(item => {
+    filterItems.forEach(item => {
       o[item.column.field] = item.value;
     });
     return o;
@@ -222,8 +243,8 @@ export default function PatientListTable(props) {
     return <MuiAlert elevation={6} variant="filled" {...props} />;
   }
 
-  function setToolbarActionButtonVis() {
-    if (filters.length >= 3) {
+  function setToolbarActionButtonVis(filters) {
+    if (filters && filters.length >= 3) {
       document.querySelector(`#${TOOLBAR_ACTION_BUTTON_ID} button`).setAttribute("disabled", false);
       document.querySelector(`#${TOOLBAR_ACTION_BUTTON_ID} button`).classList.remove("disabled");
       return;
@@ -241,10 +262,12 @@ export default function PatientListTable(props) {
       if (parent && parent.querySelector("tr td:last-of-type")) {
         let cld = parent.querySelector("tr td:last-of-type").appendChild(cln);
         cld.classList.remove("hide");
-        cld.addEventListener("click", (e) => handleSearch(e, getFilterRowData(filters)));
+        cld.addEventListener("click", function(e) {
+          handleSearch(e, getFilterRowData())
+        });
         btn.remove();
-        setToolbarActionButton(true);
         setToolbarActionButtonVis();
+        clearInterval(initIntervalId);
       }
   }
 
@@ -259,13 +282,12 @@ export default function PatientListTable(props) {
         fetchData("./Patient").then(response => {
           if (!response || !response.entry || !response.entry.length) {
             setInitialized(true);
-            setErrorMessage("No data found");
+           // setErrorMessage("No data found");
             setLoading(false);
             return;
           }
           setData(formatData(response));
           setInitialized(true);
-          getToolbarActionButton();
           setLoading(false);
         }).catch(error => {
           console.log("Failed to retrieve data", error.statusText);
@@ -280,7 +302,9 @@ export default function PatientListTable(props) {
   }, []);
 
   React.useEffect(() => {
-    setTimeout(getToolbarActionButton, 1000);
+    initIntervalId = setInterval(function() {
+      getToolbarActionButton();
+    }, 50);
   }, [toolbarActionButtonAdded]);
 
   return (
@@ -322,7 +346,8 @@ export default function PatientListTable(props) {
                       (event) => {
                         setErrorMessage("");
                         setFilters(event);
-                        setToolbarActionButtonVis();
+                        sessionStorage.setItem(CACHE_FILTERS_LABEL, JSON.stringify(event));
+                        setToolbarActionButtonVis(event);
                       }
                     }
                     actions={[
@@ -376,7 +401,7 @@ export default function PatientListTable(props) {
             </div>
           </Modal>
           {/* toolbar go button */}
-          <div id={`${TOOLBAR_ACTION_BUTTON_ID}`} className="hide"><Button  className="disabled" color="primary" size="small" variant="contained" onClick={(e) => handleSearch(e, getFilterRowData(filters))} className={classes.button}>{LAUNCH_BUTTON_LABEL}</Button></div>
+          <div id={`${TOOLBAR_ACTION_BUTTON_ID}`} className="hide"><Button  className="disabled" color="primary" size="small" variant="contained" className={classes.button}>{LAUNCH_BUTTON_LABEL}</Button></div>
         </Container>
     </React.Fragment>
   );
