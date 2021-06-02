@@ -3,6 +3,8 @@ $color-blue-light: #46777f;
 $color-muted: #777;
 $color-muter: rgba(165, 158, 158, 0.64);
 $input-icon-color: #686b6b;
+$small-font-size: 14px;
+$table-header-bg-color: rgb(224, 242, 241);
 
 .menu-icon {
   margin-left: 8px;
@@ -35,7 +37,12 @@ $input-icon-color: #686b6b;
 .show {
   display: block;
 }
-
+.disabled {
+  opacity: 0.4;
+}
+button.disabled {
+  background-color: $color-muted;
+}
 .spinner {
   position: fixed;
   left: 0;
@@ -104,3 +111,17 @@ $input-icon-color: #686b6b;
   animation-delay: -0.16s;
 }
 
+#patientList {
+  input {
+    font-size: $small-font-size;
+  }
+  table:first-of-type {
+    position: relative;
+  }
+}
+#toolbarGoButton {
+  text-align: center;
+  button {
+    padding: 4px 16px;
+  }
+}
