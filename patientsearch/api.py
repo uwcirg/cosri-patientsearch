@@ -4,7 +4,7 @@ from flask import (
     abort,
     current_app,
     jsonify,
-    make_response,
+    redirect,
     request,
     safe_join,
     session,
@@ -40,6 +40,7 @@ def terminate_session():
         requests.post(logout_uri, auth=BearerAuth(token), data=data)
 
     oidc.logout()  # clears local cookie only
+    session.clear()
 
 
 def validate_auth():
@@ -51,11 +52,11 @@ def validate_auth():
         token = oidc.get_access_token()
     except TypeError:
         # raised when the token isn't accessible to the oidc lib
-        raise Unauthorized("missing auth token")
+        return redirect("/")
 
     if not oidc.validate_token(token):
         terminate_session()
-        raise Unauthorized("invalid auth token")
+        return redirect("/")
     return token
 
 
@@ -204,19 +205,10 @@ def external_search(resource_type, methods=["GET"]):
 @api_blueprint.route('/logout', methods=["GET"])
 def logout(methods=["GET"]):
     # TODO: is there a PHI safe 'id' for the user (in place of email)?
-    try:
+    if oidc.user_loggedin:
         user_id = oidc.user_getfield('email')
         current_app.logger.info(
             "logout on request",
             extra={'tags': ['logout'], 'user_id': user_id})
-        terminate_session()
-
-    except Exception as ex:
-        # Confirm the exception was simply a logout request
-        # from an unauthenticated user, or re-raise
-        if str(ex) != "User was not authenticated":
-            raise ex
-
-    session.clear()
-    message = 'Logged out.  Return to <a href="/">COSRI Patient Search</a>'
-    return make_response(message)
+    terminate_session()
+    return redirect("/")
