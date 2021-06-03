@@ -191,11 +191,14 @@ def resource_from_args(resource_type, args):
 
 @api_blueprint.route(
     '/external_search/<string:resource_type>', methods=["GET"])
-def external_search(resource_type, methods=["GET"]):
+def external_search(resource_type, methods=["PUT"]):
     """Query external source for resource_type
 
     Query configured external source (EXTERNAL_FHIR_API) for resource
     such as Patient.
+
+    The PUT method is used, as this generates side effects, namely creating
+    or updating resources in local storage.
 
     NB not decorated with `@oidc.require_login` as that does an implicit
     redirect.  Client should watch for 401 and redirect appropriately.
