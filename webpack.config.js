@@ -28,7 +28,7 @@ module.exports = function(_env, argv) {
       /*
        * create a new hash for each new build
        */
-      filename: `app.bundle.[name]${isProduction?'-[hash:6]':''}.js`,
+      filename: `app.bundle.[name]-[hash:6].js`,
       publicPath: "/static/js/"
     },
     resolve: {
@@ -116,7 +116,7 @@ module.exports = function(_env, argv) {
       contentBase: './dist',
     },
     optimization: {
-      minimize: isProduction,
+      minimize: true,
       minimizer: [
         new TerserWebpackPlugin({
           terserOptions: {
