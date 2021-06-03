@@ -257,7 +257,7 @@ export default function PatientListTable(props) {
 
   function setToolbarActionButtonVis(filters) {
     if (filters && filters.length >= NUM_OF_REQUIRED_FILTERS) {
-      document.querySelector(`#${TOOLBAR_ACTION_BUTTON_ID} button`).setAttribute("disabled", false);
+      document.querySelector(`#${TOOLBAR_ACTION_BUTTON_ID} button`).removeAttribute("disabled");
       document.querySelector(`#${TOOLBAR_ACTION_BUTTON_ID} button`).classList.remove("disabled");
       return;
     }
@@ -274,9 +274,12 @@ export default function PatientListTable(props) {
       if (parent && parent.querySelector("tr td:last-of-type")) {
         let cld = parent.querySelector("tr td:last-of-type").appendChild(cln);
         cld.classList.remove("hide");
-        cld.addEventListener("click", function(e) {
-          handleSearch(e, getFilterRowData())
-        });
+        setTimeout(function() {
+          document.querySelector(`#${TOOLBAR_ACTION_BUTTON_ID}`).addEventListener("click", function(e) {
+            handleSearch(e, getFilterRowData())
+          });
+          setToolbarActionButton(true);
+        }, 250);
         btn.remove();
         setToolbarActionButtonVis();
         clearInterval(initIntervalId);
@@ -419,7 +422,7 @@ export default function PatientListTable(props) {
             </div>
           </Modal>
           {/* toolbar go button */}
-          <div id={`${TOOLBAR_ACTION_BUTTON_ID}`} className="hide"><Button  className="disabled" color="primary" size="small" variant="contained" className={classes.button}>{LAUNCH_BUTTON_LABEL}</Button></div>
+          <div id={`${TOOLBAR_ACTION_BUTTON_ID}`} className="hide"><Button  className="disabled" color="primary" size="small" variant="contained" className={classes.btoutton}>{LAUNCH_BUTTON_LABEL}</Button></div>
         </Container>
     </React.Fragment>
   );

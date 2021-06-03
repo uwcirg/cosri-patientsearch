@@ -124,10 +124,10 @@ button.disabled:focus {
 }
 #toolbarGoButton {
   text-align: left;
-  min-width: 20%;
   padding-left: 8px;
   padding-right: 8px;
   button {
     padding: 4px 16px;
+    min-width: 120px;
   }
 }
