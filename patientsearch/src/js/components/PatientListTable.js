@@ -1,5 +1,5 @@
 import React from 'react';
-import { makeStyles, MuiThemeProvider } from '@material-ui/core/styles';
+import { makeStyles} from '@material-ui/core/styles';
 import { forwardRef } from 'react';
 import ArrowDownward from '@material-ui/icons/ArrowDownward';
 import ChevronLeft from '@material-ui/icons/ChevronLeft';
@@ -91,6 +91,7 @@ const tableIcons = {
 
 let initIntervalId = 0;
 let appSettings = {};
+const NUM_OF_REQUIRED_FILTERS = 3;
 
 export default function PatientListTable(props) {
   const classes = useStyles();
@@ -244,7 +245,7 @@ export default function PatientListTable(props) {
   }
 
   function setToolbarActionButtonVis(filters) {
-    if (filters && filters.length >= 3) {
+    if (filters && filters.length >= NUM_OF_REQUIRED_FILTERS) {
       document.querySelector(`#${TOOLBAR_ACTION_BUTTON_ID} button`).setAttribute("disabled", false);
       document.querySelector(`#${TOOLBAR_ACTION_BUTTON_ID} button`).classList.remove("disabled");
       return;
@@ -310,77 +311,82 @@ export default function PatientListTable(props) {
   return (
       <React.Fragment>
         <Container className={classes.container} id="patientList" maxWidth="lg">
-          {loading && <CircularProgress size={32} className={classes.buttonProgress} />}
+          {loading && <CircularProgress size={40} className={classes.buttonProgress} />}
           {!loading && initialized && <div className={classes.table} aria-label="patient list table" >
               <h2>Patient Search</h2>
-              <MuiThemeProvider theme={theme}>
-                  <MaterialTable
-                    className={classes.table}
-                    columns={columns}
-                    data={data}
-                    tableRef={tableRef}
-                    options={{
-                        toolbar: false,
-                        filtering: true,
-                        sorting: true,
-                        search: false,
-                        showTitle: false,
-                        headerStyle: {
-                            backgroundColor: theme.palette.primary.lightest
-                        },
-                        actionsCellStyle: {
-                          paddingLeft: theme.spacing(2),
-                          paddingRight: theme.spacing(2),
-                          minWidth: "20%",
-                          justifyContent: "center"
-                        },
-                        actionsColumnIndex: -1
-                    }}
-                    icons={tableIcons}
-                    onRowClick={
-                      (event, rowData) => {
+              <MaterialTable
+                className={classes.table}
+                columns={columns}
+                data={data}
+                tableRef={tableRef}
+                options={{
+                    toolbar: false,
+                    filtering: true,
+                    sorting: true,
+                    search: false,
+                    showTitle: false,
+                    headerStyle: {
+                        backgroundColor: theme.palette.primary.lightest
+                    },
+                    actionsCellStyle: {
+                      paddingLeft: theme.spacing(2),
+                      paddingRight: theme.spacing(2),
+                      minWidth: "20%",
+                      justifyContent: "center"
+                    },
+                    actionsColumnIndex: -1
+                }}
+                icons={tableIcons}
+                onRowClick={
+                  (event, rowData) => {
+                    handleSearch(event, rowData)
+                  }
+                }
+                onFilterChange={
+                  (event) => {
+                    setErrorMessage("");
+                    setFilters(event);
+                    sessionStorage.setItem(CACHE_FILTERS_LABEL, JSON.stringify(event));
+                    setToolbarActionButtonVis(event);
+                  }
+                }
+                actions={[
+                  () => ({
+                      icon: () => <span className={classes.button}>{LAUNCH_BUTTON_LABEL}</span>,
+                      tooltip: 'Launch COSRI application for the user',
+                      onClick: (event, rowData) => {
                         handleSearch(event, rowData)
-                      }
-                    }
-                    onFilterChange={
-                      (event) => {
-                        setErrorMessage("");
-                        setFilters(event);
-                        sessionStorage.setItem(CACHE_FILTERS_LABEL, JSON.stringify(event));
-                        setToolbarActionButtonVis(event);
-                      }
-                    }
-                    actions={[
-                      () => ({
-                          icon: () => <span className={classes.button}>{LAUNCH_BUTTON_LABEL}</span>,
-                          tooltip: 'Launch COSRI application for the user',
-                          onClick: (event, rowData) => {
-                            handleSearch(event, rowData)
-                          },
-                          title: "",
-                          position: "row"
-                        })
-                      ]}
-                      localization={{
-                        header: {
-                          actions: ""
-                        },
-                      pagination: {
-                        labelRowsSelect: "rows to show"
                       },
-                      body: {
-                          emptyDataSourceMessage: (
-                            <div className={classes.flex}>
-                                <div className={classes.warning}>
-                                  No matching patient found.<br/>
-                                  Try entering all First name, Last name and Birth Date.
-                                </div>
+                      title: "",
+                      position: "row"
+                    })
+                  ]}
+                  localization={{
+                    header: {
+                      actions: ""
+                    },
+                  pagination: {
+                    labelRowsSelect: "rows to show"
+                  },
+                  body: {
+                      emptyDataSourceMessage: (
+                        <div className={classes.flex}>
+                            <div className={classes.warning}>
+                              <div>
+                              No matching patient found.
+                              </div>
+                              {filters.length < NUM_OF_REQUIRED_FILTERS && <div>
+                                Try entering all First name, Last name and Birth Date.
+                              </div>}
+                              {filters.length >= NUM_OF_REQUIRED_FILTERS && <div>
+                                Hit GO to create new patient
+                              </div>}
                             </div>
-                          ),
-                      },
-                    }}
-                  />
-              </MuiThemeProvider>
+                        </div>
+                      ),
+                  },
+                }}
+              />
           </div>}
           <Snackbar open={popOpen} autoHideDuration={1500} onClose={handlePopClose} anchorOrigin={{vertical: 'top', horizontal: 'center' }}>
               <Alert onClose={handlePopClose} severity="error">Error occurred launching COSRI</Alert>
