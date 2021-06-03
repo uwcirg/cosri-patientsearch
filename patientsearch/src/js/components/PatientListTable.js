@@ -125,13 +125,20 @@ export default function PatientListTable(props) {
       ];
       return `${dataURL}?${params.join("&")}`;
   };
+  const getLaunchBaseURL = function() {
+    return appSettings["SOF_CLIENT_LAUNCH_URL"];
+  }
+  const getISS = function() {
+    return appSettings["SOF_HOST_FHIR_URL"];
+  }
   const getLaunchURL = function(patientId) {
     if (!patientId) {
         console.log("Missing information: patient Id");
         return "";
     }
-    let baseURL = appSettings["SOF_CLIENT_LAUNCH_URL"];
-    let iss = appSettings["SOF_HOST_FHIR_URL"];
+    let baseURL = getLaunchBaseURL();
+    let iss = getISS();
+    if (!baseURL || !iss) return "";
     let launchParam = btoa(JSON.stringify({"b":patientId}));
     return `${baseURL}?launch=${launchParam}&iss=${iss}`;
   };
@@ -200,6 +207,10 @@ export default function PatientListTable(props) {
         setErrorMessage(`Patient search error: ${e}`);
         setOpenLoadingModal(false);
         setPop(true);
+      }
+      if (!launchURL) {
+        setErrorMessage(`Unable to launch application.  Invalid launch URL. Missing configurations.`);
+        return;
       }
       setTimeout(function() {
         window.location = launchURL;
@@ -339,6 +350,7 @@ export default function PatientListTable(props) {
                 icons={tableIcons}
                 onRowClick={
                   (event, rowData) => {
+                    event.stopPropagation();
                     handleSearch(event, rowData)
                   }
                 }
