@@ -11,7 +11,6 @@ from flask import (
     send_from_directory,
 )
 from flask.json import JSONEncoder
-import re
 import requests
 from werkzeug.exceptions import Unauthorized
 
@@ -173,17 +172,21 @@ def resource_from_args(resource_type, args):
 
     # The birthdate includes HAPI search syntax; parse from a pattern such as:
     #   Patient.birthdate=eq1977-01-12
-    dob = re.match(r'eq(.*)', args.get('subject:Patient.birthdate'))
-    if not dob or len(dob.groups()) != 1:
-        raise ValueError(
-            f"Unexpected `Patient.birthdate` format: {args.get('subject:Patient.birthdate')}")
+    splits = args.get('subject:Patient.birthdate', '').split('eq')
+    if len(splits) != 2:
+        err = (
+            f"Unexpected `Patient.birthdate` format: "
+            f"{args.get('subject:Patient.birthdate')}")
+        current_app.logger.warn(err)
+        raise ValueError(err)
+    dob = splits[1]
 
     return {
         'resourceType': resource_type,
         'name': {
             'given': args.get('subject:Patient.name.given'),
             'family': args.get('subject:Patient.name.family')},
-        'birthDate': dob.groups()[0]}
+        'birthDate': dob}
 
 
 @api_blueprint.route(
