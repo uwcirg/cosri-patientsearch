@@ -53,6 +53,9 @@ def external_request(token, resource_type, params):
     :param params: Search parameters
 
     """
+    if not resource_type:
+        raise ValueError("Required `resource_type` not included")
+
     url = current_app.config.get('EXTERNAL_FHIR_API') + resource_type
     resp = requests.get(url, auth=BearerAuth(token), params=params)
     try:
@@ -70,7 +73,7 @@ def sync_bundle(token, bundle):
     :param bundle: bundle of FHIR resources to sync
 
     Expecting to receive a bundle of FHIR resources from an external
-    source, to be syncronized with the internal backing store, namely
+    source, to be synchronized with the internal backing store, namely
     HAPI.
 
     :returns: synchronized resource if only one in bundle
