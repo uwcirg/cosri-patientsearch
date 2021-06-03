@@ -63,7 +63,7 @@ def validate_auth():
 
 @api_blueprint.route('/', methods=["GET"])
 @oidc.require_login
-def main(methods=["GET"]):
+def main():
     """ Main route, entry point for react. """
     validate_auth()
     ## issue with path resolution after build
@@ -133,7 +133,7 @@ def validate_token():
 
 
 @api_blueprint.route('/<string:resource_type>', methods=["GET"])
-def resource_bundle(resource_type, methods=["GET"]):
+def resource_bundle(resource_type):
     """Query HAPI for resource_type and return as JSON FHIR Bundle
 
     NB not decorated with `@oidc.require_login` as that does an implicit
@@ -153,7 +153,7 @@ def resource_bundle(resource_type, methods=["GET"]):
 
 @api_blueprint.route(
     '/<string:resource_type>/<int:resource_id>', methods=["GET"])
-def resource_by_id(resource_type, resource_id, methods=["GET"]):
+def resource_by_id(resource_type, resource_id):
     """Query HAPI for individual resource; return JSON FHIR Resource
 
     NB not decorated with `@oidc.require_login` as that does an implicit
@@ -190,8 +190,8 @@ def resource_from_args(resource_type, args):
 
 
 @api_blueprint.route(
-    '/external_search/<string:resource_type>', methods=["GET"])
-def external_search(resource_type, methods=["PUT"]):
+    '/external_search/<string:resource_type>', methods=["PUT"])
+def external_search(resource_type):
     """Query external source for resource_type
 
     Query configured external source (EXTERNAL_FHIR_API) for resource
@@ -251,7 +251,7 @@ def external_search(resource_type, methods=["PUT"]):
 
 
 @api_blueprint.route('/logout', methods=["GET"])
-def logout(methods=["GET"]):
+def logout():
     # TODO: is there a PHI safe 'id' for the user (in place of email)?
     if oidc.user_loggedin:
         user_id = oidc.user_getfield('email')
