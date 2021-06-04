@@ -143,8 +143,9 @@ export default function PatientListTable(props) {
     return `${baseURL}?launch=${launchParam}&iss=${iss}`;
   };
 
-  async function fetchData(url) {
+  async function fetchData(url, params) {
     const MAX_WAIT_TIME = 10000;
+    params = params || {};
     // Create a promise that rejects in maximum wait time in milliseconds
     let timeoutPromise = new Promise((resolve, reject) => {
       let id = setTimeout(() => {
@@ -157,7 +158,7 @@ export default function PatientListTable(props) {
      * then the timeout promise will kick in
      */
     let results = await Promise.race([
-      fetch(url),
+      fetch(url, params),
       timeoutPromise
     ]).catch(e => {
         throw `There was error fetching data: ${e}`;
@@ -191,7 +192,7 @@ export default function PatientListTable(props) {
   const handleSearch = function (event, rowData) {
     setOpenLoadingModal(true);
     setErrorMessage('');
-    fetchData(getPatientSearchURL(rowData)).then(response => {
+    fetchData(getPatientSearchURL(rowData), {"method": "PUT"}).then(response => {
       //console.log("response from search ", response)
       if (!response || !response.entry || !response.entry.length) {
           setErrorMessage("No patient found.");
