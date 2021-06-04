@@ -64,7 +64,7 @@ const useStyles = makeStyles({
       background: theme.palette.primary.main,
       color: "#FFF",
       padding: theme.spacing(1, 2, 1),
-      fontSize: "14px",
+      fontSize: "12px",
       borderRadius: "4px",
       width: "120px",
       fontWeight: 500,
