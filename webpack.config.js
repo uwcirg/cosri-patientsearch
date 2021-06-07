@@ -16,7 +16,7 @@ module.exports = function(_env, argv) {
   const outputDirectory = isDevelopment?"/patientsearch/static":"/patientsearch/dist";
   const jsDirectory = `${outputDirectory}/js`;
   const templateDirectory = `${outputDirectory}/templates`;
- 
+
   return {
     entry:  ['whatwg-fetch', path.join(__dirname, '/patientsearch/src/js/Entry.js')],
     watchOptions: {
@@ -28,7 +28,7 @@ module.exports = function(_env, argv) {
       /*
        * create a new hash for each new build
        */
-      filename: `app.bundle.[name]${isProduction?'-[hash:6]':''}.js`,
+      filename: `app.bundle.[name]-[hash:6].js`,
       publicPath: "/static/js/"
     },
     resolve: {
@@ -58,6 +58,11 @@ module.exports = function(_env, argv) {
             use: 'babel-loader'
           },
           {
+            test: /\.json$/,
+            use: 'json-loader',
+            type: "javascript/auto"
+          },
+          {
             test: /\.s[ac]ss$/i,
             use: [
               // Creates `style` nodes from JS strings
@@ -68,7 +73,7 @@ module.exports = function(_env, argv) {
               'sass-loader',
             ],
           },
-        ]
+        ],
     },
     plugins: [
       new CleanWebpackPlugin(),
@@ -78,10 +83,10 @@ module.exports = function(_env, argv) {
         filename: path.join(__dirname, `${templateDirectory}/index.html`),
         favicon: path.join(__dirname, '/patientsearch/src/assets/favicon.ico'),
       }),
-      new webpack.ProvidePlugin({ 
-        React: 'react', 
+      new webpack.ProvidePlugin({
+        React: 'react',
         Promise: 'es6-promise'
-      }), 
+      }),
       new webpack.DefinePlugin({
         "process.env.NODE_ENV": JSON.stringify(
           isProduction ? "production" : "development"
@@ -111,7 +116,7 @@ module.exports = function(_env, argv) {
       contentBase: './dist',
     },
     optimization: {
-      minimize: isProduction,
+      minimize: true,
       minimizer: [
         new TerserWebpackPlugin({
           terserOptions: {
@@ -136,8 +141,8 @@ module.exports = function(_env, argv) {
       splitChunks: {
         chunks: "all",
         minSize: 0,
-        maxInitialRequests: 10,
-        maxAsyncRequests: 10,
+        maxInitialRequests: 20,
+        maxAsyncRequests: 20,
         cacheGroups: {
           vendors: {
             test: /[\\/]node_modules[\\/]/,
@@ -149,7 +154,7 @@ module.exports = function(_env, argv) {
             }
           },
           common: {
-            minChunks: 2,
+            minChunks: 3,
             priority: -10
           }
         }

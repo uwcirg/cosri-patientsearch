@@ -16,6 +16,7 @@ from werkzeug.exceptions import Unauthorized
 
 from patientsearch.models import (
     BearerAuth,
+    HAPI_POST,
     HAPI_request,
     external_request,
     sync_bundle,
@@ -62,7 +63,7 @@ def validate_auth():
 
 @api_blueprint.route('/', methods=["GET"])
 @oidc.require_login
-def main(methods=["GET"]):
+def main():
     """ Main route, entry point for react. """
     validate_auth()
     ## issue with path resolution after build
@@ -132,7 +133,7 @@ def validate_token():
 
 
 @api_blueprint.route('/<string:resource_type>', methods=["GET"])
-def resource_bundle(resource_type, methods=["GET"]):
+def resource_bundle(resource_type):
     """Query HAPI for resource_type and return as JSON FHIR Bundle
 
     NB not decorated with `@oidc.require_login` as that does an implicit
@@ -152,7 +153,7 @@ def resource_bundle(resource_type, methods=["GET"]):
 
 @api_blueprint.route(
     '/<string:resource_type>/<int:resource_id>', methods=["GET"])
-def resource_by_id(resource_type, resource_id, methods=["GET"]):
+def resource_by_id(resource_type, resource_id):
     """Query HAPI for individual resource; return JSON FHIR Resource
 
     NB not decorated with `@oidc.require_login` as that does an implicit
@@ -162,13 +163,42 @@ def resource_by_id(resource_type, resource_id, methods=["GET"]):
     return jsonify(HAPI_request(resource_type, resource_id, token))
 
 
+def resource_from_args(resource_type, args):
+    """Generate FHIR resource from given type and args"""
+    # refactor into model as need expands
+    current_app.logger.debug(f"generate {resource_type} from {args}")
+    if resource_type != 'Patient':
+        raise ValueError("only Patient aware ATM")
+
+    # The birthdate includes HAPI search syntax; parse from a pattern such as:
+    #   Patient.birthdate=eq1977-01-12
+    splits = args.get('subject:Patient.birthdate', '').split('eq')
+    if len(splits) != 2:
+        err = (
+            f"Unexpected `Patient.birthdate` format: "
+            f"{args.get('subject:Patient.birthdate')}")
+        current_app.logger.warn(err)
+        raise ValueError(err)
+    dob = splits[1]
+
+    return {
+        'resourceType': resource_type,
+        'name': {
+            'given': args.get('subject:Patient.name.given'),
+            'family': args.get('subject:Patient.name.family')},
+        'birthDate': dob}
+
+
 @api_blueprint.route(
-    '/external_search/<string:resource_type>', methods=["GET"])
-def external_search(resource_type, methods=["GET"]):
+    '/external_search/<string:resource_type>', methods=["PUT"])
+def external_search(resource_type):
     """Query external source for resource_type
 
     Query configured external source (EXTERNAL_FHIR_API) for resource
     such as Patient.
+
+    The PUT method is used, as this generates side effects, namely creating
+    or updating resources in local storage.
 
     NB not decorated with `@oidc.require_login` as that does an implicit
     redirect.  Client should watch for 401 and redirect appropriately.
@@ -183,6 +213,26 @@ def external_search(resource_type, methods=["GET"]):
     external_search_bundle = external_request(token, resource_type, request.args)
     local_fhir_patient = sync_bundle(token, external_search_bundle)
 
+    # TODO: is there a PHI safe 'id' for the user (in place of email)?
+    user_id = oidc.user_getfield('email')
+
+    if not local_fhir_patient:
+        # If `sync_bundle` didn't generate or find a patient, a
+        # local didn't previously exist, AND we must not have received
+        # one from the external search (confirm assumption)
+        assert len(external_search_bundle['entry']) == 0
+
+        # Add at this time in the local store
+        new_patient = resource_from_args(resource_type, request.args)
+        local_fhir_patient = HAPI_POST(token, new_patient)
+        current_app.logger.info(
+            "PDMP search failed; create new patient from search params",
+            extra={
+                'tags': ['search'],
+                'subject_id': local_fhir_patient['id'],
+                'user_id': user_id}
+        )
+
     # TODO: handle multiple patient results
     if len(external_search_bundle['entry']) > 1:
         current_app.logger.warn('multiple patients returned from PDMP')
@@ -190,8 +240,6 @@ def external_search(resource_type, methods=["GET"]):
     if len(external_search_bundle['entry']) > 0:
         external_search_bundle['entry'][0].setdefault('id', local_fhir_patient['id'])
 
-    # TODO: is there a PHI safe 'id' for the user (in place of email)?
-    user_id = oidc.user_getfield('email')
     current_app.logger.info(
         "patient search found match",
         extra={
@@ -203,7 +251,7 @@ def external_search(resource_type, methods=["GET"]):
 
 
 @api_blueprint.route('/logout', methods=["GET"])
-def logout(methods=["GET"]):
+def logout():
     # TODO: is there a PHI safe 'id' for the user (in place of email)?
     if oidc.user_loggedin:
         user_id = oidc.user_getfield('email')
