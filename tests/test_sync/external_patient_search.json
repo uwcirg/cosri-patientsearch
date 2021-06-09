@@ -5,7 +5,7 @@
       "gender": "male",
       "name": {
         "family": "skywalker",
-        "given": "luke"
+        "given": ["luke"]
       },
       "resourceType": "Patient"
     }

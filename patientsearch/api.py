@@ -18,6 +18,7 @@ from patientsearch.models import (
     BearerAuth,
     HAPI_POST,
     HAPI_request,
+    add_identifier_to_resource_type,
     external_request,
     sync_bundle,
 )
@@ -190,7 +191,7 @@ def resource_from_args(resource_type, args):
 
 
 @api_blueprint.route(
-    '/external_search/<string:resource_type>', methods=["PUT"])
+    '/external_search/<string:resource_type>', methods=["GET", "PUT"])
 def external_search(resource_type):
     """Query external source for resource_type
 
@@ -210,11 +211,21 @@ def external_search(resource_type):
 
     """
     token = validate_auth()
-    external_search_bundle = external_request(token, resource_type, request.args)
+    external_search_bundle = add_identifier_to_resource_type(
+        bundle=external_request(token, resource_type, request.args),
+        resource_type=resource_type,
+        identifier={
+            'system': current_app.config.get('EXTERNAL_FHIR_API'),
+            'value': 'found'})
+
     local_fhir_patient = sync_bundle(token, external_search_bundle)
 
     # TODO: is there a PHI safe 'id' for the user (in place of email)?
-    user_id = oidc.user_getfield('email')
+    try:
+        user_id = oidc.user_getfield('email')
+    except Exception:
+        # mystery how token was valid at entry, but no email available?
+        user_id = "unknown"
 
     if not local_fhir_patient:
         # If `sync_bundle` didn't generate or find a patient, a
