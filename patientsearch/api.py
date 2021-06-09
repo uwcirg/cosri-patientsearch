@@ -191,7 +191,7 @@ def resource_from_args(resource_type, args):
 
 
 @api_blueprint.route(
-    '/external_search/<string:resource_type>', methods=["GET", "PUT"])
+    '/external_search/<string:resource_type>', methods=["PUT"])
 def external_search(resource_type):
     """Query external source for resource_type
 
