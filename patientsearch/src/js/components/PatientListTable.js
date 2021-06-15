@@ -198,7 +198,7 @@ export default function PatientListTable(props) {
       if (!response || !response.entry || !response.entry.length) {
           setErrorMessage("No patient found.");
           setOpenLoadingModal(false);
-          return;
+          return false;
       }
       setErrorMessage('');
       setOpenLoadingModal(false);
@@ -209,10 +209,11 @@ export default function PatientListTable(props) {
         setErrorMessage(`Patient search error: ${e}`);
         setOpenLoadingModal(false);
         setPop(true);
+        return false;
       }
       if (!launchURL) {
         setErrorMessage(`Unable to launch application.  Invalid launch URL. Missing configurations.`);
-        return;
+        return false;
       }
       setTimeout(function() {
         window.location = launchURL;
@@ -377,7 +378,7 @@ export default function PatientListTable(props) {
                 }
                 actions={[
                   rowData => ({
-                      icon: () => <Button className={classes.button} color="primary" size="small" variant="contained" href={getLaunchURL(rowData.id)}>{LAUNCH_BUTTON_LABEL}</Button>,
+                      icon: () => <Button className={classes.button} color="primary" size="small" variant="contained">{LAUNCH_BUTTON_LABEL}</Button>,
                       tooltip: 'Launch COSRI application for the user',
                       onClick: (event, rowData) => {
                         handleSearch(event, rowData)
