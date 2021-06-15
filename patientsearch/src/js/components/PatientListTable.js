@@ -62,6 +62,7 @@ const useStyles = makeStyles({
     },
     button: {
       background: theme.palette.primary.main,
+      padding: theme.spacing(1, 2, 1),
       color: "#FFF",
       fontSize: "12px",
       borderRadius: "4px",
@@ -376,8 +377,8 @@ export default function PatientListTable(props) {
                   }
                 }
                 actions={[
-                  rowData => ({
-                      icon: () => <Button className={classes.button} color="primary" size="small" variant="contained">{LAUNCH_BUTTON_LABEL}</Button>,
+                  () => ({
+                      icon: () => <span className={classes.button} color="primary" size="small" variant="contained">{LAUNCH_BUTTON_LABEL}</span>,
                       tooltip: 'Launch COSRI application for the user',
                       onClick: (event, rowData) => {
                         handleSearch(event, rowData)
@@ -404,7 +405,7 @@ export default function PatientListTable(props) {
                                 Try entering all First name, Last name and Birth Date.
                               </div>}
                               {filters.length >= NUM_OF_REQUIRED_FILTERS && <div id={`${NO_DATA_ELEMENT_ID}`}>
-                                Click on Create button to create new patient
+                                {`Click on ${CREATE_BUTTON_LABEL} button to create new patient`}
                               </div>}
                             </div>
                         </div>
