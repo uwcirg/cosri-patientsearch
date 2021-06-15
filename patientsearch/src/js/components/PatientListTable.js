@@ -62,6 +62,7 @@ const useStyles = makeStyles({
     },
     button: {
       background: theme.palette.primary.main,
+      padding: theme.spacing(1, 2, 1),
       color: "#FFF",
       fontSize: "12px",
       borderRadius: "4px",
