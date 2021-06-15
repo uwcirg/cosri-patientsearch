@@ -62,7 +62,6 @@ const useStyles = makeStyles({
     },
     button: {
       background: theme.palette.primary.main,
-      padding: theme.spacing(1, 2, 1),
       color: "#FFF",
       fontSize: "12px",
       borderRadius: "4px",
@@ -270,6 +269,7 @@ export default function PatientListTable(props) {
   }
 
   function setToolbarActionButtonText() {
+    //if (document.querySelector(`#${TOOLBAR_ACTION_BUTTON_ID} button`).getAttribute("disabled")) return;
     let text = (document.querySelector("#"+NO_DATA_ELEMENT_ID)) ? CREATE_BUTTON_LABEL: LAUNCH_BUTTON_LABEL;
     document.querySelector(`#${TOOLBAR_ACTION_BUTTON_ID} button span`).innerText = text;
   }
