@@ -62,8 +62,8 @@ const useStyles = makeStyles({
     },
     button: {
       background: theme.palette.primary.main,
-      color: "#FFF",
       padding: theme.spacing(1, 2, 1),
+      color: "#FFF",
       fontSize: "12px",
       borderRadius: "4px",
       width: "120px",
@@ -104,7 +104,9 @@ export default function PatientListTable(props) {
   const [filters, setFilters] = React.useState([]);
   const [toolbarActionButtonAdded, setToolbarActionButton] = React.useState(false);
   const tableRef = React.createRef();
-  const LAUNCH_BUTTON_LABEL = "GO";
+  const LAUNCH_BUTTON_LABEL = "VIEW";
+  const CREATE_BUTTON_LABEL = "CREATE";
+  const NO_DATA_ELEMENT_ID = "noDataContainer";
   const TOOLBAR_ACTION_BUTTON_ID = "toolbarGoButton";
   const CACHE_FILTERS_LABEL = "cosri_filters";
   const columns = [
@@ -197,7 +199,7 @@ export default function PatientListTable(props) {
       if (!response || !response.entry || !response.entry.length) {
           setErrorMessage("No patient found.");
           setOpenLoadingModal(false);
-          return;
+          return false;
       }
       setErrorMessage('');
       setOpenLoadingModal(false);
@@ -208,10 +210,11 @@ export default function PatientListTable(props) {
         setErrorMessage(`Patient search error: ${e}`);
         setOpenLoadingModal(false);
         setPop(true);
+        return false;
       }
       if (!launchURL) {
         setErrorMessage(`Unable to launch application.  Invalid launch URL. Missing configurations.`);
-        return;
+        return false;
       }
       setTimeout(function() {
         window.location = launchURL;
@@ -264,6 +267,11 @@ export default function PatientListTable(props) {
     }
     document.querySelector(`#${TOOLBAR_ACTION_BUTTON_ID} button`).setAttribute("disabled", true);
     document.querySelector(`#${TOOLBAR_ACTION_BUTTON_ID} button`).classList.add("disabled");
+  }
+
+  function setToolbarActionButtonText() {
+    let text = (document.querySelector("#"+NO_DATA_ELEMENT_ID)) ? CREATE_BUTTON_LABEL: LAUNCH_BUTTON_LABEL;
+    document.querySelector(`#${TOOLBAR_ACTION_BUTTON_ID} button span`).innerText = text;
   }
 
   function getToolbarActionButton() {
@@ -328,12 +336,13 @@ export default function PatientListTable(props) {
         <Container className={classes.container} id="patientList" maxWidth="lg">
           {loading && <CircularProgress size={40} className={classes.buttonProgress} />}
           {!loading && initialized && <div className={classes.table} aria-label="patient list table" >
-              <h2>Patient Search</h2>
+              <h2>COSRI Patient Search</h2>
               <MaterialTable
                 className={classes.table}
                 columns={columns}
                 data={data}
                 tableRef={tableRef}
+                hideSortIcon={false}
                 options={{
                     toolbar: false,
                     filtering: true,
@@ -362,13 +371,14 @@ export default function PatientListTable(props) {
                   (event) => {
                     setErrorMessage("");
                     setFilters(event);
+                    setTimeout(setToolbarActionButtonText, 0);
                     sessionStorage.setItem(CACHE_FILTERS_LABEL, JSON.stringify(event));
                     setToolbarActionButtonVis(event);
                   }
                 }
                 actions={[
                   () => ({
-                      icon: () => <span className={classes.button}>{LAUNCH_BUTTON_LABEL}</span>,
+                      icon: () => <span className={classes.button} color="primary" size="small" variant="contained">{LAUNCH_BUTTON_LABEL}</span>,
                       tooltip: 'Launch COSRI application for the user',
                       onClick: (event, rowData) => {
                         handleSearch(event, rowData)
@@ -394,8 +404,8 @@ export default function PatientListTable(props) {
                               {filters.length < NUM_OF_REQUIRED_FILTERS && <div>
                                 Try entering all First name, Last name and Birth Date.
                               </div>}
-                              {filters.length >= NUM_OF_REQUIRED_FILTERS && <div>
-                                Hit GO to create new patient
+                              {filters.length >= NUM_OF_REQUIRED_FILTERS && <div id={`${NO_DATA_ELEMENT_ID}`}>
+                                {`Click on ${CREATE_BUTTON_LABEL} button to create new patient`}
                               </div>}
                             </div>
                         </div>
@@ -423,7 +433,7 @@ export default function PatientListTable(props) {
             </div>
           </Modal>
           {/* toolbar go button */}
-          <div id={`${TOOLBAR_ACTION_BUTTON_ID}`} className="hide"><Button  className="disabled" color="primary" size="small" variant="contained" className={classes.btoutton}>{LAUNCH_BUTTON_LABEL}</Button></div>
+          <div id={`${TOOLBAR_ACTION_BUTTON_ID}`} className="hide"><Button  className="disabled" color="primary" size="small" variant="contained" className={classes.button}>{LAUNCH_BUTTON_LABEL}</Button></div>
         </Container>
     </React.Fragment>
   );
