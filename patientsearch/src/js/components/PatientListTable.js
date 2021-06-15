@@ -269,7 +269,6 @@ export default function PatientListTable(props) {
   }
 
   function setToolbarActionButtonText() {
-    //if (document.querySelector(`#${TOOLBAR_ACTION_BUTTON_ID} button`).getAttribute("disabled")) return;
     let text = (document.querySelector("#"+NO_DATA_ELEMENT_ID)) ? CREATE_BUTTON_LABEL: LAUNCH_BUTTON_LABEL;
     document.querySelector(`#${TOOLBAR_ACTION_BUTTON_ID} button span`).innerText = text;
   }
