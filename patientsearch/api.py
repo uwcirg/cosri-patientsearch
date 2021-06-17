@@ -215,7 +215,7 @@ def external_search(resource_type):
         bundle=external_request(token, resource_type, request.args),
         resource_type=resource_type,
         identifier={
-            'system': current_app.config.get('EXTERNAL_FHIR_API'),
+            'system': 'https://github.com/uwcirg/script-fhir-facade',
             'value': 'found'})
 
     local_fhir_patient = sync_bundle(token, external_search_bundle)
