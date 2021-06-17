@@ -11,6 +11,8 @@ def decode_json_config(potential_json_string):
 
 SERVER_NAME = os.getenv("SERVER_NAME")
 SECRET_KEY = os.getenv("SECRET_KEY")
+STATIC_DIR = os.getenv("STATIC_DIR")
+
 EXTERNAL_FHIR_API = os.getenv("EXTERNAL_FHIR_API")
 MAP_API = os.getenv("MAP_API")
 

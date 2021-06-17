@@ -1,3 +1,5 @@
+import os
+
 from flask import Flask
 from logging import config as logging_config
 
@@ -7,7 +9,11 @@ from patientsearch.extensions import oidc
 
 def create_app(testing=False):
     """Application factory, used to create and configure application"""
-    app = Flask(__name__)
+    static_dir = os.environ.get("STATIC_DIR")
+    if static_dir:
+        app = Flask(__name__, static_folder=static_dir)
+    else:
+        app = Flask(__name__)
     app.config.from_object('patientsearch.config')
 
     if testing is True:
