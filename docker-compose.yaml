@@ -5,6 +5,10 @@ services:
     image: "uwcirg/cosri-patientsearch:${DOCKER_IMAGE_TAG:-develop}"
     build:
       context: .
+      args:
+        # set build arg from environment variable with same name
+        # add default to squelch warnings
+        VERSION_STRING: ${VERSION_STRING:-local}
     ports:
       # allow override of published port
       - ${EXTERNAL_PORT:-8000}:8000
