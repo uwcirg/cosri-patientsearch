@@ -16,6 +16,9 @@ FROM python:3.7 as backend
 RUN mkdir /opt/cosri-patientsearch
 WORKDIR /opt/cosri-patientsearch
 
+ARG VERSION_STRING
+ENV VERSION_STRING=$VERSION_STRING
+
 # Copy front-end files built in previous stage
 COPY --from=frontend /tmp/frontend/patientsearch/dist/ /opt/cosri-patientsearch/patientsearch/static/
 

@@ -7,7 +7,13 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
+      - name: Checkout commit with full git history
+        uses: actions/checkout@v1
+        with:
+          fetch-depth: 0
+
+      - name: Set environment variable for version from git output
+        run: echo "VERSION_STRING=$(git describe --always --tags)" >> $GITHUB_ENV
 
       - name: Set up Python 3.7
         uses: actions/setup-python@v1
@@ -38,3 +44,4 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
           tag_semver: true
+          buildargs: VERSION_STRING
