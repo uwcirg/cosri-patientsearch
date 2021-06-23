@@ -21,7 +21,7 @@ const useStyles = makeStyles({
     container: {
         marginLeft: "auto",
         marginRight: "auto",
-        marginBottom: theme.spacing(4),
+        marginBottom: theme.spacing(2),
         marginTop: 148
     },
     table: {
@@ -295,6 +295,10 @@ export default function PatientListTable(props) {
       }
   }
 
+  function setVis() {
+    document.querySelector("body").classList.add("ready");
+  }
+
   React.useEffect(() => {
     fetchData("./settings").then(response => {
         if (response) {
@@ -313,6 +317,7 @@ export default function PatientListTable(props) {
           setData(formatData(response));
           setInitialized(true);
           setLoading(false);
+          setVis();
         }).catch(error => {
           console.log("Failed to retrieve data", error.statusText);
           setErrorMessage(`Error retrieving data: ${error.statusText}`);
