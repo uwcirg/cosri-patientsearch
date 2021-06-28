@@ -78,7 +78,7 @@ module.exports = function(_env, argv) {
     plugins: [
       new CleanWebpackPlugin(),
       new HtmlWebpackPlugin({
-        title: "CORSI Patient Search",
+        title: "COSRI Patient Search",
         template: path.join(__dirname, '/patientsearch/src/index.html'),
         filename: path.join(__dirname, `${templateDirectory}/index.html`),
         favicon: path.join(__dirname, '/patientsearch/src/assets/favicon.ico'),
