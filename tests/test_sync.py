@@ -32,6 +32,11 @@ def internal_patient_match(datadir):
     return load_json(datadir, "internal_patient_match.json")
 
 
+@fixture
+def internal_patient_duplicate_match(datadir):
+    return load_json(datadir, "internal_patient_duplicate_match.json")
+
+
 def test_new_upsert(
         client, mocker, faux_token, external_patient_search,
         internal_patient_miss, new_patient):
@@ -107,3 +112,18 @@ def test_existing_modified(
     result = sync_bundle(faux_token, external_patient_search_w_identifier)
     assert result == identified_internal
     assert result['identifier'] == [found_identifier]
+
+
+def test_duplicate(
+        client, mocker, faux_token, external_patient_search,
+        internal_patient_duplicate_match):
+    """Finding a matching patient with duplicates, handle well"""
+
+    # Mock HAPI search finding duplicate matching patients
+    mocker.patch(
+        'patientsearch.models.sync.HAPI_request',
+        return_value=internal_patient_duplicate_match)
+
+    # Shouldn't kill the process, but return the first
+    result = sync_bundle(faux_token, external_patient_search)
+    assert result == internal_patient_duplicate_match['entry'][0]['resource']

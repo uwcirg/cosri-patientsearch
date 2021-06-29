@@ -1,0 +1,81 @@
+{
+  "resourceType": "Bundle",
+  "id": "c865c9ee-2432-4f6d-87bd-3a6d5243bd77",
+  "meta": {
+    "lastUpdated": "2020-06-19T13:04:43.062+00:00"
+  },
+  "type": "searchset",
+  "total": 2,
+  "link": [
+    {
+      "relation": "self",
+      "url": "http://localhost:8080/hapi-fhir-jpaserver/fhir/Patient?family=skywalker"
+    }
+  ],
+  "entry": [
+    {
+      "fullUrl": "http://localhost:8080/hapi-fhir-jpaserver/fhir/Patient/1102",
+      "resource": {
+        "resourceType": "Patient",
+        "id": "1102",
+        "meta": {
+          "versionId": "1",
+          "lastUpdated": "2020-06-19T12:54:39.363+00:00"
+        },
+        "text": {
+          "status": "generated",
+          "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\"><div class=\"hapiHeaderText\">luke <b>SKYWALKER </b></div><table class=\"hapiPropertyTable\"><tbody><tr><td>Date of birth</td><td><span>12 January 1977</span></td></tr></tbody></table></div>"
+        },
+        "name": [
+          {
+            "family": "skywalker",
+            "given": [
+              "luke"
+            ]
+          }
+        ],
+        "gender": "male",
+        "birthDate": "1977-01-12"
+      },
+      "search": {
+        "mode": "match"
+      },
+      "response": {
+        "status": "201 Created",
+        "etag": "W/\"1\""
+      }
+    },
+    {
+      "fullUrl": "http://localhost:8080/hapi-fhir-jpaserver/fhir/Patient/1103",
+      "resource": {
+        "resourceType": "Patient",
+        "id": "1103",
+        "meta": {
+          "versionId": "1",
+          "lastUpdated": "2020-06-19T12:54:39.363+00:00"
+        },
+        "text": {
+          "status": "generated",
+          "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\"><div class=\"hapiHeaderText\">luke <b>SKYWALKER </b></div><table class=\"hapiPropertyTable\"><tbody><tr><td>Date of birth</td><td><span>12 January 1977</span></td></tr></tbody></table></div>"
+        },
+        "name": [
+          {
+            "family": "skywalker",
+            "given": [
+              "luke"
+            ]
+          }
+        ],
+        "gender": "male",
+        "birthDate": "1977-01-12"
+      },
+      "search": {
+        "mode": "match"
+      },
+      "response": {
+        "status": "201 Created",
+        "etag": "W/\"1\""
+      }
+    }
+  ]
+}
