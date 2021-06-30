@@ -54,11 +54,12 @@ def validate_auth():
         token = oidc.get_access_token()
     except TypeError:
         # raised when the token isn't accessible to the oidc lib
-        return redirect("/")
+        terminate_session()
+        raise Unauthorized("oidc access token inaccessible")
 
     if not oidc.validate_token(token):
         terminate_session()
-        return redirect("/")
+        raise Unauthorized("oidc token invalid")
     return token
 
 
