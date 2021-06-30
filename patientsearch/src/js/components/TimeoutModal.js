@@ -42,7 +42,7 @@ export default function TimeoutModal() {
     /*
      * when the expires in is less than the next track interval, the session will have expired, so just logout user
      */
-    if (expiresIn && 
+    if (expiresIn &&
       expiresIn > 0 &&
       expiresIn <= (trackInterval/1000)) {
         handleLogout();
@@ -55,7 +55,7 @@ export default function TimeoutModal() {
           tokenData = JSON.parse(response);
           //in seconds
           expiresIn = tokenData["expires_in"];
-         
+
           if (!tokenData["valid"] || expiresIn <= 1) {
             handleLogout();
             return;
@@ -64,7 +64,7 @@ export default function TimeoutModal() {
             cleanUpModal();
             if (!open) handleOpen();
           }
- 
+
         } catch(e) {
           console.log(`Error occurred parsing token data ${e}`);
           clearExpiredIntervalId();
@@ -74,13 +74,14 @@ export default function TimeoutModal() {
       }
     },
     error => {
-      if (error.status && error.status == 401) {
+      console.log("Error returned ", error);
+      if (error && error.status && error.status == 401) {
         console.log("Failed to retriev token data: Unauthorized ");
         handleLogout();
         return;
       }
       clearExpiredIntervalId();
-      console.log("Failed to retrieve token data", error.statusText);
+      console.log("Failed to retrieve token data", error ? error.statusText : "");
     });
   };
 
@@ -120,15 +121,15 @@ export default function TimeoutModal() {
       <h2 id="timeout-modal-title">Session Timeout Notice</h2>
       <div id="timeout-modal-description">
           {
-            expiresIn && 
-            expiresIn == 0 && 
+            expiresIn &&
+            expiresIn == 0 &&
             <span className="error">Your current session has expired.</span>
           }
           {
-            expiresIn && 
-            expiresIn != 0 && 
+            expiresIn &&
+            expiresIn != 0 &&
             <span>Your session will expired in approximately {getExpiresInDisplay(expiresIn)}.</span>
-          }   
+          }
           <div className="buttons-container">
             <Button variant="outlined" onClick={handleClose}>OK</Button>
             <Button variant="outlined" onClick={handleLogout}>Log Out</Button>
@@ -137,14 +138,14 @@ export default function TimeoutModal() {
       <TimeoutModal />
     </div>
   );
-  
+
   useEffect(() => {
     initTimeoutTracking();
     return () => {
       clearExpiredIntervalId();
     }
   }, []);
-  
+
   return (
     <div>
       <Modal
