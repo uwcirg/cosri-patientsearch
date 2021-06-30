@@ -184,7 +184,7 @@ def sync_patient(token, patient):
     match_count = internal_search['total']
     if match_count > 0:
         if match_count > 1:
-            current_app.logger.warn(
+            current_app.logger.warning(
                 f"expected ONE matching patient, found {match_count}")
 
         internal_patient = internal_search['entry'][0]['resource']
