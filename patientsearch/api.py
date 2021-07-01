@@ -20,6 +20,7 @@ from patientsearch.models import (
     HAPI_request,
     add_identifier_to_resource_type,
     external_request,
+    internal_patient_search,
     sync_bundle,
 )
 from patientsearch.extensions import oidc
@@ -222,7 +223,12 @@ def external_search(resource_type):
             'system': 'https://github.com/uwcirg/script-fhir-facade',
             'value': 'found'})
 
-    local_fhir_patient = sync_bundle(token, external_search_bundle)
+    if len(external_search_bundle['entry']):
+        local_fhir_patient = sync_bundle(token, external_search_bundle)
+    else:
+        # See if local match already exists
+        patient = resource_from_args(resource_type, request.args)
+        local_fhir_patient = internal_patient_search(token, patient)
 
     # TODO: is there a PHI safe 'id' for the user (in place of email)?
     try:
@@ -238,8 +244,7 @@ def external_search(resource_type):
         assert len(external_search_bundle['entry']) == 0
 
         # Add at this time in the local store
-        new_patient = resource_from_args(resource_type, request.args)
-        local_fhir_patient = HAPI_POST(token, new_patient)
+        local_fhir_patient = HAPI_POST(token, patient)
         current_app.logger.info(
             "PDMP search failed; create new patient from search params",
             extra={
