@@ -160,8 +160,9 @@ def _merge_patient(src_patient, internal_patient, token):
         return HAPI_PUT(token, internal_patient)
 
 
-def sync_patient(token, patient):
-    """Sync single patient resource - insert or update as needed"""
+def internal_patient_search(token, patient):
+    """Look up given patient from "internal" HAPI store, returns bundle"""
+
     # Use same parameters sent to external src looking for existing Patient
     # Note FHIR uses list for 'given', common parameter use defines just one
     search_map = (
@@ -177,8 +178,14 @@ def sync_patient(token, patient):
         if match and isinstance(match, str):
             search_params[queryterm] = compstr + match
 
-    internal_search = HAPI_request(
+    return HAPI_request(
         token=token, resource_type='Patient', params=search_params)
+
+
+def sync_patient(token, patient):
+    """Sync single patient resource - insert or update as needed"""
+
+    internal_search = internal_patient_search(token, patient)
 
     # If found, return the Patient, merging if necessary
     match_count = internal_search['total']
