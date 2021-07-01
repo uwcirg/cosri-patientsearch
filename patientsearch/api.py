@@ -231,10 +231,10 @@ def external_search(resource_type):
         # See if local match already exists
         patient = resource_from_args(resource_type, request.args)
         internal_bundle = internal_patient_search(token, patient)
-        local_fhir_patient = (
-            internal_bundle['entry'][0] if len(internal_bundle['entry'])
-            else None)
-        if len(internal_bundle['entry']) > 1:
+        local_fhir_patient = None
+        if internal_bundle['total'] > 0:
+            local_fhir_patient = internal_bundle['entry'][0]['resource']
+        if internal_bundle['total'] > 1:
             current_app.logger.warning(
                 "found multiple internal matches (%s), return first",
                 patient)
