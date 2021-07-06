@@ -39,7 +39,13 @@ def HAPI_request(token, resource_type, resource_id=None, params=None):
     if resource_id is not None:
         url = '/'.join(url, resource_id)
 
-    resp = requests.get(url, auth=BearerAuth(token), params=params)
+    # By default, HAPI caches search results for 60000 milliseconds,
+    # meaning new patients won't immediately appear in results.
+    # Disable caching until we find the need and safe use cases
+    headers = {'Cache-Control': 'no-cache'}
+    resp = requests.get(
+        url, auth=BearerAuth(token), headers=headers, params=params)
+
     try:
         resp.raise_for_status()
     except requests.exceptions.HTTPError as err:
