@@ -99,7 +99,6 @@ export default function PatientListTable(props) {
   const classes = useStyles();
   const [initialized, setInitialized] = React.useState(false);
   const [data, setData] = React.useState([]);
-  const [selectFilters, setSelectFilters] = React.useState([]);
   const [openLoadingModal, setOpenLoadingModal] = React.useState(false);
   const [loading, setLoading] = React.useState(true);
   const [errorMessage, setErrorMessage] = React.useState("");
@@ -246,12 +245,9 @@ export default function PatientListTable(props) {
   }
 
   const getFilterRowData = function() {
-    let filterItems = selectFilters;
-    if (!filterItems || !filterItems.length) {
-      let cacheItem = sessionStorage.getItem(CACHE_FILTERS_LABEL);
-      if (cacheItem) {
-        filterItems = JSON.parse(cacheItem);
-      }
+    let filterItems = sessionStorage.getItem(CACHE_FILTERS_LABEL);
+    if (filterItems) {
+      filterItems = JSON.parse(filterItems);
     }
     if (!filterItems || !filterItems.length) return false;
     let o = {};
@@ -318,7 +314,6 @@ export default function PatientListTable(props) {
   }
 
   function inPDMP(rowData) {
-    //console.log(" row data? ", rowData);
     if (!rowData) return false;
     return (
       rowData.identifier &&
@@ -459,7 +454,7 @@ export default function PatientListTable(props) {
                       actions: ""
                     },
                   pagination: {
-                    labelRowsSelect: "rows to show"
+                    labelRowsSelect: "rows"
                   },
                   body: {
                       emptyDataSourceMessage: (
