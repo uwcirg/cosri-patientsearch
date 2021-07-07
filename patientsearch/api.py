@@ -16,7 +16,6 @@ from werkzeug.exceptions import Unauthorized
 
 from patientsearch.models import (
     BearerAuth,
-    HAPI_POST,
     HAPI_request,
     add_identifier_to_resource_type,
     external_request,
@@ -154,7 +153,20 @@ def resource_bundle(resource_type):
     params = {'_count': 1000}
     params.update(request.args)
     return jsonify(HAPI_request(
-        token=token, resource_type=resource_type, params=params))
+        token=token, method='GET', resource_type=resource_type, params=params))
+
+
+@api_blueprint.route(
+    '/<string:resource_type>/<int:resource_id>', methods=["DELETE"])
+def delete_resource_by_id(resource_type, resource_id):
+    """Delete individual resource from HAPI; return JSON result
+
+    NB not decorated with `@oidc.require_login` as that does an implicit
+    redirect.  Client should watch for 401 and redirect appropriately.
+    """
+    token = validate_auth()
+    return jsonify(HAPI_request(
+        method='DELETE', resource_type=resource_type, resource_id=resource_id, token=token))
 
 
 @api_blueprint.route(
@@ -166,7 +178,8 @@ def resource_by_id(resource_type, resource_id):
     redirect.  Client should watch for 401 and redirect appropriately.
     """
     token = validate_auth()
-    return jsonify(HAPI_request(resource_type, resource_id, token))
+    return jsonify(HAPI_request(
+        method='GET', resource_type=resource_type, resource_id=resource_id, token=token))
 
 
 def resource_from_args(resource_type, args):
@@ -248,7 +261,7 @@ def external_search(resource_type):
 
     if not local_fhir_patient:
         # Add at this time in the local store
-        local_fhir_patient = HAPI_POST(token, patient)
+        local_fhir_patient = HAPI_request(token=token, method='POST', resource=patient)
         current_app.logger.info(
             "PDMP search failed; create new patient from search params",
             extra={
