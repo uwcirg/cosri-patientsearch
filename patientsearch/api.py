@@ -261,7 +261,8 @@ def external_search(resource_type):
 
     if not local_fhir_patient:
         # Add at this time in the local store
-        local_fhir_patient = HAPI_request(token=token, method='POST', resource=patient)
+        local_fhir_patient = HAPI_request(
+            token=token, method='POST', resource_type='Patient', resource=patient)
         current_app.logger.info(
             "PDMP search failed; create new patient from search params",
             extra={
