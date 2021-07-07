@@ -144,6 +144,7 @@ export default function PatientListTable(props) {
     let launchParam = btoa(JSON.stringify({"b":patientId}));
     return `${baseURL}?launch=${launchParam}&iss=${iss}`;
   };
+  const noCacheParam = {cache: "no-cache"};
 
   async function fetchData(url, params) {
     const MAX_WAIT_TIME = 10000;
@@ -194,7 +195,7 @@ export default function PatientListTable(props) {
   const handleSearch = function (event, rowData) {
     setOpenLoadingModal(true);
     setErrorMessage('');
-    fetchData(getPatientSearchURL(rowData), {"method": "PUT"}).then(response => {
+    fetchData(getPatientSearchURL(rowData), {...{"method": "PUT"}, ...noCacheParam}).then(response => {
       //console.log("response from search ", response)
       if (!response || !response.entry || !response.entry.length) {
           setErrorMessage("No patient found.");
@@ -307,7 +308,7 @@ export default function PatientListTable(props) {
         /*
         * get patient list
         */
-        fetchData("./Patient").then(response => {
+        fetchData("./Patient", noCacheParam).then(response => {
           if (!response || !response.entry || !response.entry.length) {
             setInitialized(true);
            // setErrorMessage("No data found");
