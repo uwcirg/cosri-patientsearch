@@ -1,4 +1,4 @@
-$color-blue: #217684;
+$color-blue: #00838f;
 $color-blue-light: #46777f;
 $color-muted: #777;
 $color-muter: rgba(165, 158, 158, 0.64);
@@ -27,7 +27,7 @@ $table-header-bg-color: rgb(224, 242, 241);
 }
 .icon-container {
   svg {
-    fill: $input-icon-color;
+    fill: $color-blue;
   }
 }
 
@@ -42,9 +42,15 @@ $table-header-bg-color: rgb(224, 242, 241);
 }
 button.disabled,
 button.disabled:hover,
-button.disabled:focus {
+button.disabled:focus,
+.btn.disabled,
+.btn.disabled:hover,
+.btn.disabled:focus {
   background-color: $color-muted;
   cursor: not-allowed;
+  &.row {
+    color: #FFF;
+  }
 }
 .spinner {
   position: fixed;
@@ -115,7 +121,8 @@ button.disabled:focus {
 }
 
 #patientList {
-  input {
+  input,
+  .MuiInputLabel-formControl {
     font-size: $small-font-size;
   }
   table:first-of-type {
@@ -138,5 +145,73 @@ button.disabled:focus {
 .ready {
   .version-container {
     opacity: 1;
+  }
+}
+
+/*
+ * table mobile styling
+ */
+
+@media
+only screen and (max-width: 760px),
+(min-device-width: 768px) and (max-device-width: 1024px)  {
+
+	/* Force table to not be like tables anymore */
+	table, thead, tbody, thead th, tbody td, tbody tr {
+		display: block;
+	}
+
+	/* Hide table headers (but not display: none;, for accessibility) */
+	thead tr {
+		position: absolute;
+		top: -9999px;
+		left: -9999px;
+	}
+
+	//tr { border: 1px solid #ccc; }
+
+  tbody tr:first-of-type {
+    min-height: 280px;
+    display: flex;
+    flex-direction: column;
+    padding: 16px 16px;
+  }
+  tbody tr {
+    display: flex !important;
+    flex-direction: column;
+    padding: 16px;
+    border-bottom: 1px solid $color-muter;
+  }
+
+	td {
+		/* Behave  like a "row" */
+		border: 0 !important;
+    padding: 24px 8px 8px !important;
+		position: relative;
+	}
+
+	td:before {
+		/* Now like a table header */
+		position: absolute;
+		/* Top/left values mimic padding */
+		top: 6px;
+		left: 6px;
+		width: 45%;
+		padding-right: 10px;
+		white-space: nowrap;
+    font-weight: 700;
+    font-size: $small-font-size;
+	}
+
+	/*
+	Label the data
+	*/
+	tbody td:nth-of-type(1):before { content: "First Name"; }
+	tbody td:nth-of-type(2):before { content: "Last Name"; }
+	tbody td:nth-of-type(3):before { content: "Birth Date"; }
+
+  tfoot .MuiTablePagination-toolbar {
+    display: flex;
+    flex-direction: column;
   }
 }

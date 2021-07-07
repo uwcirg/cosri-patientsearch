@@ -10,7 +10,8 @@ const theme = createMuiTheme({
         light: teal[200],
         medium: cyan[600],
         main: cyan[800],
-        dark: cyan[900]
+        dark: cyan[900],
+        disabled: "#e6e9e6"
     },
     secondary: {
       main: "#3c3535",
@@ -25,8 +26,18 @@ const theme = createMuiTheme({
             background: cyan[700],
             color: "#fff"
         }
-    }
-  }
+    },
+  },
+  overrides: {
+    MuiTableSortLabel: {
+      icon: {
+        color: cyan[600]
+      },
+      active: {
+        color: cyan[600]
+      },
+    },
+  },
 });
 
 export default theme;

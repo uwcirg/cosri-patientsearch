@@ -10,13 +10,16 @@ function Alert(props) {
 
 const useStyles = makeStyles((theme) => ({
   root: {
-    marginTop: theme.spacing(3),
-    marginBottom: theme.spacing(2),
+    marginBottom: theme.spacing(3),
     width: '100%',
     '& > * + *': {
       marginTop: theme.spacing(2),
       marginBottom: theme.spacing(2)
     },
+    '& ul': {
+      padding: theme.spacing(0, 2, 0),
+      margin: theme.spacing(1, 0, 1)
+    }
   },
 }));
 

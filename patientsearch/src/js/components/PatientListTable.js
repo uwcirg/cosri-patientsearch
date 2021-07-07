@@ -1,4 +1,6 @@
 import React from 'react';
+import DateFnsUtils from '@date-io/date-fns';
+import isValid from "date-fns/isValid";
 import { makeStyles} from '@material-ui/core/styles';
 import { forwardRef } from 'react';
 import ArrowDownward from '@material-ui/icons/ArrowDownward';
@@ -12,8 +14,7 @@ import LastPage from '@material-ui/icons/LastPage';
 import Search from '@material-ui/icons/Search';
 import Button from '@material-ui/core/Button';
 import Modal from '@material-ui/core/Modal';
-import MuiAlert from '@material-ui/lab/Alert';
-import Snackbar from '@material-ui/core/Snackbar';
+import  {MuiPickersUtilsProvider, KeyboardDatePicker } from '@material-ui/pickers';
 import Error from "./Error";
 import theme from '../context/theme';
 
@@ -68,7 +69,8 @@ const useStyles = makeStyles({
       borderRadius: "4px",
       width: "120px",
       fontWeight: 500,
-      textTransform: "uppercase"
+      textTransform: "uppercase",
+      border: 0
     },
     bold: {
       fontWeight: 500
@@ -97,22 +99,25 @@ export default function PatientListTable(props) {
   const classes = useStyles();
   const [initialized, setInitialized] = React.useState(false);
   const [data, setData] = React.useState([]);
+  const [selectFilters, setSelectFilters] = React.useState([]);
   const [openLoadingModal, setOpenLoadingModal] = React.useState(false);
   const [loading, setLoading] = React.useState(true);
-  const [popOpen, setPop] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState("");
-  const [filters, setFilters] = React.useState([]);
   const [toolbarActionButtonAdded, setToolbarActionButton] = React.useState(false);
-  const tableRef = React.createRef();
+  const tableRef = React.useRef();
   const LAUNCH_BUTTON_LABEL = "VIEW";
   const CREATE_BUTTON_LABEL = "CREATE";
   const NO_DATA_ELEMENT_ID = "noDataContainer";
   const TOOLBAR_ACTION_BUTTON_ID = "toolbarGoButton";
   const CACHE_FILTERS_LABEL = "cosri_filters";
+  const firstNameFilter = "";
   const columns = [
-    {title: "First Name", field: "first_name", filterPlaceholder: "First Name", emptyValue: "--"},
+    {field: "id", hidden: true, defaultSort: "desc", filtering: false},
+    {title: "First Name", field: "first_name", filterPlaceholder: "First Name", emptyValue: "--", defaultFilter: firstNameFilter},
     {title: "Last Name", field: "last_name", filterPlaceholder: "Last Name", emptyValue: "--"},
-    {title: "Birth Date", field: "dob", filterPlaceholder: "YYYY-MM-DD", emptyValue: "--"},
+    {title: "Birth Date", field: "dob", filterPlaceholder: "YYYY-MM-DD", emptyValue: "--",
+    filterComponent: (props) => <CustomDatePicker {...props} />,
+    },
   ];
   const errorStyle = {"display" : errorMessage? "block": "none"};
   const setAppSettings = function(settings) {
@@ -183,22 +188,16 @@ export default function PatientListTable(props) {
     }
     return json;
   }
-  /*
-  * close snackbar
-  */
-  const handlePopClose = (event, reason) => {
-    if (reason === 'clickaway') {
-        return;
-    }
-    setPop(false);
-  }
   const handleSearch = function (event, rowData) {
+    if (!rowData) {
+      console.log("No valid data to perform patient search");
+      return false;
+    }
     setOpenLoadingModal(true);
     setErrorMessage('');
     fetchData(getPatientSearchURL(rowData), {...{"method": "PUT"}, ...noCacheParam}).then(response => {
-      //console.log("response from search ", response)
       if (!response || !response.entry || !response.entry.length) {
-          setErrorMessage("No patient found.");
+          setErrorMessage("<div>The patient was not found in the PMP. This could be due to:</div><ul><li>No previous controlled substance medications dispensed</li><li>Incorrect spelling of name or incorrect date of birth.</li></ul><div>Please double check name spelling and date of birth.</div>");
           setOpenLoadingModal(false);
           return false;
       }
@@ -206,11 +205,11 @@ export default function PatientListTable(props) {
       setOpenLoadingModal(false);
       let launchURL = "";
       try {
-        launchURL = getLaunchURL(rowData.id || response.entry[0].id);
+        launchURL = rowData.url || getLaunchURL(response.entry[0].id);
       } catch(e) {
-        setErrorMessage(`Patient search error: ${e}`);
-        setOpenLoadingModal(false);
-        setPop(true);
+        setErrorMessage(`Unable to launch application.  Invalid launch URL. Missing configurations.`);
+        //log error to console
+        console.log(`Launch URL error: ${e}`)
         return false;
       }
       if (!launchURL) {
@@ -221,34 +220,40 @@ export default function PatientListTable(props) {
         window.location = launchURL;
       }, 150);
     }).catch(e => {
-        setErrorMessage(`Patient search error: ${e}`);
-        setOpenLoadingModal(false);
-        setPop(true);
+      setErrorMessage("COSRI is unable to return PMP information. This may be due to PMP system being down or a problem with the COSRI connection to PMP.");
+      //log error to console
+      console.log(`Patient search error: ${e}`);
+      setOpenLoadingModal(false);
     });
   }
   const formatData = (data) => {
     if (!data) return false;
     return data.entry.map((item) => {
+        let patientId = item.resource && item.resource["id"] ? item.resource["id"] : "";
         return {
             first_name: item.resource && item.resource.name && item.resource.name[0]? item.resource.name[0]["given"][0] : "",
             last_name: item.resource && item.resource.name && item.resource.name[0] ? item.resource.name[0]["family"] : "",
             dob: item.resource && item.resource["birthDate"]?
               item.resource["birthDate"]:
               "",
-            url: "",
+            url: getLaunchURL(patientId),
+            identifier: item.resource && item.resource.identifier && item.resource.identifier.length? item.resource.identifier: null,
             gender: item.resource && item.resource["gender"] ? item.resource["gender"] : "",
-            id: item.resource && item.resource["id"] ? item.resource["id"] : ""
+            id: patientId
+
         };
     });
   }
+
   const getFilterRowData = function() {
-    let filterItems = filters;
+    let filterItems = selectFilters;
     if (!filterItems || !filterItems.length) {
       let cacheItem = sessionStorage.getItem(CACHE_FILTERS_LABEL);
       if (cacheItem) {
         filterItems = JSON.parse(cacheItem);
       }
     }
+    if (!filterItems || !filterItems.length) return false;
     let o = {};
     filterItems.forEach(item => {
       o[item.column.field] = item.value;
@@ -256,23 +261,17 @@ export default function PatientListTable(props) {
     return o;
   }
 
-  function Alert(props) {
-    return <MuiAlert elevation={6} variant="filled" {...props} />;
-  }
-
   function setToolbarActionButtonVis(filters) {
     if (filters && filters.length >= NUM_OF_REQUIRED_FILTERS) {
       document.querySelector(`#${TOOLBAR_ACTION_BUTTON_ID} button`).removeAttribute("disabled");
       document.querySelector(`#${TOOLBAR_ACTION_BUTTON_ID} button`).classList.remove("disabled");
+      document.querySelector(`#${TOOLBAR_ACTION_BUTTON_ID} button span`).innerText = document.querySelector(`#${NO_DATA_ELEMENT_ID}`) ? CREATE_BUTTON_LABEL: LAUNCH_BUTTON_LABEL;
       return;
     }
     document.querySelector(`#${TOOLBAR_ACTION_BUTTON_ID} button`).setAttribute("disabled", true);
     document.querySelector(`#${TOOLBAR_ACTION_BUTTON_ID} button`).classList.add("disabled");
-  }
-
-  function setToolbarActionButtonText() {
-    let text = (document.querySelector("#"+NO_DATA_ELEMENT_ID)) ? CREATE_BUTTON_LABEL: LAUNCH_BUTTON_LABEL;
-    document.querySelector(`#${TOOLBAR_ACTION_BUTTON_ID} button span`).innerText = text;
+    if (!document.querySelector(`#${TOOLBAR_ACTION_BUTTON_ID} button span`)) return;
+    document.querySelector(`#${TOOLBAR_ACTION_BUTTON_ID} button span`).innerText = LAUNCH_BUTTON_LABEL;
   }
 
   function getToolbarActionButton() {
@@ -290,7 +289,7 @@ export default function PatientListTable(props) {
           });
           setToolbarActionButton(true);
         }, 250);
-        btn.remove();
+        if (btn) btn.remove();
         setToolbarActionButtonVis();
         clearInterval(initIntervalId);
       }
@@ -298,6 +297,34 @@ export default function PatientListTable(props) {
 
   function setVis() {
     document.querySelector("body").classList.add("ready");
+  }
+
+  function setNoDataText(filters) {
+    if (!document.querySelector(`#${NO_DATA_ELEMENT_ID}`)) return;
+    let noDataText = "";
+    if (!filters || filters.length < NUM_OF_REQUIRED_FILTERS) {
+      noDataText = "Try entering all First name, Last name and Birth Date.";
+    } else
+      noDataText = `Click on ${CREATE_BUTTON_LABEL} button to create new patient`;
+    document.querySelector(`#${NO_DATA_ELEMENT_ID}`).innerText = noDataText;
+  }
+
+  function onFiltersDidChange(filters) {
+    setTimeout(function() {
+      sessionStorage.setItem(CACHE_FILTERS_LABEL, JSON.stringify(filters));
+      setNoDataText(filters);
+      setToolbarActionButtonVis(filters);
+    }, 0);
+  }
+
+  function inPDMP(rowData) {
+    //console.log(" row data? ", rowData);
+    if (!rowData) return false;
+    return (
+      rowData.identifier &&
+      rowData.identifier.filter(item => {
+        return item.system === "https://github.com/uwcirg/script-fhir-facade"  && item.value === "found"
+      }).length);
   }
 
   React.useEffect(() => {
@@ -311,7 +338,6 @@ export default function PatientListTable(props) {
         fetchData("./Patient", noCacheParam).then(response => {
           if (!response || !response.entry || !response.entry.length) {
             setInitialized(true);
-           // setErrorMessage("No data found");
             setLoading(false);
             return;
           }
@@ -337,12 +363,48 @@ export default function PatientListTable(props) {
     }, 50);
   }, [toolbarActionButtonAdded]);
 
+  const CustomDatePicker = (props) => {
+    const [date, setDate] = React.useState(null);
+    return (
+      <MuiPickersUtilsProvider utils={DateFnsUtils}>
+          <KeyboardDatePicker
+              className={classes.datePickerContainer}
+              autoOk={true}
+              variant="dialog"
+              openTo="year"
+              disableFuture
+              clearable
+              format="yyyy-MM-dd"
+              id="birthDate"
+              minDate={new Date("1900-01-01")}
+              invalidDateMessage="Enter date in YYYY-MM-DD format, e.g. 1977-01-12"
+              disableFuture
+              placeholder="Birth Date (YYYY-MM-DD)"
+              value={date}
+              orientation="landscape"
+              onChange={(event, dateString) => {
+                if (!event || !isValid(event)) {
+                    if (event && dateString.length === 10) setDate(event);
+                    props.onFilterChanged(props.columnDef.tableData.id, null);
+                    return;
+                }
+                setDate(event);
+                props.onFilterChanged(props.columnDef.tableData.id, dateString);
+              }}
+              KeyboardButtonProps={{color: "primary"}}
+
+          />
+      </MuiPickersUtilsProvider>
+    );
+  }
+
   return (
       <React.Fragment>
         <Container className={classes.container} id="patientList" maxWidth="lg">
+          <h2>COSRI Patient Search</h2>
+          <Error message={errorMessage} style={errorStyle}/>
           {loading && <CircularProgress size={40} className={classes.buttonProgress} />}
           {!loading && initialized && <div className={classes.table} aria-label="patient list table" >
-              <h2>COSRI Patient Search</h2>
               <MaterialTable
                 className={classes.table}
                 columns={columns}
@@ -350,6 +412,7 @@ export default function PatientListTable(props) {
                 tableRef={tableRef}
                 hideSortIcon={false}
                 options={{
+                    paginationTypestepped: "stepped",
                     toolbar: false,
                     filtering: true,
                     sorting: true,
@@ -358,6 +421,9 @@ export default function PatientListTable(props) {
                     headerStyle: {
                         backgroundColor: theme.palette.primary.lightest
                     },
+                    rowStyle: rowData => ({
+                      backgroundColor: (!inPDMP(rowData) ? theme.palette.primary.disabled : '#FFF')
+                    }),
                     actionsCellStyle: {
                       paddingLeft: theme.spacing(2),
                       paddingRight: theme.spacing(2),
@@ -374,21 +440,16 @@ export default function PatientListTable(props) {
                   }
                 }
                 onFilterChange={
-                  (event) => {
-                    setErrorMessage("");
-                    setFilters(event);
-                    setTimeout(setToolbarActionButtonText, 0);
-                    sessionStorage.setItem(CACHE_FILTERS_LABEL, JSON.stringify(event));
-                    setToolbarActionButtonVis(event);
+                  function(event) {
+                    onFiltersDidChange(event);
+                    return false;
                   }
                 }
                 actions={[
                   () => ({
-                      icon: () => <span className={classes.button} color="primary" size="small" variant="contained">{LAUNCH_BUTTON_LABEL}</span>,
+                      icon: () => <button className={classes.button} color="primary" fontSize="small" variant="contained">{LAUNCH_BUTTON_LABEL}</button>,
                       tooltip: 'Launch COSRI application for the user',
-                      onClick: (event, rowData) => {
-                        handleSearch(event, rowData)
-                      },
+                      onClick: (event, rowData) => {handleSearch(event, rowData);},
                       title: "",
                       position: "row"
                     })
@@ -404,15 +465,8 @@ export default function PatientListTable(props) {
                       emptyDataSourceMessage: (
                         <div className={classes.flex}>
                             <div className={classes.warning}>
-                              <div>
-                              No matching patient found.
-                              </div>
-                              {filters.length < NUM_OF_REQUIRED_FILTERS && <div>
-                                Try entering all First name, Last name and Birth Date.
-                              </div>}
-                              {filters.length >= NUM_OF_REQUIRED_FILTERS && <div id={`${NO_DATA_ELEMENT_ID}`}>
-                                {`Click on ${CREATE_BUTTON_LABEL} button to create new patient`}
-                              </div>}
+                              <div>No matching patient found.</div>
+                              <div id={`${NO_DATA_ELEMENT_ID}`}></div>
                             </div>
                         </div>
                       ),
@@ -420,10 +474,6 @@ export default function PatientListTable(props) {
                 }}
               />
           </div>}
-          <Snackbar open={popOpen} autoHideDuration={1500} onClose={handlePopClose} anchorOrigin={{vertical: 'top', horizontal: 'center' }}>
-              <Alert onClose={handlePopClose} severity="error">Error occurred launching COSRI</Alert>
-          </Snackbar>
-          <Error message={errorMessage} style={errorStyle}/>
           <Modal
             open={openLoadingModal}
             aria-labelledby="loading-modal"
