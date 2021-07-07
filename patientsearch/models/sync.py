@@ -26,12 +26,15 @@ def add_identifier_to_resource_type(bundle, resource_type, identifier):
     return result
 
 
-def HAPI_request(token, resource_type, resource_id=None, params=None):
+def HAPI_request(
+        token, method, resource_type, resource_id=None, resource=None, params=None):
     """Execute HAPI request on configured system - return JSON
 
     :param token: validated JWT to include in request for auth
+    :param method: HTTP verb, POST, PUT, GET, DELETE
     :param resource_type: String naming desired such as ``Patient``
     :param resource_id: Optional, used when requesting specific resource
+    :param resource: FHIR resource used in PUT/POST
     :param params: Optional additional search parameters
 
     """
@@ -39,51 +42,26 @@ def HAPI_request(token, resource_type, resource_id=None, params=None):
     if resource_id is not None:
         url = '/'.join(url, resource_id)
 
-    # By default, HAPI caches search results for 60000 milliseconds,
-    # meaning new patients won't immediately appear in results.
-    # Disable caching until we find the need and safe use cases
-    headers = {'Cache-Control': 'no-cache'}
-    resp = requests.get(
-        url, auth=BearerAuth(token), headers=headers, params=params)
+    VERB = method.upper()
+    if VERB == 'GET':
+        # By default, HAPI caches search results for 60000 milliseconds,
+        # meaning new patients won't immediately appear in results.
+        # Disable caching until we find the need and safe use cases
+        headers = {'Cache-Control': 'no-cache'}
+        resp = requests.get(
+            url, auth=BearerAuth(token), headers=headers, params=params)
+    elif VERB == 'POST':
+        resp = requests.post(url, auth=BearerAuth(token), json=resource)
+    elif VERB == 'PUT':
+        resp = requests.put(url, auth=BearerAuth(token), json=resource)
+    elif VERB == 'DELETE':
+        # Only enable deletion of resource by id
+        if not resource_id:
+            abort(400, "'resource_id' required for DELETE")
+        resp = requests.delete(url, auth=BearerAuth(token))
+    else:
+        abort(400, f"Invalid HTTP method: {method}")
 
-    try:
-        resp.raise_for_status()
-    except requests.exceptions.HTTPError as err:
-        abort(err.response.status_code, err)
-    return resp.json()
-
-
-def HAPI_POST(token, resource):
-    """POST to HAPI on configured system - return JSON
-
-    :param token: validated JWT to include in request for auth
-    :param resource: FHIR resource to POST
-    :returns: result returned from HAPI
-
-    """
-    resource_type = resource['resourceType']
-    url = f"{current_app.config.get('MAP_API')}{resource_type}"
-
-    resp = requests.post(url, auth=BearerAuth(token), json=resource)
-    try:
-        resp.raise_for_status()
-    except requests.exceptions.HTTPError as err:
-        abort(err.response.status_code, err)
-    return resp.json()
-
-
-def HAPI_PUT(token, resource):
-    """PUT to HAPI on configured system - return JSON
-
-    :param token: validated JWT to include in request for auth
-    :param resource: FHIR resource to PUT
-    :returns: result returned from HAPI
-
-    """
-    resource_type = resource['resourceType']
-    url = f"{current_app.config.get('MAP_API')}{resource_type}"
-
-    resp = requests.put(url, auth=BearerAuth(token), json=resource)
     try:
         resp.raise_for_status()
     except requests.exceptions.HTTPError as err:
@@ -163,7 +141,8 @@ def _merge_patient(src_patient, internal_patient, token):
         return internal_patient
     else:
         internal_patient['identifier'] = src_patient['identifier']
-        return HAPI_PUT(token, internal_patient)
+        return HAPI_request(
+            token=token, method='PUT', resource_type='Patient', resource=internal_patient)
 
 
 def internal_patient_search(token, patient):
@@ -184,8 +163,7 @@ def internal_patient_search(token, patient):
         if match and isinstance(match, str):
             search_params[queryterm] = compstr + match
 
-    return HAPI_request(
-        token=token, resource_type='Patient', params=search_params)
+    return HAPI_request(token=token, method='GET', resource_type='Patient', params=search_params)
 
 
 def sync_patient(token, patient):
@@ -206,4 +184,5 @@ def sync_patient(token, patient):
         return merged_patient
 
     # No match, insert and return
-    return HAPI_POST(token, patient)
+    return HAPI_request(
+        token=token, method='POST', resource_type='Patient', resource=patient)
