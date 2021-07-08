@@ -16,6 +16,7 @@ import Search from '@material-ui/icons/Search';
 import Button from '@material-ui/core/Button';
 import IconButton from '@material-ui/core/IconButton';
 import InputAdornment from '@material-ui/core/InputAdornment';
+import Tooltip from '@material-ui/core/Tooltip';
 import Modal from '@material-ui/core/Modal';
 import  {MuiPickersUtilsProvider, KeyboardDatePicker } from '@material-ui/pickers';
 import Error from "./Error";
@@ -254,6 +255,7 @@ export default function PatientListTable(props) {
   }
 
   function setToolbarActionButtonVis(filters) {
+    console.log("filters ", filters)
     if (filters && filters.length >= NUM_OF_REQUIRED_FILTERS) {
       document.querySelector(`#${TOOLBAR_ACTION_BUTTON_ID} button`).removeAttribute("disabled");
       document.querySelector(`#${TOOLBAR_ACTION_BUTTON_ID} button`).classList.remove("disabled");
@@ -368,7 +370,7 @@ export default function PatientListTable(props) {
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="end" style={{order: 1, marginLeft: 0}}>
-                      <IconButton onClick={() => { setDate(null); setInput(""); }} disabled={!input} style={{order: 2, padding: 0}} aria-label="Clear date">
+                      <IconButton onClick={() => { setDate(null); setInput(""); }} disabled={!input} style={{order: 2, padding: 0}} aria-label="Clear date" title="Clear date">
                           <ClearIcon color={!input ? "disabled" : "primary"} fontSize="small" />
                       </IconButton>
                   </InputAdornment>
@@ -392,7 +394,7 @@ export default function PatientListTable(props) {
                 setDate(event);
                 props.onFilterChanged(props.columnDef.tableData.id, dateString);
               }}
-              KeyboardButtonProps={{color: "primary"}}
+              KeyboardButtonProps={{color: "primary", title: "Date picker"}}
 
           />
       </MuiPickersUtilsProvider>
@@ -448,9 +450,11 @@ export default function PatientListTable(props) {
                   }
                 }
                 actions={[
-                  () => ({
-                      icon: () => <span className={classes.button} color="primary" fontSize="small" variant="contained">{LAUNCH_BUTTON_LABEL}</span>,
-                      tooltip: 'Launch COSRI application for the user',
+                  rowData => ({
+                      icon: () => (
+                        <Tooltip title={!inPDMP(rowData)? 'Patient was not found in PMP. Launch COSRI Application for the user.': 'Launch COSRI application for the user'}><span className={classes.button} color="primary" fontSize="small" variant="contained">{LAUNCH_BUTTON_LABEL}</span></Tooltip>
+                      ),
+                      //tooltip: 'Launch COSRI application for the user',
                       onClick: (event, rowData) => {handleSearch(event, rowData);},
                       title: "",
                       position: "row"
