@@ -9,10 +9,13 @@ import ChevronRight from '@material-ui/icons/ChevronRight';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import Container from '@material-ui/core/Container';
 import MaterialTable from 'material-table';
+import ClearIcon from '@material-ui/icons/Clear';
 import FirstPage from '@material-ui/icons/FirstPage';
 import LastPage from '@material-ui/icons/LastPage';
 import Search from '@material-ui/icons/Search';
 import Button from '@material-ui/core/Button';
+import IconButton from '@material-ui/core/IconButton';
+import InputAdornment from '@material-ui/core/InputAdornment';
 import Modal from '@material-ui/core/Modal';
 import  {MuiPickersUtilsProvider, KeyboardDatePicker } from '@material-ui/pickers';
 import Error from "./Error";
@@ -353,6 +356,7 @@ export default function PatientListTable(props) {
 
   const CustomDatePicker = (props) => {
     const [date, setDate] = React.useState(null);
+    const [input, setInput] = React.useState("");
     return (
       <MuiPickersUtilsProvider utils={DateFnsUtils}>
           <KeyboardDatePicker
@@ -361,18 +365,27 @@ export default function PatientListTable(props) {
               variant="dialog"
               openTo="year"
               disableFuture
-              clearable
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="end" style={{order: 1, marginLeft: 0}}>
+                      <IconButton onClick={() => { setDate(null); setInput(""); }} disabled={!input} style={{order: 2, padding: 0}} aria-label="Clear date">
+                          <ClearIcon color={!input ? "disabled" : "primary"} fontSize="small" />
+                      </IconButton>
+                  </InputAdornment>
+                )
+               }}
               format="yyyy-MM-dd"
               id="birthDate"
               minDate={new Date("1900-01-01")}
-              invalidDateMessage="Enter date in YYYY-MM-DD format, e.g. 1977-01-12"
+              invalidDateMessage="Date must be in YYYY-MM-DD format, e.g. 1977-01-12"
               disableFuture
               placeholder="YYYY-MM-DD"
               value={date}
               orientation="landscape"
               onChange={(event, dateString) => {
+                setInput(dateString);
                 if (!event || !isValid(event)) {
-                    if (event && dateString.length === 10) setDate(event);
+                    if (event && ((String(input).replace(/[-_]/g, '').length) >= 8)) setDate(event);
                     props.onFilterChanged(props.columnDef.tableData.id, null);
                     return;
                 }
