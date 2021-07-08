@@ -51,13 +51,6 @@ const useStyles = makeStyles({
       marginRight: theme.spacing(1.5),
       fontSize: "18px"
     },
-    resultTable: {
-      marginRight: theme.spacing(4),
-      textAlign: "left"
-    },
-    resultItem: {
-      marginBottom: theme.spacing(1)
-    },
     label: {
       marginRight: theme.spacing(1.5)
     },
@@ -374,7 +367,7 @@ export default function PatientListTable(props) {
               minDate={new Date("1900-01-01")}
               invalidDateMessage="Enter date in YYYY-MM-DD format, e.g. 1977-01-12"
               disableFuture
-              placeholder="Birth Date (YYYY-MM-DD)"
+              placeholder="YYYY-MM-DD"
               value={date}
               orientation="landscape"
               onChange={(event, dateString) => {
@@ -414,7 +407,8 @@ export default function PatientListTable(props) {
                     search: false,
                     showTitle: false,
                     headerStyle: {
-                        backgroundColor: theme.palette.primary.lightest
+                        backgroundColor: theme.palette.primary.lightest,
+                        padding: theme.spacing(1, 2, 1)
                     },
                     rowStyle: rowData => ({
                       backgroundColor: (!inPDMP(rowData) ? theme.palette.primary.disabled : '#FFF')
@@ -442,7 +436,7 @@ export default function PatientListTable(props) {
                 }
                 actions={[
                   () => ({
-                      icon: () => <button className={classes.button} color="primary" fontSize="small" variant="contained">{LAUNCH_BUTTON_LABEL}</button>,
+                      icon: () => <span className={classes.button} color="primary" fontSize="small" variant="contained">{LAUNCH_BUTTON_LABEL}</span>,
                       tooltip: 'Launch COSRI application for the user',
                       onClick: (event, rowData) => {handleSearch(event, rowData);},
                       title: "",
