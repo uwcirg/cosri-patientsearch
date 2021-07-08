@@ -63,6 +63,16 @@ def validate_auth():
     return token
 
 
+def current_user_id(token):
+    """Safe wrapper to lookup logged in user's identifier string for logging"""
+    try:
+        user_id = oidc.user_getfield('email')
+    except Exception:
+        # mystery how token was valid at entry, but no email available?
+        user_id = "unknown"
+    return user_id
+
+
 @api_blueprint.route('/', methods=["GET"])
 @oidc.require_login
 def main():
@@ -165,6 +175,13 @@ def delete_resource_by_id(resource_type, resource_id):
     redirect.  Client should watch for 401 and redirect appropriately.
     """
     token = validate_auth()
+    extra = {'tags': ['patient', 'delete'], 'user_id': current_user_id(token)}
+    if resource_type == 'Patient':
+        extra['subject_id'] = resource_id
+    current_app.logger.info(
+        "DELETE %s/%s", resource_type, resource_id,
+        extra=extra)
+
     return jsonify(HAPI_request(
         method='DELETE', resource_type=resource_type, resource_id=resource_id, token=token))
 
@@ -252,13 +269,7 @@ def external_search(resource_type):
                 "found multiple internal matches (%s), return first",
                 patient)
 
-    # TODO: is there a PHI safe 'id' for the user (in place of email)?
-    try:
-        user_id = oidc.user_getfield('email')
-    except Exception:
-        # mystery how token was valid at entry, but no email available?
-        user_id = "unknown"
-
+    user_id = current_user_id(token)
     if not local_fhir_patient:
         # Add at this time in the local store
         local_fhir_patient = HAPI_request(
@@ -290,9 +301,8 @@ def external_search(resource_type):
 
 @api_blueprint.route('/logout', methods=["GET"])
 def logout():
-    # TODO: is there a PHI safe 'id' for the user (in place of email)?
     if oidc.user_loggedin:
-        user_id = oidc.user_getfield('email')
+        user_id = current_user_id(validate_auth())
         current_app.logger.info(
             "logout on request",
             extra={'tags': ['logout'], 'user_id': user_id})
