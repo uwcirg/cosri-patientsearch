@@ -180,17 +180,18 @@ only screen and (max-width: 760px),
     display: flex !important;
     flex-direction: column;
     padding: 16px;
-    border-bottom: 1px solid $color-muter;
+    //border-bottom: 1px solid $color-muter;
   }
 
-	td {
+	tbody td {
 		/* Behave  like a "row" */
-		border: 0 !important;
+		border-bottom: 1px solid $color-muter;
     padding: 24px 8px 8px !important;
 		position: relative;
+    width: 100% !important;
 	}
 
-	td:before {
+	tbody td:before {
 		/* Now like a table header */
 		position: absolute;
 		/* Top/left values mimic padding */
