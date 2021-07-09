@@ -20,9 +20,9 @@ const useStyles = makeStyles({
         padding: theme.spacing(0, 2, 1)
     },
     toolbarCell: {
-        width: "20%",
-        paddingLeft: theme.spacing(1),
-        paddingRight: theme.spacing(1)
+        width: "25%",
+        paddingLeft: theme.spacing(2),
+        paddingRight: theme.spacing(2)
     },
     button: {
         margin: theme.spacing(0.5),
@@ -34,17 +34,18 @@ const useStyles = makeStyles({
 export default function FilterRow(props) {
     const classes = useStyles();
     const LAUNCH_BUTTON_LABEL = "VIEW";
+    const [firstNameFieldIndex, lastNameFieldIndex, dobFieldIndex] = [1,2,3];
     const [firstName, setFirstName] = React.useState("");
     const [lastName, setLastName] = React.useState("");
     const [date, setDate] = React.useState(null);
     const [dateInput, setDateInput] = React.useState("");
     const handleFirstNameChange = (event) => {
         setFirstName(event.target.value);
-        props.onFilterChanged(1, event.target.value);
+        props.onFilterChanged(firstNameFieldIndex, event.target.value);
     }
     const handleLastNameChange = (event) => {
         setLastName(event.target.value);
-        props.onFilterChanged(2, event.target.value);
+        props.onFilterChanged(lastNameFieldIndex, event.target.value);
     }
     const hasFilter = () => {
         return firstName || lastName || dateInput;
@@ -62,13 +63,13 @@ export default function FilterRow(props) {
     const clearDate = () => {
         setDate(null);
         setDateInput("");
-        props.onFilterChanged(3, null);
+        props.onFilterChanged(dobFieldIndex, null);
     }
     const clearFields = () => {
         setFirstName("");
         setLastName("");
-        props.onFilterChanged(1, "");
-        props.onFilterChanged(2, "");
+        props.onFilterChanged(firstNameFieldIndex, "");
+        props.onFilterChanged(lastNameFieldIndex, "");
         clearDate();
     }
     const getLaunchButtonLabel = () => {
