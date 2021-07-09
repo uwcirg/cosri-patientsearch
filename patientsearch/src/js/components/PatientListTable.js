@@ -1,25 +1,22 @@
 import React from 'react';
-import DateFnsUtils from '@date-io/date-fns';
-import isValid from "date-fns/isValid";
-import { makeStyles} from '@material-ui/core/styles';
 import { forwardRef } from 'react';
+import { makeStyles} from '@material-ui/core/styles';
+import MaterialTable from 'material-table';
 import ArrowDownward from '@material-ui/icons/ArrowDownward';
+import Check from '@material-ui/icons/Check';
 import ChevronLeft from '@material-ui/icons/ChevronLeft';
 import ChevronRight from '@material-ui/icons/ChevronRight';
+import ClearIcon from '@material-ui/icons/Clear';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import Container from '@material-ui/core/Container';
-import MaterialTable from 'material-table';
-import ClearIcon from '@material-ui/icons/Clear';
+import Delete from '@material-ui/icons/Delete';
 import FirstPage from '@material-ui/icons/FirstPage';
 import LastPage from '@material-ui/icons/LastPage';
 import Search from '@material-ui/icons/Search';
-import Button from '@material-ui/core/Button';
-import IconButton from '@material-ui/core/IconButton';
-import InputAdornment from '@material-ui/core/InputAdornment';
 import Tooltip from '@material-ui/core/Tooltip';
 import Modal from '@material-ui/core/Modal';
-import  {MuiPickersUtilsProvider, KeyboardDatePicker } from '@material-ui/pickers';
 import Error from "./Error";
+import FilterRow from "./FilterRow";
 import theme from '../context/theme';
 
 const useStyles = makeStyles({
@@ -73,21 +70,17 @@ const useStyles = makeStyles({
       fontWeight: 500
     },
     warning: {
-      color: "#bb812a",
+      color: theme.palette.primary.warning,
       marginTop: theme.spacing(3),
       lineHeight: 1.7
+    },
+    success: {
+      fill: theme.palette.primary.success
+    },
+    muted: {
+      fill: theme.palette.muted.main
     }
 });
-
-const tableIcons = {
-  Filter: forwardRef((props, ref) => <Search {...props} ref={ref} color="primary" />),
-  FirstPage: forwardRef((props, ref) => <FirstPage {...props} ref={ref} />),
-  LastPage: forwardRef((props, ref) => <LastPage {...props} ref={ref} />),
-  NextPage: forwardRef((props, ref) => <ChevronRight {...props} ref={ref} />),
-  PreviousPage: forwardRef((props, ref) => <ChevronLeft {...props} ref={ref} />),
-  SortArrow: forwardRef((props, ref) => <ArrowDownward {...props} ref={ref} color="primary" />),
-};
-
 let initIntervalId = 0;
 let appSettings = {};
 const NUM_OF_REQUIRED_FILTERS = 3;
@@ -99,20 +92,28 @@ export default function PatientListTable(props) {
   const [openLoadingModal, setOpenLoadingModal] = React.useState(false);
   const [loading, setLoading] = React.useState(true);
   const [errorMessage, setErrorMessage] = React.useState("");
-  const [toolbarActionButtonAdded, setToolbarActionButton] = React.useState(false);
   const tableRef = React.useRef();
   const LAUNCH_BUTTON_LABEL = "VIEW";
   const CREATE_BUTTON_LABEL = "CREATE";
   const NO_DATA_ELEMENT_ID = "noDataContainer";
   const TOOLBAR_ACTION_BUTTON_ID = "toolbarGoButton";
-  const CACHE_FILTERS_LABEL = "cosri_filters";
   const firstNameFilter = "";
+  const tableIcons = {
+    Check: forwardRef((props, ref) => <Check {...props} ref={ref} className={classes.success} />),
+    Clear: forwardRef((props, ref) => <ClearIcon {...props} ref={ref} />),
+    Filter: forwardRef((props, ref) => <Search {...props} ref={ref} color="primary" />),
+    FirstPage: forwardRef((props, ref) => <FirstPage {...props} ref={ref} />),
+    LastPage: forwardRef((props, ref) => <LastPage {...props} ref={ref} />),
+    NextPage: forwardRef((props, ref) => <ChevronRight {...props} ref={ref} />),
+    PreviousPage: forwardRef((props, ref) => <ChevronLeft {...props} ref={ref} />),
+    SortArrow: forwardRef((props, ref) => <ArrowDownward {...props} ref={ref} color="primary" />),
+    Delete: forwardRef((props, ref) => <Delete {...props} ref={ref} size="small" className={classes.muted}>Remove</Delete>),
+  };
   const columns = [
     {field: "id", hidden: true, defaultSort: "desc", filtering: false},
     {title: "First Name", field: "first_name", filterPlaceholder: "First Name", emptyValue: "--", defaultFilter: firstNameFilter},
     {title: "Last Name", field: "last_name", filterPlaceholder: "Last Name", emptyValue: "--"},
     {title: "Birth Date", field: "dob", filterPlaceholder: "YYYY-MM-DD", emptyValue: "--",
-    filterComponent: (props) => <CustomDatePicker {...props} />,
     },
   ];
   const errorStyle = {"display" : errorMessage? "block": "none"};
@@ -212,7 +213,9 @@ export default function PatientListTable(props) {
         setErrorMessage(`Unable to launch application.  Invalid launch URL. Missing configurations.`);
         return false;
       }
+      console.log('lauch URL ? ', launchURL)
       setTimeout(function() {
+        sessionStorage.clear();
         window.location = launchURL;
       }, 150);
     }).catch(e => {
@@ -241,54 +244,14 @@ export default function PatientListTable(props) {
     });
   }
 
-  const getFilterRowData = function() {
-    let filterItems = sessionStorage.getItem(CACHE_FILTERS_LABEL);
-    if (filterItems) {
-      filterItems = JSON.parse(filterItems);
-    }
-    if (!filterItems || !filterItems.length) return false;
-    let o = {};
-    filterItems.forEach(item => {
-      o[item.column.field] = item.value;
-    });
-    return o;
-  }
-
   function setToolbarActionButtonVis(filters) {
-    console.log("filters ", filters)
+    if (!document.querySelector(`#${TOOLBAR_ACTION_BUTTON_ID} span`)) return;
     if (filters && filters.length >= NUM_OF_REQUIRED_FILTERS) {
-      document.querySelector(`#${TOOLBAR_ACTION_BUTTON_ID} button`).removeAttribute("disabled");
-      document.querySelector(`#${TOOLBAR_ACTION_BUTTON_ID} button`).classList.remove("disabled");
-      document.querySelector(`#${TOOLBAR_ACTION_BUTTON_ID} button span`).innerText = document.querySelector(`#${NO_DATA_ELEMENT_ID}`) ? CREATE_BUTTON_LABEL: LAUNCH_BUTTON_LABEL;
+      document.querySelector(`#${TOOLBAR_ACTION_BUTTON_ID} span`).innerText = document.querySelector(`#${NO_DATA_ELEMENT_ID}`) ? CREATE_BUTTON_LABEL: LAUNCH_BUTTON_LABEL;
       return;
     }
-    document.querySelector(`#${TOOLBAR_ACTION_BUTTON_ID} button`).setAttribute("disabled", true);
-    document.querySelector(`#${TOOLBAR_ACTION_BUTTON_ID} button`).classList.add("disabled");
-    if (!document.querySelector(`#${TOOLBAR_ACTION_BUTTON_ID} button span`)) return;
-    document.querySelector(`#${TOOLBAR_ACTION_BUTTON_ID} button span`).innerText = LAUNCH_BUTTON_LABEL;
+    document.querySelector(`#${TOOLBAR_ACTION_BUTTON_ID} span`).innerText = LAUNCH_BUTTON_LABEL;
   }
-
-  function getToolbarActionButton() {
-      var btn = document.getElementById(`${TOOLBAR_ACTION_BUTTON_ID}`);
-      if (!btn) return;
-      if (toolbarActionButtonAdded) return;
-      var cln = btn.cloneNode(true);
-      var parent = document.querySelector("#patientList table");
-      if (parent && parent.querySelector("tr td:last-of-type")) {
-        let cld = parent.querySelector("tr td:last-of-type").appendChild(cln);
-        cld.classList.remove("hide");
-        setTimeout(function() {
-          document.querySelector(`#${TOOLBAR_ACTION_BUTTON_ID}`).addEventListener("click", function(e) {
-            handleSearch(e, getFilterRowData())
-          });
-          setToolbarActionButton(true);
-        }, 250);
-        if (btn) btn.remove();
-        setToolbarActionButtonVis();
-        clearInterval(initIntervalId);
-      }
-  }
-
   function setVis() {
     document.querySelector("body").classList.add("ready");
   }
@@ -305,7 +268,6 @@ export default function PatientListTable(props) {
 
   function onFiltersDidChange(filters) {
     setTimeout(function() {
-      sessionStorage.setItem(CACHE_FILTERS_LABEL, JSON.stringify(filters));
       setNoDataText(filters);
       setToolbarActionButtonVis(filters);
     }, 0);
@@ -349,57 +311,6 @@ export default function PatientListTable(props) {
         setLoading(false);
     });
   }, []);
-
-  React.useEffect(() => {
-    initIntervalId = setInterval(function() {
-      getToolbarActionButton();
-    }, 50);
-  }, [toolbarActionButtonAdded]);
-
-  const CustomDatePicker = (props) => {
-    const [date, setDate] = React.useState(null);
-    const [input, setInput] = React.useState("");
-    return (
-      <MuiPickersUtilsProvider utils={DateFnsUtils}>
-          <KeyboardDatePicker
-              className={classes.datePickerContainer}
-              autoOk={true}
-              variant="dialog"
-              openTo="year"
-              disableFuture
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="end" style={{order: 1, marginLeft: 0}}>
-                      <IconButton onClick={() => { setDate(null); setInput(""); }} disabled={!input} style={{order: 2, padding: 0}} aria-label="Clear date" title="Clear date">
-                          <ClearIcon color={!input ? "disabled" : "primary"} fontSize="small" />
-                      </IconButton>
-                  </InputAdornment>
-                )
-               }}
-              format="yyyy-MM-dd"
-              id="birthDate"
-              minDate={new Date("1900-01-01")}
-              invalidDateMessage="Date must be in YYYY-MM-DD format, e.g. 1977-01-12"
-              disableFuture
-              placeholder="YYYY-MM-DD"
-              value={date}
-              orientation="landscape"
-              onChange={(event, dateString) => {
-                setInput(dateString);
-                if (!event || !isValid(event)) {
-                    if (event && ((String(input).replace(/[-_]/g, '').length) >= 8)) setDate(event);
-                    props.onFilterChanged(props.columnDef.tableData.id, null);
-                    return;
-                }
-                setDate(event);
-                props.onFilterChanged(props.columnDef.tableData.id, dateString);
-              }}
-              KeyboardButtonProps={{color: "primary", title: "Date picker"}}
-
-          />
-      </MuiPickersUtilsProvider>
-    );
-  }
 
   return (
       <React.Fragment>
@@ -449,6 +360,9 @@ export default function PatientListTable(props) {
                     return false;
                   }
                 }
+                components={{
+                  FilterRow: props => <FilterRow {...props} launchFunc={handleSearch} launchButtonLabel={LAUNCH_BUTTON_LABEL} launchButtonId={TOOLBAR_ACTION_BUTTON_ID}/>
+                }}
                 actions={[
                   rowData => ({
                       icon: () => (
@@ -468,6 +382,12 @@ export default function PatientListTable(props) {
                     labelRowsSelect: "rows"
                   },
                   body: {
+                      deleteTooltip: "Remove",
+                      editRow: {
+                        deleteText: "Are you sure you want to remove this patient from the list?",
+                        saveTooltip: "OK",
+
+                      },
                       emptyDataSourceMessage: (
                         <div className={classes.flex}>
                             <div className={classes.warning}>
@@ -494,8 +414,6 @@ export default function PatientListTable(props) {
               </div>
             </div>
           </Modal>
-          {/* toolbar go button */}
-          <div id={`${TOOLBAR_ACTION_BUTTON_ID}`} className="hide"><Button  className="disabled" color="primary" size="small" variant="contained" className={classes.button}>{LAUNCH_BUTTON_LABEL}</Button></div>
         </Container>
     </React.Fragment>
   );
