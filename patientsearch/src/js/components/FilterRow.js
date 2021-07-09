@@ -81,7 +81,7 @@ export default function FilterRow(props) {
                     {/* first name field */}
                     <TextField
                         variant="standard"
-                        margin="normal"
+                        margin="dense"
                         id="firstName"
                         placeholder="First Name"
                         name="firstName"
@@ -101,7 +101,7 @@ export default function FilterRow(props) {
                     {/* last name field */}
                     <TextField
                         variant="standard"
-                        margin="normal"
+                        margin="dense"
                         name="lastName"
                         placeholder="Last Name"
                         id="lastName"
@@ -132,7 +132,8 @@ export default function FilterRow(props) {
                                         <ClearIcon color={!dateInput ? "disabled" : "primary"} fontSize="small" />
                                     </IconButton>
                                 </InputAdornment>
-                                )
+                                ),
+                                margin: "dense"
                             }}
                             format="yyyy-MM-dd"
                             id="birthDate"

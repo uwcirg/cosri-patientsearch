@@ -138,7 +138,7 @@ export default function Header() {
                 </Box>
             </Toolbar>
             <Toolbar className={classes.toolbar} disableGutters variant="dense">
-                <Typography component="h1" variant="h6" color="inherit" noWrap className={classes.title} align="center">
+                <Typography component="h1" variant="h5" color="inherit" noWrap className={classes.title} align="center">
                     Clinical Opioid Summary with Rx Integration
                 </Typography>
             </Toolbar>

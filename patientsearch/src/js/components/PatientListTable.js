@@ -252,6 +252,7 @@ export default function PatientListTable(props) {
     }
     document.querySelector(`#${TOOLBAR_ACTION_BUTTON_ID} span`).innerText = LAUNCH_BUTTON_LABEL;
   }
+  //display body content when table is rendered
   function setVis() {
     document.querySelector("body").classList.add("ready");
   }
