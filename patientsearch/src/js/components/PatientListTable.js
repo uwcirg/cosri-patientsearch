@@ -315,7 +315,7 @@ export default function PatientListTable(props) {
 
   return (
       <React.Fragment>
-        <Container className={classes.container} id="patientList" maxWidth="lg">
+        <Container className={classes.container} id="patientList" maxWidth="md">
           <h2>COSRI Patient Search</h2>
           <Error message={errorMessage} style={errorStyle}/>
           {loading && <CircularProgress size={40} className={classes.buttonProgress} />}
@@ -364,6 +364,20 @@ export default function PatientListTable(props) {
                 components={{
                   FilterRow: props => <FilterRow {...props} launchFunc={handleSearch} launchButtonLabel={LAUNCH_BUTTON_LABEL} launchButtonId={TOOLBAR_ACTION_BUTTON_ID}/>
                 }}
+                editable={{
+                  onRowDelete: oldData =>
+                    fetchData("/Patient/"+oldData.tableData.id, {method: "DELETE"}).then(response => {
+                        setTimeout(() => {
+                            const dataDelete = [...data];
+                            const index = oldData.tableData.id;
+                            dataDelete.splice(index, 1);
+                            setData([...dataDelete]);
+                            setErrorMessage("");
+                        }, 500);
+                    }).catch(e => {
+                      setErrorMessage("Unable to remove patient from the list.");
+                    })
+                }}
                 actions={[
                   rowData => ({
                       icon: () => (
@@ -372,7 +386,8 @@ export default function PatientListTable(props) {
                       //tooltip: 'Launch COSRI application for the user',
                       onClick: (event, rowData) => {handleSearch(event, rowData);},
                       title: "",
-                      position: "row"
+                      position: "row",
+                      align: "center"
                     })
                   ]}
                   localization={{
@@ -383,7 +398,7 @@ export default function PatientListTable(props) {
                     labelRowsSelect: "rows"
                   },
                   body: {
-                      deleteTooltip: "Remove",
+                      deleteTooltip: "Remove from the list",
                       editRow: {
                         deleteText: "Are you sure you want to remove this patient from the list?",
                         saveTooltip: "OK",

@@ -21,8 +21,9 @@ const useStyles = makeStyles({
     },
     toolbarCell: {
         width: "25%",
-        paddingLeft: theme.spacing(2),
-        paddingRight: theme.spacing(2)
+        paddingLeft: theme.spacing(1),
+        paddingRight: theme.spacing(1),
+        textAlign: "center"
     },
     button: {
         margin: theme.spacing(0.5),
@@ -81,7 +82,7 @@ export default function FilterRow(props) {
                     {/* first name field */}
                     <TextField
                         variant="standard"
-                        margin="dense"
+                        margin="normal"
                         id="firstName"
                         placeholder="First Name"
                         name="firstName"
@@ -101,7 +102,7 @@ export default function FilterRow(props) {
                     {/* last name field */}
                     <TextField
                         variant="standard"
-                        margin="dense"
+                        margin="normal"
                         name="lastName"
                         placeholder="Last Name"
                         id="lastName"
@@ -133,7 +134,7 @@ export default function FilterRow(props) {
                                     </IconButton>
                                 </InputAdornment>
                                 ),
-                                margin: "dense"
+                                margin: "normal"
                             }}
                             format="yyyy-MM-dd"
                             id="birthDate"

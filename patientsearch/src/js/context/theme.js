@@ -20,7 +20,7 @@ const theme = createMuiTheme({
       light: "#524949"
     },
     muted: {
-      main: "#777",
+      main: "#888",
       light: "#ececec"
     },
     table: {
