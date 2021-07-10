@@ -373,10 +373,10 @@ export default function PatientListTable(props) {
                             dataDelete.splice(index, 1);
                             setData([...dataDelete]);
                             setErrorMessage("");
-                        }, 500);
-                    }).catch(e => {
-                      setErrorMessage("Unable to remove patient from the list.");
-                    })
+                        }, 500)
+                     }).catch(e => {
+                       setErrorMessage("Unable to remove patient from the list.");
+                     })
                 }}
                 actions={[
                   rowData => ({

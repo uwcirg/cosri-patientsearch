@@ -133,8 +133,7 @@ export default function FilterRow(props) {
                                         <ClearIcon color={!dateInput ? "disabled" : "primary"} fontSize="small" />
                                     </IconButton>
                                 </InputAdornment>
-                                ),
-                                margin: "normal"
+                                )
                             }}
                             format="yyyy-MM-dd"
                             id="birthDate"
