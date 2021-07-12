@@ -12,6 +12,21 @@ def load_json(datadir, filename):
     return data
 
 
+class mock_response():
+    """Wrap data in response like object"""
+    def __init__(self, data, status_code=200):
+        self.data = data
+        self.status_code = status_code
+
+    def json(self):
+        return self.data
+
+    def raise_for_status(self):
+        if self.status_code == 200:
+            return
+        raise Exception("status code ain't 200")
+
+
 @fixture
 def external_patient_search(datadir):
     return load_json(datadir, "external_patient_search.json")
@@ -44,12 +59,13 @@ def test_new_upsert(
 
     # Mock HAPI search failing to find a matching patient
     mocker.patch(
-        'patientsearch.models.sync.HAPI_request',
-        return_value=internal_patient_miss)
+        'patientsearch.models.sync.requests.get',
+        return_value=mock_response(internal_patient_miss))
 
-    # Mock HAPI POST to generate new patient
+    # Mock POST to generate new patient on HAPI
     mocker.patch(
-        "patientsearch.models.sync.HAPI_POST", return_value=new_patient)
+        "patientsearch.models.sync.requests.post",
+        return_value=mock_response(new_patient))
 
     result = sync_bundle(faux_token, external_patient_search)
     assert result == new_patient
@@ -73,8 +89,8 @@ def test_existing(
 
     # Mock HAPI search finding a matching patient
     mocker.patch(
-        'patientsearch.models.sync.HAPI_request',
-        return_value=internal_patient_match)
+        'patientsearch.models.sync.requests.get',
+        return_value=mock_response(internal_patient_match))
 
     result = sync_bundle(faux_token, external_patient_search)
     assert result == internal_patient_match['entry'][0]['resource']
@@ -88,8 +104,8 @@ def test_existing_modified(
     # Mock HAPI search finding a matching patient (w/o the identifier)
     assert 'identifier' not in internal_patient_match['entry'][0]['resource']
     mocker.patch(
-        'patientsearch.models.sync.HAPI_request',
-        return_value=internal_patient_match)
+        'patientsearch.models.sync.requests.get',
+        return_value=mock_response(internal_patient_match))
 
     # Mock adding the identifier on a successful PDMP search
     found_identifier = {
@@ -105,8 +121,8 @@ def test_existing_modified(
         internal_patient_match['entry'][0]['resource'])
     identified_internal['identifier'] = [found_identifier]
     mocker.patch(
-        'patientsearch.models.sync.HAPI_PUT',
-        return_value=identified_internal)
+        'patientsearch.models.sync.requests.put',
+        return_value=mock_response(identified_internal))
 
     # Confirm we get back the identified/patched patient from the PUT
     result = sync_bundle(faux_token, external_patient_search_w_identifier)
@@ -121,8 +137,8 @@ def test_duplicate(
 
     # Mock HAPI search finding duplicate matching patients
     mocker.patch(
-        'patientsearch.models.sync.HAPI_request',
-        return_value=internal_patient_duplicate_match)
+        'patientsearch.models.sync.requests.get',
+        return_value=mock_response(internal_patient_duplicate_match))
 
     # Shouldn't kill the process, but return the first
     result = sync_bundle(faux_token, external_patient_search)
