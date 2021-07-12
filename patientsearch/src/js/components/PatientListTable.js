@@ -366,7 +366,7 @@ export default function PatientListTable(props) {
                 }}
                 editable={{
                   onRowDelete: oldData =>
-                    fetchData("/Patient/"+oldData.tableData.id, {method: "DELETE"}).then(response => {
+                    fetchData("/Patient/"+oldData.id, {method: "DELETE"}).then(response => {
                         setTimeout(() => {
                             const dataDelete = [...data];
                             const index = oldData.tableData.id;

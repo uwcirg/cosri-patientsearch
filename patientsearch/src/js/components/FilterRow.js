@@ -55,6 +55,7 @@ export default function FilterRow(props) {
         return firstName && lastName && dateInput;
     }
     const getFilterData = () => {
+        if (!hasCompleteFilters()) return null;
         return {
             first_name: firstName,
             last_name: lastName,
@@ -76,6 +77,13 @@ export default function FilterRow(props) {
     const getLaunchButtonLabel = () => {
         return props.launchButtonLabel ? props.launchButtonLabel : LAUNCH_BUTTON_LABEL;
     }
+    const handleKeyDown = (e) => {
+        if (String(e.key).toLowerCase() === "enter") {
+            props.launchFunc(e, getFilterData());
+            return;
+        }
+        return false;
+    }
     return (
             <tr className={classes.row}>
                 <td className={classes.cell}>
@@ -88,6 +96,7 @@ export default function FilterRow(props) {
                         name="firstName"
                         value={firstName}
                         onChange={handleFirstNameChange}
+                        onKeyDown={handleKeyDown}
                         inputProps={{"data-lpignore": true}}
                         InputProps={{
                             startAdornment: (
@@ -108,6 +117,7 @@ export default function FilterRow(props) {
                         id="lastName"
                         value={lastName}
                         onChange={handleLastNameChange}
+                        onKeyDown={handleKeyDown}
                         inputProps={{"data-lpignore": true}}
                         InputProps={{
                             startAdornment: (
@@ -143,6 +153,7 @@ export default function FilterRow(props) {
                             placeholder="YYYY-MM-DD"
                             value={date}
                             orientation="landscape"
+                            onKeyDown={handleKeyDown}
                             onChange={(event, dateString) => {
                                 setDateInput(dateString);
                                 if (!event || !isValid(event)) {
