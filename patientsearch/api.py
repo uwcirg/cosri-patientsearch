@@ -16,7 +16,6 @@ from werkzeug.exceptions import Unauthorized
 
 from patientsearch.models import (
     BearerAuth,
-    HAPI_POST,
     HAPI_request,
     add_identifier_to_resource_type,
     external_request,
@@ -62,6 +61,16 @@ def validate_auth():
         terminate_session()
         raise Unauthorized("oidc token invalid")
     return token
+
+
+def current_user_id(token):
+    """Safe wrapper to lookup logged in user's identifier string for logging"""
+    try:
+        user_id = oidc.user_getfield('email')
+    except Exception:
+        # mystery how token was valid at entry, but no email available?
+        user_id = "unknown"
+    return user_id
 
 
 @api_blueprint.route('/', methods=["GET"])
@@ -154,7 +163,27 @@ def resource_bundle(resource_type):
     params = {'_count': 1000}
     params.update(request.args)
     return jsonify(HAPI_request(
-        token=token, resource_type=resource_type, params=params))
+        token=token, method='GET', resource_type=resource_type, params=params))
+
+
+@api_blueprint.route(
+    '/<string:resource_type>/<int:resource_id>', methods=["DELETE"])
+def delete_resource_by_id(resource_type, resource_id):
+    """Delete individual resource from HAPI; return JSON result
+
+    NB not decorated with `@oidc.require_login` as that does an implicit
+    redirect.  Client should watch for 401 and redirect appropriately.
+    """
+    token = validate_auth()
+    extra = {'tags': ['patient', 'delete'], 'user_id': current_user_id(token)}
+    if resource_type == 'Patient':
+        extra['subject_id'] = resource_id
+    current_app.logger.info(
+        "DELETE %s/%s", resource_type, resource_id,
+        extra=extra)
+
+    return jsonify(HAPI_request(
+        method='DELETE', resource_type=resource_type, resource_id=resource_id, token=token))
 
 
 @api_blueprint.route(
@@ -166,7 +195,8 @@ def resource_by_id(resource_type, resource_id):
     redirect.  Client should watch for 401 and redirect appropriately.
     """
     token = validate_auth()
-    return jsonify(HAPI_request(resource_type, resource_id, token))
+    return jsonify(HAPI_request(
+        method='GET', resource_type=resource_type, resource_id=resource_id, token=token))
 
 
 def resource_from_args(resource_type, args):
@@ -239,16 +269,11 @@ def external_search(resource_type):
                 "found multiple internal matches (%s), return first",
                 patient)
 
-    # TODO: is there a PHI safe 'id' for the user (in place of email)?
-    try:
-        user_id = oidc.user_getfield('email')
-    except Exception:
-        # mystery how token was valid at entry, but no email available?
-        user_id = "unknown"
-
+    user_id = current_user_id(token)
     if not local_fhir_patient:
         # Add at this time in the local store
-        local_fhir_patient = HAPI_POST(token, patient)
+        local_fhir_patient = HAPI_request(
+            token=token, method='POST', resource_type='Patient', resource=patient)
         current_app.logger.info(
             "PDMP search failed; create new patient from search params",
             extra={
@@ -276,9 +301,8 @@ def external_search(resource_type):
 
 @api_blueprint.route('/logout', methods=["GET"])
 def logout():
-    # TODO: is there a PHI safe 'id' for the user (in place of email)?
     if oidc.user_loggedin:
-        user_id = oidc.user_getfield('email')
+        user_id = current_user_id(validate_auth())
         current_app.logger.info(
             "logout on request",
             extra={'tags': ['logout'], 'user_id': user_id})
