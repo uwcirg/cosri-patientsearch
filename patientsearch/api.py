@@ -59,7 +59,10 @@ def validate_auth():
 
     if not oidc.validate_token(token):
         terminate_session()
-        raise Unauthorized("oidc token invalid")
+        raise Unauthorized(
+            "Your COSRI session timed out. "
+            "Please refresh your browser to enter your user name and password "
+            "to log back in.")
     return token
 
 
