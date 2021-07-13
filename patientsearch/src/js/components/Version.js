@@ -5,8 +5,15 @@ import theme from '../context/theme';
 const useStyles = makeStyles({
     container: {
         textAlign: "right",
-        margin: theme.spacing(3),
-        color: theme.palette.muted.main
+        margin: theme.spacing(2, 3, 2),
+        color: theme.palette.muted.main,
+        [theme.breakpoints.up('md')]: {
+            maxWidth: "960px",
+            marginLeft: "auto",
+            marginRight: "auto",
+            paddingLeft: theme.spacing(3),
+            paddingRight: theme.spacing(3)
+        }
     }
 });
 

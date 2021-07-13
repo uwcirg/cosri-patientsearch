@@ -99,6 +99,7 @@ export default function TimeoutModal() {
 
   const handleLogout = () => {
     clearExpiredIntervalId();
+    sessionStorage.clear();
     setTimeout(() => {
       window.location = "/logout";
     }, 0);

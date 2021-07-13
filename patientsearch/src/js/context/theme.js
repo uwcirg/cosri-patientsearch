@@ -10,14 +10,17 @@ const theme = createMuiTheme({
         light: teal[200],
         medium: cyan[600],
         main: cyan[800],
-        dark: cyan[900]
+        dark: cyan[900],
+        disabled: "#e6e9e6",
+        success: "green",
+        warning: "#bb812a"
     },
     secondary: {
       main: "#3c3535",
       light: "#524949"
     },
     muted: {
-      main: "#777",
+      main: "#888",
       light: "#ececec"
     },
     table: {
@@ -25,8 +28,18 @@ const theme = createMuiTheme({
             background: cyan[700],
             color: "#fff"
         }
-    }
-  }
+    },
+  },
+  overrides: {
+    MuiTableSortLabel: {
+      icon: {
+        color: cyan[600]
+      },
+      active: {
+        color: cyan[600]
+      },
+    },
+  },
 });
 
 export default theme;

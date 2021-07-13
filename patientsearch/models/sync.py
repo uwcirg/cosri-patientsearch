@@ -40,7 +40,7 @@ def HAPI_request(
     """
     url = f"{current_app.config.get('MAP_API')}{resource_type}"
     if resource_id is not None:
-        url = '/'.join(url, resource_id)
+        url = '/'.join((url, str(resource_id)))
 
     VERB = method.upper()
     if VERB == 'GET':
