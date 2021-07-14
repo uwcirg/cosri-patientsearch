@@ -110,7 +110,7 @@ export default function PatientListTable(props) {
     Delete: forwardRef((props, ref) => <Delete {...props} ref={ref} size="small" className={classes.muted}>Remove</Delete>),
   };
   const columns = [
-    {field: "id", hidden: true, defaultSort: "desc", filtering: false},
+    {field: "id", hidden: true, defaultSort: "desc", filtering: false, customSort: (a,b) => parseInt(a["id"])<parseInt(b["id"])?-1:1},
     {title: "First Name", field: "first_name", filterPlaceholder: "First Name", emptyValue: "--", defaultFilter: firstNameFilter},
     {title: "Last Name", field: "last_name", filterPlaceholder: "Last Name", emptyValue: "--"},
     {title: "Birth Date", field: "dob", filterPlaceholder: "YYYY-MM-DD", emptyValue: "--",
@@ -120,7 +120,16 @@ export default function PatientListTable(props) {
   const setAppSettings = function(settings) {
     appSettings = settings;
   }
-  const getPatientSearchURL = (data) => {
+  const getPatientHapiSearchURL = (data) => {
+    const dataURL = "/Patient";
+    const params = [
+      `given=${data.first_name}`,
+      `family=${data.last_name}`,
+      `birthdate=${data.dob}`
+    ];
+    return `${dataURL}?${params.join("&")}`;
+  }
+  const getPatientPMPSearchURL = (data) => {
     const dataURL = "/external_search/Patient";
     const params = [
           `subject:Patient.name.given=${data.first_name}`,
@@ -142,7 +151,10 @@ export default function PatientListTable(props) {
     }
     let baseURL = getLaunchBaseURL();
     let iss = getISS();
-    if (!baseURL || !iss) return "";
+    if (!baseURL || !iss) {
+      console.log("Missing ISS launch base URL");
+      return "";
+    }
     let launchParam = btoa(JSON.stringify({"b":patientId}));
     return `${baseURL}?launch=${launchParam}&iss=${iss}`;
   };
@@ -185,6 +197,26 @@ export default function PatientListTable(props) {
     }
     return json;
   }
+  const existsIndata = function(rowData) {
+    if (!data) return false;
+    if (!rowData) return false;
+    return data.filter(item => {
+      return item.id === rowData.id;
+    }).length > 0;
+  }
+  const addDataRow = function(rowData) {
+    if (!rowData) return false;
+    //check if it is added in HAPI FHIR server?
+    //add new row to table if it does not exists in table already
+    fetchData(getPatientHapiSearchURL(rowData)).then(hapiResult => {
+      if (hapiResult && hapiResult.entry && hapiResult.entry.length) {
+        let newData = formatData(hapiResult);
+        if (newData && !existsIndata(newData)) {
+          setData([newData[0], ...data]);
+        }
+      }
+    });
+  }
   const handleSearch = function (event, rowData) {
     if (!rowData) {
       console.log("No valid data to perform patient search");
@@ -192,32 +224,37 @@ export default function PatientListTable(props) {
     }
     setOpenLoadingModal(true);
     setErrorMessage('');
-    fetchData(getPatientSearchURL(rowData), {...{"method": "PUT"}, ...noCacheParam}).then(response => {
+    fetchData(getPatientPMPSearchURL(rowData), {...{"method": "PUT"}, ...noCacheParam}).then(response => {
+
       if (!response || !response.entry || !response.entry.length) {
+          //NOT IN PMP BUT IN HAPI? need to check
+          addDataRow(rowData);
           setErrorMessage("<div>The patient was not found in the PMP. This could be due to:</div><ul><li>No previous controlled substance medications dispensed</li><li>Incorrect spelling of name or incorrect date of birth.</li></ul><div>Please double check name spelling and date of birth.</div>");
           setOpenLoadingModal(false);
           return false;
       }
       setErrorMessage('');
-      setOpenLoadingModal(false);
       let launchURL = "";
       try {
         launchURL = rowData.url || getLaunchURL(response.entry[0].id);
+        console.log("launch URL ? ", launchURL)
       } catch(e) {
         setErrorMessage(`Unable to launch application.  Invalid launch URL. Missing configurations.`);
+        setOpenLoadingModal(false);
         //log error to console
         console.log(`Launch URL error: ${e}`)
         return false;
       }
       if (!launchURL) {
-        setErrorMessage(`Unable to launch application.  Invalid launch URL. Missing configurations.`);
+        setErrorMessage(`Unable to launch application.  Missing launch URL. Missing configurations.`);
+        setOpenLoadingModal(false);
         return false;
       }
-      console.log('lauch URL ? ', launchURL)
       setTimeout(function() {
         sessionStorage.clear();
         window.location = launchURL;
-      }, 150);
+        //setOpenLoadingModal(false);
+      }, 50);
     }).catch(e => {
       setErrorMessage("COSRI is unable to return PMP information. This may be due to PMP system being down or a problem with the COSRI connection to PMP.");
       //log error to console
@@ -284,6 +321,7 @@ export default function PatientListTable(props) {
   }
 
   React.useEffect(() => {
+    window.addEventListener("beforeunload", function() { setOpenLoadingModal(false); });
     fetchData("./settings").then(response => {
         if (response) {
             setAppSettings(response);
@@ -400,7 +438,7 @@ export default function PatientListTable(props) {
                   body: {
                       deleteTooltip: "Remove from the list",
                       editRow: {
-                        deleteText: "Are you sure you want to remove this patient from the list?",
+                        deleteText: "Are you sure you want to remove this patient from the list? (You can add them back later by searching for them)",
                         saveTooltip: "OK",
 
                       },

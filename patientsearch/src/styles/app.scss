@@ -8,6 +8,20 @@ $table-header-bg-color: rgb(224, 242, 241);
 .MuiTypography-h6 {
   font-size: 1.05rem !important;
 }
+.MuiTableCell-body {
+  .MuiTypography-h6 {
+    width: 100%;
+    max-width: 100%;
+  }
+}
+@media (min-width: 699px) {
+  .MuiTableCell-body {
+    .MuiTypography-h6 {
+      width: 448px;
+      max-width: 100%;
+    }
+  }
+}
 .menu-icon {
   margin-left: 8px;
 }

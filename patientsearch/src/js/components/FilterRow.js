@@ -31,6 +31,10 @@ const useStyles = makeStyles({
         textTransform: "uppercase",
         border: 0
     },
+    dateInput: {
+        paddingLeft: theme.spacing(1),
+        paddingRight: theme.spacing(1)
+    }
 });
 export default function FilterRow(props) {
     const classes = useStyles();
@@ -143,7 +147,8 @@ export default function FilterRow(props) {
                                         <ClearIcon color={!dateInput ? "disabled" : "primary"} fontSize="small" />
                                     </IconButton>
                                 </InputAdornment>
-                                )
+                                ),
+                                className: classes.dateInput
                             }}
                             format="yyyy-MM-dd"
                             id="birthDate"
@@ -171,7 +176,7 @@ export default function FilterRow(props) {
                 </td>
                 <td className={classes.toolbarCell}>
                     {/* toolbar go button */}
-                   <Button  id={props.launchButtonId} className={!hasCompleteFilters() ? `${classes.button} disabled` : classes.button} color="primary" size="small" variant="contained" onClick={(e) => props.launchFunc(e, getFilterData())}>{getLaunchButtonLabel()}</Button>
+                   <Button  id={props.launchButtonId} className={!hasCompleteFilters() ? `${classes.button} disabled` : classes.button}     color="primary" size="small" variant="contained" onClick={(e) => props.launchFunc(e, getFilterData())}>{getLaunchButtonLabel()}</Button>
                    <Tooltip title="Clear search fields">
                        <Button variant="contained" size="small" onClick={clearFields} className={!hasFilter() ? `${classes.button} disabled` : classes.button}>Clear</Button>
                    </Tooltip>
