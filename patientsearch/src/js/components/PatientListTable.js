@@ -110,6 +110,7 @@ export default function PatientListTable(props) {
     Delete: forwardRef((props, ref) => <Delete {...props} ref={ref} size="small" className={classes.muted}>Remove</Delete>),
   };
   const columns = [
+    //default sort by id in descending order
     {field: "id", hidden: true, defaultSort: "desc", filtering: false, customSort: (a,b) => parseInt(a["id"])<parseInt(b["id"])?-1:1},
     {title: "First Name", field: "first_name", filterPlaceholder: "First Name", emptyValue: "--", defaultFilter: firstNameFilter},
     {title: "Last Name", field: "last_name", filterPlaceholder: "Last Name", emptyValue: "--"},
@@ -237,7 +238,6 @@ export default function PatientListTable(props) {
       let launchURL = "";
       try {
         launchURL = rowData.url || getLaunchURL(response.entry[0].id);
-        console.log("launch URL ? ", launchURL)
       } catch(e) {
         setErrorMessage(`Unable to launch application.  Invalid launch URL. Missing configurations.`);
         setOpenLoadingModal(false);
@@ -253,7 +253,6 @@ export default function PatientListTable(props) {
       setTimeout(function() {
         sessionStorage.clear();
         window.location = launchURL;
-        //setOpenLoadingModal(false);
       }, 50);
     }).catch(e => {
       setErrorMessage("COSRI is unable to return PMP information. This may be due to PMP system being down or a problem with the COSRI connection to PMP.");
@@ -321,6 +320,7 @@ export default function PatientListTable(props) {
   }
 
   React.useEffect(() => {
+    //when page unloads, remove loading indicator
     window.addEventListener("beforeunload", function() { setOpenLoadingModal(false); });
     fetchData("./settings").then(response => {
         if (response) {
