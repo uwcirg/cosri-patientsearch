@@ -209,7 +209,7 @@ export default function PatientListTable(props) {
     if (!rowData) return false;
     //check if it is added in HAPI FHIR server?
     //add new row to table if it does not exists in table already
-    fetchData(getPatientHapiSearchURL(rowData)).then(hapiResult => {
+    fetchData(getPatientHapiSearchURL(rowData, noCacheParam)).then(hapiResult => {
       if (hapiResult && hapiResult.entry && hapiResult.entry.length) {
         let newData = formatData(hapiResult);
         if (newData && !existsIndata(newData)) {
