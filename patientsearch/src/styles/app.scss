@@ -5,8 +5,26 @@ $color-muter: rgba(165, 158, 158, 0.64);
 $input-icon-color: #686b6b;
 $small-font-size: 14px;
 $table-header-bg-color: rgb(224, 242, 241);
+
+html {
+  scroll-behavior: smooth;
+}
 .MuiTypography-h6 {
-  font-size: 1.05rem !important;
+  font-size: 1.02rem !important;
+}
+.MuiTableCell-body {
+  .MuiTypography-h6 {
+    width: 100%;
+    max-width: 100%;
+  }
+}
+@media (min-width: 699px) {
+  .MuiTableCell-body {
+    .MuiTypography-h6 {
+      width: 448px;
+      max-width: 100%;
+    }
+  }
 }
 .menu-icon {
   margin-left: 8px;
@@ -178,6 +196,24 @@ only screen and (max-width: 736px),
     display: flex;
     flex-direction: column;
     padding: 16px 16px;
+  }
+  tbody tr:nth-of-type(2) {
+    padding-top: 48px;
+    position: relative;
+    &:before {
+      display: block;
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      content: "Results";
+      font-weight: 500;
+      font-size: 18px;
+      border-bottom: 1px solid $color-muted;
+      margin-bottom: 16px;
+      padding: 8px;
+      background: #FFF;
+    }
   }
   tbody tr {
     display: flex !important;

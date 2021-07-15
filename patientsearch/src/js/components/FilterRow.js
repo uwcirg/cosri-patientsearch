@@ -31,6 +31,10 @@ const useStyles = makeStyles({
         textTransform: "uppercase",
         border: 0
     },
+    dateInput: {
+        paddingLeft: theme.spacing(1),
+        paddingRight: theme.spacing(1)
+    }
 });
 export default function FilterRow(props) {
     const classes = useStyles();
@@ -143,7 +147,8 @@ export default function FilterRow(props) {
                                         <ClearIcon color={!dateInput ? "disabled" : "primary"} fontSize="small" />
                                     </IconButton>
                                 </InputAdornment>
-                                )
+                                ),
+                                className: classes.dateInput
                             }}
                             format="yyyy-MM-dd"
                             id="birthDate"
