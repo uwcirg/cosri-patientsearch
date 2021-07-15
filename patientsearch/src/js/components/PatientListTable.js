@@ -24,7 +24,8 @@ const useStyles = makeStyles({
         marginLeft: "auto",
         marginRight: "auto",
         marginBottom: theme.spacing(2),
-        marginTop: 148
+        marginTop: 148,
+        maxWidth: "1080px"
     },
     table: {
         minWidth: 450,
@@ -364,7 +365,7 @@ export default function PatientListTable(props) {
 
   return (
       <React.Fragment>
-        <Container className={classes.container} id="patientList" maxWidth="md">
+        <Container className={classes.container} id="patientList">
           <h2>COSRI Patient Search</h2>
           <Error message={errorMessage} style={errorStyle}/>
           {loading && <CircularProgress size={40} className={classes.buttonProgress} />}
