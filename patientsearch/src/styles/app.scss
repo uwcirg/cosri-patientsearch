@@ -5,8 +5,12 @@ $color-muter: rgba(165, 158, 158, 0.64);
 $input-icon-color: #686b6b;
 $small-font-size: 14px;
 $table-header-bg-color: rgb(224, 242, 241);
+
+html {
+  scroll-behavior: smooth;
+}
 .MuiTypography-h6 {
-  font-size: 1.05rem !important;
+  font-size: 1.02rem !important;
 }
 .MuiTableCell-body {
   .MuiTypography-h6 {

@@ -118,6 +118,9 @@ export default function PatientListTable(props) {
     },
   ];
   const errorStyle = {"display" : errorMessage? "block": "none"};
+  const toTop = () => {
+    window.scrollTo(0, 0);
+  }
   const setAppSettings = function(settings) {
     appSettings = settings;
   }
@@ -202,7 +205,7 @@ export default function PatientListTable(props) {
     if (!data) return false;
     if (!rowData) return false;
     return data.filter(item => {
-      return item.id === rowData.id;
+      return parseInt(item.id) === parseInt(rowData.id);
     }).length > 0;
   }
   const addDataRow = function(rowData) {
@@ -212,7 +215,7 @@ export default function PatientListTable(props) {
     fetchData(getPatientHapiSearchURL(rowData, noCacheParam)).then(hapiResult => {
       if (hapiResult && hapiResult.entry && hapiResult.entry.length) {
         let newData = formatData(hapiResult);
-        if (newData && !existsIndata(newData)) {
+        if (newData && !existsIndata(newData[0])) {
           setData([newData[0], ...data]);
         }
       }
@@ -229,8 +232,13 @@ export default function PatientListTable(props) {
 
       if (!response || !response.entry || !response.entry.length) {
           //NOT IN PMP BUT IN HAPI? need to check
-          addDataRow(rowData);
+          try {
+            addDataRow(rowData);
+          } catch(e) {
+            console.log("Error occurred adding row to table ", e);
+          }
           setErrorMessage("<div>The patient was not found in the PMP. This could be due to:</div><ul><li>No previous controlled substance medications dispensed</li><li>Incorrect spelling of name or incorrect date of birth.</li></ul><div>Please double check name spelling and date of birth.</div>");
+          toTop();
           setOpenLoadingModal(false);
           return false;
       }
@@ -240,6 +248,7 @@ export default function PatientListTable(props) {
         launchURL = rowData.url || getLaunchURL(response.entry[0].id);
       } catch(e) {
         setErrorMessage(`Unable to launch application.  Invalid launch URL. Missing configurations.`);
+        toTop();
         setOpenLoadingModal(false);
         //log error to console
         console.log(`Launch URL error: ${e}`)
@@ -247,6 +256,7 @@ export default function PatientListTable(props) {
       }
       if (!launchURL) {
         setErrorMessage(`Unable to launch application.  Missing launch URL. Missing configurations.`);
+        toTop();
         setOpenLoadingModal(false);
         return false;
       }
@@ -258,6 +268,7 @@ export default function PatientListTable(props) {
       setErrorMessage("COSRI is unable to return PMP information. This may be due to PMP system being down or a problem with the COSRI connection to PMP.");
       //log error to console
       console.log(`Patient search error: ${e}`);
+      toTop();
       setOpenLoadingModal(false);
     });
   }
