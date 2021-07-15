@@ -176,7 +176,7 @@ export default function FilterRow(props) {
                 </td>
                 <td className={classes.toolbarCell}>
                     {/* toolbar go button */}
-                   <Button  id={props.launchButtonId} className={!hasCompleteFilters() ? `${classes.button} disabled` : classes.button}   color="primary" size="small" variant="contained" onClick={(e) => props.launchFunc(e, getFilterData())}>{getLaunchButtonLabel()}</Button>
+                   <Button  id={props.launchButtonId} className={!hasCompleteFilters() ? `${classes.button} disabled` : classes.button} color="primary" size="small" variant="contained" onClick={(e) => props.launchFunc(e, getFilterData())}>{getLaunchButtonLabel()}</Button>
                    <Tooltip title="Clear search fields">
                        <Button variant="contained" size="small" onClick={clearFields} className={!hasFilter() ? `${classes.button} disabled` : classes.button}>Clear</Button>
                    </Tooltip>
