@@ -82,7 +82,9 @@ def external_request(token, resource_type, params):
 
     url = current_app.config.get('EXTERNAL_FHIR_API') + resource_type
     resp = requests.get(url, auth=BearerAuth(token), params=params)
-    if resp.status_code >= 400:
+    try:
+        resp.raise_for_status()
+    except requests.exceptions.HTTPError as err:
         current_app.logger.error("external request failed (%d) %s", resp.status_code, resp.text)
         abort(resp.status_code, resp.text)
 
