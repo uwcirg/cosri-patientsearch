@@ -266,7 +266,7 @@ export default function PatientListTable(props) {
         window.location = launchURL;
       }, 50);
     }).catch(e => {
-      setErrorMessage("COSRI is unable to return PMP information. This may be due to PMP system being down or a problem with the COSRI connection to PMP.");
+      setErrorMessage(`COSRI is unable to return PMP information. This may be due to PMP system being down or a problem with the COSRI connection to PMP.  System error ${e} `);
       //log error to console
       console.log(`Patient search error: ${e}`);
       toTop();
