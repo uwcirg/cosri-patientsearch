@@ -85,7 +85,8 @@ def external_request(token, resource_type, params):
     try:
         resp.raise_for_status()
     except requests.exceptions.HTTPError as err:
-        abort(err.response.status_code, err)
+        current_app.logger.error("external request failed (%d) %s", resp.status_code, resp.text)
+        abort(resp.status_code, resp.text)
 
     return resp.json()
 
