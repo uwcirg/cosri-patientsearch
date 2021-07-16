@@ -263,6 +263,7 @@ export default function PatientListTable(props) {
         //invalid token, force logout
         console.log("Logging out...")
         handleLogout();
+        setOpenLoadingModal(true);
         return false;
       }
       let response = results[0];
