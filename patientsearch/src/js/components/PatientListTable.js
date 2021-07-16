@@ -18,7 +18,6 @@ import Modal from '@material-ui/core/Modal';
 import Error from "./Error";
 import FilterRow from "./FilterRow";
 import theme from '../context/theme';
-import {PromiseAllSettledPolyFill} from './Utility';
 
 const useStyles = makeStyles({
     container: {
@@ -262,6 +261,7 @@ export default function PatientListTable(props) {
       }
       if (!results[1] || (results[1] && !results[1].valid)) {
         //invalid token, force logout
+        console.log("Logging out...")
         handleLogout();
         return false;
       }
