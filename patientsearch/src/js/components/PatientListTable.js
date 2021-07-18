@@ -222,6 +222,12 @@ export default function PatientListTable(props) {
       }
     });
   }
+  const handleLogout = function() {
+    sessionStorage.clear();
+    setTimeout(() => {
+      window.location = "/logout";
+    }, 0);
+  }
   const handleSearch = function (event, rowData) {
     if (!rowData) {
       console.log("No valid data to perform patient search");
@@ -229,7 +235,38 @@ export default function PatientListTable(props) {
     }
     setOpenLoadingModal(true);
     setErrorMessage('');
-    fetchData(getPatientPMPSearchURL(rowData), {...{"method": "PUT"}, ...noCacheParam}).then(response => {
+    const urls = [
+      getPatientPMPSearchURL(rowData),
+      "./validate_token"
+    ];
+    Promise.allSettled([
+      fetch(urls[0], {...{"method": "PUT"}, ...noCacheParam}),
+      fetch(urls[1])
+    ]).then(async([searchResult, tokenResult]) => {
+      const searchResponse = searchResult.value;
+      const tokenResponse = tokenResult.value;
+      try {
+        return [await searchResponse.json(), await tokenResponse.json()];
+      } catch(e) {
+        console.log("Error processing patient search and validating token ", e);
+      }
+      return false;
+
+    }).then(results => {
+      if (!results || !results.length) {
+        setErrorMessage("Data processing error in [handleSearch]");
+        toTop();
+        setOpenLoadingModal(false);
+        return false;
+      }
+      if (!results[1] || (results[1] && !results[1].valid)) {
+        //invalid token, force logout
+        console.log("Logging out...")
+        handleLogout();
+        setOpenLoadingModal(true);
+        return false;
+      }
+      let response = results[0];
 
       if (!response || !response.entry || !response.entry.length) {
           //NOT IN PMP BUT IN HAPI? need to check
