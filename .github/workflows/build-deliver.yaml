@@ -5,8 +5,6 @@ name: Build & Deliver
 on: [push]
 jobs:
   build:
-    # only build if tests pass
-    # needs: [test]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout commit with full git history
