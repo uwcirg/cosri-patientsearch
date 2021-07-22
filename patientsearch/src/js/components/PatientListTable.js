@@ -80,9 +80,21 @@ const useStyles = makeStyles({
     },
     muted: {
       fill: theme.palette.muted.main
+    },
+    legend: {
+      marginTop: theme.spacing(2),
+      float: "left"
+    },
+    legendIcon: {
+      backgroundColor: theme.palette.primary.disabled,
+      width: theme.spacing(3),
+      height: theme.spacing(3),
+      marginRight: theme.spacing(0.5),
+      display: "inline-block",
+      verticalAlign: "bottom"
     }
 });
-let initIntervalId = 0;
+
 let appSettings = {};
 const NUM_OF_REQUIRED_FILTERS = 3;
 
@@ -93,6 +105,7 @@ export default function PatientListTable(props) {
   const [openLoadingModal, setOpenLoadingModal] = React.useState(false);
   const [loading, setLoading] = React.useState(true);
   const [errorMessage, setErrorMessage] = React.useState("");
+  const [containNoPMPRow, setContainNoPMPRow] = React.useState(false);
   const tableRef = React.useRef();
   const LAUNCH_BUTTON_LABEL = "VIEW";
   const CREATE_BUTTON_LABEL = "CREATE";
@@ -240,11 +253,25 @@ export default function PatientListTable(props) {
       "./validate_token"
     ];
     Promise.allSettled([
-      fetch(urls[0], {...{"method": "PUT"}, ...noCacheParam}),
+      fetch(urls[0], {...{"method": "PUT",
+      headers: {
+        "Accept": "application/json",
+        "Content-Type": "application/json"
+      }}, ...noCacheParam}),
       fetch(urls[1])
     ]).then(async([searchResult, tokenResult]) => {
       const searchResponse = searchResult.value;
       const tokenResponse = tokenResult.value;
+
+      if (searchResponse.status === 500) {
+        //check if error response is text/html first
+        let responseText = typeof searchResponse.text !== "undefined" ? (await searchResponse.text()) : "";
+        if (!responseText) {
+          //check if error response is in JSON
+          responseText = typeof searchResponse.json !== "undefined" ? (await searchResponse.json()) : "";
+        }
+        throw (responseText ? responseText: searchResponse.statusText); //throw error so can be caught later
+      }
       try {
         return [await searchResponse.json(), await tokenResponse.json()];
       } catch(e) {
@@ -303,7 +330,7 @@ export default function PatientListTable(props) {
         window.location = launchURL;
       }, 50);
     }).catch(e => {
-      setErrorMessage(`COSRI is unable to return PMP information. This may be due to PMP system being down or a problem with the COSRI connection to PMP.  System error ${e} `);
+      setErrorMessage(`<p>COSRI is unable to return PMP information. This may be due to PMP system being down or a problem with the COSRI connection to PMP.</p><p>Error returned from the system: ${e}</p>`);
       //log error to console
       console.log(`Patient search error: ${e}`);
       toTop();
@@ -340,6 +367,15 @@ export default function PatientListTable(props) {
   //display body content when table is rendered
   function setVis() {
     document.querySelector("body").classList.add("ready");
+  }
+
+  function setNoPMPFlag(data) {
+    if (!data || !data.length) return false;
+    let hasNoPMPRow = data.filter(rowData => {
+      return !inPDMP(rowData);
+    }).length > 0;
+    //legend will display if contain no pmp row flag is set
+    if (hasNoPMPRow) setContainNoPMPRow(true);
   }
 
   function setNoDataText(filters) {
@@ -384,10 +420,12 @@ export default function PatientListTable(props) {
             setLoading(false);
             return;
           }
-          setData(formatData(response));
+          let responseData = formatData(response);
+          setData(responseData);
           setInitialized(true);
           setLoading(false);
           setVis();
+          setNoPMPFlag(responseData);
         }).catch(error => {
           console.log("Failed to retrieve data", error.statusText);
           setErrorMessage(`Error retrieving data: ${error.statusText}`);
@@ -502,6 +540,9 @@ export default function PatientListTable(props) {
                   },
                 }}
               />
+          </div>}
+          {!loading && initialized && containNoPMPRow && <div className={classes.legend}>
+            <span className={classes.legendIcon}></span> Not in PMP
           </div>}
           <Modal
             open={openLoadingModal}
