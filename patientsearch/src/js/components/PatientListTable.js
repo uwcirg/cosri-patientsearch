@@ -87,7 +87,7 @@ const useStyles = makeStyles({
     },
     legendIcon: {
       backgroundColor: theme.palette.primary.disabled,
-      width: theme.spacing(3),
+      width: theme.spacing(6),
       height: theme.spacing(3),
       marginRight: theme.spacing(0.5),
       display: "inline-block",
@@ -404,6 +404,10 @@ export default function PatientListTable(props) {
       }).length);
   }
 
+  function patientListInitialized() {
+    return !loading && initialized;
+  }
+
   React.useEffect(() => {
     //when page unloads, remove loading indicator
     window.addEventListener("beforeunload", function() { setOpenLoadingModal(false); });
@@ -444,7 +448,7 @@ export default function PatientListTable(props) {
           <h2>COSRI Patient Search</h2>
           <Error message={errorMessage} style={errorStyle}/>
           {loading && <CircularProgress size={40} className={classes.buttonProgress} />}
-          {!loading && initialized && <div className={classes.table} aria-label="patient list table" >
+          {patientListInitialized() && <div className={classes.table} aria-label="patient list table" >
               <MaterialTable
                 className={classes.table}
                 columns={columns}
@@ -541,7 +545,7 @@ export default function PatientListTable(props) {
                 }}
               />
           </div>}
-          {!loading && initialized && containNoPMPRow && <div className={classes.legend}>
+          {patientListInitialized() && containNoPMPRow && <div className={classes.legend}>
             <span className={classes.legendIcon}></span> Not in PMP
           </div>}
           <Modal
