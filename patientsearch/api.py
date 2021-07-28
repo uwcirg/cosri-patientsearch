@@ -11,6 +11,7 @@ from flask import (
     send_from_directory,
 )
 from flask.json import JSONEncoder
+import jwt
 import requests
 from werkzeug.exceptions import Unauthorized
 
@@ -144,10 +145,17 @@ def validate_token():
     try:
         validate_auth()
     except Unauthorized:
-        return jsonify(valid=False, expires_in=0)
-    expires = oidc.user_getfield('exp')
-    delta = expires - datetime.now().timestamp()
-    return jsonify(valid=True, expires_in=delta)
+        return jsonify(valid=False, access_expires_in=0, refresh_expires_in=0)
+
+    now = datetime.now().timestamp()
+    access_token  = jwt.decode(oidc.get_access_token(), options={"verify_signature": False, "verify_aud": False})
+    refresh_token  = jwt.decode(oidc.get_refresh_token(), options={"verify_signature": False, "verify_aud": False})
+
+    return jsonify(
+        valid=True,
+        access_expires_in=access_token['exp']-now,
+        refresh_expires_in=refresh_token['exp']-now,
+    )
 
 
 @api_blueprint.route('/<string:resource_type>', methods=["GET"])
