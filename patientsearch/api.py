@@ -66,11 +66,9 @@ def validate_auth():
         token = oidc.get_access_token()
     except TypeError:
         # raised when the token isn't accessible to the oidc lib
-        terminate_session()
         raise Unauthorized("oidc access token inaccessible")
 
     if not oidc.validate_token(token):
-        terminate_session()
         raise Unauthorized(
             "Your COSRI session timed out. "
             "Please refresh your browser to enter your user name and password "
