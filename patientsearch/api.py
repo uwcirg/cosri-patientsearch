@@ -29,6 +29,17 @@ from patientsearch.extensions import oidc
 api_blueprint = Blueprint('patientsearch-api', __name__)
 
 
+@api_blueprint.route('/refresh_session', methods=["GET"])
+def refresh_session():
+    """Clear flask_oidc session
+    The next request to a protected endpoint will generate a new token, or require logging into IDP
+    """
+
+    # clears local cookie only
+    oidc.logout()
+    return redirect("/")
+
+
 def terminate_session():
     """Terminate logged in session; logout without response"""
     token = oidc.user_loggedin and oidc.get_access_token()
@@ -55,11 +66,9 @@ def validate_auth():
         token = oidc.get_access_token()
     except TypeError:
         # raised when the token isn't accessible to the oidc lib
-        terminate_session()
         raise Unauthorized("oidc access token inaccessible")
 
     if not oidc.validate_token(token):
-        terminate_session()
         raise Unauthorized(
             "Your COSRI session timed out. "
             "Please refresh your browser to enter your user name and password "
@@ -312,8 +321,9 @@ def external_search(resource_type):
 
 @api_blueprint.route('/logout', methods=["GET"])
 def logout():
-    if oidc.user_loggedin:
-        user_id = current_user_id(validate_auth())
+    token = oidc.user_loggedin and oidc.get_access_token()
+    if token:
+        user_id = current_user_id(token)
         current_app.logger.info(
             "logout on request",
             extra={'tags': ['logout'], 'user_id': user_id})
