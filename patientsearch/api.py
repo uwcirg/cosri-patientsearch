@@ -312,8 +312,9 @@ def external_search(resource_type):
 
 @api_blueprint.route('/logout', methods=["GET"])
 def logout():
-    if oidc.user_loggedin:
-        user_id = current_user_id(validate_auth())
+    token = oidc.user_loggedin and oidc.get_access_token()
+    if token:
+        user_id = current_user_id(token)
         current_app.logger.info(
             "logout on request",
             extra={'tags': ['logout'], 'user_id': user_id})
