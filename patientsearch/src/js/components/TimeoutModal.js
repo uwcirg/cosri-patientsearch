@@ -17,7 +17,7 @@ function getModalStyle() {
 const useStyles = makeStyles((theme) => ({
   paper: {
     position: 'absolute',
-    width: 400,
+    width: 480,
     backgroundColor: theme.palette.background.paper,
     border: `2px solid ${theme.palette.primary.main}`,
     boxShadow: theme.shadows[5],
@@ -27,6 +27,7 @@ const useStyles = makeStyles((theme) => ({
 
 let expiredIntervalId = 0;
 let expiresIn = null;
+let refresh = false;
 
 export default function TimeoutModal() {
   const classes = useStyles();
@@ -37,7 +38,6 @@ export default function TimeoutModal() {
   const clearExpiredIntervalId = () => {
     clearInterval(expiredIntervalId);
   };
-
   const checkSessionValidity = () => {
     /*
      * when the expires in is less than the next track interval, the session will have expired, so just logout user
@@ -53,14 +53,27 @@ export default function TimeoutModal() {
         let tokenData = null;
         try {
           tokenData = JSON.parse(response);
+          let accessTokenExpiresIn = parseFloat(tokenData["access_expires_in"]);
+          let refreshTokenExpiresIn = parseFloat(tokenData["refresh_expires_in"]);
+          let refreshTokenOnVentilator = refreshTokenExpiresIn < accessTokenExpiresIn;
           //in seconds
-          expiresIn = tokenData["expires_in"];
+          //1. check if refresh token will expire before access token first
+          //2. check if access token will expire
+          expiresIn = refreshTokenOnVentilator ? refreshTokenExpiresIn : accessTokenExpiresIn;
+          let tokenAboutToExpire = Math.floor(expiresIn) >= 1 && Math.floor(expiresIn) <= 60;
+          //flag for whether to prompt the user to refresh session, i.e. request another access token
+          refresh = tokenAboutToExpire && !refreshTokenOnVentilator ? true: false;
 
           if (!tokenData["valid"] || expiresIn <= 1) {
-            handleLogout();
+            if (refreshTokenOnVentilator){
+              handleLogout();
+            } else {
+              reLoad();
+            }
             return;
           }
-          if (Math.floor(expiresIn) <= 60) {
+
+          if (tokenAboutToExpire) {
             cleanUpModal();
             if (!open) handleOpen();
           }
@@ -94,8 +107,15 @@ export default function TimeoutModal() {
   };
 
   const handleClose = () => {
+    clearExpiredIntervalId();
     setOpen(false);
   };
+
+  const reLoad = () => {
+    handleClose();
+    //To force-request a new Access Token (when one is about to expire, but still valid)
+    window.location =  "/clear_session";
+  }
 
   const handleLogout = () => {
     clearExpiredIntervalId();
@@ -132,6 +152,15 @@ export default function TimeoutModal() {
             <span>Your session will expired in approximately {getExpiresInDisplay(expiresIn)}.</span>
           }
           <div className="buttons-container">
+            {/*
+              * access token about to expire so ask user if they want to refresh session
+              * NOTE this button won't show if refresh token is about to expire, i.e. SSO Session Max has been reached
+              */
+            }
+            {
+              refresh &&
+              <Button variant="outlined" onClick={reLoad}>Refresh Session</Button>
+            }
             <Button variant="outlined" onClick={handleClose}>OK</Button>
             <Button variant="outlined" onClick={handleLogout}>Log Out</Button>
           </div>

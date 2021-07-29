@@ -222,10 +222,11 @@ export default function PatientListTable(props) {
       }
     });
   }
-  const handleLogout = function() {
+  const handleExpiredSession = function() {
     sessionStorage.clear();
     setTimeout(() => {
-      window.location = "/logout";
+      // / is a protected endpoint, the backend will request a new Access Token from Keycloak if able, else prompt a user to log in again
+      window.location = "/";
     }, 0);
   }
   const handleSearch = function (event, rowData) {
@@ -259,10 +260,11 @@ export default function PatientListTable(props) {
         setOpenLoadingModal(false);
         return false;
       }
-      if (!results[1] || (results[1] && !results[1].valid)) {
-        //invalid token, force logout
-        console.log("Logging out...")
-        handleLogout();
+      if (!results[1] ||
+         (results[1] && (parseInt(results[1].access_expires_in) <= 0 || parseInt(results[1].refresh_expires_in) <= 0))) {
+        //invalid token, force redirecting
+        console.log("Redirecting...")
+        handleExpiredSession();
         setOpenLoadingModal(true);
         return false;
       }
