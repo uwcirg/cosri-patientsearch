@@ -64,7 +64,7 @@ export default function TimeoutModal() {
           //flag for whether to prompt the user to refresh session, i.e. request another access token
           refresh = tokenAboutToExpire && !refreshTokenOnVentilator ? true: false;
 
-          if (!tokenData["valid"] || expiresIn <= 1) {
+          if (refreshTokenOnVentilator && (!tokenData["valid"] || expiresIn <= 1)) {
             handleLogout();
             return;
           }
