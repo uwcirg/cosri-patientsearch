@@ -108,7 +108,8 @@ export default function TimeoutModal() {
 
   const reLoad = () => {
     handleClose();
-    location.reload();
+    //To force-request a new Access Token (when one is about to expire, but still valid)
+    window.location =  "/clear_session";
   }
 
   const handleLogout = () => {
