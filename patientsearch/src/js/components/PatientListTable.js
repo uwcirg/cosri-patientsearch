@@ -259,7 +259,8 @@ export default function PatientListTable(props) {
         setOpenLoadingModal(false);
         return false;
       }
-      if (!results[1] || (results[1] && !results[1].valid)) {
+      if (!results[1] ||
+         (results[1] && (parseInt(results[1].access_expires_in) <= 0 || parseInt(results[1].refresh_expires_in) <= 0))) {
         //invalid token, force logout
         console.log("Logging out...")
         handleLogout();
