@@ -29,7 +29,7 @@ from patientsearch.extensions import oidc
 api_blueprint = Blueprint('patientsearch-api', __name__)
 
 
-@api_blueprint.route('/refresh_session', methods=["GET"])
+@api_blueprint.route('/clear_session', methods=["GET"])
 def refresh_session():
     """Clear flask_oidc session
     The next request to a protected endpoint will generate a new token, or require logging into IDP
