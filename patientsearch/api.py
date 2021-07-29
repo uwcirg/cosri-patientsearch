@@ -29,6 +29,17 @@ from patientsearch.extensions import oidc
 api_blueprint = Blueprint('patientsearch-api', __name__)
 
 
+@api_blueprint.route('/refresh_session', methods=["GET"])
+def refresh_session():
+    """Clear flask_oidc session
+    The next request to a protected endpoint will generate a new token, or require logging into IDP
+    """
+
+    # clears local cookie only
+    oidc.logout()
+    return redirect("/")
+
+
 def terminate_session():
     """Terminate logged in session; logout without response"""
     token = oidc.user_loggedin and oidc.get_access_token()
