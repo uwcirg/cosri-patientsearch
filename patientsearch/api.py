@@ -11,6 +11,7 @@ from flask import (
     send_from_directory,
 )
 from flask.json import JSONEncoder
+import jwt
 import requests
 from werkzeug.exceptions import Unauthorized
 
@@ -26,6 +27,17 @@ from patientsearch.extensions import oidc
 
 
 api_blueprint = Blueprint('patientsearch-api', __name__)
+
+
+@api_blueprint.route('/clear_session', methods=["GET"])
+def refresh_session():
+    """Clear flask_oidc session
+    The next request to a protected endpoint will generate a new token, or require logging into IDP
+    """
+
+    # clears local cookie only
+    oidc.logout()
+    return redirect("/")
 
 
 def terminate_session():
@@ -54,11 +66,9 @@ def validate_auth():
         token = oidc.get_access_token()
     except TypeError:
         # raised when the token isn't accessible to the oidc lib
-        terminate_session()
         raise Unauthorized("oidc access token inaccessible")
 
     if not oidc.validate_token(token):
-        terminate_session()
         raise Unauthorized(
             "Your COSRI session timed out. "
             "Please refresh your browser to enter your user name and password "
@@ -144,10 +154,17 @@ def validate_token():
     try:
         validate_auth()
     except Unauthorized:
-        return jsonify(valid=False, expires_in=0)
-    expires = oidc.user_getfield('exp')
-    delta = expires - datetime.now().timestamp()
-    return jsonify(valid=True, expires_in=delta)
+        return jsonify(valid=False, access_expires_in=0, refresh_expires_in=0)
+
+    now = datetime.now().timestamp()
+    access_token  = jwt.decode(oidc.get_access_token(), options={"verify_signature": False, "verify_aud": False})
+    refresh_token  = jwt.decode(oidc.get_refresh_token(), options={"verify_signature": False, "verify_aud": False})
+
+    return jsonify(
+        valid=True,
+        access_expires_in=access_token['exp']-now,
+        refresh_expires_in=refresh_token['exp']-now,
+    )
 
 
 @api_blueprint.route('/<string:resource_type>', methods=["GET"])
@@ -304,8 +321,9 @@ def external_search(resource_type):
 
 @api_blueprint.route('/logout', methods=["GET"])
 def logout():
-    if oidc.user_loggedin:
-        user_id = current_user_id(validate_auth())
+    token = oidc.user_loggedin and oidc.get_access_token()
+    if token:
+        user_id = current_user_id(token)
         current_app.logger.info(
             "logout on request",
             extra={'tags': ['logout'], 'user_id': user_id})
