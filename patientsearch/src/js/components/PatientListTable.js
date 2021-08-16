@@ -457,6 +457,8 @@ export default function PatientListTable(props) {
                 hideSortIcon={false}
                 options={{
                     paginationTypestepped: "stepped",
+                    pageSize: 10,
+                    pageSizeOptions: [10, 20, 50],
                     toolbar: false,
                     filtering: true,
                     sorting: true,
