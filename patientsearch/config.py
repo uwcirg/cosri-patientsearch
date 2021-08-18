@@ -14,6 +14,10 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 SESSION_TYPE = os.getenv("SESSION_TYPE", 'filesystem')
 STATIC_DIR = os.getenv("STATIC_DIR")
 
+LOG_LEVEL = os.getenv('LOG_LEVEL', 'DEBUG').upper()
+LOGSERVER_TOKEN = os.getenv('LOGSERVER_TOKEN')
+LOGSERVER_URL = os.getenv('LOGSERVER_URL')
+
 VERSION_STRING = os.getenv("VERSION_STRING")
 
 EXTERNAL_FHIR_API = os.getenv("EXTERNAL_FHIR_API")

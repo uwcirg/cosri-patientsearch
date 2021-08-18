@@ -1,13 +1,16 @@
-import os
-
 from flask import Flask
 from flask_session import Session
-from logging import config as logging_config
+import json
+import logging.handlers
+import os
+from pythonjsonlogger.jsonlogger import JsonFormatter
+import requests
 
 from patientsearch.api import api_blueprint
 from patientsearch.extensions import oidc
 
 session = Session()
+
 
 def create_app(testing=False):
     """Application factory, used to create and configure application"""
@@ -47,6 +50,43 @@ def create_app(testing=False):
     return app
 
 
+class LogServerHandler(logging.Handler):
+    """Specialized logging handler capable of nesting json and passing auth"""
+
+    def __init__(self, url, jwt, level):
+        super().__init__(level)
+        self.jwt = jwt
+        if url and url.endswith('/'):
+            self.url = f"{url}events"
+        else:
+            self.url = f"{url}/events"
+
+    def emit(self, record):
+        log_entry = self.format(record)
+        log_entry = {"event": json.loads(log_entry)}
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {self.jwt}"
+        }
+        return requests.post(url=self.url, headers=headers, json=log_entry)
+
+
 def configure_logging(app):
     app.logger  # must call to initialize prior to config or it'll replace
-    logging_config.fileConfig('logging.ini', disable_existing_loggers=False)
+
+    if not app.config['LOGSERVER_URL']:
+        return
+
+    log_server_handler = LogServerHandler(
+        level=getattr(logging, app.config['LOG_LEVEL'].upper()),
+        jwt=app.config['LOGSERVER_TOKEN'],
+        url=app.config['LOGSERVER_URL'])
+
+    json_formatter = JsonFormatter(
+        "%(asctime)s %(name)s %(levelname)s %(message)s")
+    log_server_handler.setFormatter(json_formatter)
+
+    app.logger.addHandler(log_server_handler)
+    app.logger.debug(
+        "test message to app.logger from configure_logging",
+        extra={'bonus': 'data', 'tags': ['testing', 'logging']})
