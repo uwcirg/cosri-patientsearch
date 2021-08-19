@@ -95,7 +95,6 @@ def current_user_id(token):
 @oidc.require_login
 def main():
     """ Main route, entry point for react. """
-    validate_auth()
     ## issue with path resolution after build
     return send_from_directory(
         #todo: remove templates directory reference; index.html isn't a jinja template
