@@ -13,7 +13,10 @@ flask_session
 lib
 patientsearch/dist
 patientsearch/lib
-patientsearch/static
+patientsearch/static/js
+patientsearch/static/templates
+patientsearch/static/*bundle*.js
+patientsearch/static/favicon.ico
 patientsearch/templates/index.html
 report.*
 node_modules

@@ -66,6 +66,6 @@ export default function SiteLogo() {
     }
 
     return (
-        <div className={classes.container}>{siteID && <img src={"/static/img/"+siteID+"_logo.png"} onLoad={handleImageLoaded} onError={handleImageLoadError}></img>}</div>
+        <div className={classes.container}>{siteID && <img src={"/static/"+siteID+"/img/logo.png"} onLoad={handleImageLoaded} onError={handleImageLoadError}></img>}</div>
     );
 }
