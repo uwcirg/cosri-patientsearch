@@ -9,6 +9,9 @@ $table-header-bg-color: rgb(224, 242, 241);
 html {
   scroll-behavior: smooth;
 }
+img[disabled] {
+  display: none;
+}
 .MuiTypography-h6 {
   font-size: 1.02rem !important;
 }
@@ -25,6 +28,9 @@ html {
       max-width: 100%;
     }
   }
+}
+#patientList tr:empty {
+  height: 0 !important;
 }
 .menu-icon {
   margin-left: 8px;

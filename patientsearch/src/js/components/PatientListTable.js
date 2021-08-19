@@ -461,6 +461,8 @@ export default function PatientListTable(props) {
                     paginationTypestepped: "stepped",
                     pageSize: 10,
                     pageSizeOptions: [10, 20, 50],
+                    padding: "dense",
+                    emptyRowsWhenPaging: false,
                     toolbar: false,
                     filtering: true,
                     sorting: true,
