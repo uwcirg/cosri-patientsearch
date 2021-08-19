@@ -88,5 +88,5 @@ def configure_logging(app):
 
     app.logger.addHandler(log_server_handler)
     app.logger.debug(
-        "test message to app.logger from configure_logging",
+        "cosri patientsearch logging initialized",
         extra={'bonus': 'data', 'tags': ['testing', 'logging']})
