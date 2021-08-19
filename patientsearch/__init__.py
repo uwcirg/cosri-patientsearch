@@ -56,10 +56,7 @@ class LogServerHandler(logging.Handler):
     def __init__(self, url, jwt, level):
         super().__init__(level)
         self.jwt = jwt
-        if url and url.endswith('/'):
-            self.url = f"{url}events"
-        else:
-            self.url = f"{url}/events"
+        self.url = f"{url}/events"
 
     def emit(self, record):
         log_entry = self.format(record)
