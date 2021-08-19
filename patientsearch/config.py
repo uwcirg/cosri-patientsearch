@@ -1,6 +1,7 @@
 import json
 import os
 
+import redis
 
 def decode_json_config(potential_json_string):
     """Detect if given string is JSON file, or JSON string"""
@@ -11,7 +12,14 @@ def decode_json_config(potential_json_string):
 
 SERVER_NAME = os.getenv("SERVER_NAME")
 SECRET_KEY = os.getenv("SECRET_KEY")
+
 SESSION_TYPE = os.getenv("SESSION_TYPE", 'filesystem')
+
+REDIS_URL = os.environ.get('REDIS_URL')
+if REDIS_URL:
+    SESSION_TYPE = "redis"
+    SESSION_REDIS = redis.from_url(REDIS_URL)
+
 STATIC_DIR = os.getenv("STATIC_DIR")
 
 LOG_LEVEL = os.getenv('LOG_LEVEL', 'DEBUG').upper()

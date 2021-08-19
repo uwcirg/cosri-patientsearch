@@ -14,6 +14,7 @@ jmespath==0.10.0          # via patientsearch (setup.py)
 markupsafe==1.1.1         # via jinja2
 python-json-logger==0.1.11
 pyjwt==1.7.1              # via flask-jwt-extended
+redis==3.5.3
 requests==2.24.0          # via patientsearch (setup.py)
 six==1.15.0               # via flask-jwt-extended
 urllib3==1.25.9           # via requests
