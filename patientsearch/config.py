@@ -1,7 +1,10 @@
 import json
 import os
+from urllib.parse import urlparse
 
 import redis
+from redis_dict import RedisDict
+
 
 def decode_json_config(potential_json_string):
     """Detect if given string is JSON file, or JSON string"""
@@ -19,6 +22,12 @@ REDIS_URL = os.environ.get('REDIS_URL')
 if REDIS_URL:
     SESSION_TYPE = "redis"
     SESSION_REDIS = redis.from_url(REDIS_URL)
+    parts = urlparse(REDIS_URL)
+    OIDC_CREDENTIALS_STORE = RedisDict(
+        namespace='oidc_store',
+        host=parts.hostname,
+        port=parts.port,
+        db=int(parts.path[1:]))
 
 STATIC_DIR = os.getenv("STATIC_DIR")
 
