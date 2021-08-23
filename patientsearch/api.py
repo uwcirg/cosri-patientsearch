@@ -4,6 +4,7 @@ from flask import (
     abort,
     current_app,
     jsonify,
+    make_response,
     redirect,
     request,
     safe_join,
@@ -328,4 +329,8 @@ def logout():
             "logout on request",
             extra={'tags': ['logout'], 'user_id': user_id})
     terminate_session()
-    return redirect("/")
+
+    # Shouldn't be present, but just in case, manually clear the oidc cookie
+    resp = make_response(redirect("/"))
+    resp.set_cookie('oidc_id_token', '', expires=0)
+    return resp
