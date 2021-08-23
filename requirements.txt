@@ -18,5 +18,5 @@ redis==3.5.3
 redis-dict==1.5.2         # via patientsearch (setup.py)
 requests==2.24.0          # via patientsearch (setup.py)
 six==1.15.0               # via flask-jwt-extended
-urllib3==1.25.9           # via requests
+urllib3==1.26.5           # via requests
 werkzeug==1.0.1           # via flask, flask-jwt-extended
