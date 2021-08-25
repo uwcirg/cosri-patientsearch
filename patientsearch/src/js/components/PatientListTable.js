@@ -288,7 +288,7 @@ export default function PatientListTable(props) {
         return false;
       }
       if (!results[1] ||
-         (results[1] && (parseInt(results[1].access_expires_in) <= 0 || parseInt(results[1].refresh_expires_in) <= 0))) {
+         (results[1] && (!results[1].valid || parseInt(results[1].access_expires_in) <= 0 || parseInt(results[1].refresh_expires_in) <= 0))) {
         //invalid token, force redirecting
         console.log("Redirecting...")
         handleExpiredSession();
