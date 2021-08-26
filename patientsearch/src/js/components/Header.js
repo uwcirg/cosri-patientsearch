@@ -8,6 +8,7 @@ import Link from '@material-ui/core/Link';
 import HowToRegIcon from '@material-ui/icons/HowToReg';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
+import SiteLogo from "./SiteLogo";
 import {sendRequest} from './Utility';
 import logo from "../../assets/logo_horizontal.png";
 
@@ -115,8 +116,9 @@ export default function Header() {
 
     return (
         <AppBar position="absolute" className={classes.appBar}>
-            <Toolbar className={classes.topBar}>
+            <Toolbar className={classes.topBar} disableGutters variant="dense">
                 <img src={logo} alt="Logo"/>
+                <SiteLogo />
                 <Box className={classes.welcomeContainer}>
                     <div>
                         <Typography component="h6" variant="h6" color="textPrimary" noWrap className={classes.welcomeText}>
