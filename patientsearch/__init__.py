@@ -2,6 +2,7 @@ from flask import Flask
 from flask_session import Session
 import json
 import logging.handlers
+from logging import INFO, config as logging_config
 import os
 from pythonjsonlogger.jsonlogger import JsonFormatter
 import requests
@@ -70,6 +71,7 @@ class LogServerHandler(logging.Handler):
 
 def configure_logging(app):
     app.logger  # must call to initialize prior to config or it'll replace
+    logging_config.fileConfig('logging.ini', disable_existing_loggers=False)
 
     if not app.config['LOGSERVER_URL']:
         return
@@ -82,6 +84,9 @@ def configure_logging(app):
     json_formatter = JsonFormatter(
         "%(asctime)s %(name)s %(levelname)s %(message)s")
     log_server_handler.setFormatter(json_formatter)
+
+    # Hardcode event/audit logs to INFO - no debugging clutter desired
+    log_server_handler.setLevel(INFO)
 
     app.logger.addHandler(log_server_handler)
     app.logger.debug(
