@@ -78,7 +78,7 @@ def configure_logging(app):
 
     # Hardcode event/audit logs to INFO - no debugging clutter desired
     log_server_handler = LogServerHandler(
-        level=getattr(logging, INFO),
+        level=INFO,
         jwt=app.config['LOGSERVER_TOKEN'],
         url=app.config['LOGSERVER_URL'])
 
