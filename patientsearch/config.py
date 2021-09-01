@@ -31,7 +31,6 @@ if REDIS_URL:
 
 STATIC_DIR = os.getenv("STATIC_DIR")
 
-LOG_LEVEL = os.getenv('LOG_LEVEL', 'DEBUG').upper()
 LOGSERVER_TOKEN = os.getenv('LOGSERVER_TOKEN')
 LOGSERVER_URL = os.getenv('LOGSERVER_URL')
 

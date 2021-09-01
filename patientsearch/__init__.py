@@ -76,17 +76,15 @@ def configure_logging(app):
     if not app.config['LOGSERVER_URL']:
         return
 
+    # Hardcode event/audit logs to INFO - no debugging clutter desired
     log_server_handler = LogServerHandler(
-        level=getattr(logging, app.config['LOG_LEVEL'].upper()),
+        level=INFO,
         jwt=app.config['LOGSERVER_TOKEN'],
         url=app.config['LOGSERVER_URL'])
 
     json_formatter = JsonFormatter(
         "%(asctime)s %(name)s %(levelname)s %(message)s")
     log_server_handler.setFormatter(json_formatter)
-
-    # Hardcode event/audit logs to INFO - no debugging clutter desired
-    log_server_handler.setLevel(INFO)
 
     app.logger.addHandler(log_server_handler)
     app.logger.debug(
