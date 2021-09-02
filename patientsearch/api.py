@@ -83,7 +83,7 @@ def current_user_id(token):
         username = oidc.user_getfield('preferred_username')
     except Exception:
         # mystery how token was valid at entry and now inaccessible
-        namename = "unknown"
+        username = "unknown"
     try:
         DEA = oidc.user_getfield('DEA')
     except Exception:
