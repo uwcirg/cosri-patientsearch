@@ -1,7 +1,6 @@
 from datetime import datetime
 from flask import (
     Blueprint,
-    abort,
     current_app,
     jsonify,
     make_response,
@@ -25,6 +24,7 @@ from patientsearch.models import (
     sync_bundle,
 )
 from patientsearch.extensions import oidc
+from patientsearch.jsonify_abort import jsonify_abort
 
 
 api_blueprint = Blueprint('patientsearch-api', __name__)
@@ -80,11 +80,15 @@ def validate_auth():
 def current_user_id(token):
     """Safe wrapper to lookup logged in user's identifier string for logging"""
     try:
-        user_id = oidc.user_getfield('email')
+        username = oidc.user_getfield('preferred_username')
     except Exception:
-        # mystery how token was valid at entry, but no email available?
-        user_id = "unknown"
-    return user_id
+        # mystery how token was valid at entry and now inaccessible
+        namename = "unknown"
+    try:
+        DEA = oidc.user_getfield('DEA')
+    except Exception:
+        DEA = "unknown"
+    return {'username': username, 'DEA': DEA}
 
 
 @api_blueprint.route('/', methods=["GET"])
@@ -111,7 +115,7 @@ def user_info():
     try:
         user_info = oidc.user_getinfo(['name', 'email'])
     except Unauthorized:
-        raise Unauthorized("Unauthorized")
+        jsonify_abort(status_code=401, message="Unauthorized")
     return jsonify(user_info)
 
 
@@ -133,7 +137,7 @@ def config_settings(config_key):
         key = config_key.upper()
         for pattern in blacklist:
             if pattern in key:
-                abort(400, f"Configuration key {key} not available")
+                jsonify_abort(status_code=400, messag=f"Configuration key {key} not available")
         return jsonify({key: current_app.config.get(key)})
 
     config_settings = {}
@@ -196,12 +200,10 @@ def delete_resource_by_id(resource_type, resource_id):
     redirect.  Client should watch for 401 and redirect appropriately.
     """
     token = validate_auth()
-    extra = {'tags': ['patient', 'delete'], 'user_id': current_user_id(token)}
+    extra = {'tags': ['patient', 'delete'], 'user': current_user_id(token)}
     if resource_type == 'Patient':
-        extra['subject_id'] = resource_id
-    current_app.logger.info(
-        "DELETE %s/%s", resource_type, resource_id,
-        extra=extra)
+        extra['patient'] = {'subject.id': resource_id}
+    current_app.logger.info("DELETE %s/%s", resource_type, resource_id, extra=extra)
 
     return jsonify(HAPI_request(
         method='DELETE', resource_type=resource_type, resource_id=resource_id, token=token))
@@ -275,9 +277,19 @@ def external_search(resource_type):
             'system': 'https://github.com/uwcirg/script-fhir-facade',
             'value': 'found'})
 
-    if len(external_search_bundle['entry']):
+    external_match_count = len(external_search_bundle['entry']) if (
+        'entry' in external_search_bundle) else 0
+
+    extra={
+        'tags': ['search'],
+        'patient': request.args.copy(),
+        'user': current_user_id(token)}
+
+    if external_match_count:
         # Merge result details with internal resources
         local_fhir_patient = sync_bundle(token, external_search_bundle)
+        if local_fhir_patient:
+            extra['patient']['subject.id'] = local_fhir_patient['id']
     else:
         # See if local match already exists
         patient = resource_from_args(resource_type, request.args)
@@ -286,37 +298,23 @@ def external_search(resource_type):
         if internal_bundle['total'] > 0:
             local_fhir_patient = internal_bundle['entry'][0]['resource']
         if internal_bundle['total'] > 1:
-            current_app.logger.warning(
-                "found multiple internal matches (%s), return first",
-                patient)
+            current_app.logger.warning("found multiple internal matches (%s), return first", patient, extra=extra)
 
-    user_id = current_user_id(token)
     if not local_fhir_patient:
         # Add at this time in the local store
         local_fhir_patient = HAPI_request(
             token=token, method='POST', resource_type='Patient', resource=patient)
-        current_app.logger.info(
-            "PDMP search failed; create new patient from search params",
-            extra={
-                'tags': ['search'],
-                'subject_id': local_fhir_patient['id'],
-                'user_id': user_id}
-        )
+        current_app.logger.info("PDMP search failed; create new patient from search params", extra=extra)
 
     # TODO: handle multiple patient results
-    if len(external_search_bundle['entry']) > 1:
-        current_app.logger.warn('multiple patients returned from PDMP')
+    if external_match_count > 1:
+        current_app.logger.warn('multiple patients returned from PDMP', extra=extra)
 
-    if len(external_search_bundle['entry']) > 0:
+    if external_match_count:
         external_search_bundle['entry'][0].setdefault('id', local_fhir_patient['id'])
 
-    current_app.logger.info(
-        "patient search found match",
-        extra={
-            'tags': ['search'],
-            'subject_id': local_fhir_patient['id'],
-            'user_id': user_id}
-    )
+    message = "PDMP found match" if external_match_count else "fEMR found match"
+    current_app.logger.info(message, extra=extra)
     return jsonify(external_search_bundle)
 
 
@@ -324,10 +322,7 @@ def external_search(resource_type):
 def logout():
     token = oidc.user_loggedin and oidc.get_access_token()
     if token:
-        user_id = current_user_id(token)
-        current_app.logger.info(
-            "logout on request",
-            extra={'tags': ['logout'], 'user_id': user_id})
+        current_app.logger.info("logout on request", extra={'tags': ['logout'], 'user': current_user_id(token)})
     terminate_session()
 
     # Shouldn't be present, but just in case, manually clear the oidc cookie

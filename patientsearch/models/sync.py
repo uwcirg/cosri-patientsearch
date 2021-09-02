@@ -1,14 +1,19 @@
 """Manages synchronization of Model data, between external and internal stores"""
 from copy import deepcopy
+from json.decoder import JSONDecodeError
 
-from flask import abort, current_app
+from flask import current_app, jsonify
 from jmespath import search as json_search
 import requests
 from .bearer_auth import BearerAuth
+from patientsearch.jsonify_abort import jsonify_abort
 
 
 def add_identifier_to_resource_type(bundle, resource_type, identifier):
     result = deepcopy(bundle)
+    if 'entry' not in result:
+        return result
+
     for resource in result['entry']:
         if resource.get('resourceType') != resource_type:
             continue
@@ -57,15 +62,15 @@ def HAPI_request(
     elif VERB == 'DELETE':
         # Only enable deletion of resource by id
         if not resource_id:
-            abort(400, "'resource_id' required for DELETE")
+            return jsonify_abort(message="'resource_id' required for DELETE", status_code=400)
         resp = requests.delete(url, auth=BearerAuth(token))
     else:
-        abort(400, f"Invalid HTTP method: {method}")
+        return jsonify_abort(message=f"Invalid HTTP method: {method}", status_code=400)
 
     try:
         resp.raise_for_status()
     except requests.exceptions.HTTPError as err:
-        abort(err.response.status_code, err)
+        return jsonify_abort(message=err, status_code=err.response.status_code)
     return resp.json()
 
 
@@ -77,6 +82,8 @@ def external_request(token, resource_type, params):
     :param params: Search parameters
 
     """
+    from patientsearch.api import current_user_id
+
     if not resource_type:
         raise ValueError("Required `resource_type` not included")
 
@@ -85,8 +92,13 @@ def external_request(token, resource_type, params):
     try:
         resp.raise_for_status()
     except requests.exceptions.HTTPError as err:
-        current_app.logger.error("external request failed (%d) %s", resp.status_code, resp.text)
-        abort(resp.status_code, resp.text)
+        try:
+            msg = resp.json().get('message') or err
+        except JSONDecodeError:
+            msg = resp.text or err
+        extra = {"tags": ["PDMP", "search"], "patient": params, "user": current_user_id(token)}
+        current_app.logger.error(msg, extra=extra)
+        return jsonify_abort(message=msg, status_code=resp.status_code)
 
     return resp.json()
 
