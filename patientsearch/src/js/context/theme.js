@@ -13,7 +13,8 @@ const theme = createMuiTheme({
         dark: cyan[900],
         disabled: "#d2dad2",
         success: "green",
-        warning: "#bb812a"
+        warning: "#bb812a",
+        warningLight: "rgba(250,194,25,.7)"
     },
     secondary: {
       main: "#3c3535",
