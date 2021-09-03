@@ -15,6 +15,7 @@ def decode_json_config(potential_json_string):
 
 SERVER_NAME = os.getenv("SERVER_NAME")
 SECRET_KEY = os.getenv("SECRET_KEY")
+SYSTEM_TYPE = os.getenv("SYSTEM_TYPE", "development")
 
 SESSION_TYPE = os.getenv("SESSION_TYPE", 'filesystem')
 
