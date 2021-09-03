@@ -14,7 +14,7 @@ const useStyles = makeStyles({
     }
 });
 
-export default function SiteLogo() {
+export default function SystemBanner() {
     const classes = useStyles();
     const [setting, setSetting] = React.useState({});
     const [systemType, setSystemType] = React.useState("");
