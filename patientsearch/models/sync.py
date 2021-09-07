@@ -87,8 +87,13 @@ def external_request(token, resource_type, params):
     if not resource_type:
         raise ValueError("Required `resource_type` not included")
 
+    user = current_user_id(token)
+    if 'DEA' not in user:
+        jsonify_abort(status_code=400, message='DEA not found')
+    search_params = dict(deepcopy(params))  # Necessary on ImmutableMultiDict
+    search_params['DEA'] = user.get('DEA')
     url = current_app.config.get('EXTERNAL_FHIR_API') + resource_type
-    resp = requests.get(url, auth=BearerAuth(token), params=params)
+    resp = requests.get(url, auth=BearerAuth(token), params=search_params)
     try:
         resp.raise_for_status()
     except requests.exceptions.HTTPError as err:
@@ -96,7 +101,7 @@ def external_request(token, resource_type, params):
             msg = resp.json().get('message') or err
         except JSONDecodeError:
             msg = resp.text or err
-        extra = {"tags": ["PDMP", "search"], "patient": params, "user": current_user_id(token)}
+        extra = {"tags": ["PDMP", "search"], "patient": params, "user": user}
         current_app.logger.error(msg, extra=extra)
         return jsonify_abort(message=msg, status_code=resp.status_code)
 
