@@ -58,7 +58,6 @@ if os.getenv("OIDC_CLIENT_ID"):
 else:
     OIDC_CLIENT_SECRETS = load_json_config(os.getenv("OIDC_CLIENT_SECRETS", "client_secrets.json"))
 
-OIDC_CLIENT_SECRETS = load_json_config(os.getenv("OIDC_CLIENT_SECRETS"))
 OIDC_ID_TOKEN_COOKIE_SECURE = False
 OIDC_REQUIRE_VERIFIED_EMAIL = False
 OIDC_SCOPES = ['email', 'openid', 'roles']
