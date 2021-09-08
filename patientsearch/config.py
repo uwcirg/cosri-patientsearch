@@ -44,6 +44,7 @@ MAP_API = os.getenv("MAP_API")
 SOF_CLIENT_LAUNCH_URL = os.getenv("SOF_CLIENT_LAUNCH_URL")
 SOF_HOST_FHIR_URL = os.getenv("SOF_HOST_FHIR_URL")
 
+# build flask-oidc config from our own granular environment variables, if present
 if os.getenv("OIDC_CLIENT_ID"):
     OIDC_CLIENT_SECRETS = {"web": {
         "auth_uri": os.environ["OIDC_AUTHORIZE_URL"],
