@@ -265,7 +265,8 @@ export default function PatientListTable(props) {
       const searchResponse = searchResult.value;
       const tokenResponse = tokenResult.value;
 
-      if (!searchResponse.ok || !searchResponse.status !== 200) {
+      //fetch returns a simple flag of ok to indicate whether whether an HTTP response’s status code is in the successful range or not
+      if (!searchResponse.ok) {
         //check if error response is text/html first
         let responseText = typeof searchResponse.text !== "undefined" ? (await searchResponse.text()) : "";
         if (!responseText) {
@@ -435,14 +436,14 @@ export default function PatientListTable(props) {
             return;
           }
           let responseData = formatData(response);
-          setData(responseData);
+          setData(responseData || []);
           setInitialized(true);
           setLoading(false);
           setVis();
           setNoPMPFlag(responseData);
         }).catch(error => {
-          console.log("Failed to retrieve data", error.statusText);
-          setErrorMessage(`Error retrieving data: ${error.statusText}`);
+          console.log("Failed to retrieve data", error);
+          setErrorMessage(`Error retrieving data: ${error.statusText ? error.statusText: error}`);
           setInitialized(true);
           setLoading(false);
         });
