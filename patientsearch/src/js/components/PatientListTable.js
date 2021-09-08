@@ -265,7 +265,7 @@ export default function PatientListTable(props) {
       const searchResponse = searchResult.value;
       const tokenResponse = tokenResult.value;
 
-      if (!searchResponse.ok || (searchResponse.status === 500)) {
+      if (!searchResponse.ok || !searchResponse.status !== 200) {
         //check if error response is text/html first
         let responseText = typeof searchResponse.text !== "undefined" ? (await searchResponse.text()) : "";
         if (!responseText) {
