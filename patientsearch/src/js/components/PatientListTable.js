@@ -73,6 +73,7 @@ const useStyles = makeStyles({
     warning: {
       color: theme.palette.primary.warning,
       marginTop: theme.spacing(3),
+      marginBottom: theme.spacing(3),
       lineHeight: 1.7
     },
     success: {
@@ -264,7 +265,7 @@ export default function PatientListTable(props) {
       const searchResponse = searchResult.value;
       const tokenResponse = tokenResult.value;
 
-      if (searchResponse.status === 500) {
+      if (!searchResponse.ok || !searchResponse.status !== 200) {
         //check if error response is text/html first
         let responseText = typeof searchResponse.text !== "undefined" ? (await searchResponse.text()) : "";
         if (!responseText) {
@@ -332,7 +333,14 @@ export default function PatientListTable(props) {
         window.location = launchURL;
       }, 50);
     }).catch(e => {
-      setErrorMessage(`<p>COSRI is unable to return PMP information. This may be due to PMP system being down or a problem with the COSRI connection to PMP.</p><p>Error returned from the system: ${e}</p>`);
+      let returnedError = e;
+      try {
+        returnedError = JSON.parse(e);
+        returnedError = returnedError.message? returnedError.message: returnedError;
+      } catch(e) {
+        console.log("error parsing error message ", e);
+      }
+      setErrorMessage(`<p>COSRI is unable to return PMP information. This may be due to PMP system being down or a problem with the COSRI connection to PMP.</p><p>Error returned from the system: ${returnedError}</p>`);
       //log error to console
       console.log(`Patient search error: ${e}`);
       toTop();
