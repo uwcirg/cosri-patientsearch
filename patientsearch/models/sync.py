@@ -62,10 +62,10 @@ def HAPI_request(
     elif VERB == 'DELETE':
         # Only enable deletion of resource by id
         if not resource_id:
-            return jsonify_abort(message="'resource_id' required for DELETE", status_code=400)
+            raise ValueError("'resource_id' required for DELETE")
         resp = requests.delete(url, auth=BearerAuth(token))
     else:
-        return jsonify_abort(message=f"Invalid HTTP method: {method}", status_code=400)
+        raise ValueError(f"Invalid HTTP method: {method}")
 
     try:
         resp.raise_for_status()
@@ -89,7 +89,7 @@ def external_request(token, resource_type, params):
 
     user = current_user_id(token)
     if 'DEA' not in user:
-        jsonify_abort(status_code=400, message='DEA not found')
+        raise ValueError('DEA not found')
     search_params = dict(deepcopy(params))  # Necessary on ImmutableMultiDict
     search_params['DEA'] = user.get('DEA')
     url = current_app.config.get('EXTERNAL_FHIR_API') + resource_type
@@ -103,7 +103,7 @@ def external_request(token, resource_type, params):
             msg = resp.text or err
         extra = {"tags": ["PDMP", "search"], "patient": params, "user": user}
         current_app.logger.error(msg, extra=extra)
-        return jsonify_abort(message=msg, status_code=resp.status_code)
+        raise RuntimeError(msg)
 
     return resp.json()
 
