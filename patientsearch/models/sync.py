@@ -53,8 +53,12 @@ def HAPI_request(
         # meaning new patients won't immediately appear in results.
         # Disable caching until we find the need and safe use cases
         headers = {'Cache-Control': 'no-cache'}
-        resp = requests.get(
-            url, auth=BearerAuth(token), headers=headers, params=params)
+        try:
+            resp = requests.get(
+                url, auth=BearerAuth(token), headers=headers, params=params)
+        except requests.exceptions.ConnectionError as error:
+            current_app.logger.exception(error)
+            raise RuntimeError("FHIR store inaccessible")
     elif VERB == 'POST':
         resp = requests.post(url, auth=BearerAuth(token), json=resource)
     elif VERB == 'PUT':
