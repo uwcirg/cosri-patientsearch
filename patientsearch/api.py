@@ -305,7 +305,10 @@ def external_search(resource_type):
     else:
         # See if local match already exists
         patient = resource_from_args(resource_type, request.args)
-        internal_bundle = internal_patient_search(token, patient)
+        try:
+            internal_bundle = internal_patient_search(token, patient)
+        except (RuntimeError, ValueError) as error:
+            return jsonify_abort(status_code=400, message=str(error))
         local_fhir_patient = None
         if internal_bundle['total'] > 0:
             local_fhir_patient = internal_bundle['entry'][0]['resource']

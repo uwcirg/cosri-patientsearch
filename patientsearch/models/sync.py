@@ -58,7 +58,7 @@ def HAPI_request(
                 url, auth=BearerAuth(token), headers=headers, params=params)
         except requests.exceptions.ConnectionError as error:
             current_app.logger.exception(error)
-            raise RuntimeError("FHIR store inaccessible")
+            raise RuntimeError("EMR FHIR store inaccessible")
     elif VERB == 'POST':
         resp = requests.post(url, auth=BearerAuth(token), json=resource)
     elif VERB == 'PUT':
