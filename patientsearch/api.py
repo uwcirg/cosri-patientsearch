@@ -187,8 +187,11 @@ def resource_bundle(resource_type):
     token = validate_auth()
     params = {'_count': 1000}
     params.update(request.args)
-    return jsonify(HAPI_request(
-        token=token, method='GET', resource_type=resource_type, params=params))
+    try:
+        return jsonify(HAPI_request(
+            token=token, method='GET', resource_type=resource_type, params=params))
+    except (RuntimeError, ValueError) as error:
+        return jsonify_abort(status_code=400, message=str(error))
 
 
 @api_blueprint.route(
@@ -205,8 +208,11 @@ def delete_resource_by_id(resource_type, resource_id):
         extra['patient'] = {'subject.id': resource_id}
     current_app.logger.info("DELETE %s/%s", resource_type, resource_id, extra=extra)
 
-    return jsonify(HAPI_request(
-        method='DELETE', resource_type=resource_type, resource_id=resource_id, token=token))
+    try:
+        return jsonify(HAPI_request(
+            method='DELETE', resource_type=resource_type, resource_id=resource_id, token=token))
+    except (RuntimeError, ValueError) as error:
+        return jsonify_abort(status_code=400, message=str(error))
 
 
 @api_blueprint.route(
@@ -218,8 +224,11 @@ def resource_by_id(resource_type, resource_id):
     redirect.  Client should watch for 401 and redirect appropriately.
     """
     token = validate_auth()
-    return jsonify(HAPI_request(
-        method='GET', resource_type=resource_type, resource_id=resource_id, token=token))
+    try:
+        return jsonify(HAPI_request(
+            method='GET', resource_type=resource_type, resource_id=resource_id, token=token))
+    except (RuntimeError, ValueError) as error:
+        return jsonify_abort(status_code=400, message=str(error))
 
 
 def resource_from_args(resource_type, args):
@@ -270,12 +279,15 @@ def external_search(resource_type):
     """
     token = validate_auth()
     # Tag any matching results with identifier naming source
-    external_search_bundle = add_identifier_to_resource_type(
-        bundle=external_request(token, resource_type, request.args),
-        resource_type=resource_type,
-        identifier={
-            'system': 'https://github.com/uwcirg/script-fhir-facade',
-            'value': 'found'})
+    try:
+        external_search_bundle = add_identifier_to_resource_type(
+            bundle=external_request(token, resource_type, request.args),
+            resource_type=resource_type,
+            identifier={
+                'system': 'https://github.com/uwcirg/script-fhir-facade',
+                'value': 'found'})
+    except (RuntimeError, ValueError) as error:
+        return jsonify_abort(status_code=400, message=str(error))
 
     external_match_count = len(external_search_bundle['entry']) if (
         'entry' in external_search_bundle) else 0
@@ -293,7 +305,10 @@ def external_search(resource_type):
     else:
         # See if local match already exists
         patient = resource_from_args(resource_type, request.args)
-        internal_bundle = internal_patient_search(token, patient)
+        try:
+            internal_bundle = internal_patient_search(token, patient)
+        except (RuntimeError, ValueError) as error:
+            return jsonify_abort(status_code=400, message=str(error))
         local_fhir_patient = None
         if internal_bundle['total'] > 0:
             local_fhir_patient = internal_bundle['entry'][0]['resource']
@@ -302,8 +317,11 @@ def external_search(resource_type):
 
     if not local_fhir_patient:
         # Add at this time in the local store
-        local_fhir_patient = HAPI_request(
-            token=token, method='POST', resource_type='Patient', resource=patient)
+        try:
+            local_fhir_patient = HAPI_request(
+                token=token, method='POST', resource_type='Patient', resource=patient)
+        except (RuntimeError, ValueError) as error:
+            return jsonify_abort(status_code=400, message=str(error))
         current_app.logger.info("PDMP search failed; create new patient from search params", extra=extra)
 
     # TODO: handle multiple patient results
