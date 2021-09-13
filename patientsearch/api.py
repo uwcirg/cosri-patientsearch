@@ -115,7 +115,7 @@ def user_info():
     try:
         user_info = oidc.user_getinfo(['name', 'email'])
     except Unauthorized:
-        jsonify_abort(status_code=401, message="Unauthorized")
+        return jsonify_abort(status_code=401, message="Unauthorized")
     return jsonify(user_info)
 
 
