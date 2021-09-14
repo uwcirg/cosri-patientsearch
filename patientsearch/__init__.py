@@ -1,6 +1,7 @@
 from flask import Flask
 from flask_session import Session
 import logging
+from logging import config as logging_config
 import os
 
 from patientsearch.api import api_blueprint
@@ -50,7 +51,7 @@ def create_app(testing=False):
 
 def configure_logging(app):
     app.logger  # must call to initialize prior to config or it'll replace
-    logging.config.fileConfig('logging.ini', disable_existing_loggers=False)
+    logging_config.fileConfig('logging.ini', disable_existing_loggers=False)
 
     # Overwrite logging.ini if necessary on prod, etc.
     app.logger.setLevel(getattr(logging, app.config['LOG_LEVEL'].upper()))
