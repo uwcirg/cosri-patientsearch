@@ -294,7 +294,7 @@ def external_search(resource_type):
 
     extra={
         'tags': ['search'],
-        'patient': request.args.copy(),
+        'patient': dict(request.args.copy()),
         'user': current_user_id(token)}
 
     if external_match_count:
