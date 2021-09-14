@@ -5,8 +5,10 @@ from json.decoder import JSONDecodeError
 from flask import current_app, jsonify
 from jmespath import search as json_search
 import requests
-from .bearer_auth import BearerAuth
+
+from patientsearch.models.bearer_auth import BearerAuth
 from patientsearch.jsonify_abort import jsonify_abort
+from patientsearch.logserverhandler import audit_entry
 
 
 def add_identifier_to_resource_type(bundle, resource_type, identifier):
@@ -107,8 +109,8 @@ def external_request(token, resource_type, params):
             msg = resp.json().get('message') or err
         except JSONDecodeError:
             msg = resp.text or err
-        extra = {"tags": ["PDMP", "search"], "patient": params, "user": user}
-        current_app.logger.info(msg, extra=extra)
+        extra = {"tags": ["PDMP", "search", "error"], "patient": params, "user": user}
+        audit_entry(msg, extra=extra)
         current_app.logger.exception(err)
         raise RuntimeError(msg)
 

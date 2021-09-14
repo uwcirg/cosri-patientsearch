@@ -1,15 +1,12 @@
 from flask import Flask
 from flask_session import Session
-import json
 import logging
-import logging.handlers
-from logging import INFO, config as logging_config
+from logging import config as logging_config
 import os
-from pythonjsonlogger.jsonlogger import JsonFormatter
-import requests
 
 from patientsearch.api import api_blueprint
 from patientsearch.extensions import oidc
+from patientsearch.logserverhandler import LogServerHandler
 
 session = Session()
 
@@ -52,24 +49,6 @@ def create_app(testing=False):
     return app
 
 
-class LogServerHandler(logging.Handler):
-    """Specialized logging handler capable of nesting json and passing auth"""
-
-    def __init__(self, url, jwt, level):
-        super().__init__(level)
-        self.jwt = jwt
-        self.url = f"{url}/events"
-
-    def emit(self, record):
-        log_entry = self.format(record)
-        log_entry = {"event": json.loads(log_entry)}
-        headers = {
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {self.jwt}"
-        }
-        return requests.post(url=self.url, headers=headers, json=log_entry)
-
-
 def configure_logging(app):
     app.logger  # must call to initialize prior to config or it'll replace
     logging_config.fileConfig('logging.ini', disable_existing_loggers=False)
@@ -80,17 +59,17 @@ def configure_logging(app):
     if not app.config['LOGSERVER_URL']:
         return
 
-    # Hardcode event/audit logs to INFO - no debugging clutter desired
     log_server_handler = LogServerHandler(
-        level=INFO,
         jwt=app.config['LOGSERVER_TOKEN'],
         url=app.config['LOGSERVER_URL'])
 
-    json_formatter = JsonFormatter(
-        "%(asctime)s %(name)s %(levelname)s %(message)s")
-    log_server_handler.setFormatter(json_formatter)
+    event_logger = logging.getLogger("event_logger")
+    event_logger.setLevel(logging.INFO)
+    event_logger.addHandler(log_server_handler)
 
-    app.logger.addHandler(log_server_handler)
     app.logger.debug(
         "cosri patientsearch logging initialized",
-        extra={'tags': ['testing', 'logging']})
+        extra={'tags': ['testing', 'logging', 'app']})
+    event_logger.info(
+        "cosri patientsearch logging initialized",
+        extra={'tags': ['testing', 'logging', 'events']})

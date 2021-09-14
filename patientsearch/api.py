@@ -25,7 +25,7 @@ from patientsearch.models import (
 )
 from patientsearch.extensions import oidc
 from patientsearch.jsonify_abort import jsonify_abort
-
+from patientsearch.logserverhandler import audit_entry
 
 api_blueprint = Blueprint('patientsearch-api', __name__)
 
@@ -206,7 +206,7 @@ def delete_resource_by_id(resource_type, resource_id):
     extra = {'tags': ['patient', 'delete'], 'user': current_user_id(token)}
     if resource_type == 'Patient':
         extra['patient'] = {'subject.id': resource_id}
-    current_app.logger.info("DELETE %s/%s", resource_type, resource_id, extra=extra)
+    audit_entry("DELETE %s/%s", resource_type, resource_id, extra=extra)
 
     try:
         return jsonify(HAPI_request(
@@ -294,7 +294,7 @@ def external_search(resource_type):
 
     extra={
         'tags': ['search'],
-        'patient': request.args.copy(),
+        'patient': dict(request.args.copy()),
         'user': current_user_id(token)}
 
     if external_match_count:
@@ -313,7 +313,7 @@ def external_search(resource_type):
         if internal_bundle['total'] > 0:
             local_fhir_patient = internal_bundle['entry'][0]['resource']
         if internal_bundle['total'] > 1:
-            current_app.logger.info("found multiple internal matches (%s), return first", patient, extra=extra)
+            audit_entry("found multiple internal matches (%s), return first", patient, extra=extra)
 
     if not local_fhir_patient:
         # Add at this time in the local store
@@ -322,17 +322,17 @@ def external_search(resource_type):
                 token=token, method='POST', resource_type='Patient', resource=patient)
         except (RuntimeError, ValueError) as error:
             return jsonify_abort(status_code=400, message=str(error))
-        current_app.logger.info("PDMP search failed; create new patient from search params", extra=extra)
+        audit_entry("PDMP search failed; create new patient from search params", extra=extra)
 
     # TODO: handle multiple patient results
     if external_match_count > 1:
-        current_app.logger.info('multiple patients returned from PDMP', extra=extra)
+        audit_entry('multiple patients returned from PDMP', extra=extra)
 
     if external_match_count:
         external_search_bundle['entry'][0].setdefault('id', local_fhir_patient['id'])
 
     message = "PDMP found match" if external_match_count else "fEMR found match"
-    current_app.logger.info(message, extra=extra)
+    audit_entry(message, extra=extra)
     return jsonify(external_search_bundle)
 
 
@@ -340,7 +340,10 @@ def external_search(resource_type):
 def logout():
     token = oidc.user_loggedin and oidc.get_access_token()
     if token:
-        current_app.logger.info("logout on request", extra={'tags': ['logout'], 'user': current_user_id(token)})
+        tags = ['logout']
+        for k, v in request.args().items():
+            tags.append(k)  # pick-up tags like `user-initiated` and `timed-out`
+        audit_entry("logout on request", extra={'tags': tags, 'user': current_user_id(token)})
     terminate_session()
 
     # Shouldn't be present, but just in case, manually clear the oidc cookie
