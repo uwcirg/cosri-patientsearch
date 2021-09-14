@@ -37,6 +37,9 @@ STATIC_DIR = os.getenv("STATIC_DIR")
 LOGSERVER_TOKEN = os.getenv('LOGSERVER_TOKEN')
 LOGSERVER_URL = os.getenv('LOGSERVER_URL')
 
+# NB log level hardcoded at INFO for logserver
+LOG_LEVEL = os.environ.get('LOG_LEVEL', 'DEBUG').upper()
+
 VERSION_STRING = os.getenv("VERSION_STRING")
 
 EXTERNAL_FHIR_API = os.getenv("EXTERNAL_FHIR_API")

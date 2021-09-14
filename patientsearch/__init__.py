@@ -1,6 +1,7 @@
 from flask import Flask
 from flask_session import Session
 import json
+import logging
 import logging.handlers
 from logging import INFO, config as logging_config
 import os
@@ -72,6 +73,9 @@ class LogServerHandler(logging.Handler):
 def configure_logging(app):
     app.logger  # must call to initialize prior to config or it'll replace
     logging_config.fileConfig('logging.ini', disable_existing_loggers=False)
+
+    # Overwrite logging.ini if necessary on prod, etc.
+    app.logger.setLevel(getattr(logging, app.config['LOG_LEVEL'].upper()))
 
     if not app.config['LOGSERVER_URL']:
         return
