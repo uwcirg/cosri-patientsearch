@@ -121,7 +121,7 @@ export default function TimeoutModal() {
     clearExpiredIntervalId();
     sessionStorage.clear();
     setTimeout(() => {
-      window.location = "/logout";
+      window.location = "/logout?timeout=true&user_initiated=true";
     }, 0);
     return false;
   }
