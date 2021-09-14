@@ -106,7 +106,8 @@ def external_request(token, resource_type, params):
         except JSONDecodeError:
             msg = resp.text or err
         extra = {"tags": ["PDMP", "search"], "patient": params, "user": user}
-        current_app.logger.error(msg, extra=extra)
+        current_app.logger.info(msg, extra=extra)
+        current_app.logger.exception(err)
         raise RuntimeError(msg)
 
     return resp.json()

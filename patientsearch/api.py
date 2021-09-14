@@ -313,7 +313,7 @@ def external_search(resource_type):
         if internal_bundle['total'] > 0:
             local_fhir_patient = internal_bundle['entry'][0]['resource']
         if internal_bundle['total'] > 1:
-            current_app.logger.warning("found multiple internal matches (%s), return first", patient, extra=extra)
+            current_app.logger.info("found multiple internal matches (%s), return first", patient, extra=extra)
 
     if not local_fhir_patient:
         # Add at this time in the local store
@@ -326,7 +326,7 @@ def external_search(resource_type):
 
     # TODO: handle multiple patient results
     if external_match_count > 1:
-        current_app.logger.warn('multiple patients returned from PDMP', extra=extra)
+        current_app.logger.info('multiple patients returned from PDMP', extra=extra)
 
     if external_match_count:
         external_search_bundle['entry'][0].setdefault('id', local_fhir_patient['id'])
