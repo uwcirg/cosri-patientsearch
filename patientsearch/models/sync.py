@@ -53,6 +53,8 @@ def HAPI_request(
         # meaning new patients won't immediately appear in results.
         # Disable caching until we find the need and safe use cases
         headers = {'Cache-Control': 'no-cache'}
+        # TODO handle paging.  Workaround with increased page size
+        params['_count'] = 1000
         try:
             resp = requests.get(
                 url, auth=BearerAuth(token), headers=headers, params=params)
