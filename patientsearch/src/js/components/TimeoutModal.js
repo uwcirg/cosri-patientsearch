@@ -72,7 +72,6 @@ export default function TimeoutModal() {
             }
             return;
           }
-
           if (tokenAboutToExpire) {
             cleanUpModal();
             if (!open) handleOpen();
@@ -117,11 +116,12 @@ export default function TimeoutModal() {
     window.location =  "/clear_session";
   }
 
-  const handleLogout = () => {
+  const handleLogout = (userInitiated) => {
     clearExpiredIntervalId();
     sessionStorage.clear();
+    let param = userInitiated ? "user_initiated=true" : "timeout=true";
     setTimeout(() => {
-      window.location = "/logout?timeout=true&user_initiated=true";
+      window.location = `/logout?${param}`;
     }, 0);
     return false;
   }
@@ -162,7 +162,7 @@ export default function TimeoutModal() {
               <Button variant="outlined" onClick={reLoad}>Refresh Session</Button>
             }
             <Button variant="outlined" onClick={handleClose}>OK</Button>
-            <Button variant="outlined" onClick={handleLogout}>Log Out</Button>
+            <Button variant="outlined" onClick={() => handleLogout(true)}>Log Out</Button>
           </div>
       </div>
       <TimeoutModal />

@@ -114,6 +114,8 @@ export default function Header() {
         });
     }, []);
 
+    const logoutURL = "/logout?user_initiated=true";
+
     return (
         <AppBar position="absolute" className={classes.appBar}>
             <Toolbar className={classes.topBar} disableGutters variant="dense">
@@ -130,10 +132,10 @@ export default function Header() {
                         </Typography>
                     </div>
                     <div className={classes.buttonContainer}>
-                        <Link className={classes.linkText} color="secondary" variant="body1" href="/logout" >
+                        <Link className={classes.linkText} color="secondary" variant="body1" href={logoutURL} >
                             Logout
                         </Link>
-                        <Link color="secondary" variant="body1" href="/logout" >
+                        <Link color="secondary" variant="body1" href={logoutURL}>
                             <ExitToAppIcon color="secondary" fontSize="default" className={classes.linkIcon}></ExitToAppIcon>
                         </Link>
                     </div>
