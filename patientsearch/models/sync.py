@@ -7,7 +7,6 @@ from jmespath import search as json_search
 import requests
 
 from patientsearch.models.bearer_auth import BearerAuth
-from patientsearch.jsonify_abort import jsonify_abort
 from patientsearch.logserverhandler import audit_entry
 
 
@@ -78,7 +77,10 @@ def HAPI_request(
     try:
         resp.raise_for_status()
     except requests.exceptions.HTTPError as err:
-        return jsonify_abort(message=err, status_code=err.response.status_code)
+        audit_entry(
+                f"Failed HAPI call ({method} {resource_type} {resource_id} {resource} {params}): {err}",
+                extra={'tags': ['Internal', 'Exception', resource_type]})
+        raise ValueError(err)
     return resp.json()
 
 

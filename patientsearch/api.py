@@ -299,7 +299,10 @@ def external_search(resource_type):
 
     if external_match_count:
         # Merge result details with internal resources
-        local_fhir_patient = sync_bundle(token, external_search_bundle)
+        try:
+            local_fhir_patient = sync_bundle(token, external_search_bundle)
+        except ValueError:
+            return jsonify_abort(message="Error in local sync", status_code=400)
         if local_fhir_patient:
             extra['patient']['subject.id'] = local_fhir_patient['id']
     else:
