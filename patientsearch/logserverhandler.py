@@ -5,12 +5,6 @@ import requests
 from requests.exceptions import RequestException
 
 
-def audit_entry(message, extra):
-    """Helper to direct log message to audit/event log server"""
-    logger = logging.getLogger("event_logger")
-    logger.info(message, extra=extra)
-
-
 class LogServerHandler(logging.Handler):
     """Specialized logging handler capable of nesting json and passing auth"""
 

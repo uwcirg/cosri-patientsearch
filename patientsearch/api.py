@@ -15,6 +15,7 @@ import jwt
 import requests
 from werkzeug.exceptions import Unauthorized
 
+from patientsearch.audit import audit_entry
 from patientsearch.models import (
     BearerAuth,
     HAPI_request,
@@ -25,7 +26,6 @@ from patientsearch.models import (
 )
 from patientsearch.extensions import oidc
 from patientsearch.jsonify_abort import jsonify_abort
-from patientsearch.logserverhandler import audit_entry
 
 api_blueprint = Blueprint('patientsearch-api', __name__)
 
@@ -316,7 +316,7 @@ def external_search(resource_type):
         if internal_bundle['total'] > 0:
             local_fhir_patient = internal_bundle['entry'][0]['resource']
         if internal_bundle['total'] > 1:
-            audit_entry("found multiple internal matches (%s), return first", patient, extra=extra)
+            audit_entry("found multiple internal matches (%s), return first", patient, extra=extra, level='warn')
 
     if not local_fhir_patient:
         # Add at this time in the local store
@@ -329,7 +329,7 @@ def external_search(resource_type):
 
     # TODO: handle multiple patient results
     if external_match_count > 1:
-        audit_entry('multiple patients returned from PDMP', extra=extra)
+        audit_entry('multiple patients returned from PDMP', extra=extra, level="warn")
 
     if external_match_count:
         external_search_bundle['entry'][0].setdefault('id', local_fhir_patient['id'])

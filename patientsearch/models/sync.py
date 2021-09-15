@@ -6,8 +6,8 @@ from flask import current_app, jsonify
 from jmespath import search as json_search
 import requests
 
+from patientsearch.audit import audit_entry
 from patientsearch.models.bearer_auth import BearerAuth
-from patientsearch.logserverhandler import audit_entry
 
 
 def add_identifier_to_resource_type(bundle, resource_type, identifier):
@@ -77,9 +77,11 @@ def HAPI_request(
     try:
         resp.raise_for_status()
     except requests.exceptions.HTTPError as err:
+        current_app.logger.exception(err)
         audit_entry(
-                f"Failed HAPI call ({method} {resource_type} {resource_id} {resource} {params}): {err}",
-                extra={'tags': ['Internal', 'Exception', resource_type]})
+            f"Failed HAPI call ({method} {resource_type} {resource_id} {resource} {params}): {err}",
+            extra={'tags': ['Internal', 'Exception', resource_type]},
+            level='error')
         raise ValueError(err)
     return resp.json()
 
@@ -112,7 +114,7 @@ def external_request(token, resource_type, params):
         except JSONDecodeError:
             msg = resp.text or err
         extra = {"tags": ["PDMP", "search", "error"], "patient": params, "user": user}
-        audit_entry(msg, extra=extra)
+        audit_entry(msg, extra=extra, level='error')
         current_app.logger.exception(err)
         raise RuntimeError(msg)
 

@@ -5,6 +5,7 @@ from logging import config as logging_config
 import os
 
 from patientsearch.api import api_blueprint
+from patientsearch.audit import audit_entry, audit_log_init
 from patientsearch.extensions import oidc
 from patientsearch.logserverhandler import LogServerHandler
 
@@ -55,21 +56,14 @@ def configure_logging(app):
 
     # Overwrite logging.ini if necessary on prod, etc.
     app.logger.setLevel(getattr(logging, app.config['LOG_LEVEL'].upper()))
+    app.logger.debug(
+        "cosri patientsearch logging initialized",
+        extra={'tags': ['testing', 'logging', 'app']})
 
     if not app.config['LOGSERVER_URL']:
         return
 
-    log_server_handler = LogServerHandler(
-        jwt=app.config['LOGSERVER_TOKEN'],
-        url=app.config['LOGSERVER_URL'])
-
-    event_logger = logging.getLogger("event_logger")
-    event_logger.setLevel(logging.INFO)
-    event_logger.addHandler(log_server_handler)
-
-    app.logger.debug(
-        "cosri patientsearch logging initialized",
-        extra={'tags': ['testing', 'logging', 'app']})
-    event_logger.info(
+    audit_log_init(app)
+    audit_entry(
         "cosri patientsearch logging initialized",
         extra={'tags': ['testing', 'logging', 'events']})
