@@ -7,7 +7,6 @@ from jmespath import search as json_search
 import requests
 
 from patientsearch.models.bearer_auth import BearerAuth
-from patientsearch.jsonify_abort import jsonify_abort
 from patientsearch.logserverhandler import audit_entry
 
 
@@ -78,7 +77,10 @@ def HAPI_request(
     try:
         resp.raise_for_status()
     except requests.exceptions.HTTPError as err:
-        return jsonify_abort(message=err, status_code=err.response.status_code)
+        audit_entry(
+                f"Failed HAPI call ({method} {resource_type} {resource_id} {resource} {params}): {err}",
+                extra={'tags': ['Internal', 'Exception', resource_type]})
+        raise ValueError(err)
     return resp.json()
 
 
@@ -169,7 +171,7 @@ def _merge_patient(src_patient, internal_patient, token):
     else:
         internal_patient['identifier'] = src_patient['identifier']
         return HAPI_request(
-            token=token, method='PUT', resource_type='Patient', resource=internal_patient)
+            token=token, method='PUT', resource_type='Patient', resource=internal_patient, resource_id=internal_patient["id"])
 
 
 def internal_patient_search(token, patient):
