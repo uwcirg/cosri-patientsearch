@@ -169,7 +169,7 @@ def _merge_patient(src_patient, internal_patient, token):
     else:
         internal_patient['identifier'] = src_patient['identifier']
         return HAPI_request(
-            token=token, method='PUT', resource_type='Patient', resource=internal_patient)
+            token=token, method='PUT', resource_type='Patient', resource=internal_patient, resource_id=internal_patient["id"])
 
 
 def internal_patient_search(token, patient):
