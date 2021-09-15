@@ -341,7 +341,7 @@ def logout():
     token = oidc.user_loggedin and oidc.get_access_token()
     if token:
         tags = ['logout']
-        for k, v in request.args().items():
+        for k in request.args.keys():
             tags.append(k)  # pick-up tags like `user-initiated` and `timed-out`
         audit_entry("logout on request", extra={'tags': tags, 'user': current_user_id(token)})
     terminate_session()
