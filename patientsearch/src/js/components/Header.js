@@ -38,10 +38,6 @@ const useStyles = makeStyles((theme) => ({
                 duration: theme.transitions.duration.leavingScreen,
             }),
     },
-    logo: {
-        width: "180px",
-        marginLeft: theme.spacing(3)
-    },
     title: {
         width: "100%"
     },
@@ -123,7 +119,7 @@ export default function Header() {
     return (
         <AppBar position="absolute" className={classes.appBar}>
             <Toolbar className={classes.topBar} disableGutters variant="dense">
-                <img src={logo} alt="Logo" className={classes.logo}/>
+                <img src={logo} alt="Logo"/>
                 <SiteLogo />
                 <Box className={classes.welcomeContainer}>
                     <div>
