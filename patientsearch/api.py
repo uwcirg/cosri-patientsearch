@@ -206,7 +206,7 @@ def delete_resource_by_id(resource_type, resource_id):
     extra = {'tags': ['patient', 'delete'], 'user': current_user_id(token)}
     if resource_type == 'Patient':
         extra['patient'] = {'subject.id': resource_id}
-    audit_entry("DELETE %s/%s", resource_type, resource_id, extra=extra)
+    audit_entry(f"DELETE {resource_type}/{resource_id}", extra=extra)
 
     try:
         return jsonify(HAPI_request(
@@ -316,7 +316,7 @@ def external_search(resource_type):
         if internal_bundle['total'] > 0:
             local_fhir_patient = internal_bundle['entry'][0]['resource']
         if internal_bundle['total'] > 1:
-            audit_entry("found multiple internal matches (%s), return first", patient, extra=extra, level='warn')
+            audit_entry(f"found multiple internal matches ({patient}), return first", extra=extra, level='warn')
 
     if not local_fhir_patient:
         # Add at this time in the local store
