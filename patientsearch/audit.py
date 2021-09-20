@@ -2,6 +2,7 @@
 
 functions to simplify adding context and extra data to log messages destined for audit logs
 """
+from flask import current_app, has_app_context
 import logging
 
 from patientsearch.logserverhandler import LogServerHandler
@@ -29,4 +30,6 @@ def audit_entry(message, level='info', extra=None):
     if extra is None:
         extra = {}
 
+    if has_app_context() and 'version' not in extra:
+        extra['version'] = current_app.config['VERSION_STRING']
     log_at_level(message, extra=extra)
