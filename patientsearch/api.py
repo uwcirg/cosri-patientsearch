@@ -172,6 +172,13 @@ def validate_token():
     )
 
 
+@api_blueprint.route('/favicon.ico')
+def favicon():
+    return send_from_directory(
+        current_app.config.get("STATIC_DIR") or current_app.static_folder,
+        'favicon.ico', mimetype='image/vnd.microsoft.icon')
+
+
 @api_blueprint.route('/<string:resource_type>', methods=["GET"])
 def resource_bundle(resource_type):
     """Query HAPI for resource_type and return as JSON FHIR Bundle
