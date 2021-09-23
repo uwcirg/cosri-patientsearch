@@ -11,7 +11,7 @@ idna==2.9                 # via requests
 itsdangerous==2.0.1       # via flask
 jinja2==3.0.1             # via flask
 jmespath==0.10.0          # via patientsearch (setup.py)
-markupsafe==1.1.1         # via jinja2
+markupsafe==2.0.1         # via jinja2
 python-json-logger==0.1.11
 pyjwt==1.7.1              # via flask-jwt-extended
 redis==3.5.3
