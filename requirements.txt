@@ -1,5 +1,5 @@
-certifi==2020.6.20        # via requests
-chardet==3.0.4            # via requests
+certifi==2021.5.30        # via requests
+charset-normalizer==2.0.6  # via requests
 click==8.0.1              # via flask
 flask-jwt-extended==3.24.1  # via patientsearch (setup.py)
 # pin to last hash of master, to remove requirement of freestanding JSON config file
@@ -7,7 +7,7 @@ git+https://github.com/puiterwijk/flask-oidc.git@7f16e27#egg=flask-oidc
 flask==2.0.1              # via flask-jwt-extended, patientsearch (setup.py)
 flask-session==0.3.2      # via patientsearch (setup.py)
 gunicorn==20.0.4          # via patientsearch (setup.py)
-idna==2.9                 # via requests
+idna==3.2                 # via requests
 importlib-metadata==4.8.1  # via click
 itsdangerous==2.0.1       # via flask
 jinja2==3.0.1             # via flask
@@ -17,9 +17,9 @@ python-json-logger==0.1.11
 pyjwt==1.7.1              # via flask-jwt-extended
 redis==3.5.3
 redis-dict==1.5.2         # via patientsearch (setup.py)
-requests==2.24.0          # via patientsearch (setup.py)
+requests==2.26.0          # via patientsearch (setup.py)
 six==1.15.0               # via flask-jwt-extended
 typing-extensions==3.10.0.2  # via importlib-metadata
-urllib3==1.25.9           # via requests
+urllib3==1.26.7           # via requests
 werkzeug==2.0.1           # via flask, flask-jwt-extended
 zipp==3.5.0               # via importlib-metadata
