@@ -18,7 +18,10 @@ module.exports = function(_env, argv) {
   const templateDirectory = `${outputDirectory}/templates`;
 
   return {
-    entry:  ['whatwg-fetch', path.join(__dirname, '/patientsearch/src/js/Entry.js')],
+    entry:  {
+      "index" : ['whatwg-fetch', path.join(__dirname, '/patientsearch/src/js/Entry.js')],
+      "logout": path.join(__dirname, '/patientsearch/src/js/Logout.js')
+    },
     watchOptions: {
       aggregateTimeout: 300,
       poll: 1000
@@ -82,6 +85,14 @@ module.exports = function(_env, argv) {
         template: path.join(__dirname, '/patientsearch/src/index.html'),
         filename: path.join(__dirname, `${templateDirectory}/index.html`),
         favicon: path.join(__dirname, '/patientsearch/src/assets/favicon.ico'),
+        chunks: ['index']
+      }),
+      new HtmlWebpackPlugin({
+        title: "COSRI Patient Search",
+        template: path.join(__dirname, '/patientsearch/src/index.html'),
+        filename: path.join(__dirname, `${templateDirectory}/logout.html`),
+        favicon: path.join(__dirname, '/patientsearch/src/assets/favicon.ico'),
+        chunks: ['logout']
       }),
       new webpack.ProvidePlugin({
         React: 'react',
