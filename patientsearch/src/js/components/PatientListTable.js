@@ -131,7 +131,7 @@ export default function PatientListTable(props) {
     {title: "First Name", field: "first_name", filterPlaceholder: "First Name", emptyValue: "--", defaultFilter: firstNameFilter},
     {title: "Last Name", field: "last_name", filterPlaceholder: "Last Name", emptyValue: "--"},
     {title: "Birth Date", field: "dob", filterPlaceholder: "YYYY-MM-DD", emptyValue: "--"},
-    /* TODO: confirm that the field for last accessed is patient.meta.lastupdated? */
+    /* the field for last accessed is patient.meta.lastupdated? */
     {title: "Last Accessed", field: "lastUpdated", filtering: false}
   ];
   const errorStyle = {"display" : errorMessage? "block": "none"};

@@ -14,15 +14,16 @@ import theme from '../context/theme';
 
 const useStyles = makeStyles({
     row: {
-        borderBottom: "1px solid #ececec"
+        borderBottom: "2px solid #ececec"
     },
     cell: {
-        padding: theme.spacing(0, 2, 1)
+        padding: theme.spacing(0, 2, 1),
+        backgroundColor: "#fafbfb"
     },
     toolbarCell: {
-        paddingLeft: theme.spacing(1),
-        paddingRight: theme.spacing(1),
-        textAlign: "center"
+        paddingLeft: theme.spacing(3),
+        paddingRight: theme.spacing(3),
+        textAlign: "left"
     },
     button: {
         margin: theme.spacing(0.5),
@@ -34,9 +35,6 @@ const useStyles = makeStyles({
         paddingLeft: theme.spacing(1),
         paddingRight: theme.spacing(1)
     },
-    // empty: {
-    //     width: "15%"
-    // }
 });
 export default function FilterRow(props) {
     const classes = useStyles();
@@ -176,8 +174,7 @@ export default function FilterRow(props) {
                         />
                     </MuiPickersUtilsProvider>
                 </td>
-                <td className={classes.empty}>{/* last accessed */}</td>
-                <td className={classes.toolbarCell}>
+                <td colspan="2" className={classes.toolbarCell}>
                     {/* toolbar go button */}
                    <Button  id={props.launchButtonId} className={!hasCompleteFilters() ? `${classes.button} disabled` : classes.button} color="primary" size="small" variant="contained" onClick={(e) => props.launchFunc(e, getFilterData())}>{getLaunchButtonLabel()}</Button>
                    <Tooltip title="Clear search fields">
