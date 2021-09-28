@@ -9,6 +9,23 @@ $table-header-bg-color: rgb(224, 242, 241);
 html {
   scroll-behavior: smooth;
 }
+.logout-container {
+  margin-top: 176px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  a {
+    width: 240px;
+    border-width: 2px;
+  }
+}
+@media (min-width: 699px) {
+  .logout-container {
+    max-width: 60%;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
 img[disabled] {
   display: none;
 }

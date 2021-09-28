@@ -6,6 +6,9 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const FileManagerPlugin = require('filemanager-webpack-plugin');
 const dotenv = require('dotenv');
+const appTitle = "COSRI Patient Search";
+const templateFilePath = path.join(__dirname, '/patientsearch/src/index.html');
+const faviconFilePath = path.join(__dirname, '/patientsearch/src/assets/favicon.ico');
 
 module.exports = function(_env, argv) {
   const isProduction = argv.mode === "production";
@@ -18,7 +21,10 @@ module.exports = function(_env, argv) {
   const templateDirectory = `${outputDirectory}/templates`;
 
   return {
-    entry:  ['whatwg-fetch', path.join(__dirname, '/patientsearch/src/js/Entry.js')],
+    entry:  {
+      "index" : ['whatwg-fetch', path.join(__dirname, '/patientsearch/src/js/Entry.js')],
+      "logout": path.join(__dirname, '/patientsearch/src/js/Logout.js')
+    },
     watchOptions: {
       aggregateTimeout: 300,
       poll: 1000
@@ -78,10 +84,18 @@ module.exports = function(_env, argv) {
     plugins: [
       new CleanWebpackPlugin(),
       new HtmlWebpackPlugin({
-        title: "COSRI Patient Search",
-        template: path.join(__dirname, '/patientsearch/src/index.html'),
+        title: appTitle,
+        template: templateFilePath,
         filename: path.join(__dirname, `${templateDirectory}/index.html`),
-        favicon: path.join(__dirname, '/patientsearch/src/assets/favicon.ico'),
+        favicon: faviconFilePath,
+        chunks: ['index']
+      }),
+      new HtmlWebpackPlugin({
+        title: appTitle,
+        template: templateFilePath,
+        filename: path.join(__dirname, `${templateDirectory}/logout.html`),
+        favicon: faviconFilePath,
+        chunks: ['logout']
       }),
       new webpack.ProvidePlugin({
         React: 'react',
