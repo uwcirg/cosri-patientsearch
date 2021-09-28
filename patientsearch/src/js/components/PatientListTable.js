@@ -453,6 +453,11 @@ export default function PatientListTable(props) {
           setLoading(false);
         });
     }).catch(e => {
+        //unauthorized error
+        if (error.status === 401) {
+          handleExpiredSession();
+          return;
+        }
         setErrorMessage(`Error retrieving app setting: ${e}`);
         setLoading(false);
     });
