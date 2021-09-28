@@ -34,6 +34,11 @@ export function dateFormat(input) {
   return new Date(input).toDateString();
 }
 
+export function isoDateFormat(input) {
+  if (!input) return "";
+  return input.substring(0, input.indexOf(".")).replace("T", " ");
+}
+
 export function imageOK(img) {
   if (!img) {
       return false;

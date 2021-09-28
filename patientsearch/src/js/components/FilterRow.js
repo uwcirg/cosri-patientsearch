@@ -34,9 +34,9 @@ const useStyles = makeStyles({
         paddingLeft: theme.spacing(1),
         paddingRight: theme.spacing(1)
     },
-    empty: {
-        width: "15%"
-    }
+    // empty: {
+    //     width: "15%"
+    // }
 });
 export default function FilterRow(props) {
     const classes = useStyles();

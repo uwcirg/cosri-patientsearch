@@ -18,6 +18,7 @@ import Modal from '@material-ui/core/Modal';
 import Error from "./Error";
 import FilterRow from "./FilterRow";
 import theme from '../context/theme';
+import {isoDateFormat} from "./Utility";
 
 const useStyles = makeStyles({
     container: {
@@ -130,8 +131,8 @@ export default function PatientListTable(props) {
     {title: "First Name", field: "first_name", filterPlaceholder: "First Name", emptyValue: "--", defaultFilter: firstNameFilter},
     {title: "Last Name", field: "last_name", filterPlaceholder: "Last Name", emptyValue: "--"},
     {title: "Birth Date", field: "dob", filterPlaceholder: "YYYY-MM-DD", emptyValue: "--"},
-    /* TODO: the field for last accessed is what? */
-    {title: "Last Accessed", filtering: false}
+    /* TODO: confirm that the field for last accessed is patient.meta.lastupdated? */
+    {title: "Last Accessed", field: "lastUpdated", filtering: false}
   ];
   const errorStyle = {"display" : errorMessage? "block": "none"};
   const toTop = () => {
@@ -361,6 +362,7 @@ export default function PatientListTable(props) {
               "",
             url: getLaunchURL(patientId),
             identifier: item.resource && item.resource.identifier && item.resource.identifier.length? item.resource.identifier: null,
+            lastUpdated: item.resource && item.resource.meta && item.resource.meta.lastUpdated ? isoDateFormat(item.resource.meta.lastUpdated) : "",
             gender: item.resource && item.resource["gender"] ? item.resource["gender"] : "",
             id: patientId
 
