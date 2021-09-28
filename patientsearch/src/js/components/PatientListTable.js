@@ -443,6 +443,11 @@ export default function PatientListTable(props) {
           setNoPMPFlag(responseData);
         }).catch(error => {
           console.log("Failed to retrieve data", error);
+          //unauthorized error
+          if (error.status === 401) {
+            handleExpiredSession();
+            return;
+          }
           setErrorMessage(`Error retrieving data: ${error.statusText ? error.statusText: error}`);
           setInitialized(true);
           setLoading(false);
