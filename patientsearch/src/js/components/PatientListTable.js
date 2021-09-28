@@ -126,11 +126,12 @@ export default function PatientListTable(props) {
   };
   const columns = [
     //default sort by id in descending order
-    {field: "id", hidden: true, defaultSort: "desc", filtering: false, customSort: (a,b) => parseInt(a["id"])<parseInt(b["id"])?-1:1},
+    {field: "id", hidden: true, defaultSort: "desc", filtering: false},
     {title: "First Name", field: "first_name", filterPlaceholder: "First Name", emptyValue: "--", defaultFilter: firstNameFilter},
     {title: "Last Name", field: "last_name", filterPlaceholder: "Last Name", emptyValue: "--"},
-    {title: "Birth Date", field: "dob", filterPlaceholder: "YYYY-MM-DD", emptyValue: "--",
-    },
+    {title: "Birth Date", field: "dob", filterPlaceholder: "YYYY-MM-DD", emptyValue: "--"},
+    /* TODO: the field for last accessed is what? */
+    {title: "Last Accessed", filtering: false}
   ];
   const errorStyle = {"display" : errorMessage? "block": "none"};
   const toTop = () => {
@@ -140,7 +141,7 @@ export default function PatientListTable(props) {
     appSettings = settings;
   }
   const getPatientHapiSearchURL = (data) => {
-    const dataURL = "/Patient";
+    const dataURL = "/Patient?sort=_lastUpdated";
     const params = [
       `given=${data.first_name}`,
       `family=${data.last_name}`,

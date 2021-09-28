@@ -20,7 +20,6 @@ const useStyles = makeStyles({
         padding: theme.spacing(0, 2, 1)
     },
     toolbarCell: {
-        width: "25%",
         paddingLeft: theme.spacing(1),
         paddingRight: theme.spacing(1),
         textAlign: "center"
@@ -34,6 +33,9 @@ const useStyles = makeStyles({
     dateInput: {
         paddingLeft: theme.spacing(1),
         paddingRight: theme.spacing(1)
+    },
+    empty: {
+        width: "15%"
     }
 });
 export default function FilterRow(props) {
@@ -174,6 +176,7 @@ export default function FilterRow(props) {
                         />
                     </MuiPickersUtilsProvider>
                 </td>
+                <td className={classes.empty}>{/* last accessed */}</td>
                 <td className={classes.toolbarCell}>
                     {/* toolbar go button */}
                    <Button  id={props.launchButtonId} className={!hasCompleteFilters() ? `${classes.button} disabled` : classes.button} color="primary" size="small" variant="contained" onClick={(e) => props.launchFunc(e, getFilterData())}>{getLaunchButtonLabel()}</Button>
