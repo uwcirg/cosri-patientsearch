@@ -6,6 +6,9 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const FileManagerPlugin = require('filemanager-webpack-plugin');
 const dotenv = require('dotenv');
+const appTitle = "COSRI Patient Search";
+const templateFilePath = path.join(__dirname, '/patientsearch/src/index.html');
+const faviconFilePath = path.join(__dirname, '/patientsearch/src/assets/favicon.ico');
 
 module.exports = function(_env, argv) {
   const isProduction = argv.mode === "production";
@@ -81,17 +84,17 @@ module.exports = function(_env, argv) {
     plugins: [
       new CleanWebpackPlugin(),
       new HtmlWebpackPlugin({
-        title: "COSRI Patient Search",
-        template: path.join(__dirname, '/patientsearch/src/index.html'),
+        title: appTitle,
+        template: templateFilePath,
         filename: path.join(__dirname, `${templateDirectory}/index.html`),
-        favicon: path.join(__dirname, '/patientsearch/src/assets/favicon.ico'),
+        favicon: faviconFilePath,
         chunks: ['index']
       }),
       new HtmlWebpackPlugin({
-        title: "COSRI Patient Search",
-        template: path.join(__dirname, '/patientsearch/src/index.html'),
+        title: appTitle,
+        template: templateFilePath,
         filename: path.join(__dirname, `${templateDirectory}/logout.html`),
-        favicon: path.join(__dirname, '/patientsearch/src/assets/favicon.ico'),
+        favicon: faviconFilePath,
         chunks: ['logout']
       }),
       new webpack.ProvidePlugin({

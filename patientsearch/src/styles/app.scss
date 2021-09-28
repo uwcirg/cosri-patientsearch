@@ -19,6 +19,13 @@ html {
     border-width: 2px;
   }
 }
+@media (min-width: 699px) {
+  .logout-container {
+    max-width: 60%;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
 img[disabled] {
   display: none;
 }
