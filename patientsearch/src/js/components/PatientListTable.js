@@ -132,7 +132,7 @@ export default function PatientListTable(props) {
     {title: "Last Name", field: "last_name", filterPlaceholder: "Last Name", emptyValue: "--"},
     {title: "Birth Date", field: "dob", filterPlaceholder: "YYYY-MM-DD", emptyValue: "--"},
     /* the field for last accessed is patient.meta.lastupdated? */
-    {title: "Last Accessed", field: "lastUpdated", filtering: false}
+    {title: "Last Accessed", field: "lastUpdated", filtering: false, type: "date"}
   ];
   const errorStyle = {"display" : errorMessage? "block": "none"};
   const toTop = () => {
@@ -152,6 +152,7 @@ export default function PatientListTable(props) {
   }
   const getPatientPMPSearchURL = (data) => {
     const dataURL = "/external_search/Patient";
+    if (data.id) return `${dataURL}/${data.id}`;
     const params = [
           `subject:Patient.name.given=${data.first_name}`,
           `subject:Patient.name.family=${data.last_name}`,
@@ -260,7 +261,8 @@ export default function PatientListTable(props) {
       fetch(urls[0], {...{"method": "PUT",
       headers: {
         "Accept": "application/json",
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "body" : rowData.resource ? JSON.stringify(rowData.resource) : null
       }}, ...noCacheParam}),
       fetch(urls[1])
     ]).then(async([searchResult, tokenResult]) => {
@@ -364,6 +366,7 @@ export default function PatientListTable(props) {
             identifier: item.resource && item.resource.identifier && item.resource.identifier.length? item.resource.identifier: null,
             lastUpdated: item.resource && item.resource.meta && item.resource.meta.lastUpdated ? isoDateFormat(item.resource.meta.lastUpdated) : "",
             gender: item.resource && item.resource["gender"] ? item.resource["gender"] : "",
+            resource: item.resource,
             id: patientId
 
         };
