@@ -142,11 +142,12 @@ export default function PatientListTable(props) {
     appSettings = settings;
   }
   const getPatientHapiSearchURL = (data) => {
-    const dataURL = "/Patient?sort=_lastUpdated";
+    const dataURL = "/Patient";
     const params = [
       `given=${data.first_name}`,
       `family=${data.last_name}`,
-      `birthdate=${data.dob}`
+      `birthdate=${data.dob}`,
+      `sort=_lastUpdated`
     ];
     return `${dataURL}?${params.join("&")}`;
   }
