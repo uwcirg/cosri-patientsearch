@@ -304,8 +304,9 @@ export default function PatientListTable(props) {
         return false;
       }
       let response = results[0];
+      console.log("response ", response);
       //response can be an array or just object now
-      if (!response || ((response.entry && !response.entry.length) || !response.id)) {
+      if (!response) {
           //NOT IN PMP BUT IN HAPI? need to check
           try {
             addDataRow(rowData);
@@ -319,7 +320,7 @@ export default function PatientListTable(props) {
       }
       setErrorMessage('');
       let launchURL = "";
-      let launchID = response.entry ? response.entry[0].id : response.id;
+      let launchID = response.entry && response.entry[0]? response.entry[0].id : response.id;
       if (!launchID) {
         setErrorMessage(`Missing patient id. Unable to launch application.`);
         toTop();
