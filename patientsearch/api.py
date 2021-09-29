@@ -225,7 +225,7 @@ def update_resource_by_id(resource_type, resource_id):
         system = "https://github.com/uwcirg/cosri-patientsearch/counter"
         for ident in identifiers:
             if ident['system'] == system:
-                count = ident['value'] + 1
+                count = int(ident['value']) + 1
                 ident['value'] = count
                 break
         if count == 1:
