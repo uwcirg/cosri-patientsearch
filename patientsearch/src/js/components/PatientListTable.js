@@ -200,11 +200,8 @@ export default function PatientListTable(props) {
       fetch(url, params),
       timeoutPromise
     ]).catch(e => {
-        reject(e);
+        throw e;
     });
-    if (!results.ok) {
-      return new Error(results.status);
-    }
     let json = null;
     if (results) {
       try {
@@ -442,7 +439,7 @@ export default function PatientListTable(props) {
         /*
         * get patient list
         */
-        fetchData("./Patient", noCacheParam).then(response => {
+        fetchData("./Patient?_sort=_lastUpdated", noCacheParam).then(response => {
           if (!response || !response.entry || !response.entry.length) {
             setInitialized(true);
             setLoading(false);
