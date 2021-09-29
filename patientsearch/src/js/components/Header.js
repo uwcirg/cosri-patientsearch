@@ -96,6 +96,7 @@ const useStyles = makeStyles((theme) => ({
 export default function Header() {
     const classes = useStyles();
     const [userInfo, setUserInfo] = React.useState();
+    const [authorized, setAuthorized] = React.useState(false);
     const hasUserInfo = () => {
         return userInfo && (userInfo.name || userInfo.email);
     };
@@ -114,7 +115,9 @@ export default function Header() {
             if (info) {
                 setUserInfo(info);
             }
+            setAuthorized(true);
         }, error => {
+            if (error.status === 401) setAuthorized(false);
             console.log("Failed to retrieve data", error.statusText);
         });
     }, []);
@@ -126,7 +129,7 @@ export default function Header() {
             <Toolbar className={classes.topBar} disableGutters variant="dense">
                 <img src={logo} alt="Logo" className={classes.logo}/>
                 <SiteLogo />
-                <Box className={classes.welcomeContainer}>
+                {authorized && <Box className={classes.welcomeContainer}>
                     <div>
                         <Typography component="h6" variant="h6" color="textPrimary" noWrap className={classes.welcomeText}>
                             <Avatar className={classes.avatar}>
@@ -144,7 +147,7 @@ export default function Header() {
                             <ExitToAppIcon color="secondary" fontSize="default" className={classes.linkIcon}></ExitToAppIcon>
                         </Link>
                     </div>
-                </Box>
+                </Box>}
             </Toolbar>
             <Toolbar className={classes.toolbar} disableGutters variant="dense">
                 <Typography component="h1" variant="h5" color="inherit" noWrap className={classes.title} align="center">
