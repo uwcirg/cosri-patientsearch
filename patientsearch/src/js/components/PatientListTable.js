@@ -197,14 +197,14 @@ export default function PatientListTable(props) {
      * then the timeout promise will kick in
      */
     let results = await Promise.race([
-      fetch(url, params).catch(error => {
-        reject(error);
-      }),
+      fetch(url, params),
       timeoutPromise
     ]).catch(e => {
         reject(e);
     });
-
+    if (!results.ok) {
+      return new Error(results.status);
+    }
     let json = null;
     if (results) {
       try {
@@ -229,17 +229,11 @@ export default function PatientListTable(props) {
     }).length > 0;
   }
   const addDataRow = function(rowData) {
-    if (!rowData) return false;
-    //check if it is added in HAPI FHIR server?
-    //add new row to table if it does not exists in table already
-    fetchData(getPatientHapiSearchURL(rowData, noCacheParam)).then(hapiResult => {
-      if (hapiResult && hapiResult.entry && hapiResult.entry.length) {
-        let newData = formatData(hapiResult);
-        if (newData && !existsIndata(newData[0])) {
-          setData([newData[0], ...data]);
-        }
-      }
-    });
+    if (!rowData || !rowData.id) return false;
+    let newData = formatData(rowData);
+    if (newData && !existsIndata(newData[0])) {
+      setData([newData[0], ...data]);
+    }
   }
   const handleExpiredSession = function() {
     sessionStorage.clear();
@@ -304,25 +298,26 @@ export default function PatientListTable(props) {
         return false;
       }
       let response = results[0];
-      console.log("response ", response);
+      console.log("search response ", results[0])
+      if (results[0] && results[0].entry && results[0].entry[0]) response = results[0].entry[0];
+
       //response can be an array or just object now
       if (!response) {
-          //NOT IN PMP BUT IN HAPI? need to check
-          try {
-            addDataRow(rowData);
-          } catch(e) {
-            console.log("Error occurred adding row to table ", e);
-          }
           setErrorMessage("<div>The patient was not found in the PMP. This could be due to:</div><ul><li>No previous controlled substance medications dispensed</li><li>Incorrect spelling of name or incorrect date of birth.</li></ul><div>Please double check name spelling and date of birth.</div>");
           toTop();
           setOpenLoadingModal(false);
           return false;
       }
+      try {
+        addDataRow(response);
+      } catch(e) {
+        console.log("Error occurred adding row to table ", e);
+      }
       setErrorMessage('');
       let launchURL = "";
-      let launchID = response.entry && response.entry[0]? response.entry[0].id : response.id;
+      let launchID = response.id;
       if (!launchID) {
-        setErrorMessage(`Missing patient id. Unable to launch application.`);
+        setErrorMessage("<div>The patient was not found in the PMP. This could be due to:</div><ul><li>No previous controlled substance medications dispensed</li><li>Incorrect spelling of name or incorrect date of birth.</li></ul><div>Please double check name spelling and date of birth.</div>");
         toTop();
         setOpenLoadingModal(false);
         return false;
@@ -364,19 +359,21 @@ export default function PatientListTable(props) {
   }
   const formatData = (data) => {
     if (!data) return false;
-    return data.entry.map((item) => {
-        let patientId = item.resource && item.resource["id"] ? item.resource["id"] : "";
+    if (!Array.isArray(data)) {
+      data = [data];
+    }
+    return data.map((item) => {
+        let source = item.resource ? item.resource: item;
+        let patientId = source && source["id"] ? source["id"] : "";
         return {
-            first_name: item.resource && item.resource.name && item.resource.name[0]? item.resource.name[0]["given"][0] : "",
-            last_name: item.resource && item.resource.name && item.resource.name[0] ? item.resource.name[0]["family"] : "",
-            dob: item.resource && item.resource["birthDate"]?
-              item.resource["birthDate"]:
-              "",
+            first_name: source && source.name && source.name[0]? source.name[0]["given"][0] : "",
+            last_name: source && source.name && source.name[0] ? source.name[0]["family"] : "",
+            dob: source && source["birthDate"]? source["birthDate"]:"",
             url: getLaunchURL(patientId),
-            identifier: item.resource && item.resource.identifier && item.resource.identifier.length? item.resource.identifier: null,
-            lastUpdated: item.resource && item.resource.meta && item.resource.meta.lastUpdated ? isoDateFormat(item.resource.meta.lastUpdated) : "",
-            gender: item.resource && item.resource["gender"] ? item.resource["gender"] : "",
-            resource: item.resource,
+            identifier: source && source.identifier && source.identifier.length? source.identifier: null,
+            lastUpdated: source && source.meta && source.meta.lastUpdated ? isoDateFormat(source.meta.lastUpdated) : "",
+            gender: source && source["gender"] ? source["gender"] : "",
+            resource: source,
             id: patientId
 
         };
@@ -451,7 +448,9 @@ export default function PatientListTable(props) {
             setLoading(false);
             return;
           }
-          let responseData = formatData(response);
+          console.log("response", response)
+          let responseData = formatData(response.entry);
+          console.log("response data? ", responseData)
           setData(responseData || []);
           setInitialized(true);
           setLoading(false);
@@ -460,7 +459,7 @@ export default function PatientListTable(props) {
         }).catch(error => {
           console.log("Failed to retrieve data", error);
           //unauthorized error is object or a string
-          if (error.status === 401) {
+          if (error === 401 || error.status === 401) {
             handleExpiredSession();
             return;
           }
@@ -470,7 +469,7 @@ export default function PatientListTable(props) {
         });
     }).catch(e => {
         //unauthorized error
-        if (error.status === 401) {
+        if (error === 401 || error.status === 401) {
           handleExpiredSession();
           return;
         }

@@ -22,7 +22,8 @@ const useStyles = makeStyles({
     },
     toolbarCell: {
         textAlign: "left",
-        backgroundColor: "#f7f7f7"
+        backgroundColor: "#f7f7f7",
+        minWidth: "180px"
     },
     button: {
         margin: theme.spacing(0.5),
