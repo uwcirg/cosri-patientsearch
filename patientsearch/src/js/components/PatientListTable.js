@@ -132,7 +132,9 @@ export default function PatientListTable(props) {
     {title: "Last Name", field: "last_name", filterPlaceholder: "Last Name", emptyValue: "--"},
     {title: "Birth Date", field: "dob", filterPlaceholder: "YYYY-MM-DD", emptyValue: "--"},
     /* the field for last accessed is patient.meta.lastupdated? */
-    {title: "Last Accessed", field: "lastUpdated", filtering: false, align: "center", defaultSort: "desc"}
+    {title: "Last Accessed", field: "lastUpdated", filtering: false, align: "center", defaultSort: "desc", customSort: (a,b) => {
+      return new Date(b.date).getTime() - new Date(a.date).getTime();
+    }}
   ];
   const errorStyle = {"display" : errorMessage? "block": "none"};
   const toTop = () => {
@@ -182,9 +184,10 @@ export default function PatientListTable(props) {
   };
   const noCacheParam = {cache: "no-cache"};
 
-  async function fetchData(url, params) {
+  async function fetchData(url, params, errorCallback) {
     const MAX_WAIT_TIME = 10000;
     params = params || {};
+    errorCallback = errorCallback || function() {};
     // Create a promise that rejects in maximum wait time in milliseconds
     let timeoutPromise = new Promise((resolve, reject) => {
       let id = setTimeout(() => {
@@ -196,24 +199,27 @@ export default function PatientListTable(props) {
      * if for some reason fetching the request data doesn't resolve or reject withing the maximum waittime,
      * then the timeout promise will kick in
      */
+    let json = null;
     let results = await Promise.race([
       fetch(url, params),
       timeoutPromise
     ]).catch(e => {
-        throw e;
+        console.log("error in fetch ", e);
+        errorCallback(e);
     });
-    let json = null;
+    if (!results || !results.ok) {
+      errorCallback(results.status);
+    }
     if (results) {
       try {
         //read response stream
         json = await (results.json()).catch(e => {
             console.log(`There was error processing data: ${e.message}`);
-            throw e.message;
         });
       } catch(e) {
         console.log(`There was error parsing data: ${e}`);
         json = null;
-        throw e;
+        errorCallback(e);
       }
     }
     return json;
@@ -296,9 +302,8 @@ export default function PatientListTable(props) {
       }
       let response = results[0];
       console.log("search response ", results[0])
-      if (results[0] && results[0].entry && results[0].entry[0]) response = results[0].entry[0];
-
       //response can be an array or just object now
+      if (results[0] && results[0].entry && results[0].entry[0]) response = results[0].entry[0];
       if (!response) {
           setErrorMessage("<div>The patient was not found in the PMP. This could be due to:</div><ul><li>No previous controlled substance medications dispensed</li><li>Incorrect spelling of name or incorrect date of birth.</li></ul><div>Please double check name spelling and date of birth.</div>");
           toTop();
@@ -432,7 +437,12 @@ export default function PatientListTable(props) {
   React.useEffect(() => {
     //when page unloads, remove loading indicator
     window.addEventListener("beforeunload", function() { setOpenLoadingModal(false); });
-    fetchData("./settings").then(response => {
+    fetchData("./settings", false, function(e) {
+      if (e && (e === 401 || e.status === 401)) {
+        handleExpiredSession();
+        return;
+      }
+    }).then(response => {
         if (response) {
             setAppSettings(response);
         }
@@ -445,7 +455,7 @@ export default function PatientListTable(props) {
             setLoading(false);
             return;
           }
-          console.log("response", response)
+          console.log("response", response, " entry ", response.entry)
           let responseData = formatData(response.entry);
           console.log("response data? ", responseData)
           setData(responseData || []);
@@ -456,7 +466,7 @@ export default function PatientListTable(props) {
         }).catch(error => {
           console.log("Failed to retrieve data", error);
           //unauthorized error is object or a string
-          if (error === 401 || error.status === 401) {
+          if (error.status === 401) {
             handleExpiredSession();
             return;
           }
@@ -466,7 +476,7 @@ export default function PatientListTable(props) {
         });
     }).catch(e => {
         //unauthorized error
-        if (error === 401 || error.status === 401) {
+        if (error.status === 401) {
           handleExpiredSession();
           return;
         }
