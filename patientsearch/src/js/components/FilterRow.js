@@ -14,16 +14,15 @@ import theme from '../context/theme';
 
 const useStyles = makeStyles({
     row: {
-        borderBottom: "2px solid #ececec"
+        border: "2px solid #ececec !important"
     },
     cell: {
         padding: theme.spacing(0, 2, 1),
-        backgroundColor: "#fafbfb"
+        backgroundColor: "#f7f7f7"
     },
     toolbarCell: {
-        paddingLeft: theme.spacing(3),
-        paddingRight: theme.spacing(3),
-        textAlign: "left"
+        textAlign: "left",
+        backgroundColor: "#f7f7f7"
     },
     button: {
         margin: theme.spacing(0.5),
@@ -35,6 +34,10 @@ const useStyles = makeStyles({
         paddingLeft: theme.spacing(1),
         paddingRight: theme.spacing(1)
     },
+    empty: {
+        width: "15%",
+        backgroundColor: "#f7f7f7"
+    }
 });
 export default function FilterRow(props) {
     const classes = useStyles();
@@ -132,7 +135,7 @@ export default function FilterRow(props) {
                         }}
                     />
                 </td>
-                <td>
+                <td className={classes.cell}>
                     <MuiPickersUtilsProvider utils={DateFnsUtils}>
                         {/* birth date field */}
                         <KeyboardDatePicker
@@ -174,7 +177,8 @@ export default function FilterRow(props) {
                         />
                     </MuiPickersUtilsProvider>
                 </td>
-                <td colspan="2" className={classes.toolbarCell}>
+                <td className={classes.empty}></td>
+                <td className={classes.toolbarCell}>
                     {/* toolbar go button */}
                    <Button  id={props.launchButtonId} className={!hasCompleteFilters() ? `${classes.button} disabled` : classes.button} color="primary" size="small" variant="contained" onClick={(e) => props.launchFunc(e, getFilterData())}>{getLaunchButtonLabel()}</Button>
                    <Tooltip title="Clear search fields">

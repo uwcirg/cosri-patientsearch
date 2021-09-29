@@ -17,6 +17,7 @@ html {
   a {
     width: 240px;
     border-width: 2px;
+    margin-top: 16px;
   }
 }
 @media (min-width: 699px) {
@@ -170,6 +171,7 @@ button.disabled:focus,
   }
   table:first-of-type {
     position: relative;
+    overflow: hidden;
   }
 }
 #toolbarGoButton {
