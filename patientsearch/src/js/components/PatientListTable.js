@@ -152,7 +152,7 @@ export default function PatientListTable(props) {
     return `${dataURL}?${params.join("&")}`;
   }
   const getPatientPMPSearchURL = (data) => {
-    if (data.id) return `/Patient/${data.id}`;
+    if (data.id && data.identifier) return `/Patient/${data.id}`;
     const dataURL = "/external_search/Patient";
     const params = [
           `subject:Patient.name.given=${data.first_name}`,
