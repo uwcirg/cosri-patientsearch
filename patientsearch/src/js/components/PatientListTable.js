@@ -197,10 +197,12 @@ export default function PatientListTable(props) {
      * then the timeout promise will kick in
      */
     let results = await Promise.race([
-      fetch(url, params),
+      fetch(url, params).catch(error => {
+        reject(error);
+      }),
       timeoutPromise
     ]).catch(e => {
-        throw `There was error fetching data: ${e}`;
+        reject(e);
     });
 
     let json = null;
@@ -302,8 +304,8 @@ export default function PatientListTable(props) {
         return false;
       }
       let response = results[0];
-
-      if (!response || !response.entry || !response.entry.length) {
+      //response can be an array or just object now
+      if (!response || ((response.entry && !response.entry.length) || !response.id)) {
           //NOT IN PMP BUT IN HAPI? need to check
           try {
             addDataRow(rowData);
@@ -317,8 +319,15 @@ export default function PatientListTable(props) {
       }
       setErrorMessage('');
       let launchURL = "";
+      let launchID = response.entry ? response.entry[0].id : response.id;
+      if (!launchID) {
+        setErrorMessage(`Missing patient id. Unable to launch application.`);
+        toTop();
+        setOpenLoadingModal(false);
+        return false;
+      }
       try {
-        launchURL = rowData.url || getLaunchURL(response.entry[0].id);
+        launchURL = rowData.url || getLaunchURL(launchID);
       } catch(e) {
         setErrorMessage(`Unable to launch application.  Invalid launch URL. Missing configurations.`);
         toTop();
@@ -449,7 +458,7 @@ export default function PatientListTable(props) {
           setNoPMPFlag(responseData);
         }).catch(error => {
           console.log("Failed to retrieve data", error);
-          //unauthorized error
+          //unauthorized error is object or a string
           if (error.status === 401) {
             handleExpiredSession();
             return;
