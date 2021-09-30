@@ -204,11 +204,12 @@ export default function PatientListTable(props) {
       fetch(url, params),
       timeoutPromise
     ]).catch(e => {
-        console.log("error in fetch ", e);
+        console.log("error retrieving data ", e);
         errorCallback(e);
+        throw e;
     });
     if (!results || !results.ok) {
-      errorCallback(results ? results : "error retrieving data");
+      errorCallback(results ? results.status : "error retrieving data");
     }
     if (results) {
       try {
@@ -450,7 +451,7 @@ export default function PatientListTable(props) {
         /*
         * get patient list
         */
-        fetchData("./Patient?_sort=_lastUpdated", noCacheParam).then(response => {
+        fetchData("./Patient?_sort=-_lastUpdated", noCacheParam).then(response => {
           if (!response || !response.entry || !response.entry.length) {
             setInitialized(true);
             setLoading(false);
@@ -469,7 +470,7 @@ export default function PatientListTable(props) {
             handleExpiredSession();
             return;
           }
-          setErrorMessage(`Error retrieving data: ${error.statusText ? error.statusText: error}`);
+          setErrorMessage(`Error retrieving data: ${error && error.statusText ? error.statusText: error}`);
           setInitialized(true);
           setLoading(false);
         });
