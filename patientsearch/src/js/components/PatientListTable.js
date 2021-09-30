@@ -208,18 +208,20 @@ export default function PatientListTable(props) {
         errorCallback(e);
     });
     if (!results || !results.ok) {
-      errorCallback(results.status);
+      errorCallback(results ? results : "error retrieving data");
     }
     if (results) {
       try {
         //read response stream
         json = await (results.json()).catch(e => {
             console.log(`There was error processing data: ${e.message}`);
+            throw e.message;
         });
       } catch(e) {
         console.log(`There was error parsing data: ${e}`);
         json = null;
         errorCallback(e);
+        throw e;
       }
     }
     return json;
@@ -301,7 +303,6 @@ export default function PatientListTable(props) {
         return false;
       }
       let response = results[0];
-      console.log("search response ", results[0])
       //response can be an array or just object now
       if (results[0] && results[0].entry && results[0].entry[0]) response = results[0].entry[0];
       if (!response) {
@@ -455,9 +456,7 @@ export default function PatientListTable(props) {
             setLoading(false);
             return;
           }
-          console.log("response", response, " entry ", response.entry)
           let responseData = formatData(response.entry);
-          console.log("response data? ", responseData)
           setData(responseData || []);
           setInitialized(true);
           setLoading(false);
@@ -466,7 +465,7 @@ export default function PatientListTable(props) {
         }).catch(error => {
           console.log("Failed to retrieve data", error);
           //unauthorized error is object or a string
-          if (error.status === 401) {
+          if (error && error.status === 401) {
             handleExpiredSession();
             return;
           }
@@ -476,7 +475,7 @@ export default function PatientListTable(props) {
         });
     }).catch(e => {
         //unauthorized error
-        if (error.status === 401) {
+        if (error && error.status === 401) {
           handleExpiredSession();
           return;
         }
