@@ -35,8 +35,8 @@ export function dateFormat(input) {
 }
 
 /*
- * example input: 2021-09-14T17:52:28.365+00:00 output: 2021-09-14 17:52:28 */
-export function isoDateFormat(input) {
+ * example input: 2021-09-14T17:52:28.365+00:00 output: 2021-09-14 */
+export function isoShortDateFormat(input) {
   if (!input) return "";
   return input.substring(0, input.indexOf("T"));
 }

@@ -18,7 +18,7 @@ import Modal from '@material-ui/core/Modal';
 import Error from "./Error";
 import FilterRow from "./FilterRow";
 import theme from '../context/theme';
-import {isoDateFormat} from "./Utility";
+import {isoShortDateFormat} from "./Utility";
 
 const useStyles = makeStyles({
     container: {
@@ -143,15 +143,6 @@ export default function PatientListTable(props) {
   const setAppSettings = function(settings) {
     appSettings = settings;
   }
-  const getPatientHapiSearchURL = (data) => {
-    const dataURL = "/Patient";
-    const params = [
-      `given=${data.first_name}`,
-      `family=${data.last_name}`,
-      `birthdate=${data.dob}`
-    ];
-    return `${dataURL}?${params.join("&")}`;
-  }
   const getPatientPMPSearchURL = (data) => {
     if (data.id && data.identifier) return `/Patient/${data.id}`;
     const dataURL = "/external_search/Patient";
@@ -208,22 +199,24 @@ export default function PatientListTable(props) {
         errorCallback(e);
         throw e;
     });
+
     if (!results || !results.ok) {
-      errorCallback(results ? results.status : "error retrieving data");
+      console.log("no results returned");
+      errorCallback(results ? results : "error retrieving data");
+      return null;
     }
-    if (results) {
-      try {
-        //read response stream
-        json = await (results.json()).catch(e => {
-            console.log(`There was error processing data: ${e.message}`);
-            throw e.message;
-        });
-      } catch(e) {
-        console.log(`There was error parsing data: ${e}`);
-        json = null;
-        errorCallback(e);
-        throw e;
-      }
+
+    try {
+      //read response stream
+      json = await (results.json()).catch(e => {
+          console.log(`There was error processing data.`);
+          throw e.message;
+      });
+    } catch(e) {
+      console.log(`There was error parsing data: ${e}`);
+      json = null;
+      errorCallback(e);
+      throw e;
     }
     return json;
   }
@@ -375,7 +368,7 @@ export default function PatientListTable(props) {
             dob: source && source["birthDate"]? source["birthDate"]:"",
             url: getLaunchURL(patientId),
             identifier: source && source.identifier && source.identifier.length? source.identifier: null,
-            lastUpdated: source && source.meta && source.meta.lastUpdated ? isoDateFormat(source.meta.lastUpdated) : "",
+            lastUpdated: source && source.meta && source.meta.lastUpdated ? isoShortDateFormat(source.meta.lastUpdated) : "",
             gender: source && source["gender"] ? source["gender"] : "",
             resource: source,
             id: patientId
@@ -436,22 +429,26 @@ export default function PatientListTable(props) {
     return !loading && initialized;
   }
 
+  function handleErrorCallback(e) {
+    if (e && e.status === 401) {
+      window.location = "/logout?timeout=true";
+      setErrorMessage("Session expired");
+      return;
+    }
+    setErrorMessage(e);
+  }
+
   React.useEffect(() => {
     //when page unloads, remove loading indicator
     window.addEventListener("beforeunload", function() { setOpenLoadingModal(false); });
-    fetchData("./settings", false, function(e) {
-      if (e && (e === 401 || e.status === 401)) {
-        handleExpiredSession();
-        return;
-      }
-    }).then(response => {
+    fetchData("./settings", false, handleErrorCallback).then(response => {
         if (response) {
             setAppSettings(response);
         }
         /*
         * get patient list
         */
-        fetchData("./Patient?_sort=-_lastUpdated", noCacheParam).then(response => {
+        fetchData("./Patient?_sort=-_lastUpdated", noCacheParam, handleErrorCallback).then(response => {
           if (!response || !response.entry || !response.entry.length) {
             setInitialized(true);
             setLoading(false);
@@ -465,21 +462,15 @@ export default function PatientListTable(props) {
           setNoPMPFlag(responseData);
         }).catch(error => {
           console.log("Failed to retrieve data", error);
-          //unauthorized error is object or a string
-          if (error && error.status === 401) {
-            handleExpiredSession();
-            return;
-          }
-          setErrorMessage(`Error retrieving data: ${error && error.statusText ? error.statusText: error}`);
+          //unauthorized error
+          handleErrorCallback(error);
+          setErrorMessage(`Error retrieving data: ${error && error.status ? "Error status "+error.status: error}`);
           setInitialized(true);
           setLoading(false);
         });
     }).catch(e => {
         //unauthorized error
-        if (error && error.status === 401) {
-          handleExpiredSession();
-          return;
-        }
+        handleErrorCallback(error);
         setErrorMessage(`Error retrieving app setting: ${e}`);
         setLoading(false);
     });
