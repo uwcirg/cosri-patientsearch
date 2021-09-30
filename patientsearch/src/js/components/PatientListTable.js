@@ -18,6 +18,7 @@ import Modal from '@material-ui/core/Modal';
 import Error from "./Error";
 import FilterRow from "./FilterRow";
 import theme from '../context/theme';
+import {isoShortDateFormat} from "./Utility";
 
 const useStyles = makeStyles({
     container: {
@@ -126,11 +127,14 @@ export default function PatientListTable(props) {
   };
   const columns = [
     //default sort by id in descending order
-    {field: "id", hidden: true, defaultSort: "desc", filtering: false, customSort: (a,b) => parseInt(a["id"])<parseInt(b["id"])?-1:1},
+    {field: "id", hidden: true, filtering: false},
     {title: "First Name", field: "first_name", filterPlaceholder: "First Name", emptyValue: "--", defaultFilter: firstNameFilter},
     {title: "Last Name", field: "last_name", filterPlaceholder: "Last Name", emptyValue: "--"},
-    {title: "Birth Date", field: "dob", filterPlaceholder: "YYYY-MM-DD", emptyValue: "--",
-    },
+    {title: "Birth Date", field: "dob", filterPlaceholder: "YYYY-MM-DD", emptyValue: "--"},
+    /* the field for last accessed is patient.meta.lastupdated? */
+    {title: "Last Accessed", field: "lastUpdated", filtering: false, align: "center", customSort: (a,b) => {
+      return new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime();
+    }}
   ];
   const errorStyle = {"display" : errorMessage? "block": "none"};
   const toTop = () => {
@@ -139,16 +143,8 @@ export default function PatientListTable(props) {
   const setAppSettings = function(settings) {
     appSettings = settings;
   }
-  const getPatientHapiSearchURL = (data) => {
-    const dataURL = "/Patient";
-    const params = [
-      `given=${data.first_name}`,
-      `family=${data.last_name}`,
-      `birthdate=${data.dob}`
-    ];
-    return `${dataURL}?${params.join("&")}`;
-  }
   const getPatientPMPSearchURL = (data) => {
+    if (data.id && data.identifier) return `/Patient/${data.id}`;
     const dataURL = "/external_search/Patient";
     const params = [
           `subject:Patient.name.given=${data.first_name}`,
@@ -179,9 +175,10 @@ export default function PatientListTable(props) {
   };
   const noCacheParam = {cache: "no-cache"};
 
-  async function fetchData(url, params) {
+  async function fetchData(url, params, errorCallback) {
     const MAX_WAIT_TIME = 10000;
     params = params || {};
+    errorCallback = errorCallback || function() {};
     // Create a promise that rejects in maximum wait time in milliseconds
     let timeoutPromise = new Promise((resolve, reject) => {
       let id = setTimeout(() => {
@@ -193,26 +190,33 @@ export default function PatientListTable(props) {
      * if for some reason fetching the request data doesn't resolve or reject withing the maximum waittime,
      * then the timeout promise will kick in
      */
+    let json = null;
     let results = await Promise.race([
       fetch(url, params),
       timeoutPromise
     ]).catch(e => {
-        throw `There was error fetching data: ${e}`;
+        console.log("error retrieving data ", e);
+        errorCallback(e);
+        throw e;
     });
 
-    let json = null;
-    if (results) {
-      try {
-        //read response stream
-        json = await (results.json()).catch(e => {
-            console.log(`There was error processing data: ${e.message}`);
-            throw e.message;
-        });
-      } catch(e) {
-        console.log(`There was error parsing data: ${e}`);
-        json = null;
-        throw e;
-      }
+    if (!results || !results.ok) {
+      console.log("no results returned");
+      errorCallback(results ? results : "error retrieving data");
+      return null;
+    }
+
+    try {
+      //read response stream
+      json = await (results.json()).catch(e => {
+          console.log(`There was error processing data.`);
+          throw e.message;
+      });
+    } catch(e) {
+      console.log(`There was error parsing data: ${e}`);
+      json = null;
+      errorCallback(e);
+      throw e;
     }
     return json;
   }
@@ -224,17 +228,11 @@ export default function PatientListTable(props) {
     }).length > 0;
   }
   const addDataRow = function(rowData) {
-    if (!rowData) return false;
-    //check if it is added in HAPI FHIR server?
-    //add new row to table if it does not exists in table already
-    fetchData(getPatientHapiSearchURL(rowData, noCacheParam)).then(hapiResult => {
-      if (hapiResult && hapiResult.entry && hapiResult.entry.length) {
-        let newData = formatData(hapiResult);
-        if (newData && !existsIndata(newData[0])) {
-          setData([newData[0], ...data]);
-        }
-      }
-    });
+    if (!rowData || !rowData.id) return false;
+    let newData = formatData(rowData);
+    if (newData && !existsIndata(newData[0])) {
+      setData([newData[0], ...data]);
+    }
   }
   const handleExpiredSession = function() {
     sessionStorage.clear();
@@ -258,7 +256,8 @@ export default function PatientListTable(props) {
       fetch(urls[0], {...{"method": "PUT",
       headers: {
         "Accept": "application/json",
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "body" : rowData.resource ? JSON.stringify(rowData.resource) : null
       }}, ...noCacheParam}),
       fetch(urls[1])
     ]).then(async([searchResult, tokenResult]) => {
@@ -298,23 +297,30 @@ export default function PatientListTable(props) {
         return false;
       }
       let response = results[0];
-
-      if (!response || !response.entry || !response.entry.length) {
-          //NOT IN PMP BUT IN HAPI? need to check
-          try {
-            addDataRow(rowData);
-          } catch(e) {
-            console.log("Error occurred adding row to table ", e);
-          }
+      //response can be an array or just object now
+      if (results[0] && results[0].entry && results[0].entry[0]) response = results[0].entry[0];
+      if (!response) {
           setErrorMessage("<div>The patient was not found in the PMP. This could be due to:</div><ul><li>No previous controlled substance medications dispensed</li><li>Incorrect spelling of name or incorrect date of birth.</li></ul><div>Please double check name spelling and date of birth.</div>");
           toTop();
           setOpenLoadingModal(false);
           return false;
       }
+      try {
+        addDataRow(response);
+      } catch(e) {
+        console.log("Error occurred adding row to table ", e);
+      }
       setErrorMessage('');
       let launchURL = "";
+      let launchID = response.id;
+      if (!launchID) {
+        setErrorMessage("<div>The patient was not found in the PMP. This could be due to:</div><ul><li>No previous controlled substance medications dispensed</li><li>Incorrect spelling of name or incorrect date of birth.</li></ul><div>Please double check name spelling and date of birth.</div>");
+        toTop();
+        setOpenLoadingModal(false);
+        return false;
+      }
       try {
-        launchURL = rowData.url || getLaunchURL(response.entry[0].id);
+        launchURL = rowData.url || getLaunchURL(launchID);
       } catch(e) {
         setErrorMessage(`Unable to launch application.  Invalid launch URL. Missing configurations.`);
         toTop();
@@ -350,17 +356,21 @@ export default function PatientListTable(props) {
   }
   const formatData = (data) => {
     if (!data) return false;
-    return data.entry.map((item) => {
-        let patientId = item.resource && item.resource["id"] ? item.resource["id"] : "";
+    if (!Array.isArray(data)) {
+      data = [data];
+    }
+    return data.map((item) => {
+        let source = item.resource ? item.resource: item;
+        let patientId = source && source["id"] ? source["id"] : "";
         return {
-            first_name: item.resource && item.resource.name && item.resource.name[0]? item.resource.name[0]["given"][0] : "",
-            last_name: item.resource && item.resource.name && item.resource.name[0] ? item.resource.name[0]["family"] : "",
-            dob: item.resource && item.resource["birthDate"]?
-              item.resource["birthDate"]:
-              "",
+            first_name: source && source.name && source.name[0]? source.name[0]["given"][0] : "",
+            last_name: source && source.name && source.name[0] ? source.name[0]["family"] : "",
+            dob: source && source["birthDate"]? source["birthDate"]:"",
             url: getLaunchURL(patientId),
-            identifier: item.resource && item.resource.identifier && item.resource.identifier.length? item.resource.identifier: null,
-            gender: item.resource && item.resource["gender"] ? item.resource["gender"] : "",
+            identifier: source && source.identifier && source.identifier.length? source.identifier: null,
+            lastUpdated: source && source.meta && source.meta.lastUpdated ? isoShortDateFormat(source.meta.lastUpdated) : "",
+            gender: source && source["gender"] ? source["gender"] : "",
+            resource: source,
             id: patientId
 
         };
@@ -419,23 +429,32 @@ export default function PatientListTable(props) {
     return !loading && initialized;
   }
 
+  function handleErrorCallback(e) {
+    if (e && e.status === 401) {
+      window.location = "/logout?timeout=true";
+      setErrorMessage("Session expired");
+      return;
+    }
+    setErrorMessage(e);
+  }
+
   React.useEffect(() => {
     //when page unloads, remove loading indicator
     window.addEventListener("beforeunload", function() { setOpenLoadingModal(false); });
-    fetchData("./settings").then(response => {
+    fetchData("./settings", false, handleErrorCallback).then(response => {
         if (response) {
             setAppSettings(response);
         }
         /*
         * get patient list
         */
-        fetchData("./Patient", noCacheParam).then(response => {
+        fetchData("./Patient?_sort=-_lastUpdated", noCacheParam, handleErrorCallback).then(response => {
           if (!response || !response.entry || !response.entry.length) {
             setInitialized(true);
             setLoading(false);
             return;
           }
-          let responseData = formatData(response);
+          let responseData = formatData(response.entry);
           setData(responseData || []);
           setInitialized(true);
           setLoading(false);
@@ -444,20 +463,14 @@ export default function PatientListTable(props) {
         }).catch(error => {
           console.log("Failed to retrieve data", error);
           //unauthorized error
-          if (error.status === 401) {
-            handleExpiredSession();
-            return;
-          }
-          setErrorMessage(`Error retrieving data: ${error.statusText ? error.statusText: error}`);
+          handleErrorCallback(error);
+          setErrorMessage(`Error retrieving data: ${error && error.status ? "Error status "+error.status: error}`);
           setInitialized(true);
           setLoading(false);
         });
     }).catch(e => {
         //unauthorized error
-        if (error.status === 401) {
-          handleExpiredSession();
-          return;
-        }
+        handleErrorCallback(error);
         setErrorMessage(`Error retrieving app setting: ${e}`);
         setLoading(false);
     });

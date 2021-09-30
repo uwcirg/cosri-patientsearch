@@ -11,6 +11,7 @@ from flask import (
     send_from_directory,
 )
 from flask.json import JSONEncoder
+import json
 import jwt
 import requests
 from werkzeug.exceptions import Unauthorized
@@ -196,6 +197,43 @@ def resource_bundle(resource_type):
     try:
         return jsonify(HAPI_request(
             token=token, method='GET', resource_type=resource_type, params=params))
+    except (RuntimeError, ValueError) as error:
+        return jsonify_abort(status_code=400, message=str(error))
+
+
+@api_blueprint.route(
+    '/<string:resource_type>/<int:resource_id>', methods=["PUT"])
+def update_resource_by_id(resource_type, resource_id):
+    """Update individual resource within HAPI; return JSON result
+
+    Common use-case: call on PMP launch, so the referenced Patient
+    gets a fresh lastUpdated value.
+
+    NB not decorated with `@oidc.require_login` as that does an implicit
+    redirect.  Client should watch for 401 and redirect appropriately.
+    """
+    token = validate_auth()
+
+    try:
+        resource = json.loads(request.headers.get('body', ''))
+        if not resource:
+            return jsonify_abort(status_code=400, message=f"Can't PUT {resource_type}/{resource_id} without resource in `body` header")
+
+        # Increment a count identifier to force update - lastUpdated only moves on changed data
+        identifiers = resource.get('identifier', [])
+        count = 1
+        system = "https://github.com/uwcirg/cosri-patientsearch/counter"
+        for ident in identifiers:
+            if ident['system'] == system:
+                count = int(ident['value']) + 1
+                ident['value'] = count
+                break
+        if count == 1:
+            identifiers.append({"system": system, "value": count})
+        resource['identifier'] = identifiers
+
+        return jsonify(HAPI_request(
+            method='PUT', resource_type=resource_type, resource_id=resource_id, resource=resource, token=token))
     except (RuntimeError, ValueError) as error:
         return jsonify_abort(status_code=400, message=str(error))
 

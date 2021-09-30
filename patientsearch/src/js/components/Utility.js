@@ -34,6 +34,13 @@ export function dateFormat(input) {
   return new Date(input).toDateString();
 }
 
+/*
+ * example input: 2021-09-14T17:52:28.365+00:00 output: 2021-09-14 */
+export function isoShortDateFormat(input) {
+  if (!input) return "";
+  return input.substring(0, input.indexOf("T"));
+}
+
 export function imageOK(img) {
   if (!img) {
       return false;

@@ -14,16 +14,16 @@ import theme from '../context/theme';
 
 const useStyles = makeStyles({
     row: {
-        borderBottom: "1px solid #ececec"
+        border: "2px solid #ececec !important"
     },
     cell: {
-        padding: theme.spacing(0, 2, 1)
+        padding: theme.spacing(0, 2, 1),
+        backgroundColor: "#f7f7f7"
     },
     toolbarCell: {
-        width: "25%",
-        paddingLeft: theme.spacing(1),
-        paddingRight: theme.spacing(1),
-        textAlign: "center"
+        textAlign: "left",
+        backgroundColor: "#f7f7f7",
+        minWidth: "180px"
     },
     button: {
         margin: theme.spacing(0.5),
@@ -34,6 +34,10 @@ const useStyles = makeStyles({
     dateInput: {
         paddingLeft: theme.spacing(1),
         paddingRight: theme.spacing(1)
+    },
+    empty: {
+        width: "15%",
+        backgroundColor: "#f7f7f7"
     }
 });
 export default function FilterRow(props) {
@@ -132,7 +136,7 @@ export default function FilterRow(props) {
                         }}
                     />
                 </td>
-                <td>
+                <td className={classes.cell}>
                     <MuiPickersUtilsProvider utils={DateFnsUtils}>
                         {/* birth date field */}
                         <KeyboardDatePicker
@@ -174,6 +178,7 @@ export default function FilterRow(props) {
                         />
                     </MuiPickersUtilsProvider>
                 </td>
+                <td className={classes.empty}></td>
                 <td className={classes.toolbarCell}>
                     {/* toolbar go button */}
                    <Button  id={props.launchButtonId} className={!hasCompleteFilters() ? `${classes.button} disabled` : classes.button} color="primary" size="small" variant="contained" onClick={(e) => props.launchFunc(e, getFilterData())}>{getLaunchButtonLabel()}</Button>
