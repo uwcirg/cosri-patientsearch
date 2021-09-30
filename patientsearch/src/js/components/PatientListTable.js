@@ -127,12 +127,12 @@ export default function PatientListTable(props) {
   };
   const columns = [
     //default sort by id in descending order
-    {field: "id", hidden: true, defaultSort: "desc", filtering: false},
+    {field: "id", hidden: true, filtering: false},
     {title: "First Name", field: "first_name", filterPlaceholder: "First Name", emptyValue: "--", defaultFilter: firstNameFilter},
     {title: "Last Name", field: "last_name", filterPlaceholder: "Last Name", emptyValue: "--"},
     {title: "Birth Date", field: "dob", filterPlaceholder: "YYYY-MM-DD", emptyValue: "--"},
     /* the field for last accessed is patient.meta.lastupdated? */
-    {title: "Last Accessed", field: "lastUpdated", filtering: false, align: "center", defaultSort: "desc", customSort: (a,b) => {
+    {title: "Last Accessed", field: "lastUpdated", filtering: false, align: "center", customSort: (a,b) => {
       return new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime();
     }}
   ];
