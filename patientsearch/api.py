@@ -130,7 +130,7 @@ def config_settings(config_key):
     current_app.json_encoder = CustomJSONEncoder
 
     # return selective keys - not all can be be viewed by users, e.g.secret key
-    blacklist = ('SECRET', 'KEY')
+    blacklist = ('SECRET', 'KEY', 'TOKEN', 'CREDENTIALS')
 
     if config_key:
         key = config_key.upper()
