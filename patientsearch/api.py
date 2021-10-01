@@ -192,11 +192,9 @@ def resource_bundle(resource_type):
 
     """
     token = validate_auth()
-    params = {'_count': 1000}
-    params.update(request.args)
     try:
         return jsonify(HAPI_request(
-            token=token, method='GET', resource_type=resource_type, params=params))
+            token=token, method='GET', resource_type=resource_type, params=request.args))
     except (RuntimeError, ValueError) as error:
         return jsonify_abort(status_code=400, message=str(error))
 
