@@ -35,10 +35,14 @@ export function dateFormat(input) {
 }
 
 /*
- * example input: 2021-09-14T17:52:28.365+00:00 output: 2021-09-14 */
+ * example input: 2021-09-14T17:52:28.365+00:00 output: 2021-09-14 17:52 */
 export function isoShortDateFormat(input) {
   if (!input) return "";
-  return input.substring(0, input.indexOf("T"));
+  //remove milliseconds
+  let string1 = input.substring(0, input.indexOf("."));
+  //remove seconds
+  string1 = string1.substring(0, string1.lastIndexOf(":")).replace("T", " ");
+  return string1;
 }
 
 export function imageOK(img) {

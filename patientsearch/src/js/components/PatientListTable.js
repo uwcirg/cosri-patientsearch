@@ -132,9 +132,7 @@ export default function PatientListTable(props) {
     {title: "Last Name", field: "last_name", filterPlaceholder: "Last Name", emptyValue: "--"},
     {title: "Birth Date", field: "dob", filterPlaceholder: "YYYY-MM-DD", emptyValue: "--"},
     /* the field for last accessed is patient.meta.lastupdated? */
-    {title: "Last Accessed", field: "lastUpdated", filtering: false, align: "center", customSort: (a,b) => {
-      return new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime();
-    }}
+    {title: "Last Accessed", field: "lastUpdated", filtering: false, align: "center"}
   ];
   const errorStyle = {"display" : errorMessage? "block": "none"};
   const toTop = () => {
