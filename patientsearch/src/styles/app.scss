@@ -9,6 +9,14 @@ $table-header-bg-color: rgb(224, 242, 241);
 html {
   scroll-behavior: smooth;
 }
+#emptyDataContainer {
+  display: none;
+}
+.ready {
+  #emptyDataContainer {
+    display: block;
+  }
+}
 .logout-container {
   margin-top: 196px;
   display: flex;

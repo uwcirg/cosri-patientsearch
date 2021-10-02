@@ -510,6 +510,7 @@ export default function PatientListTable(props) {
       setPageNumber(0);
       setPageSize(query.pageSize);
       if (hasFilters) onFiltersDidChange(query.filters);
+      setVis();
       setInitialized(true);
       setLoading(false);
     };
@@ -669,7 +670,7 @@ export default function PatientListTable(props) {
 
                       },
                       emptyDataSourceMessage: (
-                        <div className={classes.flex}>
+                        <div id="emptyDataContainer" className={classes.flex}>
                             <div className={classes.warning}>
                               <div>No matching patient found.</div>
                               <div id={`${NO_DATA_ELEMENT_ID}`}></div>
