@@ -584,7 +584,7 @@ export default function PatientListTable(props) {
                     pageSizeOptions: [10, 20, 50],
                     padding: "dense",
                     emptyRowsWhenPaging: false,
-                    debounceInterval:500,
+                    debounceInterval:300,
                     toolbar: false,
                     filtering: true,
                     sorting: true,
