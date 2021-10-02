@@ -146,9 +146,7 @@ export default function PatientListTable(props) {
     {title: "Last Name", field: "last_name", filterPlaceholder: "Last Name", emptyValue: "--"},
     {title: "Birth Date", field: "dob", filterPlaceholder: "YYYY-MM-DD", emptyValue: "--"},
     /* the field for last accessed is patient.meta.lastupdated? */
-    {title: "Last Accessed", field: "lastUpdated", filtering: false, align: "center", customSort: (a,b) => {
-      return new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime();
-    }}
+    {title: "Last Accessed", field: "lastUpdated", filtering: false, align: "center"}
   ];
   const errorStyle = {"display" : errorMessage? "block": "none"};
   const toTop = () => {
@@ -562,17 +560,6 @@ export default function PatientListTable(props) {
         });
       });
   };
-  let patientSearchTimerId = 0;
-  const initPatientSearch = (fieldIndex, fieldValue, fieldName) => {
-    console.log("index ? ", fieldIndex, " fieldValue ", fieldValue, " fieldName ", fieldName)
-    let searchString = "";
-    if (fieldValue) searchString = `${fieldName}:contains=${fieldValue}`;
-    clearTimeout(patientSearchTimerId);
-    setTimeout(() => {
-      patientSearchTimerId = getPatientList(currentQuery, searchString);
-    }, 500);
-
-  }
 
   return (
       <React.Fragment>
@@ -580,15 +567,6 @@ export default function PatientListTable(props) {
           <h2>COSRI Patient Search</h2>
           <Error message={errorMessage} style={errorStyle}/>
           {loading && <CircularProgress size={40} className={classes.buttonProgress} />}
-          {/* <table>
-            <tbody>
-          {<FilterRow
-                  onFilterChanged={initPatientSearch}
-                  launchFunc={handleSearch}
-                  launchButtonLabel={LAUNCH_BUTTON_LABEL}
-                  launchButtonId={TOOLBAR_ACTION_BUTTON_ID}></FilterRow>}
-           </tbody>
-          </table> */}
           {<div className={classes.table} aria-label="patient list table" >
               <MaterialTable
                 className={classes.table}
