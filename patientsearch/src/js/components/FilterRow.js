@@ -11,6 +11,7 @@ import TextField from '@material-ui/core/TextField';
 import Tooltip from '@material-ui/core/Tooltip';
 import  {MuiPickersUtilsProvider, KeyboardDatePicker } from '@material-ui/pickers';
 import theme from '../context/theme';
+import {getTimeZoneAdjustedDate} from './Utility';
 
 const useStyles = makeStyles({
     row: {
@@ -18,6 +19,10 @@ const useStyles = makeStyles({
     },
     cell: {
         padding: theme.spacing(0, 2, 1),
+        backgroundColor: "#f7f7f7"
+    },
+    dateCell: {
+        padding: theme.spacing(0.5, 2, 0),
         backgroundColor: "#f7f7f7"
     },
     toolbarCell: {
@@ -44,17 +49,17 @@ export default function FilterRow(props) {
     const classes = useStyles();
     const LAUNCH_BUTTON_LABEL = "VIEW";
     const [firstNameFieldIndex, lastNameFieldIndex, dobFieldIndex] = [1,2,3];
-    const [firstName, setFirstName] = React.useState("");
-    const [lastName, setLastName] = React.useState("");
-    const [date, setDate] = React.useState(null);
-    const [dateInput, setDateInput] = React.useState("");
+    const [firstName, setFirstName] = React.useState(props.firstName);
+    const [lastName, setLastName] = React.useState(props.lastName);
+    const [date, setDate] = React.useState(isValid(new Date(props.dob)) ? getTimeZoneAdjustedDate(new Date(props.dob)): null);
+    const [dateInput, setDateInput] = React.useState(String(props.dob).replace(/[-_]/g, ''));
     const handleFirstNameChange = (event) => {
         setFirstName(event.target.value);
-        props.onFilterChanged(firstNameFieldIndex, event.target.value);
+        props.onFilterChanged(firstNameFieldIndex, event.target.value, "first_name");
     }
     const handleLastNameChange = (event) => {
         setLastName(event.target.value);
-        props.onFilterChanged(lastNameFieldIndex, event.target.value);
+        props.onFilterChanged(lastNameFieldIndex, event.target.value, "last_name");
     }
     const hasFilter = () => {
         return firstName || lastName || dateInput;
@@ -64,6 +69,9 @@ export default function FilterRow(props) {
     }
     const getFilterData = () => {
         if (!hasCompleteFilters()) return null;
+        return getCurrentFilters();
+    }
+    const getCurrentFilters = () => {
         return {
             first_name: firstName,
             last_name: lastName,
@@ -73,14 +81,20 @@ export default function FilterRow(props) {
     const clearDate = () => {
         setDate(null);
         setDateInput("");
-        props.onFilterChanged(dobFieldIndex, null);
+        props.onFilterChanged(dobFieldIndex, null, "dob");
+        props.onFiltersDidChange({
+            first_name: firstName,
+            last_name: lastName,
+            dob: ""
+        });
     }
     const clearFields = () => {
         setFirstName("");
         setLastName("");
-        props.onFilterChanged(firstNameFieldIndex, "");
-        props.onFilterChanged(lastNameFieldIndex, "");
+        props.onFilterChanged(firstNameFieldIndex, "", "first_name");
+        props.onFilterChanged(lastNameFieldIndex, "", "last_name");
         clearDate();
+        props.onFiltersDidChange([]);
     }
     const getLaunchButtonLabel = () => {
         return props.launchButtonLabel ? props.launchButtonLabel : LAUNCH_BUTTON_LABEL;
@@ -136,7 +150,7 @@ export default function FilterRow(props) {
                         }}
                     />
                 </td>
-                <td className={classes.cell}>
+                <td className={classes.dateCell}>
                     <MuiPickersUtilsProvider utils={DateFnsUtils}>
                         {/* birth date field */}
                         <KeyboardDatePicker
@@ -147,8 +161,8 @@ export default function FilterRow(props) {
                             InputProps={{
                                 startAdornment: (
                                 <InputAdornment position="end" style={{order: 1, marginLeft: 0}}>
-                                    <IconButton onClick={() => { clearDate(); }} disabled={!dateInput} style={{order: 2, padding: 0}} aria-label="Clear date" title="Clear date">
-                                        <ClearIcon color={!dateInput ? "disabled" : "primary"} fontSize="small" />
+                                    <IconButton onClick={() => { clearDate(); }} style={{order: 2, padding: 0}} aria-label="Clear date" title="Clear date">
+                                        <ClearIcon color="primary" fontSize="small" />
                                     </IconButton>
                                 </InputAdornment>
                                 ),
@@ -164,14 +178,15 @@ export default function FilterRow(props) {
                             orientation="landscape"
                             onKeyDown={handleKeyDown}
                             onChange={(event, dateString) => {
+                                console.log("event ? ", event, " dateString? ", dateString)
                                 setDateInput(dateString);
                                 if (!event || !isValid(event)) {
                                     if (event && ((String(dateInput).replace(/[-_]/g, '').length) >= 8)) setDate(event);
-                                    props.onFilterChanged(3, null);
+                                   // props.onFilterChanged(3, null, "dob");
                                     return;
                                 }
                                 setDate(event);
-                                props.onFilterChanged(3, dateString);
+                                props.onFilterChanged(3, dateString, "dob");
                             }}
                             KeyboardButtonProps={{color: "primary", title: "Date picker"}}
 
