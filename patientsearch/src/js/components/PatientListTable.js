@@ -509,7 +509,6 @@ export default function PatientListTable(props) {
     const resetAll = () => {
       setPageNumber(0);
       setPageSize(query.pageSize);
-      if (hasFilters) onFiltersDidChange(query.filters);
       setVis();
       setInitialized(true);
       setLoading(false);
