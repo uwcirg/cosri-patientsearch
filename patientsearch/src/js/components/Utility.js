@@ -72,3 +72,7 @@ export function getTimeZoneAdjustedDate(date) {
   if (!date) return null;
   return date.setMinutes(date.getMinutes() + date.getTimezoneOffset());
 }
+
+export function isString (obj) {
+  return (Object.prototype.toString.call(obj) === '[object String]');
+}

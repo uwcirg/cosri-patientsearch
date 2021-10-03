@@ -82,11 +82,6 @@ export default function FilterRow(props) {
         setDate(null);
         setDateInput("");
         props.onFilterChanged(dobFieldIndex, null, "dob");
-        props.onFiltersDidChange({
-            first_name: firstName,
-            last_name: lastName,
-            dob: ""
-        });
     }
     const clearFields = () => {
         setFirstName("");
@@ -94,7 +89,7 @@ export default function FilterRow(props) {
         props.onFilterChanged(firstNameFieldIndex, "", "first_name");
         props.onFilterChanged(lastNameFieldIndex, "", "last_name");
         clearDate();
-        props.onFiltersDidChange([]);
+        props.onFiltersDidChange([], true);
     }
     const getLaunchButtonLabel = () => {
         return props.launchButtonLabel ? props.launchButtonLabel : LAUNCH_BUTTON_LABEL;
@@ -107,7 +102,7 @@ export default function FilterRow(props) {
         return false;
     }
     return (
-            <tr className={classes.row}>
+            <tr className={classes.row} key="filterRow">
                 <td className={classes.cell}>
                     {/* first name field */}
                     <TextField
@@ -119,6 +114,8 @@ export default function FilterRow(props) {
                         value={firstName}
                         onChange={handleFirstNameChange}
                         onKeyDown={handleKeyDown}
+                        key="ftFirstName"
+                        ref={props.firstNameRef}
                         inputProps={{"data-lpignore": true}}
                         InputProps={{
                             startAdornment: (
@@ -137,6 +134,8 @@ export default function FilterRow(props) {
                         name="lastName"
                         placeholder="Last Name"
                         id="lastName"
+                        key="ftLastName"
+                        ref={props.lastNameRef}
                         value={lastName}
                         onChange={handleLastNameChange}
                         onKeyDown={handleKeyDown}
@@ -166,10 +165,12 @@ export default function FilterRow(props) {
                                     </IconButton>
                                 </InputAdornment>
                                 ),
+                                ref: props.dobRef,
                                 className: classes.dateInput
                             }}
                             format="yyyy-MM-dd"
                             id="birthDate"
+                            key="ftBirthDate"
                             minDate={new Date("1900-01-01")}
                             invalidDateMessage="Date must be in YYYY-MM-DD format, e.g. 1977-01-12"
                             disableFuture

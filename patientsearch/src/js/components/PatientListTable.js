@@ -18,7 +18,7 @@ import Modal from '@material-ui/core/Modal';
 import Error from "./Error";
 import FilterRow from "./FilterRow";
 import theme from '../context/theme';
-import {isoShortDateFormat, getUrlParameter} from "./Utility";
+import {isoShortDateFormat, getUrlParameter, isString} from "./Utility";
 
 const useStyles = makeStyles({
     container: {
@@ -142,7 +142,7 @@ export default function PatientListTable(props) {
   const columns = [
     //default sort by id in descending order
     {field: "id", hidden: true, filtering: false},
-    {title: "First Name", field: "first_name", filterPlaceholder: "First Name", emptyValue: "--", defaultFilter: firstNameFilter},
+    {title: "First Name", field: "first_name", filterPlaceholder: "First Name", emptyValue: "--"},
     {title: "Last Name", field: "last_name", filterPlaceholder: "Last Name", emptyValue: "--"},
     {title: "Birth Date", field: "dob", filterPlaceholder: "YYYY-MM-DD", emptyValue: "--"},
     /* the field for last accessed is patient.meta.lastupdated? */
@@ -420,10 +420,11 @@ export default function PatientListTable(props) {
       noDataText = `Click on ${CREATE_BUTTON_LABEL} button to create new patient`;
     document.querySelector(`#${NO_DATA_ELEMENT_ID}`).innerText = noDataText;
   }
-
-  function onFiltersDidChange(filters) {
-    console.log("filters? wtf ", filters);
-    setTimeout(function() {
+  let filterIntervalId = 0;
+  function onFiltersDidChange(filters, clearAll) {
+    console.log("query filters ", filters)
+    //clearTimeout(filterIntervalId);
+    //filterIntervalId = setTimeout(function() {
       setNoDataText(filters);
       setToolbarActionButtonVis(filters);
       if (filters && filters.length) {
@@ -437,9 +438,24 @@ export default function PatientListTable(props) {
         }
         setCurrentFilters(fo);
         console.log("current filter? ", fo);
+        return fo;
 
-      } else setCurrentFilters(defaultFilters);
-    }, 0);
+      }
+      else {
+        if (clearAll) {
+          setCurrentFilters(defaultFilters);
+          return defaultFilters;
+        }
+
+        let fieldsObj = {
+            "first_name": document.querySelector("#firstName").value,
+            "last_name": document.querySelector("#lastName").value,
+            "dob": document.querySelector("#birthDate").value
+          };
+        setCurrentFilters(fieldsObj);
+        return fieldsObj;
+      }
+    //}, 0);
   }
 
   function inPDMP(rowData) {
@@ -461,7 +477,7 @@ export default function PatientListTable(props) {
       setErrorMessage("Session expired");
       return;
     }
-    setErrorMessage(e && e.message ? e.message : "Error occurred processing request");
+    setErrorMessage(isString(e) ? e : "Error occurred processing data");
   }
 
   React.useEffect(() => {
@@ -494,13 +510,22 @@ export default function PatientListTable(props) {
     let sortMinus = sortDirection !== "asc" ? "-" : "";
     let hasFilters = query.filters && query.filters.length;
     let filterBy = [];
-    if (hasFilters) {
-      query.filters.forEach(item => {
-        let searchString = `${FieldNameMaps[item.column.field]}:contains=${item.value}`;
-        filterBy.push(searchString);
-      });
-    }
-    let searchString = filterBy.join("&");
+    //if (hasFilters) {
+      let fiterOns = onFiltersDidChange(query.filters);
+      console.log("currntFilters? ", fiterOns)
+      for (let key in fiterOns) {
+        let value = fiterOns[key];
+        let valuString = `${FieldNameMaps[key]}:contains=${value}`;
+        console.log("search by ", valuString, " value ? ", fiterOns[key])
+        filterBy.push(valuString);
+      }
+      // query.filters.forEach(item => {
+      //   let searchString = `${FieldNameMaps[item.column.field]}:contains=${item.value}`;
+      //   filterBy.push(searchString);
+      // });
+    //}
+    let searchString = filterBy.length ? filterBy.join("&") : "";
+    console.log("search ? ", searchString)
     let defaults  = {
       data: [],
       page: 0,
@@ -513,7 +538,7 @@ export default function PatientListTable(props) {
       setInitialized(true);
       setLoading(false);
     };
-    onFiltersDidChange(query.filters);
+
      /*
       * get patient list
       */
@@ -579,7 +604,7 @@ export default function PatientListTable(props) {
                 options={{
                     paginationTypestepped: "stepped",
                     pageSize: pageSize,
-                    loadingType: "linear",
+                  //  loadingType: "linear",
                     pageSizeOptions: [10, 20, 50],
                     padding: "dense",
                     emptyRowsWhenPaging: false,
@@ -611,19 +636,12 @@ export default function PatientListTable(props) {
                     handleSearch(event, rowData)
                   }
                 }
-                onFilterChange={
-                  function(index, value, field) {
-                    console.log("get here?")
-                    onFiltersDidChange(index, value, field);
-                    return false;
-                  }
-                }
                 components={{
                   FilterRow: props => <FilterRow {...props}
                   firstName={getFieldFilterValue("first_name")}
                   lastName={getFieldFilterValue("last_name")}
-                  onFiltersDidChange={onFiltersDidChange}
                   dob={getFieldFilterValue("dob")}
+                  onFiltersDidChange={onFiltersDidChange}
                   launchFunc={handleSearch}
                   launchButtonLabel={LAUNCH_BUTTON_LABEL}
                   launchButtonId={TOOLBAR_ACTION_BUTTON_ID} />
