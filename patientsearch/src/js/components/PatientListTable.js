@@ -18,7 +18,7 @@ import Modal from '@material-ui/core/Modal';
 import Error from "./Error";
 import FilterRow from "./FilterRow";
 import theme from '../context/theme';
-import {isoShortDateFormat} from "./Utility";
+import {isoShortDateFormat, getUrlParameter, isString} from "./Utility";
 
 const useStyles = makeStyles({
     container: {
@@ -27,6 +27,9 @@ const useStyles = makeStyles({
         marginBottom: theme.spacing(2),
         marginTop: 148,
         maxWidth: "1080px"
+    },
+    filterTable: {
+      marginBottom: theme.spacing(1)
     },
     table: {
         minWidth: 450,
@@ -98,14 +101,20 @@ const useStyles = makeStyles({
 });
 
 let appSettings = {};
-const NUM_OF_REQUIRED_FILTERS = 3;
 
 export default function PatientListTable(props) {
   const classes = useStyles();
   const [initialized, setInitialized] = React.useState(false);
   const [data, setData] = React.useState([]);
+  const defaultFilters = {
+    "first_name": "",
+    "last_name": "",
+    "dob": ""
+  };
+  const [currentFilters, setCurrentFilters] = React.useState(defaultFilters);
+  const [pageSize, setPageSize] = React.useState(20);
+  const [pageNumber, setPageNumber] = React.useState(0);
   const [openLoadingModal, setOpenLoadingModal] = React.useState(false);
-  const [loading, setLoading] = React.useState(true);
   const [errorMessage, setErrorMessage] = React.useState("");
   const [containNoPMPRow, setContainNoPMPRow] = React.useState(false);
   const tableRef = React.useRef();
@@ -113,7 +122,6 @@ export default function PatientListTable(props) {
   const CREATE_BUTTON_LABEL = "CREATE";
   const NO_DATA_ELEMENT_ID = "noDataContainer";
   const TOOLBAR_ACTION_BUTTON_ID = "toolbarGoButton";
-  const firstNameFilter = "";
   const tableIcons = {
     Check: forwardRef((props, ref) => <Check {...props} ref={ref} className={classes.success} />),
     Clear: forwardRef((props, ref) => <ClearIcon {...props} ref={ref} />),
@@ -125,14 +133,20 @@ export default function PatientListTable(props) {
     SortArrow: forwardRef((props, ref) => <ArrowDownward {...props} ref={ref} color="primary" />),
     Delete: forwardRef((props, ref) => <Delete {...props} ref={ref} size="small" className={classes.muted}>Remove</Delete>),
   };
+  const FieldNameMaps = {
+    "first_name": "given",
+    "last_name": "family",
+    "dob": "birthdate",
+    "lastUpdated": "_lastUpdated"
+  };
   const columns = [
     //default sort by id in descending order
     {field: "id", hidden: true, filtering: false},
-    {title: "First Name", field: "first_name", filterPlaceholder: "First Name", emptyValue: "--", defaultFilter: firstNameFilter},
+    {title: "First Name", field: "first_name", filterPlaceholder: "First Name", emptyValue: "--"},
     {title: "Last Name", field: "last_name", filterPlaceholder: "Last Name", emptyValue: "--"},
     {title: "Birth Date", field: "dob", filterPlaceholder: "YYYY-MM-DD", emptyValue: "--"},
     /* the field for last accessed is patient.meta.lastupdated? */
-    {title: "Last Accessed", field: "lastUpdated", filtering: false, align: "center"}
+    {title: "Last Accessed", field: "lastUpdated", filtering: false, align: "center", defaultSort: "desc"}
   ];
   const errorStyle = {"display" : errorMessage? "block": "none"};
   const toTop = () => {
@@ -174,7 +188,7 @@ export default function PatientListTable(props) {
   const noCacheParam = {cache: "no-cache"};
 
   async function fetchData(url, params, errorCallback) {
-    const MAX_WAIT_TIME = 10000;
+    const MAX_WAIT_TIME = 20000;
     params = params || {};
     errorCallback = errorCallback || function() {};
     // Create a promise that rejects in maximum wait time in milliseconds
@@ -357,7 +371,7 @@ export default function PatientListTable(props) {
     if (!Array.isArray(data)) {
       data = [data];
     }
-    return data.map((item) => {
+    return data && Array.isArray(data) ? data.map((item) => {
         let source = item.resource ? item.resource: item;
         let patientId = source && source["id"] ? source["id"] : "";
         return {
@@ -372,17 +386,9 @@ export default function PatientListTable(props) {
             id: patientId
 
         };
-    });
+    }) : data;
   }
 
-  function setToolbarActionButtonVis(filters) {
-    if (!document.querySelector(`#${TOOLBAR_ACTION_BUTTON_ID} span`)) return;
-    if (filters && filters.length >= NUM_OF_REQUIRED_FILTERS) {
-      document.querySelector(`#${TOOLBAR_ACTION_BUTTON_ID} span`).innerText = document.querySelector(`#${NO_DATA_ELEMENT_ID}`) ? CREATE_BUTTON_LABEL: LAUNCH_BUTTON_LABEL;
-      return;
-    }
-    document.querySelector(`#${TOOLBAR_ACTION_BUTTON_ID} span`).innerText = LAUNCH_BUTTON_LABEL;
-  }
   //display body content when table is rendered
   function setVis() {
     document.querySelector("body").classList.add("ready");
@@ -397,21 +403,54 @@ export default function PatientListTable(props) {
     if (hasNoPMPRow) setContainNoPMPRow(true);
   }
 
+  function containEmptyFilter(filters) {
+    if (!filters) return true;
+    return filters.filter(item => {
+      return !item.value;
+    }).length > 0;
+  }
+
+  function setToolbarActionButtonVis(filters) {
+    if (!document.querySelector(`#${TOOLBAR_ACTION_BUTTON_ID} span`)) return;
+    if (!containEmptyFilter(filters)) {
+      document.querySelector(`#${TOOLBAR_ACTION_BUTTON_ID} span`).innerText = document.querySelector(`#${NO_DATA_ELEMENT_ID}`) ? CREATE_BUTTON_LABEL: LAUNCH_BUTTON_LABEL;
+      return;
+    }
+    document.querySelector(`#${TOOLBAR_ACTION_BUTTON_ID} span`).innerText = LAUNCH_BUTTON_LABEL;
+  }
+
   function setNoDataText(filters) {
     if (!document.querySelector(`#${NO_DATA_ELEMENT_ID}`)) return;
     let noDataText = "";
-    if (!filters || filters.length < NUM_OF_REQUIRED_FILTERS) {
+    if (filters && filters.length > 0 && containEmptyFilter(filters)) {
       noDataText = "Try entering all First name, Last name and Birth Date.";
-    } else
+    }
+    if (!containEmptyFilter(filters)) {
       noDataText = `Click on ${CREATE_BUTTON_LABEL} button to create new patient`;
+    }
     document.querySelector(`#${NO_DATA_ELEMENT_ID}`).innerText = noDataText;
   }
-
-  function onFiltersDidChange(filters) {
-    setTimeout(function() {
+  let filterIntervalId = 0;
+  function onFiltersDidChange(filters, clearAll) {
+    clearTimeout(filterIntervalId);
+    filterIntervalId = setTimeout(function() {
       setNoDataText(filters);
       setToolbarActionButtonVis(filters);
-    }, 0);
+      if (filters && filters.length) {
+        setCurrentFilters(filters);
+        if (tableRef) tableRef.current.onQueryChange();
+        return filters;
+
+      }
+      else {
+        if (clearAll) {
+          setCurrentFilters(defaultFilters);
+          if (tableRef) tableRef.current.onQueryChange();
+          return defaultFilters;
+        }
+        return defaultFilters;
+      }
+    }, 200);
   }
 
   function inPDMP(rowData) {
@@ -424,17 +463,87 @@ export default function PatientListTable(props) {
   }
 
   function patientListInitialized() {
-    return !loading && initialized;
+    return initialized;
   }
 
   function handleErrorCallback(e) {
     if (e && e.status === 401) {
-      window.location = "/logout?timeout=true";
-      setErrorMessage("Session expired");
+      setErrorMessage("Unauthorized.");
+      handleExpiredSession();
       return;
     }
-    setErrorMessage(e);
+    setErrorMessage(isString(e) ? e : (e && e.message? e.message: "Error occurred processing data"));
   }
+
+  const getPatientList = (query) => {
+    let sortField = query.orderBy && query.orderBy.field? FieldNameMaps[query.orderBy.field] : "_lastUpdated";
+    let sortDirection = query.orderDirection ? query.orderDirection : "desc";
+    let sortMinus = sortDirection !== "asc" ? "-" : "";
+    let filterBy = [];
+    if (currentFilters && currentFilters.length) {
+      currentFilters.forEach(item => {
+        if (item.value) {
+          filterBy.push(`${FieldNameMaps[item.field]}:contains=${item.value}`)
+        }
+      })
+    }
+    let searchString = filterBy.length ? filterBy.join("&") : "";
+    let defaults  = {
+      data: [],
+      page: 0,
+      totalCount: 0
+    };
+    const resetAll = () => {
+      setPageNumber(0);
+      setPageSize(query.pageSize);
+      setVis();
+      setInitialized(true);
+    };
+
+     /*
+      * get patient list
+      */
+      return new Promise((resolve, reject) => {
+          fetchData(`./Patient?_include=Patient:link&_total=accurate&_sort=${sortMinus}${sortField}&_count=${query.pageSize}&_getpagesoffset=${query.page*query.pageSize}${searchString?"&"+searchString:""}`, noCacheParam, function(e) {
+            resetAll();
+            handleErrorCallback(e);
+            resolve(defaults);
+          }).then(response => {
+            if (!response || !response.entry || !response.entry.length) {
+              resetAll();
+              resolve(defaults);
+              return;
+            }
+            let responseData = formatData(response.entry);
+            setData(responseData || []);
+            setInitialized(true);
+            setVis();
+            setNoPMPFlag(responseData);
+            let responsePageoffset = 0;
+            let responseSelfLink = response.link? response.link.filter(item => {
+              return item.relation === "self";
+            }) : 0;
+            if (responseSelfLink && responseSelfLink.length) {
+              responsePageoffset = getUrlParameter("_getpagesoffset", new URL(responseSelfLink[0].url));
+            }
+            let currentPage = responsePageoffset ? (responsePageoffset / query.pageSize) : 0;
+            setPageNumber(currentPage);
+            setPageSize(query.pageSize);
+            resolve({
+              data: responseData,
+              page: currentPage,
+              totalCount: response.total,
+            });
+        }).catch(error => {
+          console.log("Failed to retrieve data", error);
+          //unauthorized error
+          handleErrorCallback(error);
+          setErrorMessage(`Error retrieving data: ${error && error.status ? "Error status "+error.status: error}`);
+          resetAll();
+          resolve(defaults);
+        });
+      });
+  };
 
   React.useEffect(() => {
     //when page unloads, remove loading indicator
@@ -443,34 +552,10 @@ export default function PatientListTable(props) {
         if (response) {
             setAppSettings(response);
         }
-        /*
-        * get patient list
-        */
-        fetchData("./Patient?_sort=-_lastUpdated", noCacheParam, handleErrorCallback).then(response => {
-          if (!response || !response.entry || !response.entry.length) {
-            setInitialized(true);
-            setLoading(false);
-            return;
-          }
-          let responseData = formatData(response.entry);
-          setData(responseData || []);
-          setInitialized(true);
-          setLoading(false);
-          setVis();
-          setNoPMPFlag(responseData);
-        }).catch(error => {
-          console.log("Failed to retrieve data", error);
-          //unauthorized error
-          handleErrorCallback(error);
-          setErrorMessage(`Error retrieving data: ${error && error.status ? "Error status "+error.status: error}`);
-          setInitialized(true);
-          setLoading(false);
-        });
     }).catch(e => {
         //unauthorized error
         handleErrorCallback(error);
         setErrorMessage(`Error retrieving app setting: ${e}`);
-        setLoading(false);
     });
   }, []);
 
@@ -479,22 +564,33 @@ export default function PatientListTable(props) {
         <Container className={classes.container} id="patientList">
           <h2>COSRI Patient Search</h2>
           <Error message={errorMessage} style={errorStyle}/>
-          {loading && <CircularProgress size={40} className={classes.buttonProgress} />}
-          {patientListInitialized() && <div className={classes.table} aria-label="patient list table" >
+          <table className={classes.filterTable}>
+            <tbody>
+              <FilterRow
+                onFiltersDidChange={onFiltersDidChange}
+                launchFunc={handleSearch}
+                launchButtonLabel={LAUNCH_BUTTON_LABEL}
+                launchButtonId={TOOLBAR_ACTION_BUTTON_ID} />
+            </tbody>
+          </table>
+          {<div className={classes.table} aria-label="patient list table" >
               <MaterialTable
                 className={classes.table}
                 columns={columns}
-                data={data}
+                data={
+                  query => getPatientList(query)
+                }
                 tableRef={tableRef}
                 hideSortIcon={false}
                 options={{
                     paginationTypestepped: "stepped",
-                    pageSize: 10,
+                    pageSize: pageSize,
                     pageSizeOptions: [10, 20, 50],
                     padding: "dense",
                     emptyRowsWhenPaging: false,
+                    debounceInterval:300,
                     toolbar: false,
-                    filtering: true,
+                    filtering: false,
                     sorting: true,
                     search: false,
                     showTitle: false,
@@ -520,15 +616,6 @@ export default function PatientListTable(props) {
                     handleSearch(event, rowData)
                   }
                 }
-                onFilterChange={
-                  function(event) {
-                    onFiltersDidChange(event);
-                    return false;
-                  }
-                }
-                components={{
-                  FilterRow: props => <FilterRow {...props} launchFunc={handleSearch} launchButtonLabel={LAUNCH_BUTTON_LABEL} launchButtonId={TOOLBAR_ACTION_BUTTON_ID}/>
-                }}
                 editable={{
                   onRowDelete: oldData =>
                     fetchData("/Patient/"+oldData.id, {method: "DELETE"}).then(response => {
@@ -570,7 +657,7 @@ export default function PatientListTable(props) {
 
                       },
                       emptyDataSourceMessage: (
-                        <div className={classes.flex}>
+                        <div id="emptyDataContainer" className={classes.flex}>
                             <div className={classes.warning}>
                               <div>No matching patient found.</div>
                               <div id={`${NO_DATA_ELEMENT_ID}`}></div>

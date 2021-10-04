@@ -61,9 +61,13 @@ export function imageOK(img) {
   return true;
 }
 
-export function getUrlParameter(name) {
+export function getUrlParameter(name, queryString) {
   name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
   var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
-  var results = regex.exec(location.search);
+  var results = regex.exec(queryString ? queryString : location.search);
   return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+}
+
+export function isString (obj) {
+  return (Object.prototype.toString.call(obj) === '[object String]');
 }
