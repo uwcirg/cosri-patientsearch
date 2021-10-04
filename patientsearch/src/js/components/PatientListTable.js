@@ -450,7 +450,7 @@ export default function PatientListTable(props) {
         }
         return defaultFilters;
       }
-    }, 250);
+    }, 200);
   }
 
   function inPDMP(rowData) {
@@ -468,8 +468,8 @@ export default function PatientListTable(props) {
 
   function handleErrorCallback(e) {
     if (e && e.status === 401) {
-      window.location = "/logout?timeout=true";
-      setErrorMessage("Session expired");
+      setErrorMessage("Unauthorized.");
+      handleExpiredSession();
       return;
     }
     setErrorMessage(isString(e) ? e : (e && e.message? e.message: "Error occurred processing data"));
