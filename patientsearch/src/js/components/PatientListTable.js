@@ -28,6 +28,9 @@ const useStyles = makeStyles({
         marginTop: 148,
         maxWidth: "1080px"
     },
+    filterTable: {
+      marginBottom: theme.spacing(2)
+    },
     table: {
         minWidth: 450,
         maxWidth: "100%"
@@ -121,7 +124,6 @@ export default function PatientListTable(props) {
   const CREATE_BUTTON_LABEL = "CREATE";
   const NO_DATA_ELEMENT_ID = "noDataContainer";
   const TOOLBAR_ACTION_BUTTON_ID = "toolbarGoButton";
-  const firstNameFilter = "";
   const tableIcons = {
     Check: forwardRef((props, ref) => <Check {...props} ref={ref} className={classes.success} />),
     Clear: forwardRef((props, ref) => <ClearIcon {...props} ref={ref} />),
@@ -188,7 +190,7 @@ export default function PatientListTable(props) {
   const noCacheParam = {cache: "no-cache"};
 
   async function fetchData(url, params, errorCallback) {
-    const MAX_WAIT_TIME = 30000;
+    const MAX_WAIT_TIME = 20000;
     params = params || {};
     errorCallback = errorCallback || function() {};
     // Create a promise that rejects in maximum wait time in milliseconds
@@ -423,39 +425,25 @@ export default function PatientListTable(props) {
   let filterIntervalId = 0;
   function onFiltersDidChange(filters, clearAll) {
     console.log("query filters ", filters)
-    //clearTimeout(filterIntervalId);
-    //filterIntervalId = setTimeout(function() {
+    clearTimeout(filterIntervalId);
+    filterIntervalId = setTimeout(function() {
       setNoDataText(filters);
       setToolbarActionButtonVis(filters);
       if (filters && filters.length) {
-        let fo = {};
-        for (let key in currentFilters) {
-          let match = filters.filter(f => {
-            return f.column.field === key;
-          });
-          if (match.length) fo[key] = match[0].value;
-          else fo[key] = currentFilters[key];
-        }
-        setCurrentFilters(fo);
-        console.log("current filter? ", fo);
-        return fo;
+        setCurrentFilters(filters);
+        if (tableRef) tableRef.current.onQueryChange();
+        return filters;
 
       }
       else {
         if (clearAll) {
           setCurrentFilters(defaultFilters);
+          if (tableRef) tableRef.current.onQueryChange();
           return defaultFilters;
         }
-
-        let fieldsObj = {
-            "first_name": document.querySelector("#firstName").value,
-            "last_name": document.querySelector("#lastName").value,
-            "dob": document.querySelector("#birthDate").value
-          };
-        setCurrentFilters(fieldsObj);
-        return fieldsObj;
+        return defaultFilters;
       }
-    //}, 0);
+    }, 250);
   }
 
   function inPDMP(rowData) {
@@ -477,55 +465,23 @@ export default function PatientListTable(props) {
       setErrorMessage("Session expired");
       return;
     }
-    setErrorMessage(isString(e) ? e : "Error occurred processing data");
+    setErrorMessage(isString(e) ? e : (e && e.message? e.message: "Error occurred processing data"));
   }
 
-  React.useEffect(() => {
-    //when page unloads, remove loading indicator
-    window.addEventListener("beforeunload", function() { setOpenLoadingModal(false); });
-    fetchData("./settings", false, handleErrorCallback).then(response => {
-        if (response) {
-            setAppSettings(response);
-        }
-      //  setLoading(false);
-    }).catch(e => {
-        //unauthorized error
-        handleErrorCallback(error);
-        setErrorMessage(`Error retrieving app setting: ${e}`);
-        setLoading(false);
-    });
-  }, []);
-
-  const getFieldFilterValue = (fieldName) => {
-    if (!fieldName) return "";
-    if (!currentFilters || !Object.keys(currentFilters).length) return "";
-    if (currentFilters[fieldName]) {
-        return currentFilters[fieldName];
-    }
-    return "";
-  };
   const getPatientList = (query) => {
     let sortField = query.orderBy && query.orderBy.field? FieldNameMaps[query.orderBy.field] : "_lastUpdated";
     let sortDirection = query.orderDirection ? query.orderDirection : "desc";
     let sortMinus = sortDirection !== "asc" ? "-" : "";
-    let hasFilters = query.filters && query.filters.length;
     let filterBy = [];
-    //if (hasFilters) {
-      let fiterOns = onFiltersDidChange(query.filters);
-      console.log("currntFilters? ", fiterOns)
-      for (let key in fiterOns) {
-        let value = fiterOns[key];
-        let valuString = `${FieldNameMaps[key]}:contains=${value}`;
-        console.log("search by ", valuString, " value ? ", fiterOns[key])
-        filterBy.push(valuString);
-      }
-      // query.filters.forEach(item => {
-      //   let searchString = `${FieldNameMaps[item.column.field]}:contains=${item.value}`;
-      //   filterBy.push(searchString);
-      // });
-    //}
+    if (currentFilters && currentFilters.length) {
+      currentFilters.forEach(item => {
+        if (item.value) {
+          filterBy.push(`${FieldNameMaps[item.field]}:contains=${item.value}`)
+        }
+      })
+    }
     let searchString = filterBy.length ? filterBy.join("&") : "";
-    console.log("search ? ", searchString)
+    console.log("search by ? ", searchString)
     let defaults  = {
       data: [],
       page: 0,
@@ -568,7 +524,7 @@ export default function PatientListTable(props) {
             }
             let currentPage = responsePageoffset / query.pageSize;
             setPageNumber(currentPage);
-            setPageSize(query.pageSize);
+            setPageSize(query.pageSize);            
             resolve({
               data: responseData,
               page: currentPage,
@@ -586,12 +542,37 @@ export default function PatientListTable(props) {
       });
   };
 
+  React.useEffect(() => {
+    //when page unloads, remove loading indicator
+    window.addEventListener("beforeunload", function() { setOpenLoadingModal(false); });
+    fetchData("./settings", false, handleErrorCallback).then(response => {
+        if (response) {
+            setAppSettings(response);
+        }
+      //  setLoading(false);
+    }).catch(e => {
+        //unauthorized error
+        handleErrorCallback(error);
+        setErrorMessage(`Error retrieving app setting: ${e}`);
+        setLoading(false);
+    });
+  }, []);
+
   return (
       <React.Fragment>
         <Container className={classes.container} id="patientList">
           <h2>COSRI Patient Search</h2>
           <Error message={errorMessage} style={errorStyle}/>
           {loading && <CircularProgress size={40} className={classes.buttonProgress} />}
+          <table className={classes.filterTable}>
+            <tbody>
+              <FilterRow
+                onFiltersDidChange={onFiltersDidChange}
+                launchFunc={handleSearch}
+                launchButtonLabel={LAUNCH_BUTTON_LABEL}
+                launchButtonId={TOOLBAR_ACTION_BUTTON_ID} />
+            </tbody>
+          </table>
           {<div className={classes.table} aria-label="patient list table" >
               <MaterialTable
                 className={classes.table}
@@ -604,13 +585,12 @@ export default function PatientListTable(props) {
                 options={{
                     paginationTypestepped: "stepped",
                     pageSize: pageSize,
-                  //  loadingType: "linear",
                     pageSizeOptions: [10, 20, 50],
                     padding: "dense",
                     emptyRowsWhenPaging: false,
                     debounceInterval:300,
                     toolbar: false,
-                    filtering: true,
+                    filtering: false,
                     sorting: true,
                     search: false,
                     showTitle: false,
@@ -636,16 +616,6 @@ export default function PatientListTable(props) {
                     handleSearch(event, rowData)
                   }
                 }
-                components={{
-                  FilterRow: props => <FilterRow {...props}
-                  firstName={getFieldFilterValue("first_name")}
-                  lastName={getFieldFilterValue("last_name")}
-                  dob={getFieldFilterValue("dob")}
-                  onFiltersDidChange={onFiltersDidChange}
-                  launchFunc={handleSearch}
-                  launchButtonLabel={LAUNCH_BUTTON_LABEL}
-                  launchButtonId={TOOLBAR_ACTION_BUTTON_ID} />
-                }}
                 editable={{
                   onRowDelete: oldData =>
                     fetchData("/Patient/"+oldData.id, {method: "DELETE"}).then(response => {

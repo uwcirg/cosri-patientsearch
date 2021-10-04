@@ -11,7 +11,6 @@ import TextField from '@material-ui/core/TextField';
 import Tooltip from '@material-ui/core/Tooltip';
 import  {MuiPickersUtilsProvider, KeyboardDatePicker } from '@material-ui/pickers';
 import theme from '../context/theme';
-import {getTimeZoneAdjustedDate} from './Utility';
 
 const useStyles = makeStyles({
     row: {
@@ -26,6 +25,7 @@ const useStyles = makeStyles({
         backgroundColor: "#f7f7f7"
     },
     toolbarCell: {
+        paddingTop: theme.spacing(1),
         textAlign: "left",
         backgroundColor: "#f7f7f7",
         minWidth: "180px"
@@ -42,24 +42,52 @@ const useStyles = makeStyles({
     },
     empty: {
         width: "15%",
-        backgroundColor: "#f7f7f7"
+        backgroundColor: "#f7f7f7",
+        border: "1px solid #f7f7f7"
     }
 });
 export default function FilterRow(props) {
     const classes = useStyles();
     const LAUNCH_BUTTON_LABEL = "VIEW";
-    const [firstNameFieldIndex, lastNameFieldIndex, dobFieldIndex] = [1,2,3];
-    const [firstName, setFirstName] = React.useState(props.firstName);
-    const [lastName, setLastName] = React.useState(props.lastName);
-    const [date, setDate] = React.useState(isValid(new Date(props.dob)) ? getTimeZoneAdjustedDate(new Date(props.dob)): null);
-    const [dateInput, setDateInput] = React.useState(String(props.dob).replace(/[-_]/g, ''));
+    const [firstName, setFirstName] = React.useState("");
+    const [lastName, setLastName] = React.useState("");
+    const [date, setDate] = React.useState(null);
+    const [dateInput, setDateInput] = React.useState(null);
     const handleFirstNameChange = (event) => {
         setFirstName(event.target.value);
-        props.onFilterChanged(firstNameFieldIndex, event.target.value, "first_name");
+       // props.onFilterChanged(firstNameFieldIndex, event.target.value, "first_name");
+       props.onFiltersDidChange([
+           {
+               field: "first_name",
+               value: event.target.value
+           },
+           {
+               field: "last_name",
+               value: lastName
+           },
+           {
+               field: "dob",
+               value: isValid(new Date(dateInput)) ? dateInput: ""
+           }
+       ]);
     }
     const handleLastNameChange = (event) => {
         setLastName(event.target.value);
-        props.onFilterChanged(lastNameFieldIndex, event.target.value, "last_name");
+     //   props.onFilterChanged(lastNameFieldIndex, event.target.value, "last_name");
+        props.onFiltersDidChange([
+            {
+                field: "last_name",
+                value: event.target.value
+            },
+            {
+                field: "first_name",
+                value: firstName
+            },
+            {
+                field: "dob",
+                value: isValid(new Date(dateInput)) ? dateInput: ""
+            }
+        ]);
     }
     const hasFilter = () => {
         return firstName || lastName || dateInput;
@@ -81,15 +109,29 @@ export default function FilterRow(props) {
     const clearDate = () => {
         setDate(null);
         setDateInput("");
-        props.onFilterChanged(dobFieldIndex, null, "dob");
+        //  props.onFilterChanged(dobFieldIndex, null, "dob");
+        props.onFiltersDidChange([
+            {
+                field: "first_name",
+                value: firstName
+            },
+            {
+                field: "last_name",
+                value: lastName
+            },
+            {
+                field: "dob",
+                value: null
+            }
+        ]);
     }
     const clearFields = () => {
         setFirstName("");
         setLastName("");
-        props.onFilterChanged(firstNameFieldIndex, "", "first_name");
-        props.onFilterChanged(lastNameFieldIndex, "", "last_name");
+        // props.onFilterChanged(firstNameFieldIndex, "", "first_name");
+        // props.onFilterChanged(lastNameFieldIndex, "", "last_name");
         clearDate();
-        props.onFiltersDidChange([], true);
+        props.onFiltersDidChange(null, true);
     }
     const getLaunchButtonLabel = () => {
         return props.launchButtonLabel ? props.launchButtonLabel : LAUNCH_BUTTON_LABEL;
@@ -165,12 +207,12 @@ export default function FilterRow(props) {
                                     </IconButton>
                                 </InputAdornment>
                                 ),
-                                ref: props.dobRef,
                                 className: classes.dateInput
                             }}
                             format="yyyy-MM-dd"
                             id="birthDate"
                             key="ftBirthDate"
+                            ref={props.dobRef}
                             minDate={new Date("1900-01-01")}
                             invalidDateMessage="Date must be in YYYY-MM-DD format, e.g. 1977-01-12"
                             disableFuture
@@ -183,11 +225,39 @@ export default function FilterRow(props) {
                                 setDateInput(dateString);
                                 if (!event || !isValid(event)) {
                                     if (event && ((String(dateInput).replace(/[-_]/g, '').length) >= 8)) setDate(event);
-                                   // props.onFilterChanged(3, null, "dob");
+                                    // props.onFilterChanged(3, null, "dob");
+                                    props.onFiltersDidChange([
+                                        {
+                                            field: "first_name",
+                                            value: firstName
+                                        },
+                                        {
+                                            field: "last_name",
+                                            value: lastName
+                                        },
+                                        {
+                                            field: "dob",
+                                            value: null
+                                        }
+                                    ])
                                     return;
                                 }
                                 setDate(event);
-                                props.onFilterChanged(3, dateString, "dob");
+                                //   props.onFilterChanged(3, dateString, "dob");
+                                props.onFiltersDidChange([
+                                    {
+                                        field: "first_name",
+                                        value: firstName
+                                    },
+                                    {
+                                        field: "last_name",
+                                        value: lastName
+                                    },
+                                    {
+                                        field: "dob",
+                                        value: dateString
+                                    }
+                                ])
                             }}
                             KeyboardButtonProps={{color: "primary", title: "Date picker"}}
 
