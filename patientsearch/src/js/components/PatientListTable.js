@@ -29,7 +29,7 @@ const useStyles = makeStyles({
         maxWidth: "1080px"
     },
     filterTable: {
-      marginBottom: theme.spacing(2)
+      marginBottom: theme.spacing(1)
     },
     table: {
         minWidth: 450,
