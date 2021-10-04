@@ -508,10 +508,10 @@ export default function PatientListTable(props) {
       * get patient list
       */
       return new Promise((resolve, reject) => {
-          fetchData(`./Patient?_include=Patient:link&_total=accurate&_sort=${sortMinus}${sortField}&_count=${query.pageSize}&_getpagesoffset=${query.page*query.pageSize}${searchString?"&"+searchString:""}`, noCacheParam, function() {
+          fetchData(`./Patient?_include=Patient:link&_total=accurate&_sort=${sortMinus}${sortField}&_count=${query.pageSize}&_getpagesoffset=${query.page*query.pageSize}${searchString?"&"+searchString:""}`, noCacheParam, function(e) {
             resetAll();
             resolve(defaults);
-            handleErrorCallback();
+            handleErrorCallback(e);
           }).then(response => {
             if (!response || !response.entry || !response.entry.length) {
               resetAll();
@@ -572,7 +572,6 @@ export default function PatientListTable(props) {
         <Container className={classes.container} id="patientList">
           <h2>COSRI Patient Search</h2>
           <Error message={errorMessage} style={errorStyle}/>
-          {loading && <CircularProgress size={40} className={classes.buttonProgress} />}
           <table className={classes.filterTable}>
             <tbody>
               <FilterRow
