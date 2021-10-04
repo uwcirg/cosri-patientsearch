@@ -54,25 +54,23 @@ export default function FilterRow(props) {
     const [dateInput, setDateInput] = React.useState(null);
     const handleFirstNameChange = (event) => {
         setFirstName(event.target.value);
-       // props.onFilterChanged(firstNameFieldIndex, event.target.value, "first_name");
-       props.onFiltersDidChange([
-           {
-               field: "first_name",
-               value: event.target.value
-           },
-           {
-               field: "last_name",
-               value: lastName
-           },
-           {
-               field: "dob",
-               value: isValid(new Date(dateInput)) ? dateInput: ""
-           }
-       ]);
+        props.onFiltersDidChange([
+            {
+                field: "first_name",
+                value: event.target.value
+            },
+            {
+                field: "last_name",
+                value: lastName
+            },
+            {
+                field: "dob",
+                value: isValid(new Date(dateInput)) ? dateInput: ""
+            }
+        ]);
     }
     const handleLastNameChange = (event) => {
         setLastName(event.target.value);
-     //   props.onFilterChanged(lastNameFieldIndex, event.target.value, "last_name");
         props.onFiltersDidChange([
             {
                 field: "last_name",
@@ -108,7 +106,6 @@ export default function FilterRow(props) {
     const clearDate = () => {
         setDate(null);
         setDateInput("");
-        //  props.onFilterChanged(dobFieldIndex, null, "dob");
         props.onFiltersDidChange([
             {
                 field: "first_name",
@@ -127,8 +124,6 @@ export default function FilterRow(props) {
     const clearFields = () => {
         setFirstName("");
         setLastName("");
-        // props.onFilterChanged(firstNameFieldIndex, "", "first_name");
-        // props.onFilterChanged(lastNameFieldIndex, "", "last_name");
         clearDate();
         props.onFiltersDidChange(null, true);
     }
