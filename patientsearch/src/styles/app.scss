@@ -9,14 +9,6 @@ $table-header-bg-color: rgb(224, 242, 241);
 html {
   scroll-behavior: smooth;
 }
-#emptyDataContainer {
-  display: none;
-}
-.ready {
-  #emptyDataContainer {
-    display: block;
-  }
-}
 .logout-container {
   margin-top: 196px;
   display: flex;
@@ -177,7 +169,7 @@ button.disabled:focus,
   .MuiInputLabel-formControl {
     font-size: $small-font-size;
   }
-  table:first-of-type {
+  table {
     position: relative;
     overflow: hidden;
   }

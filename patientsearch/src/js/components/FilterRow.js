@@ -157,7 +157,6 @@ export default function FilterRow(props) {
                         onChange={handleFirstNameChange}
                         onKeyDown={handleKeyDown}
                         key="ftFirstName"
-                        ref={props.firstNameRef}
                         inputProps={{"data-lpignore": true}}
                         InputProps={{
                             startAdornment: (
@@ -177,7 +176,6 @@ export default function FilterRow(props) {
                         placeholder="Last Name"
                         id="lastName"
                         key="ftLastName"
-                        ref={props.lastNameRef}
                         value={lastName}
                         onChange={handleLastNameChange}
                         onKeyDown={handleKeyDown}
@@ -212,7 +210,6 @@ export default function FilterRow(props) {
                             format="yyyy-MM-dd"
                             id="birthDate"
                             key="ftBirthDate"
-                            ref={props.dobRef}
                             minDate={new Date("1900-01-01")}
                             invalidDateMessage="Date must be in YYYY-MM-DD format, e.g. 1977-01-12"
                             disableFuture
@@ -221,7 +218,6 @@ export default function FilterRow(props) {
                             orientation="landscape"
                             onKeyDown={handleKeyDown}
                             onChange={(event, dateString) => {
-                                console.log("event ? ", event, " dateString? ", dateString)
                                 setDateInput(dateString);
                                 if (!event || !isValid(event)) {
                                     if (event && ((String(dateInput).replace(/[-_]/g, '').length) >= 8)) setDate(event);

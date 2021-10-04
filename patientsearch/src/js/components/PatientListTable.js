@@ -391,14 +391,6 @@ export default function PatientListTable(props) {
     }) : data;
   }
 
-  function setToolbarActionButtonVis(filters) {
-    if (!document.querySelector(`#${TOOLBAR_ACTION_BUTTON_ID} span`)) return;
-    if (filters && filters.length >= NUM_OF_REQUIRED_FILTERS) {
-      document.querySelector(`#${TOOLBAR_ACTION_BUTTON_ID} span`).innerText = document.querySelector(`#${NO_DATA_ELEMENT_ID}`) ? CREATE_BUTTON_LABEL: LAUNCH_BUTTON_LABEL;
-      return;
-    }
-    document.querySelector(`#${TOOLBAR_ACTION_BUTTON_ID} span`).innerText = LAUNCH_BUTTON_LABEL;
-  }
   //display body content when table is rendered
   function setVis() {
     document.querySelector("body").classList.add("ready");
@@ -413,18 +405,35 @@ export default function PatientListTable(props) {
     if (hasNoPMPRow) setContainNoPMPRow(true);
   }
 
+  function containEmptyFilter(filters) {
+    if (!filters) return true;
+    return filters.filter(item => {
+      return !item.value;
+    }).length > 0;
+  }
+
+  function setToolbarActionButtonVis(filters) {
+    if (!document.querySelector(`#${TOOLBAR_ACTION_BUTTON_ID} span`)) return;
+    if (!containEmptyFilter(filters)) {
+      document.querySelector(`#${TOOLBAR_ACTION_BUTTON_ID} span`).innerText = document.querySelector(`#${NO_DATA_ELEMENT_ID}`) ? CREATE_BUTTON_LABEL: LAUNCH_BUTTON_LABEL;
+      return;
+    }
+    document.querySelector(`#${TOOLBAR_ACTION_BUTTON_ID} span`).innerText = LAUNCH_BUTTON_LABEL;
+  }
+
   function setNoDataText(filters) {
     if (!document.querySelector(`#${NO_DATA_ELEMENT_ID}`)) return;
     let noDataText = "";
-    if (!filters || filters.length < NUM_OF_REQUIRED_FILTERS) {
+    if (filters && filters.length > 0 && containEmptyFilter(filters)) {
       noDataText = "Try entering all First name, Last name and Birth Date.";
-    } else
+    }
+    if (!containEmptyFilter(filters)) {
       noDataText = `Click on ${CREATE_BUTTON_LABEL} button to create new patient`;
+    }
     document.querySelector(`#${NO_DATA_ELEMENT_ID}`).innerText = noDataText;
   }
   let filterIntervalId = 0;
   function onFiltersDidChange(filters, clearAll) {
-    console.log("query filters ", filters)
     clearTimeout(filterIntervalId);
     filterIntervalId = setTimeout(function() {
       setNoDataText(filters);
@@ -524,7 +533,7 @@ export default function PatientListTable(props) {
             }
             let currentPage = responsePageoffset / query.pageSize;
             setPageNumber(currentPage);
-            setPageSize(query.pageSize);            
+            setPageSize(query.pageSize);
             resolve({
               data: responseData,
               page: currentPage,
