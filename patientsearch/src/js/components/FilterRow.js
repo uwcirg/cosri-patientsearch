@@ -21,7 +21,7 @@ const useStyles = makeStyles({
         backgroundColor: "#f7f7f7"
     },
     dateCell: {
-        padding: theme.spacing(0.5, 2, 0),
+        padding: theme.spacing(0.5, 2, 0.5),
         backgroundColor: "#f7f7f7"
     },
     toolbarCell: {
@@ -42,8 +42,7 @@ const useStyles = makeStyles({
     },
     empty: {
         width: "15%",
-        backgroundColor: "#f7f7f7",
-        border: "1px solid #f7f7f7"
+        backgroundColor: "#f7f7f7"
     }
 });
 export default function FilterRow(props) {

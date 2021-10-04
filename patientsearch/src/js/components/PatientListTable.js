@@ -101,7 +101,6 @@ const useStyles = makeStyles({
 });
 
 let appSettings = {};
-const NUM_OF_REQUIRED_FILTERS = 3;
 
 export default function PatientListTable(props) {
   const classes = useStyles();
@@ -116,7 +115,6 @@ export default function PatientListTable(props) {
   const [pageSize, setPageSize] = React.useState(20);
   const [pageNumber, setPageNumber] = React.useState(0);
   const [openLoadingModal, setOpenLoadingModal] = React.useState(false);
-  const [loading, setLoading] = React.useState(true);
   const [errorMessage, setErrorMessage] = React.useState("");
   const [containNoPMPRow, setContainNoPMPRow] = React.useState(false);
   const tableRef = React.useRef();
@@ -465,7 +463,7 @@ export default function PatientListTable(props) {
   }
 
   function patientListInitialized() {
-    return !loading && initialized;
+    return initialized;
   }
 
   function handleErrorCallback(e) {
@@ -490,7 +488,6 @@ export default function PatientListTable(props) {
       })
     }
     let searchString = filterBy.length ? filterBy.join("&") : "";
-    console.log("search by ? ", searchString)
     let defaults  = {
       data: [],
       page: 0,
@@ -501,7 +498,6 @@ export default function PatientListTable(props) {
       setPageSize(query.pageSize);
       setVis();
       setInitialized(true);
-      setLoading(false);
     };
 
      /*
@@ -510,8 +506,8 @@ export default function PatientListTable(props) {
       return new Promise((resolve, reject) => {
           fetchData(`./Patient?_include=Patient:link&_total=accurate&_sort=${sortMinus}${sortField}&_count=${query.pageSize}&_getpagesoffset=${query.page*query.pageSize}${searchString?"&"+searchString:""}`, noCacheParam, function(e) {
             resetAll();
-            resolve(defaults);
             handleErrorCallback(e);
+            resolve(defaults);
           }).then(response => {
             if (!response || !response.entry || !response.entry.length) {
               resetAll();
@@ -529,9 +525,8 @@ export default function PatientListTable(props) {
             }) : 0;
             if (responseSelfLink && responseSelfLink.length) {
               responsePageoffset = getUrlParameter("_getpagesoffset", new URL(responseSelfLink[0].url));
-              console.log("responsePageoffset ", responsePageoffset)
             }
-            let currentPage = responsePageoffset / query.pageSize;
+            let currentPage = responsePageoffset ? (responsePageoffset / query.pageSize) : 0;
             setPageNumber(currentPage);
             setPageSize(query.pageSize);
             resolve({
@@ -539,7 +534,6 @@ export default function PatientListTable(props) {
               page: currentPage,
               totalCount: response.total,
             });
-            setLoading(false);
         }).catch(error => {
           console.log("Failed to retrieve data", error);
           //unauthorized error
@@ -558,12 +552,10 @@ export default function PatientListTable(props) {
         if (response) {
             setAppSettings(response);
         }
-      //  setLoading(false);
     }).catch(e => {
         //unauthorized error
         handleErrorCallback(error);
         setErrorMessage(`Error retrieving app setting: ${e}`);
-        setLoading(false);
     });
   }, []);
 
