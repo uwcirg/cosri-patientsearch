@@ -528,7 +528,7 @@ export default function PatientListTable(props) {
             if (responseSelfLink && responseSelfLink.length) {
               responsePageoffset = getUrlParameter("_getpagesoffset", new URL(responseSelfLink[0].url));
             }
-            let currentPage = responsePageoffset ? responsePageoffset / query.pageSize : 0;
+            let currentPage = responsePageoffset ? (responsePageoffset / query.pageSize) : 0;
             setPageNumber(currentPage);
             setPageSize(query.pageSize);
             resolve({
