@@ -469,7 +469,7 @@ export default function PatientListTable(props) {
   function handleErrorCallback(e) {
     if (e && e.status === 401) {
       setErrorMessage("Unauthorized.");
-      handleExpiredSession();
+      window.location = "/logout?unauthorized=true";
       return;
     }
     setErrorMessage(isString(e) ? e : (e && e.message? e.message: "Error occurred processing data"));
@@ -500,11 +500,13 @@ export default function PatientListTable(props) {
       setInitialized(true);
     };
 
+    let currentPageoffset = query.page*query.pageSize;
+
      /*
       * get patient list
       */
       return new Promise((resolve, reject) => {
-          fetchData(`./Patient?_include=Patient:link&_total=accurate&_sort=${sortMinus}${sortField}&_count=${query.pageSize}&_getpagesoffset=${query.page*query.pageSize}${searchString?"&"+searchString:""}`, noCacheParam, function(e) {
+          fetchData(`./Patient?_include=Patient:link&_total=accurate&_sort=${sortMinus}${sortField}&_count=${query.pageSize}&_getpagesoffset=${currentPageoffset > 0 ? currentPageoffset: currentPageoffset}${searchString?"&"+searchString:""}`, noCacheParam, function(e) {
             resetAll();
             handleErrorCallback(e);
             resolve(defaults);

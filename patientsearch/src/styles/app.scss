@@ -195,6 +195,13 @@ button.disabled:focus,
 }
 
 /*
+ * hide the Lage Page arrow on patient list table
+ */
+.MuiTableRow-footer [title='Last Page'] {
+  display: none !important;
+}
+
+/*
  * table mobile styling
  */
 
