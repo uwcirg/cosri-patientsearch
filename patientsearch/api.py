@@ -179,7 +179,7 @@ def favicon():
         'favicon.ico', mimetype='image/vnd.microsoft.icon')
 
 
-@api_blueprint.route('/<string:resource_type>', methods=["GET"])
+@api_blueprint.route('/fhir/<string:resource_type>', methods=["GET"])
 def resource_bundle(resource_type):
     """Query HAPI for resource_type and return as JSON FHIR Bundle
 
@@ -200,7 +200,7 @@ def resource_bundle(resource_type):
 
 
 @api_blueprint.route(
-    '/<string:resource_type>/<int:resource_id>', methods=["PUT"])
+    '/fhir/<string:resource_type>/<int:resource_id>', methods=["PUT"])
 def update_resource_by_id(resource_type, resource_id):
     """Update individual resource within HAPI; return JSON result
 
@@ -237,7 +237,7 @@ def update_resource_by_id(resource_type, resource_id):
 
 
 @api_blueprint.route(
-    '/<string:resource_type>/<int:resource_id>', methods=["DELETE"])
+    '/fhir/<string:resource_type>/<int:resource_id>', methods=["DELETE"])
 def delete_resource_by_id(resource_type, resource_id):
     """Delete individual resource from HAPI; return JSON result
 
@@ -258,7 +258,7 @@ def delete_resource_by_id(resource_type, resource_id):
 
 
 @api_blueprint.route(
-    '/<string:resource_type>/<int:resource_id>', methods=["GET"])
+    '/fhir/<string:resource_type>/<int:resource_id>', methods=["GET"])
 def resource_by_id(resource_type, resource_id):
     """Query HAPI for individual resource; return JSON FHIR Resource
 
