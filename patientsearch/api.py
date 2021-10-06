@@ -179,6 +179,24 @@ def favicon():
         'favicon.ico', mimetype='image/vnd.microsoft.icon')
 
 
+@api_blueprint.route('/fhir', methods=["GET"])
+def bundle_getpages():
+    """Base Query HAPI, typically used for paging w/o naming resource type
+
+    NB not decorated with `@oidc.require_login` as that does an implicit
+    redirect.  Client should watch for 401 and redirect appropriately.
+
+    :param search criteria: Include query string arguments to pass to HAPI
+      as additional search criteria.  Example: /fhir?_getpages=<abc>&...
+
+    """
+    token = validate_auth()
+    try:
+        return jsonify(HAPI_request(token=token, method='GET', params=request.args))
+    except (RuntimeError, ValueError) as error:
+        return jsonify_abort(status_code=400, message=str(error))
+
+
 @api_blueprint.route('/fhir/<string:resource_type>', methods=["GET"])
 def resource_bundle(resource_type):
     """Query HAPI for resource_type and return as JSON FHIR Bundle
