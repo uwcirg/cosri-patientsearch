@@ -34,10 +34,10 @@ export default function Info() {
     const classes = useStyles();
     const [setting, setSetting] = React.useState({});
     const [siteID, setSiteID] = React.useState("");
-    const [systemType, setSystemType] = React.useState("");
     const [initialized, setInitialized] = React.useState(false);
     const SYSTEM_TYPE_STRING = "SYSTEM_TYPE";
     const SITE_ID_STRING = "SITE_ID";
+    //site name should probably come from config?
     const siteNameMappings = {
         "FCK": "FamilyCare of Kent",
         "SFH": "Skagit Family Health"
@@ -102,7 +102,6 @@ export default function Info() {
         if (siteName) {
             return `This system is only for use by clinical staff of ${siteName}.`;
         }
-        //TODO is there a config var for site name?
         return "This system is only for use by clinical staff.";
     }
     return (
