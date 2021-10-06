@@ -402,3 +402,15 @@ def logout():
     ))
     resp.set_cookie('oidc_id_token', '', expires=0)
     return resp
+
+@api_blueprint.route('/info', methods=["GET"])
+def info():
+    """ entry point for pre-authenticated access """
+    return send_from_directory(
+        safe_join(
+            current_app.config.get("STATIC_DIR") or current_app.static_folder,
+            'templates'
+        ),
+        'info.html',
+        cache_timeout=-1
+    )
