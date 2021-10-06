@@ -506,7 +506,7 @@ export default function PatientListTable(props) {
       * get patient list
       */
       return new Promise((resolve, reject) => {
-          fetchData(`./Patient?_include=Patient:link&_total=accurate&_sort=${sortMinus}${sortField}&_count=${query.pageSize}&_getpagesoffset=${currentPageoffset > 0 ? currentPageoffset: currentPageoffset}${searchString?"&"+searchString:""}`, noCacheParam, function(e) {
+          fetchData(`./fhir/Patient?_include=Patient:link&_total=accurate&_sort=${sortMinus}${sortField}&_count=${query.pageSize}&_getpagesoffset=${currentPageoffset > 0 ? currentPageoffset: currentPageoffset}${searchString?"&"+searchString:""}`, noCacheParam, function(e) {
             resetAll();
             handleErrorCallback(e);
             resolve(defaults);
@@ -620,7 +620,7 @@ export default function PatientListTable(props) {
                 }
                 editable={{
                   onRowDelete: oldData =>
-                    fetchData("/Patient/"+oldData.id, {method: "DELETE"}).then(response => {
+                    fetchData("./fhir/Patient/"+oldData.id, {method: "DELETE"}).then(response => {
                         setTimeout(() => {
                             const dataDelete = [...data];
                             const index = oldData.tableData.id;
