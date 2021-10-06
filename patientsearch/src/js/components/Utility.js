@@ -80,6 +80,10 @@ export function pad (val, len) {
   return val;
 }
 
+/*
+ * convert a UTC date/time string to local date/time string in YYYY-MM-DD HH:MM format
+ * example: 2021-10-01T20:31:35.917+00:00 to 2021-10-01 13:31
+ */
 export function getLocalDateTimeString(utcDateString) {
   if (!utcDateString) return "";
   //note javascript Date object automatically convert UTC date/time to locate date/time, no need to parse and convert
