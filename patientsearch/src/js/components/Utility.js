@@ -71,3 +71,24 @@ export function getUrlParameter(name, queryString) {
 export function isString (obj) {
   return (Object.prototype.toString.call(obj) === '[object String]');
 }
+
+export function pad (val, len) {
+  if (!val) return "";
+  val = String(val);
+  len = len || 2;
+  while (val.length < len) val = "0" + val;
+  return val;
+}
+
+export function getLocalDateTimeString(utcDateString) {
+  if (!utcDateString) return "";
+  //note javascript Date object automatically convert UTC date/time to locate date/time, no need to parse and convert
+  let dateObj = new Date(utcDateString);
+  console.log("date? ", dateObj)
+  let year = dateObj.getFullYear();
+  let month = pad(dateObj.getMonth()+1);
+  let day = pad(dateObj.getDate());
+  let hours = pad(dateObj.getHours());
+  let minutes = pad(dateObj.getMinutes());
+  return `${year}-${month}-${day} ${hours}:${minutes}`;
+}

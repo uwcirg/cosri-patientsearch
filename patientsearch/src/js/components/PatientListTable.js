@@ -18,7 +18,7 @@ import Modal from '@material-ui/core/Modal';
 import Error from "./Error";
 import FilterRow from "./FilterRow";
 import theme from '../context/theme';
-import {isoShortDateFormat, getUrlParameter, isString} from "./Utility";
+import {getLocalDateTimeString, getUrlParameter, isString} from "./Utility";
 
 const useStyles = makeStyles({
     container: {
@@ -380,7 +380,7 @@ export default function PatientListTable(props) {
             dob: source && source["birthDate"]? source["birthDate"]:"",
             url: getLaunchURL(patientId),
             identifier: source && source.identifier && source.identifier.length? source.identifier: null,
-            lastUpdated: source && source.meta && source.meta.lastUpdated ? isoShortDateFormat(source.meta.lastUpdated) : "",
+            lastUpdated: source && source.meta && source.meta.lastUpdated ? getLocalDateTimeString(source.meta.lastUpdated) : "",
             gender: source && source["gender"] ? source["gender"] : "",
             resource: source,
             id: patientId
