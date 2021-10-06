@@ -36,8 +36,8 @@ export default function Info() {
     const [siteID, setSiteID] = React.useState("");
     const [initialized, setInitialized] = React.useState(false);
     const SYSTEM_TYPE_STRING = "SYSTEM_TYPE";
+    const SITE_INFO_STRING = "SITE_INFO";
     const SITE_ID_STRING = "SITE_ID";
-    //site name should probably come from config?
     const siteNameMappings = {
         "FCK": "FamilyCare of Kent",
         "SFH": "Skagit Family Health"
@@ -61,6 +61,13 @@ export default function Info() {
             setInitialized(true);
         });
     }, [initialized]);
+    /*
+     * return info content specific for the site
+     */
+    function getSiteInfo() {
+        if (!Object.keys(setting)) return "";
+        return setting[SITE_INFO_STRING];
+    }
     function getSiteId() {
         if (!Object.keys(setting)) return "";
         return setting[SITE_ID_STRING];
@@ -94,9 +101,11 @@ export default function Info() {
         }
     }
     function getMessage() {
+        //configurable display text for a specific site
+        if (getSiteInfo()) return getSiteInfo();
         if (!siteID) return `This is a ${getSystemType()} system.  Not for clinical use.`;
         if (siteID === "demo") {
-            return "Public Demonstration version of COSRI. Log in with username:test and password:test.";
+            return "Public Demonstration version of COSRI. <br/>Log in with username:test and password:test.";
         }
         let siteName = siteNameMappings[siteID];
         if (siteName) {
@@ -111,7 +120,7 @@ export default function Info() {
             <Button color="primary" href="/" align="center" variant="outlined" size="large" className={classes.button}>Click here to log in</Button>
             <div className={classes.info}>
                 <Typography component="h4" variant="h5" color="inherit" align="center" className={classes.title}>
-                    {getMessage()}
+                    <div dangerouslySetInnerHTML={{ __html: getMessage()}}></div>
                 </Typography>
             </div>
         </div>
