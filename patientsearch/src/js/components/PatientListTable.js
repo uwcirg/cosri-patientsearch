@@ -140,12 +140,8 @@ export default function PatientListTable(props) {
   const [prevPageNumber, setPrevPageNumber] = React.useState(0);
   const [disablePrevButton, setDisablePrevButton] = React.useState(true);
   const [disableNextButton, setDisableNextButton] = React.useState(true);
-  const [currentPageId, setCurrentPageId] = React.useState("");
-  const [prevPageId, setPrevPageId] = React.useState("");
-  const [nextPageId, setNextPageId] = React.useState("");
-  const [currentPageOffset, setCurrentPageOffset] = React.useState(0);
-  const [prevPageOffset, setPrevPageOffset] = React.useState(0);
-  const [nextPageOffset, setNextPageOffset] = React.useState(0);
+  const [nextPageURL, setNextPageURL] = React.useState("");
+  const [prevPageURL, setPrevPageURL] = React.useState("");
   const [openLoadingModal, setOpenLoadingModal] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState("");
   const [containNoPMPRow, setContainNoPMPRow] = React.useState(false);
@@ -465,7 +461,6 @@ export default function PatientListTable(props) {
 
   function onFiltersDidChange(filters, clearAll) {
     clearTimeout(filterIntervalId);
-    console.log("filter changed ? ", filters)
     filterIntervalId = setTimeout(function() {
       setNoDataText(filters);
       setToolbarActionButtonVis(filters);
@@ -511,8 +506,6 @@ export default function PatientListTable(props) {
   const resetPaging = () => {
     setPageNumber(0);
     setPageSize(pageSize);
-    setCurrentPageOffset(0);
-    setCurrentPageId("");
   }
 
   const handleRefresh = () => {
@@ -542,27 +535,24 @@ export default function PatientListTable(props) {
       setVis();
       setInitialized(true);
     };
-    let usePageOffset = 0;
-    let usePageId = "";
-    if (searchString) resetPaging();
-    else {
-        if (pageNumber > prevPageNumber) {
-          usePageOffset = nextPageOffset;
-          usePageId = nextPageId;
-        } else if (prevPageNumber < pageNumber) {
-          usePageId = prevPageId;
-          usePageOffset = prevPageOffset;
-        } else {
-          usePageId = currentPageId;
-          usePageOffset = currentPageOffset;
+    let apiURL = `/fhir/Patient?_include=Patient:link&_total=accurate&_count=${pageSize}&_getpagesoffset=0`;
+    if (searchString) {
+      resetPaging();
+    } else {
+        if (pageNumber > prevPageNumber && nextPageURL) {
+          apiURL = nextPageURL;
+        } else if (prevPageNumber < pageNumber && prevPageURL) {
+          apiURL = prevPageURL;
         }
     }
-    console.log("page Id ", usePageId, " current page offset ", usePageOffset)
+    if (searchString) apiURL += `&${searchString}`;
+    if (sortField) apiURL += `&_sort=${sortMinus}${sortField}`;
+    console.log("URL ? ", apiURL)
      /*
       * get patient list
       */
       return new Promise((resolve, reject) => {
-          fetchData(`/fhir/Patient?_include=Patient:link&_total=accurate&_sort=${sortMinus}${sortField}&_count=${pageSize}&_getpagesoffset=${usePageOffset}${searchString?"&"+searchString:""}${usePageId?"&__getpages="+usePageId:""}`, noCacheParam, function(e) {
+          fetchData(apiURL, noCacheParam, function(e) {
             resetAll();
             handleErrorCallback(e);
             resolve(defaults);
@@ -593,11 +583,9 @@ export default function PatientListTable(props) {
             let currentPage = responsePageoffset ? (responsePageoffset / pageSize) : 0;
             let hasNextLink = responseNextLink && responseNextLink.length;
             let hasPrevLink = responsePrevLink && responsePrevLink.length;
-            setNextPageId(hasNextLink ? getUrlParameter("_getpages", new URL(responseNextLink[0].url)) : "");
-            setNextPageOffset(hasNextLink ? getUrlParameter("_getpagesoffset", new URL(responseNextLink[0].url)) : "");
+            setNextPageURL(hasNextLink ? responseNextLink[0].url: "");
+            setPrevPageURL(hasPrevLink ? responsePrevLink[0].url: "");
             setDisableNextButton(!hasNextLink);
-            setPrevPageId(hasPrevLink ? getUrlParameter("_getpages", new URL(responsePrevLink[0].url)) : "");
-            setPrevPageOffset(hasPrevLink ? getUrlParameter("_getpagesoffset", new URL(responsePrevLink[0].url)) : 0);
             setDisablePrevButton(!hasPrevLink);
             resolve({
               data: responseData,
@@ -623,9 +611,6 @@ export default function PatientListTable(props) {
 
   const handleChangeRowsPerPage = (event) => {
     setPageSize(parseInt(event.target.value, 10));
-    setPageNumber(0);
-    setCurrentPageId("");
-    setCurrentPageOffset(0);
     if (tableRef && tableRef.current) tableRef.current.onQueryChange();
   };
 
@@ -662,6 +647,7 @@ export default function PatientListTable(props) {
                 className={classes.table}
                 columns={columns}
                 data={
+                  //any change in query will invoke this function
                   query => getPatientList(query)
                 }
                 tableRef={tableRef}
