@@ -471,6 +471,7 @@ export default function PatientListTable(props) {
       else {
         if (clearAll) {
           setCurrentFilters(defaultFilters);
+          resetPaging();
           if (tableRef && tableRef.current) tableRef.current.onQueryChange();
           return defaultFilters;
         }
@@ -537,14 +538,14 @@ export default function PatientListTable(props) {
     if (searchString) {
       resetPaging();
     } else {
-        if (pageNumber > prevPageNumber && nextPageURL) {
+        if ((pageNumber > prevPageNumber) && nextPageURL) {
           apiURL = nextPageURL;
-        } else if (prevPageNumber < pageNumber && prevPageURL) {
+        } else if ((pageNumber < prevPageNumber) && prevPageURL) {
           apiURL = prevPageURL;
         }
     }
     if (searchString) apiURL += `&${searchString}`;
-    if (sortField) apiURL += `&_sort=${sortMinus}${sortField}`;
+    if (sortField && (apiURL.indexOf("sort")===-1)) apiURL += `&_sort=${sortMinus}${sortField}`;
 
      /*
       * get patient list
@@ -575,16 +576,17 @@ export default function PatientListTable(props) {
             let responsePrevLink = response.link? response.link.filter(item => {
               return item.relation === "previous";
             }) : 0;
-            if (responseSelfLink && responseSelfLink.length) {
+            let hasSelfLink = responseSelfLink && responseSelfLink.length;
+            if (hasSelfLink) {
               responsePageoffset = getUrlParameter("_getpagesoffset", new URL(responseSelfLink[0].url));
             }
             let currentPage = responsePageoffset ? (responsePageoffset / pageSize) : 0;
             let hasNextLink = responseNextLink && responseNextLink.length;
             let hasPrevLink = responsePrevLink && responsePrevLink.length;
             setNextPageURL(hasNextLink ? responseNextLink[0].url: "");
-            setPrevPageURL(hasPrevLink ? responsePrevLink[0].url: "");
+            setPrevPageURL(hasPrevLink ? responsePrevLink[0].url: (hasSelfLink?responseSelfLink[0].url:""));
             setDisableNextButton(!hasNextLink);
-            setDisablePrevButton(!hasPrevLink);
+            setDisablePrevButton(pageNumber === 0);
             resolve({
               data: responseData,
               page: currentPage,
@@ -604,7 +606,7 @@ export default function PatientListTable(props) {
   const handleChangePage = (event, newPage) => {
     setPrevPageNumber(pageNumber);
     setPageNumber(newPage);
-    if ((newPage !== pageNumber) && tableRef && tableRef.current) tableRef.current.onQueryChange();
+    if (tableRef && tableRef.current) tableRef.current.onQueryChange();
   };
 
   const handleChangeRowsPerPage = (event) => {
