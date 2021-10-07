@@ -71,3 +71,27 @@ export function getUrlParameter(name, queryString) {
 export function isString (obj) {
   return (Object.prototype.toString.call(obj) === '[object String]');
 }
+
+export function pad (val, len) {
+  if (!val) return "";
+  val = String(val);
+  len = len || 2;
+  while (val.length < len) val = "0" + val;
+  return val;
+}
+
+/*
+ * convert a UTC date/time string to local date/time string in YYYY-MM-DD HH:MM format
+ * example: 2021-10-01T20:31:35.917+00:00 to 2021-10-01 13:31
+ */
+export function getLocalDateTimeString(utcDateString) {
+  if (!utcDateString) return "";
+  //note javascript Date object automatically convert UTC date/time to locate date/time, no need to parse and convert
+  let dateObj = new Date(utcDateString);
+  let year = dateObj.getFullYear();
+  let month = pad(dateObj.getMonth()+1);
+  let day = pad(dateObj.getDate());
+  let hours = pad(dateObj.getHours());
+  let minutes = pad(dateObj.getMinutes());
+  return `${year}-${month}-${day} ${hours}:${minutes}`;
+}
