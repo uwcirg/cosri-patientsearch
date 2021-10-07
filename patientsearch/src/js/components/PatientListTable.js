@@ -21,7 +21,7 @@ import TablePagination from '@material-ui/core/TablePagination';
 import Error from "./Error";
 import FilterRow from "./FilterRow";
 import theme from '../context/theme';
-import {getLocalDateTimeString, getUrlParameter, isString} from "./Utility";
+import {isoShortDateFormat, getUrlParameter, isString} from "./Utility";
 
 const useStyles = makeStyles({
     container: {
@@ -188,7 +188,7 @@ export default function PatientListTable(props) {
     appSettings = settings;
   }
   const getPatientPMPSearchURL = (data) => {
-    if (data.id && data.identifier) return `/Patient/${data.id}`;
+    if (data.id && data.identifier) return `/fhir/Patient/${data.id}`;
     const dataURL = "/external_search/Patient";
     const params = [
           `subject:Patient.name.given=${data.first_name}`,
@@ -412,7 +412,7 @@ export default function PatientListTable(props) {
             dob: source && source["birthDate"]? source["birthDate"]:"",
             url: getLaunchURL(patientId),
             identifier: source && source.identifier && source.identifier.length? source.identifier: null,
-            lastUpdated: source && source.meta && source.meta.lastUpdated ? getLocalDateTimeString(source.meta.lastUpdated) : "",
+            lastUpdated: source && source.meta && source.meta.lastUpdated ? isoShortDateFormat(source.meta.lastUpdated) : "",
             gender: source && source["gender"] ? source["gender"] : "",
             resource: source,
             id: patientId
@@ -562,7 +562,7 @@ export default function PatientListTable(props) {
       * get patient list
       */
       return new Promise((resolve, reject) => {
-          fetchData(`./fhir/Patient?_include=Patient:link&_total=accurate&_sort=${sortMinus}${sortField}&_count=${pageSize}&_getpagesoffset=${usePageOffset}${searchString?"&"+searchString:""}${usePageId?"&__getpages="+usePageId:""}`, noCacheParam, function(e) {
+          fetchData(`/fhir/Patient?_include=Patient:link&_total=accurate&_sort=${sortMinus}${sortField}&_count=${pageSize}&_getpagesoffset=${usePageOffset}${searchString?"&"+searchString:""}${usePageId?"&__getpages="+usePageId:""}`, noCacheParam, function(e) {
             resetAll();
             handleErrorCallback(e);
             resolve(defaults);
@@ -704,7 +704,7 @@ export default function PatientListTable(props) {
                 }
                 editable={{
                   onRowDelete: oldData =>
-                    fetchData("./fhir/Patient/"+oldData.id, {method: "DELETE"}).then(response => {
+                    fetchData("/fhir/Patient/"+oldData.id, {method: "DELETE"}).then(response => {
                         setTimeout(() => {
                             const dataDelete = [...data];
                             const index = oldData.tableData.id;
