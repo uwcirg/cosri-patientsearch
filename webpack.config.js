@@ -94,7 +94,7 @@ module.exports = function(_env, argv) {
       new HtmlWebpackPlugin({
         title: appTitle,
         template: templateFilePath,
-        filename: path.join(__dirname, `${templateDirectory}/info.html`),
+        filename: path.join(__dirname, `${templateDirectory}/home.html`),
         favicon: faviconFilePath,
         chunks: ['info']
       }),

@@ -9,6 +9,21 @@ $table-header-bg-color: rgb(224, 242, 241);
 html {
   scroll-behavior: smooth;
 }
+.landing {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+}
+.version-container {
+  flex-shrink: 0;
+  height: 32px;
+  margin-top: -32px;
+  text-align: right;
+  width: 100%;
+  padding-left: 24px;
+  padding-right: 24px;
+}
 .logout-container {
   margin-top: 196px;
   display: flex;
@@ -182,15 +197,6 @@ button.disabled:focus,
   button {
     padding: 4px 16px;
     min-width: 120px;
-  }
-}
-
-.version-container {
-  opacity: 0;
-}
-.ready {
-  .version-container {
-    opacity: 1;
   }
 }
 

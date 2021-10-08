@@ -13,7 +13,10 @@ const useStyles = makeStyles({
         marginTop: theme.spacing(24),
         display: "flex",
         flexDirection: "column",
-        alignItems: "center"
+        alignItems: "center",
+        minHeight: "100",
+        flex: "1 0 auto",
+        paddingBottom: theme.spacing(4)
     },
     button: {
         width: "240px",
@@ -25,7 +28,7 @@ const useStyles = makeStyles({
         maxWidth: "640px"
     },
     title: {
-        fontSize: "1.3rem",
+        fontSize: "1.25rem",
         lineHeight: "1.5"
     }
 });
@@ -36,7 +39,8 @@ export default function Info() {
     const [siteID, setSiteID] = React.useState("");
     const [initialized, setInitialized] = React.useState(false);
     const SYSTEM_TYPE_STRING = "SYSTEM_TYPE";
-    const SITE_INFO_STRING = "SITE_INFO";
+    //config name for site login HTML string
+    const SITE_INFO_STRING = "SITE_LOGIN_INFO";
     const SITE_ID_STRING = "SITE_ID";
     const siteNameMappings = {
         "FCK": "FamilyCare of Kent",
@@ -64,7 +68,7 @@ export default function Info() {
     /*
      * return info content specific for the site
      */
-    function getSiteInfo() {
+    function getSiteLoginInfo() {
         if (!Object.keys(setting)) return "";
         return setting[SITE_INFO_STRING];
     }
@@ -102,7 +106,7 @@ export default function Info() {
     }
     function getMessage() {
         //configurable display text for a specific site
-        if (getSiteInfo()) return getSiteInfo();
+        if (getSiteLoginInfo()) return getSiteLoginInfo();
         if (!siteID) return `This is a ${getSystemType()} system.  Not for clinical use.`;
         if (siteID === "demo") {
             return "Public Demonstration version of COSRI. <br/>Log in with username:test and password:test.";
@@ -116,7 +120,6 @@ export default function Info() {
     return (
         <div className={classes.container}>
             {siteID && <img src={"/static/"+siteID+"/img/logo.png"} onLoad={handleImageLoaded} onError={handleImageLoadError}></img>}
-            <br/>
             <Button color="primary" href="/" align="center" variant="outlined" size="large" className={classes.button}>Click here to log in</Button>
             <div className={classes.info}>
                 <Typography component="h4" variant="h5" color="inherit" align="center" className={classes.title}>

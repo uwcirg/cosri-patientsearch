@@ -8,7 +8,7 @@ const useStyles = makeStyles({
         margin: theme.spacing(2, 3, 2),
         color: theme.palette.muted.main,
         [theme.breakpoints.up('md')]: {
-            maxWidth: "960px",
+            maxWidth: "1080px",
             marginLeft: "auto",
             marginRight: "auto",
             paddingLeft: theme.spacing(3),
@@ -17,7 +17,7 @@ const useStyles = makeStyles({
     }
 });
 
-export default function Version() {
+export default function Version(props) {
     const classes = useStyles();
     const [setting, setSetting] = React.useState({});
     const [version, setVersion] = React.useState("");
@@ -42,6 +42,6 @@ export default function Version() {
         return setting[VERSION_STRING];
     }
     return (
-        <div className={classes.container}>{version && <div className="version-container">Version Number: {version}</div>}</div>
+        <div className={props.className ? props.className : classes.container}>{version && <div>Version Number: {version}</div>}</div>
     );
 }

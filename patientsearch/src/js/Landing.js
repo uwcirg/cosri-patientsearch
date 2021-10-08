@@ -4,6 +4,7 @@ import CssBaseline from '@material-ui/core/CssBaseline';
 import { ThemeProvider } from '@material-ui/styles';
 import Header from './components/Header';
 import Info from './components/Info';
+import Version from './components/Version';
 import theme from './context/theme';
 import '../styles/app.scss';
 
@@ -11,8 +12,11 @@ import '../styles/app.scss';
 render(<React.Fragment>
     <ThemeProvider theme={theme}>
         <CssBaseline />
-        <Header />
-        <Info />
+        <section className="landing">
+            <Header />
+            <Info />
+            <Version className="version-container" />
+        </section>
     </ThemeProvider>
 </React.Fragment>,
 document.getElementById("content"));
