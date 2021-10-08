@@ -105,7 +105,7 @@ export default function Info() {
         }
     }
     function getMessage() {
-        //configurable display text for a specific site
+        //configurable display HTML string for a specific site, IF available, will use it.
         if (getSiteLoginInfo()) return getSiteLoginInfo();
         if (!siteID) return `This is a ${getSystemType()} system.  Not for clinical use.`;
         if (siteID === "demo") {

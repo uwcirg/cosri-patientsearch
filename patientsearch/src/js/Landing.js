@@ -8,7 +8,7 @@ import Version from './components/Version';
 import theme from './context/theme';
 import '../styles/app.scss';
 
-// entry point
+// entry point for pre-authenticated access
 render(<React.Fragment>
     <ThemeProvider theme={theme}>
         <CssBaseline />
