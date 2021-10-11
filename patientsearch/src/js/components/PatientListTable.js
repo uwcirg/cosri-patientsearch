@@ -503,6 +503,8 @@ export default function PatientListTable(props) {
   }
 
   const resetPaging = () => {
+    setNextPageURL("");
+    setPrevPageURL("");
     setPageNumber(0);
     setPageSize(pageSize);
   }
