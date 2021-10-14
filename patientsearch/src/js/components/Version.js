@@ -8,7 +8,7 @@ const useStyles = makeStyles({
         margin: theme.spacing(2, 3, 2),
         color: theme.palette.muted.main,
         [theme.breakpoints.up('md')]: {
-            maxWidth: "960px",
+            maxWidth: "1080px",
             marginLeft: "auto",
             marginRight: "auto",
             paddingLeft: theme.spacing(3),
@@ -23,6 +23,21 @@ export default function Version() {
     const [version, setVersion] = React.useState("");
     const [initialized, setInitialized] = React.useState(false);
     const VERSION_STRING = "VERSION_STRING";
+    const getVersionLink = () => {
+        if (!version) return "";
+        const arrVersion = version.split("-");
+        /*
+         * make sure version string doesn't contain 7 character git hash
+         */
+        const hasTaggedCommit = arrVersion.filter(item => {
+            //contains 'g' character and 7 character git hash
+            return item.toLowerCase().indexOf("g") !== -1 && item.length === 8;
+        }).length === 0;
+        const link = hasTaggedCommit ? `https://github.com/uwcirg/cosri-environments/releases/tag/${version}`: "";
+        return (
+           link ? <a href={link} target="_blank">{version}</a> : version
+        );
+    }
     React.useEffect(() => {
         /*
          * retrieve setting information
@@ -42,6 +57,6 @@ export default function Version() {
         return setting[VERSION_STRING];
     }
     return (
-        <div className={classes.container}>{version && <div className="version-container">Version Number: {version}</div>}</div>
+        <div className={classes.container}>{version && <div className="version-container">Version Number: {getVersionLink()}</div>}</div>
     );
 }
