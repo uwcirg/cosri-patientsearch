@@ -33,7 +33,7 @@ def add_identifier_to_resource_type(bundle, resource_type, identifier):
 
 
 def HAPI_request(
-        token, method, resource_type, resource_id=None, resource=None, params=None):
+        token, method, resource_type=None, resource_id=None, resource=None, params=None):
     """Execute HAPI request on configured system - return JSON
 
     :param token: validated JWT to include in request for auth
@@ -44,8 +44,13 @@ def HAPI_request(
     :param params: Optional additional search parameters
 
     """
-    url = f"{current_app.config.get('MAP_API')}{resource_type}"
+    url = current_app.config.get('MAP_API')
+    if resource_type:
+        url = url + resource_type
+
     if resource_id is not None:
+        if not resource_type:
+            raise ValueError("resource_type required when requesting by id")
         url = '/'.join((url, str(resource_id)))
 
     VERB = method.upper()

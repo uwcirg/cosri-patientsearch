@@ -7,7 +7,9 @@ import Check from '@material-ui/icons/Check';
 import ChevronLeft from '@material-ui/icons/ChevronLeft';
 import ChevronRight from '@material-ui/icons/ChevronRight';
 import ClearIcon from '@material-ui/icons/Clear';
+import RefreshIcon from '@material-ui/icons/Refresh';
 import CircularProgress from '@material-ui/core/CircularProgress';
+import Button from '@material-ui/core/Button';
 import Container from '@material-ui/core/Container';
 import Delete from '@material-ui/icons/Delete';
 import FirstPage from '@material-ui/icons/FirstPage';
@@ -15,6 +17,7 @@ import LastPage from '@material-ui/icons/LastPage';
 import Search from '@material-ui/icons/Search';
 import Tooltip from '@material-ui/core/Tooltip';
 import Modal from '@material-ui/core/Modal';
+import TablePagination from '@material-ui/core/TablePagination';
 import Error from "./Error";
 import FilterRow from "./FilterRow";
 import theme from '../context/theme';
@@ -46,6 +49,7 @@ const useStyles = makeStyles({
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
+      flexWrap: 'wrap'
     },
     modal: {
       display: 'flex',
@@ -87,8 +91,12 @@ const useStyles = makeStyles({
       fill: theme.palette.muted.main
     },
     legend: {
-      marginTop: theme.spacing(2),
-      float: "left"
+      marginTop: theme.spacing(2.5),
+    },
+    pagination: {
+      marginTop: theme.spacing(1),
+      display: "inline-block",
+      border: "2px solid #ececec"
     },
     legendIcon: {
       backgroundColor: theme.palette.primary.disabled,
@@ -97,10 +105,23 @@ const useStyles = makeStyles({
       marginRight: theme.spacing(0.5),
       display: "inline-block",
       verticalAlign: "bottom"
+    },
+    flexContainer: {
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "top",
+      flexWrap: "wrap"
+    },
+    refreshButtonContainer: {
+      display: "inline-block",
+      verticalAlign: "top",
+      marginTop: theme.spacing(2.5),
+      marginRight: theme.spacing(2)
     }
 });
 
 let appSettings = {};
+let filterIntervalId = 0;
 
 export default function PatientListTable(props) {
   const classes = useStyles();
@@ -114,6 +135,11 @@ export default function PatientListTable(props) {
   const [currentFilters, setCurrentFilters] = React.useState(defaultFilters);
   const [pageSize, setPageSize] = React.useState(20);
   const [pageNumber, setPageNumber] = React.useState(0);
+  const [prevPageNumber, setPrevPageNumber] = React.useState(0);
+  const [disablePrevButton, setDisablePrevButton] = React.useState(true);
+  const [disableNextButton, setDisableNextButton] = React.useState(true);
+  const [nextPageURL, setNextPageURL] = React.useState("");
+  const [prevPageURL, setPrevPageURL] = React.useState("");
   const [openLoadingModal, setOpenLoadingModal] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState("");
   const [containNoPMPRow, setContainNoPMPRow] = React.useState(false);
@@ -156,7 +182,7 @@ export default function PatientListTable(props) {
     appSettings = settings;
   }
   const getPatientPMPSearchURL = (data) => {
-    if (data.id && data.identifier) return `/Patient/${data.id}`;
+    if (data.id && data.identifier) return `/fhir/Patient/${data.id}`;
     const dataURL = "/external_search/Patient";
     const params = [
           `subject:Patient.name.given=${data.first_name}`,
@@ -430,7 +456,7 @@ export default function PatientListTable(props) {
     }
     document.querySelector(`#${NO_DATA_ELEMENT_ID}`).innerText = noDataText;
   }
-  let filterIntervalId = 0;
+
   function onFiltersDidChange(filters, clearAll) {
     clearTimeout(filterIntervalId);
     filterIntervalId = setTimeout(function() {
@@ -438,14 +464,15 @@ export default function PatientListTable(props) {
       setToolbarActionButtonVis(filters);
       if (filters && filters.length) {
         setCurrentFilters(filters);
-        if (tableRef) tableRef.current.onQueryChange();
+        if (tableRef && tableRef.current) tableRef.current.onQueryChange();
         return filters;
 
       }
       else {
         if (clearAll) {
           setCurrentFilters(defaultFilters);
-          if (tableRef) tableRef.current.onQueryChange();
+          resetPaging();
+          if (tableRef && tableRef.current) tableRef.current.onQueryChange();
           return defaultFilters;
         }
         return defaultFilters;
@@ -475,6 +502,17 @@ export default function PatientListTable(props) {
     setErrorMessage(isString(e) ? e : (e && e.message? e.message: "Error occurred processing data"));
   }
 
+  const resetPaging = () => {
+    setNextPageURL("");
+    setPrevPageURL("");
+    setPageNumber(0);
+    setPageSize(pageSize);
+  }
+
+  const handleRefresh = () => {
+    document.querySelector("#btnClear").click();
+  }
+
   const getPatientList = (query) => {
     let sortField = query.orderBy && query.orderBy.field? FieldNameMaps[query.orderBy.field] : "_lastUpdated";
     let sortDirection = query.orderDirection ? query.orderDirection : "desc";
@@ -494,19 +532,28 @@ export default function PatientListTable(props) {
       totalCount: 0
     };
     const resetAll = () => {
-      setPageNumber(0);
-      setPageSize(query.pageSize);
+      resetPaging();
       setVis();
       setInitialized(true);
     };
-
-    let currentPageoffset = query.page*query.pageSize;
+    let apiURL = `/fhir/Patient?_include=Patient:link&_total=accurate&_count=${pageSize}&_getpagesoffset=0`;
+    if (searchString) {
+      resetPaging();
+    } else {
+        if ((pageNumber > prevPageNumber) && nextPageURL) {
+          apiURL = nextPageURL;
+        } else if ((pageNumber < prevPageNumber) && prevPageURL) {
+          apiURL = prevPageURL;
+        }
+    }
+    if (searchString) apiURL += `&${searchString}`;
+    if (sortField && (apiURL.indexOf("sort")===-1)) apiURL += `&_sort=${sortMinus}${sortField}`;
 
      /*
       * get patient list
       */
       return new Promise((resolve, reject) => {
-          fetchData(`./Patient?_include=Patient:link&_total=accurate&_sort=${sortMinus}${sortField}&_count=${query.pageSize}&_getpagesoffset=${currentPageoffset > 0 ? currentPageoffset: currentPageoffset}${searchString?"&"+searchString:""}`, noCacheParam, function(e) {
+          fetchData(apiURL, noCacheParam, function(e) {
             resetAll();
             handleErrorCallback(e);
             resolve(defaults);
@@ -525,12 +572,23 @@ export default function PatientListTable(props) {
             let responseSelfLink = response.link? response.link.filter(item => {
               return item.relation === "self";
             }) : 0;
-            if (responseSelfLink && responseSelfLink.length) {
+            let responseNextLink = response.link? response.link.filter(item => {
+              return item.relation === "next";
+            }) : 0;
+            let responsePrevLink = response.link? response.link.filter(item => {
+              return item.relation === "previous";
+            }) : 0;
+            let hasSelfLink = responseSelfLink && responseSelfLink.length;
+            if (hasSelfLink) {
               responsePageoffset = getUrlParameter("_getpagesoffset", new URL(responseSelfLink[0].url));
             }
-            let currentPage = responsePageoffset ? (responsePageoffset / query.pageSize) : 0;
-            setPageNumber(currentPage);
-            setPageSize(query.pageSize);
+            let currentPage = responsePageoffset ? (responsePageoffset / pageSize) : 0;
+            let hasNextLink = responseNextLink && responseNextLink.length;
+            let hasPrevLink = responsePrevLink && responsePrevLink.length;
+            setNextPageURL(hasNextLink ? responseNextLink[0].url: "");
+            setPrevPageURL(hasPrevLink ? responsePrevLink[0].url: (hasSelfLink?responseSelfLink[0].url:""));
+            setDisableNextButton(!hasNextLink);
+            setDisablePrevButton(pageNumber === 0);
             resolve({
               data: responseData,
               page: currentPage,
@@ -545,6 +603,17 @@ export default function PatientListTable(props) {
           resolve(defaults);
         });
       });
+  };
+
+  const handleChangePage = (event, newPage) => {
+    setPrevPageNumber(pageNumber);
+    setPageNumber(newPage);
+    if (tableRef && tableRef.current) tableRef.current.onQueryChange();
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setPageSize(parseInt(event.target.value, 10));
+    if (tableRef && tableRef.current) tableRef.current.onQueryChange();
   };
 
   React.useEffect(() => {
@@ -580,14 +649,17 @@ export default function PatientListTable(props) {
                 className={classes.table}
                 columns={columns}
                 data={
+                  //any change in query will invoke this function
                   query => getPatientList(query)
                 }
                 tableRef={tableRef}
                 hideSortIcon={false}
                 options={{
                     paginationTypestepped: "stepped",
+                    showFirstLastPageButtons: false,
                     pageSize: pageSize,
                     pageSizeOptions: [10, 20, 50],
+                    paging: false,
                     padding: "dense",
                     emptyRowsWhenPaging: false,
                     debounceInterval:300,
@@ -620,7 +692,7 @@ export default function PatientListTable(props) {
                 }
                 editable={{
                   onRowDelete: oldData =>
-                    fetchData("/Patient/"+oldData.id, {method: "DELETE"}).then(response => {
+                    fetchData("/fhir/Patient/"+oldData.id, {method: "DELETE"}).then(response => {
                         setTimeout(() => {
                             const dataDelete = [...data];
                             const index = oldData.tableData.id;
@@ -670,9 +742,55 @@ export default function PatientListTable(props) {
                 }}
               />
           </div>}
-          {patientListInitialized() && containNoPMPRow && <div className={classes.legend}>
-            <span className={classes.legendIcon}></span> Not in PMP
-          </div>}
+          <div className={classes.flexContainer}>
+            {
+              patientListInitialized() &&
+              containNoPMPRow &&
+              <div className={classes.legend}>
+                <span className={classes.legendIcon}></span> Not in PMP
+              </div>
+            }
+             <div>
+              {
+                patientListInitialized() &&
+                  <div>
+                    <div className={classes.refreshButtonContainer}>
+                      <Tooltip title="Refresh the list">
+                        <Button
+                          variant="contained"
+                          size="small"
+                          startIcon={<RefreshIcon />}
+                          onClick={handleRefresh}
+                        >Refresh</Button>
+                      </Tooltip>
+                    </div>
+                    <TablePagination
+                      className={classes.pagination}
+                      rowsPerPageOptions={[10, 20, 50]}
+                      onChangePage={handleChangePage}
+                      page={pageNumber}
+                      rowsPerPage={pageSize}
+                      onChangeRowsPerPage={handleChangeRowsPerPage}
+                      count={-1}
+                      component="div"
+                      nextIconButtonProps={{
+                        disabled: disableNextButton,
+                        color: "primary"
+                      }}
+                      backIconButtonProps={{
+                        disabled: disablePrevButton,
+                        color: "primary"
+                      }}
+                      SelectProps={
+                        {
+                          variant: "outlined"
+                        }
+                      }
+                    />
+                  </div>
+              }
+            </div>
+          </div>
           <Modal
             open={openLoadingModal}
             aria-labelledby="loading-modal"

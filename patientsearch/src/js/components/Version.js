@@ -23,6 +23,21 @@ export default function Version(props) {
     const [version, setVersion] = React.useState("");
     const [initialized, setInitialized] = React.useState(false);
     const VERSION_STRING = "VERSION_STRING";
+    const getVersionLink = () => {
+        if (!version) return "";
+        const arrVersion = version.split("-");
+        /*
+         * make sure version string doesn't contain 7 character git hash
+         */
+        const hasTaggedCommit = arrVersion.filter(item => {
+            //contains 'g' character and 7 character git hash
+            return item.toLowerCase().indexOf("g") !== -1 && item.length === 8;
+        }).length === 0;
+        const link = hasTaggedCommit ? `https://github.com/uwcirg/cosri-environments/releases/tag/${version}`: "";
+        return (
+           link ? <a href={link} target="_blank">{version}</a> : version
+        );
+    }
     React.useEffect(() => {
         /*
          * retrieve setting information
@@ -42,6 +57,6 @@ export default function Version(props) {
         return setting[VERSION_STRING];
     }
     return (
-        <div className={props.className ? props.className : classes.container}>{version && <div>Version Number: {version}</div>}</div>
+        <div className={props.className ? props.className : classes.container}>{version && <div>Version Number: {getVersionLink()}</div>}</div>
     );
 }

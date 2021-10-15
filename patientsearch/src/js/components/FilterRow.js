@@ -259,7 +259,7 @@ export default function FilterRow(props) {
                     {/* toolbar go button */}
                    <Button  id={props.launchButtonId} className={!hasCompleteFilters() ? `${classes.button} disabled` : classes.button} color="primary" size="small" variant="contained" onClick={(e) => props.launchFunc(e, getFilterData())}>{getLaunchButtonLabel()}</Button>
                    <Tooltip title="Clear search fields">
-                       <Button variant="contained" size="small" onClick={clearFields} className={!hasFilter() ? `${classes.button} disabled` : classes.button}>Clear</Button>
+                       <Button variant="contained" size="small" onClick={clearFields} className={!hasFilter() ? `${classes.button} disabled` : classes.button} id="btnClear">Clear</Button>
                    </Tooltip>
                 </td>
             </tr>
