@@ -17,7 +17,7 @@ const useStyles = makeStyles({
     }
 });
 
-export default function Version() {
+export default function Version(props) {
     const classes = useStyles();
     const [setting, setSetting] = React.useState({});
     const [version, setVersion] = React.useState("");
@@ -57,6 +57,6 @@ export default function Version() {
         return setting[VERSION_STRING];
     }
     return (
-        <div className={classes.container}>{version && <div className="version-container">Version Number: {getVersionLink()}</div>}</div>
+        <div className={props.className ? props.className : classes.container}>{version && <div>Version Number: {getVersionLink()}</div>}</div>
     );
 }

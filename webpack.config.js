@@ -23,6 +23,7 @@ module.exports = function(_env, argv) {
   return {
     entry:  {
       "index" : ['whatwg-fetch', path.join(__dirname, '/patientsearch/src/js/Entry.js')],
+      "info": path.join(__dirname, '/patientsearch/src/js/Landing.js'),
       "logout": path.join(__dirname, '/patientsearch/src/js/Logout.js')
     },
     watchOptions: {
@@ -89,6 +90,13 @@ module.exports = function(_env, argv) {
         filename: path.join(__dirname, `${templateDirectory}/index.html`),
         favicon: faviconFilePath,
         chunks: ['index']
+      }),
+      new HtmlWebpackPlugin({
+        title: appTitle,
+        template: templateFilePath,
+        filename: path.join(__dirname, `${templateDirectory}/home.html`),
+        favicon: faviconFilePath,
+        chunks: ['info']
       }),
       new HtmlWebpackPlugin({
         title: appTitle,
