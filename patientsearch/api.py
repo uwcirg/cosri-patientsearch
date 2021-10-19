@@ -428,6 +428,8 @@ def home():
     try:
         token = oidc.user_loggedin and oidc.get_access_token()
         if token and oidc.validate_token(token):
+            extra = {'tags': ['landing', 'authorized'], 'user': current_user_id(token)}
+            audit_entry("request to landing by authenticated user", extra=extra)
             return redirect('/')
     except Exception as ex:
         # Naked except to prevent any strange logged in token access errors from
