@@ -39,7 +39,7 @@ def refresh_session():
 
     # clears local cookie only
     oidc.logout()
-    return redirect("/")
+    return redirect("/home")
 
 
 def terminate_session():
@@ -92,10 +92,10 @@ def current_user_id(token):
     return {'username': username, 'DEA': DEA}
 
 
-@api_blueprint.route('/', methods=["GET"])
+@api_blueprint.route('/home', methods=["GET"])
 @oidc.require_login
-def main():
-    """ Main route, entry point for react. """
+def home():
+    """ Main route, entry point for react.  Requires authorized user """
     ## issue with path resolution after build
     return send_from_directory(
         #todo: remove templates directory reference; index.html isn't a jinja template
@@ -422,15 +422,15 @@ def logout():
     return resp
 
 
-@api_blueprint.route('/home', methods=["GET"])
-def home():
-    """ entry point for pre-authenticated access """
+@api_blueprint.route('/', methods=["GET"])
+def main():
+    """ entry point for pre-authenticated access, aka `landing` """
     try:
         token = oidc.user_loggedin and oidc.get_access_token()
         if token and oidc.validate_token(token):
             extra = {'tags': ['landing', 'authorized'], 'user': current_user_id(token)}
             audit_entry("request to landing by authenticated user", extra=extra)
-            return redirect('/')
+            return redirect('/home')
     except Exception as ex:
         # Naked except to prevent any strange logged in token access errors from
         # generating the landing page.
