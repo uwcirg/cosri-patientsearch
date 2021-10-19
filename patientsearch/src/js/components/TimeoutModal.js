@@ -88,7 +88,7 @@ export default function TimeoutModal() {
     error => {
       console.log("Error returned ", error);
       if (error && error.status && error.status == 401) {
-        console.log("Failed to retriev token data: Unauthorized ");
+        console.log("Failed to retrieve token data: Unauthorized ");
         handleLogout();
         return;
       }
