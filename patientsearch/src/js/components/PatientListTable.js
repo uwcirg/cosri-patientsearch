@@ -109,7 +109,7 @@ const useStyles = makeStyles({
     flexContainer: {
       display: "flex",
       justifyContent: "space-between",
-      alignItems: "top",
+      alignItems: "flex-start",
       flexWrap: "wrap"
     },
     refreshButtonContainer: {
@@ -117,6 +117,10 @@ const useStyles = makeStyles({
       verticalAlign: "top",
       marginTop: theme.spacing(2.5),
       marginRight: theme.spacing(2)
+    },
+    spacer: {
+      minWidth: "20px",
+      minHeight: "20px"
     }
 });
 
@@ -138,6 +142,7 @@ export default function PatientListTable(props) {
   const [prevPageNumber, setPrevPageNumber] = React.useState(0);
   const [disablePrevButton, setDisablePrevButton] = React.useState(true);
   const [disableNextButton, setDisableNextButton] = React.useState(true);
+  const [totalCount, setTotalCount] = React.useState(0);
   const [nextPageURL, setNextPageURL] = React.useState("");
   const [prevPageURL, setPrevPageURL] = React.useState("");
   const [openLoadingModal, setOpenLoadingModal] = React.useState(false);
@@ -589,6 +594,7 @@ export default function PatientListTable(props) {
             setPrevPageURL(hasPrevLink ? responsePrevLink[0].url: (hasSelfLink?responseSelfLink[0].url:""));
             setDisableNextButton(!hasNextLink);
             setDisablePrevButton(pageNumber === 0);
+            setTotalCount(response.total);
             resolve({
               data: responseData,
               page: currentPage,
@@ -750,6 +756,11 @@ export default function PatientListTable(props) {
                 <span className={classes.legendIcon}></span> Not in PMP
               </div>
             }
+            {
+              patientListInitialized() &&
+              !containNoPMPRow &&
+              <div className={classes.spacer}></div>
+            }
              <div>
               {
                 patientListInitialized() &&
@@ -771,7 +782,8 @@ export default function PatientListTable(props) {
                       page={pageNumber}
                       rowsPerPage={pageSize}
                       onChangeRowsPerPage={handleChangeRowsPerPage}
-                      count={-1}
+                      count={totalCount}
+                      size="small"
                       component="div"
                       nextIconButtonProps={{
                         disabled: disableNextButton,
