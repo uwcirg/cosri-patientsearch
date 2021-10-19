@@ -421,10 +421,19 @@ def logout():
     resp.set_cookie('oidc_id_token', '', expires=0)
     return resp
 
+
 @api_blueprint.route('/home', methods=["GET"])
 def home():
     """ entry point for pre-authenticated access """
-    """ TODO if authenticated redirect to / ? """
+    try:
+        token = oidc.user_loggedin and oidc.get_access_token()
+        if token and oidc.validate_token(token):
+            return redirect('/')
+    except Exception as ex:
+        # Naked except to prevent any strange logged in token access errors from
+        # generating the landing page.
+        current_app.logger.exception(ex)
+
     return send_from_directory(
         safe_join(
             current_app.config.get("STATIC_DIR") or current_app.static_folder,
