@@ -120,7 +120,7 @@ export default function Info() {
     return (
         <div className={classes.container}>
             {siteID && <img src={"/static/"+siteID+"/img/logo.png"} onLoad={handleImageLoaded} onError={handleImageLoadError}></img>}
-            <Button color="primary" href="/" align="center" variant="outlined" size="large" className={classes.button}>Click here to log in</Button>
+            <Button color="primary" href="/home" align="center" variant="outlined" size="large" className={classes.button}>Click here to log in</Button>
             <div className={classes.info}>
                 <Typography component="h4" variant="h5" color="inherit" align="center" className={classes.title}>
                     <div dangerouslySetInnerHTML={{ __html: getMessage()}}></div>

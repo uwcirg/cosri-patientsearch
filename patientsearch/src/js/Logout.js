@@ -24,7 +24,7 @@ render(<React.Fragment>
                 {getMessage()}
             </Typography>
             <br/>
-            <Button color="primary" href="/" align="center" variant="outlined" size="large">Click here to log in</Button>
+            <Button color="primary" href="/home" align="center" variant="outlined" size="large">Click here to log in</Button>
         </div>
     </ThemeProvider>
 </React.Fragment>,
