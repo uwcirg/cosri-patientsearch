@@ -97,6 +97,11 @@ const useStyles = makeStyles((theme) => ({
         cursor: "auto",
         color: "#777"
     },
+    modal: {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+    },
     modalBody: {
         backgroundColor: theme.palette.background.paper,
         boxShadow: theme.shadows[4],
