@@ -144,9 +144,6 @@ export default function Info() {
         if (getSiteLandingBodyText()) return getSiteLandingBodyText();
         //defaults
         if (!siteID) return `This is a ${getSystemType()} system.  Not for clinical use.`;
-        if (siteID === "demo") {
-            return "<p>To login, use the following</p><p><b>username</b>: \"test\" <b>password</b>: \"test\"</p><p>This demo system mimics access to the state PDMP, using the state Health Information Exchange.  Individual patient data are entirely test data, designed to show features of COSRI, and any similarity to the information of any real patient is strictly coincidenal.</p>";
-        }
         return "This system is only for use by clinical staff.";
     }
     return (
