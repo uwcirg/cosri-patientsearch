@@ -275,8 +275,8 @@ export default function PatientListTable(props) {
   const handleExpiredSession = function() {
     sessionStorage.clear();
     setTimeout(() => {
-      // / is a protected endpoint, the backend will request a new Access Token from Keycloak if able, else prompt a user to log in again
-      window.location = "/";
+      // /home is a protected endpoint, the backend will request a new Access Token from Keycloak if able, else prompt a user to log in again
+      window.location = "/home";
     }, 0);
   }
   const handleSearch = function (event, rowData) {
