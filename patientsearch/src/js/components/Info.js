@@ -1,16 +1,21 @@
 import React from 'react';
 import { makeStyles} from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
+import CircularProgress from '@material-ui/core/CircularProgress';
 import Typography from '@material-ui/core/Typography';
 import {imageOK, sendRequest} from './Utility';
 import theme from '../context/theme';
 
 const useStyles = makeStyles({
+    loader: {
+        marginTop: theme.spacing(24),
+        textAlign: "center"
+    },
     container: {
         textAlign: "center",
         marginLeft: theme.spacing(2),
         marginRight: theme.spacing(2),
-        marginTop: theme.spacing(24),
+        marginTop: theme.spacing(21),
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
@@ -19,11 +24,19 @@ const useStyles = makeStyles({
         paddingBottom: theme.spacing(4)
     },
     button: {
-        width: "240px",
+        width: "280px",
         borderWidth: "2px",
-        marginTop: theme.spacing(3)
+        marginTop: theme.spacing(3),
+        fontWeight: 500
     },
-    info: {
+    introText: {
+        marginBottom: theme.spacing(2.5),
+        textAlign: "center",
+        fontSize: "1.8rem",
+        textTransform: "capitalize",
+        fontWeight: 500
+    },
+    bodyText: {
         marginTop: theme.spacing(3),
         maxWidth: "640px"
     },
@@ -35,17 +48,13 @@ const useStyles = makeStyles({
 
 export default function Info() {
     const classes = useStyles();
+    const [loading, setLoading] = React.useState(true);
     const [setting, setSetting] = React.useState({});
     const [siteID, setSiteID] = React.useState("");
     const [initialized, setInitialized] = React.useState(false);
     const SYSTEM_TYPE_STRING = "SYSTEM_TYPE";
-    //config name for site login HTML string
-    const SITE_INFO_STRING = "SITE_LOGIN_INFO";
     const SITE_ID_STRING = "SITE_ID";
-    const siteNameMappings = {
-        "FCK": "FamilyCare of Kent",
-        "SFH": "Skagit Family Health"
-    }
+
     React.useEffect(() => {
         /*
          * retrieve setting information
@@ -60,17 +69,33 @@ export default function Info() {
             setSetting(data);
             setSiteID(getSiteId());
             setInitialized(true);
+            setLoading(false);
         }, error => {
             console.log("Failed to retrieve data", error.statusText);
             setInitialized(true);
+            setLoading(false);
         });
     }, [initialized]);
     /*
-     * return info content specific for the site
+     * return site specific intro HTML text for the site, e.g. HTML block 1
      */
-    function getSiteLoginInfo() {
+    function getSiteLandingIntroText() {
         if (!Object.keys(setting)) return "";
-        return setting[SITE_INFO_STRING];
+        return setting["LANDING_INTRO"];
+    }
+     /*
+     * return site specific button text for the site
+     */
+     function getSiteLandingButtonText() {
+        if (!Object.keys(setting)) return "";
+        return setting["LANDING_BUTTON_TEXT"];
+    }
+    /*
+     * return site specific body HTML text for the site, e.g. HTML block 2
+     */
+    function getSiteLandingBodyText() {
+        if (!Object.keys(setting)) return "";
+        return setting["LANDING_BODY"];
     }
     function getSiteId() {
         if (!Object.keys(setting)) return "";
@@ -104,28 +129,42 @@ export default function Info() {
           return;
         }
     }
-    function getMessage() {
-        //configurable display HTML string for a specific site, IF available, will use it.
-        if (getSiteLoginInfo()) return getSiteLoginInfo();
+    function getIntroText() {
+        const siteIntroText = getSiteLandingIntroText();
+        if (siteIntroText) return siteIntroText;
+        return `${getSystemType()} System`;
+    }
+    function getButtonText() {
+        const siteButtonText = getSiteLandingButtonText();
+        if (siteButtonText) return siteButtonText;
+        return "Click here to log in";
+    }
+    function getBodyText() {
+        //configurable display HTML body text for a specific site, IF available, will use it.
+        if (getSiteLandingBodyText()) return getSiteLandingBodyText();
+        //defaults
         if (!siteID) return `This is a ${getSystemType()} system.  Not for clinical use.`;
-        if (siteID === "demo") {
-            return "Public Demonstration version of COSRI. <br/>Log in with username:test and password:test.";
-        }
-        let siteName = siteNameMappings[siteID];
-        if (siteName) {
-            return `This system is only for use by clinical staff of ${siteName}.`;
-        }
         return "This system is only for use by clinical staff.";
     }
     return (
-        <div className={classes.container}>
-            {siteID && <img src={"/static/"+siteID+"/img/logo.png"} onLoad={handleImageLoaded} onError={handleImageLoadError}></img>}
-            <Button color="primary" href="/home" align="center" variant="outlined" size="large" className={classes.button}>Click here to log in</Button>
-            <div className={classes.info}>
-                <Typography component="h4" variant="h5" color="inherit" align="center" className={classes.title}>
-                    <div dangerouslySetInnerHTML={{ __html: getMessage()}}></div>
-                </Typography>
-            </div>
+        <div>
+            {loading && <div className={classes.loader}><CircularProgress  size={56} color="primary"></CircularProgress></div>}
+            {!loading && <div className={classes.container}>
+                {/* intro text, e.g. HTML block 1 */}
+                <div className={classes.introText}>
+                    <div dangerouslySetInnerHTML={{ __html: getIntroText()}}></div>
+                </div>
+                {/* logo image */}
+                {siteID && <img src={"/static/"+siteID+"/img/logo.png"} onLoad={handleImageLoaded} onError={handleImageLoadError}></img>}
+                {/* button */}
+                <Button color="primary" href="/home" align="center" variant="outlined" size="large" className={classes.button}>{getButtonText()}</Button>
+                {/* body text, e.g. HTML block 2 */}
+                <div className={classes.bodyText}>
+                    <Typography component="h4" variant="h5" color="inherit" align="center" className={classes.title}>
+                        <div dangerouslySetInnerHTML={{ __html: getBodyText()}}></div>
+                    </Typography>
+                </div>
+            </div>}
         </div>
     );
 }
