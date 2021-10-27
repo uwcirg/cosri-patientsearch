@@ -217,6 +217,32 @@ def resource_bundle(resource_type):
         return jsonify_abort(status_code=400, message=str(error))
 
 
+@api_blueprint.route('/fhir/<string:resource_type>', methods=["POST"])
+def post_resource(resource_type):
+    """Delegate request to POST given resource in post body to HAPI
+
+    NB not decorated with `@oidc.require_login` as that does an implicit
+    redirect.  Client should watch for 401 and redirect appropriately.
+
+    :param resource_type: The FHIR Resource type, i.e. `Patient` or `CarePlan`
+    :param request.body: Must include the valid JSON FHIR Resource
+
+    """
+    token = validate_auth()
+    try:
+        resource = request.get_json()
+        if not resource:
+            raise ValueError("missing FHIR Resource in JSON format")
+        if resource['resourceType'] != resource_type:
+            raise ValueError(
+                f"type mismatch - POSTed resource type {resource['resourceType']} != {resource_type}")
+
+        return jsonify(HAPI_request(
+            token=token, method='POST', resource_type=resource_type, resource=resource))
+    except (RuntimeError, ValueError) as error:
+        return jsonify_abort(status_code=400, message=str(error))
+
+
 @api_blueprint.route(
     '/fhir/<string:resource_type>/<int:resource_id>', methods=["PUT"])
 def update_resource_by_id(resource_type, resource_id):
