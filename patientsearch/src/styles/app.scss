@@ -28,6 +28,12 @@ html {
   padding-left: 24px;
   padding-right: 24px;
 }
+.landing {
+  .version-container {
+    margin-top: 24px;
+    text-align: center;
+  }
+}
 .logout-container {
   margin-top: 196px;
   display: flex;
@@ -192,6 +198,13 @@ button.disabled:focus,
     position: relative;
     overflow: hidden;
   }
+  tr {
+    td {
+      button:not(:first-of-type):not(:last-of-type) {
+        order: 10
+      }
+    }
+  }
 }
 #toolbarGoButton {
   text-align: center;
@@ -248,7 +261,7 @@ only screen and (max-width: 736px),
       left: 0;
       right: 0;
       top: 0;
-      content: "Results";
+      content: "Detail";
       font-weight: 500;
       font-size: 18px;
       border-bottom: 1px solid $color-muted;
