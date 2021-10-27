@@ -146,9 +146,6 @@ const useStyles = makeStyles({
     },
     menuIcon: {
       minWidth: theme.spacing(3)
-    },
-    hide: {
-      display: "none"
     }
 });
 
@@ -572,7 +569,6 @@ export default function PatientListTable(props) {
         tableRef.current.props.detailPanel[0].render
       )
     }, 150);
-
   }
 
   const getPatientList = (query) => {
