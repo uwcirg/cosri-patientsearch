@@ -8,7 +8,6 @@ import ChevronLeft from '@material-ui/icons/ChevronLeft';
 import ChevronRight from '@material-ui/icons/ChevronRight';
 import AddCircleOutlineIcon from '@material-ui/icons/AddCircleOutline';
 import ClearIcon from '@material-ui/icons/Clear';
-import ExpandLessIcon from '@material-ui/icons/ExpandLess';
 import RefreshIcon from '@material-ui/icons/Refresh';
 import MoreHorizIcon from '@material-ui/icons/MoreHoriz';
 import CircularProgress from '@material-ui/core/CircularProgress';
@@ -552,7 +551,6 @@ export default function PatientListTable(props) {
   }
 
   const handleMenuClick = (event, rowData) => {
-    console.log("current row id? ", rowData.id)
     event.stopPropagation();
     setAnchorEl(event.currentTarget);
     setCurrentRow(rowData);
@@ -564,11 +562,10 @@ export default function PatientListTable(props) {
 
   const handleMenuSelect = (event) => {
     event.stopPropagation();
-    console.log("topic selected ", event.target.getAttribute("datatopic"))
-    setSelectedMenuItem(event.target.getAttribute("datatopic"));
+    const selectedTarget = event.target.getAttribute("datatopic");
+    setSelectedMenuItem(selectedTarget);
     handleMenuClose();
-    console.log("current row? ", currentRow)
-    console.log("selected menu? ", selectedMenuItem)
+    if (!selectedTarget) return;
     setTimeout(function() {
       tableRef.current.onToggleDetailPanel(
         [currentRow.tableData.id],
@@ -738,7 +735,6 @@ export default function PatientListTable(props) {
                             )
                           },
                   isFreeAction: false
-                 // openIcon: () => <ExpandLessIcon color="primary"/>
                 }]}
                 actions={[
                   {

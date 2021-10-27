@@ -105,6 +105,9 @@ export function getLocalDateTimeString(utcDateString) {
 }
 
 
+/*
+ *  given two date/time string, sort it in descending order
+ */
 export function dateTimeCompare(a, b) {
   if (a == null && b != null) {
     return 1;
@@ -115,6 +118,5 @@ export function dateTimeCompare(a, b) {
   }
   a = new Date(a).getTime();
   b = new Date(b).getTime();
-  console.log("a ? ", a, " b ", b)
   return b > a ? 1 : -1;
 }
