@@ -254,11 +254,11 @@ export default function UrineScreen(props) {
             </div>
             <div className={classes.typeContainer}>
                 <FormControl variant="standard">
-                    <InputLabel>Type</InputLabel>
+                    <InputLabel>Name</InputLabel>
                     <Select
                     value={type}
                     onChange={handleTypeChange}
-                    label="Type"
+                    label="Name"
                     className={classes.selectBox}
                     >
                     {
@@ -277,9 +277,7 @@ export default function UrineScreen(props) {
                 {saveInProgress && <div className={classes.progressContainer}><CircularProgress className={classes.progressIcon} color="primary" size={32} /></div>}
             </div>
             <Snackbar open={open} autoHideDuration={3000} onClose={handleClose}>
-                <Alert onClose={handleClose} severity="success">
-                Data saved!
-                </Alert>
+                <Alert onClose={handleClose} severity="success">Entry added successfully.</Alert>
             </Snackbar>
             <div className={classes.errorContainer}>
             {error && <Error message={error}></Error>}

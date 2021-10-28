@@ -144,8 +144,32 @@ const useStyles = makeStyles({
       right: theme.spacing(3),
       color: theme.palette.primary.main
     },
+    menu: {
+      paddingTop: theme.spacing(2.5)
+    },
+    menuTitle: {
+      position: "absolute",
+      top: 0,
+      width: "100%",
+      paddingTop: theme.spacing(0.5),
+      paddingBottom: theme.spacing(0.5),
+      backgroundColor: theme.palette.primary.main,
+      color: "#FFF"
+    },
     menuIcon: {
-      minWidth: theme.spacing(3)
+      minWidth: theme.spacing(3),
+      marginRight: theme.spacing(0.5)
+    },
+    menuTitleText: {
+      display: "inline-block",
+      marginLeft: theme.spacing(2)
+    },
+    menuCloseButton: {
+      position: "absolute",
+      right: "-16px",
+      top: "0",
+      fontSize: "12px",
+      color: "#FFF"
     }
 });
 
@@ -187,7 +211,7 @@ export default function PatientListTable(props) {
     Filter: forwardRef((props, ref) => <Search {...props} ref={ref} color="primary" />),
     FirstPage: forwardRef((props, ref) => <FirstPage {...props} ref={ref} />),
     LastPage: forwardRef((props, ref) => <LastPage {...props} ref={ref} />),
-    DetailPanel: forwardRef((props, ref) => <div {...props} ref={ref} color="primary" className="hide"/>),
+    DetailPanel: forwardRef((props, ref) => <div {...props} ref={ref} color="primary"/>),
     NextPage: forwardRef((props, ref) => <ChevronRight {...props} ref={ref} />),
     PreviousPage: forwardRef((props, ref) => <ChevronLeft {...props} ref={ref} />),
     SortArrow: forwardRef((props, ref) => <ArrowDownward {...props} ref={ref} color="primary" />),
@@ -543,6 +567,17 @@ export default function PatientListTable(props) {
     setPageSize(pageSize);
   }
 
+  const handleChangePage = (event, newPage) => {
+    setPrevPageNumber(pageNumber);
+    setPageNumber(newPage);
+    if (tableRef && tableRef.current) tableRef.current.onQueryChange();
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setPageSize(parseInt(event.target.value, 10));
+    if (tableRef && tableRef.current) tableRef.current.onQueryChange();
+  };
+
   const handleRefresh = () => {
     document.querySelector("#btnClear").click();
   }
@@ -662,17 +697,6 @@ export default function PatientListTable(props) {
           resolve(defaults);
         });
       });
-  };
-
-  const handleChangePage = (event, newPage) => {
-    setPrevPageNumber(pageNumber);
-    setPageNumber(newPage);
-    if (tableRef && tableRef.current) tableRef.current.onQueryChange();
-  };
-
-  const handleChangeRowsPerPage = (event) => {
-    setPageSize(parseInt(event.target.value, 10));
-    if (tableRef && tableRef.current) tableRef.current.onQueryChange();
   };
 
   React.useEffect(() => {
@@ -890,21 +914,30 @@ export default function PatientListTable(props) {
               </div>
             </div>
           </Modal>
-          <Menu
-            id="rowMenu"
-            keepMounted
-            anchorEl={anchorEl}
-            open={Boolean(anchorEl)}
-            onClose={handleMenuClose}
-            className={classes.menu}
-          >
-          <MenuItem onClick={handleMenuSelect} datatopic="urine screen" dense>
-            <ListItemIcon className={classes.menuIcon} datatopic="urine screen">
-              <AddCircleOutlineIcon fontSize="small" />
-            </ListItemIcon>
-            <Typography variant="subtitle2" datatopic="urine screen">Add Urine Tox Screen</Typography>
-          </MenuItem>
-        </Menu>
+
+            <Menu
+              id="rowMenu"
+              anchorEl={anchorEl}
+              keepMounted
+              open={Boolean(anchorEl)}
+              onClose={handleMenuClose}
+              transformOrigin={{
+                vertical: 'top',
+                horizontal: 'left',
+              }}
+              elevation={1}
+            >
+              <div className={classes.menuTitle}>
+                <Typography variant="caption" className={classes.menuTitleText}>Select</Typography>
+                <Button size="small" onClick={handleMenuClose} className={classes.menuCloseButton}>X</Button>
+              </div>
+              <MenuItem onClick={(event) => handleMenuSelect(event)} datatopic="urine screen"  dense>
+                <ListItemIcon className={classes.menuIcon} datatopic="urine screen" >
+                  <AddCircleOutlineIcon size="small"/>
+                </ListItemIcon>
+                <Typography variant="subtitle2" datatopic="urine screen">Add Urine Tox Screen</Typography>
+              </MenuItem>
+            </Menu>
         </Container>
     </React.Fragment>
   );

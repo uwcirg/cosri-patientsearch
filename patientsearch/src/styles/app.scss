@@ -75,9 +75,16 @@ img[disabled] {
 #patientList tr:empty {
   height: 0 !important;
 }
+#rowMenu {
+  .MuiMenu-list {
+    padding-top: 28px;
+    padding-bottom: 0;
+  }
+}
 .menu-icon {
   margin-left: 8px;
 }
+
 .muted-text {
   color: $color-muted;
 }
