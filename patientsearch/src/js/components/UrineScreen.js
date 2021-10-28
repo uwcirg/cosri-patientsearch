@@ -194,7 +194,7 @@ export default function UrineScreen(props) {
         return (!history || !history.length);
     };
     const displayHistory = () => {
-        if (hasHistory()) return "No previous recorded lab screen";
+        if (hasHistory()) return "No previous recorded urine screen";
         const resource = history[0].resource;
         const orderText = resource && resource.code && resource.code.text ? resource.code.text : "";
         const orderDate = resource.authoredOn.substring(0,resource.authoredOn.indexOf("T"));
@@ -212,7 +212,7 @@ export default function UrineScreen(props) {
     };
     return (
         <div className={classes.container}>
-            <h3>Urine Drug Toxicology Screen</h3>
+            <h3>{`Urine Drug Toxicology Screen for ${rowData.first_name} ${rowData.last_name}`}</h3>
             <div>
                 <MuiPickersUtilsProvider utils={DateFnsUtils}>
                     {/* order date field */}

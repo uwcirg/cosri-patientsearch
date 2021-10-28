@@ -141,7 +141,7 @@ const useStyles = makeStyles({
     detailPanelCloseButton: {
       position: "absolute",
       top: theme.spacing(1.5),
-      right: theme.spacing(3),
+      right: theme.spacing(6),
       color: theme.palette.primary.main
     },
     menu: {
@@ -162,11 +162,12 @@ const useStyles = makeStyles({
     },
     menuTitleText: {
       display: "inline-block",
-      marginLeft: theme.spacing(2)
+      marginLeft: theme.spacing(2),
+      fontWeight: 500
     },
     menuCloseButton: {
       position: "absolute",
-      right: "-16px",
+      right: "-8px",
       top: "0",
       fontSize: "12px",
       color: "#FFF"
@@ -211,7 +212,7 @@ export default function PatientListTable(props) {
     Filter: forwardRef((props, ref) => <Search {...props} ref={ref} color="primary" />),
     FirstPage: forwardRef((props, ref) => <FirstPage {...props} ref={ref} />),
     LastPage: forwardRef((props, ref) => <LastPage {...props} ref={ref} />),
-    DetailPanel: forwardRef((props, ref) => <div {...props} ref={ref} color="primary"/>),
+    DetailPanel: forwardRef((props, ref) => <div {...props} ref={ref} color="primary" className="detail-panel"/>),
     NextPage: forwardRef((props, ref) => <ChevronRight {...props} ref={ref} />),
     PreviousPage: forwardRef((props, ref) => <ChevronLeft {...props} ref={ref} />),
     SortArrow: forwardRef((props, ref) => <ArrowDownward {...props} ref={ref} color="primary" />),
@@ -603,7 +604,7 @@ export default function PatientListTable(props) {
         [currentRow.tableData.id],
         tableRef.current.props.detailPanel[0].render
       )
-    }, 150);
+    }, 200);
   }
 
   const getPatientList = (query) => {
@@ -749,7 +750,7 @@ export default function PatientListTable(props) {
                                       tableRef.current.props.detailPanel[0].render
                                     );
                                     handleMenuClose();
-                                  }} className={classes.detailPanelCloseButton} size="small">Close</Button>
+                                  }} className={classes.detailPanelCloseButton} size="small">Close X</Button>
                                 </Paper>
                               </div>
                             )
@@ -923,7 +924,7 @@ export default function PatientListTable(props) {
               onClose={handleMenuClose}
               transformOrigin={{
                 vertical: 'top',
-                horizontal: 'left',
+                horizontal: 'center',
               }}
               elevation={1}
             >
