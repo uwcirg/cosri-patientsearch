@@ -43,7 +43,7 @@ const useStyles = makeStyles({
       marginBottom: theme.spacing(1)
     },
     table: {
-        minWidth: 450,
+        minWidth: 320,
         maxWidth: "100%"
     },
     paper: {

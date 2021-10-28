@@ -22,8 +22,7 @@ import theme from '../context/theme';
 
 const useStyles = makeStyles({
     container: {
-        marginLeft: theme.spacing(3),
-        marginRight: theme.spacing(3)
+        paddingLeft: theme.spacing(3)
     },
     typeContainer: {
         marginTop: theme.spacing(1)
