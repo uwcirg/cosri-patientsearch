@@ -22,7 +22,8 @@ import theme from '../context/theme';
 
 const useStyles = makeStyles({
     container: {
-        paddingLeft: theme.spacing(3)
+        paddingLeft: theme.spacing(3),
+        paddingTop: theme.spacing(1)
     },
     typeContainer: {
         marginTop: theme.spacing(1)
@@ -48,6 +49,12 @@ const useStyles = makeStyles({
     },
     historyContainer: {
         marginBottom: theme.spacing(3)
+    },
+    historyTitle: {
+        display: "inline-block",
+        paddingBottom: "2px",
+        borderBottom: `2px solid ${theme.palette.primary.main}`,
+        marginBottom: theme.spacing(1.5)
     },
     addButton: {
         marginRight: theme.spacing(1)
@@ -165,7 +172,6 @@ export default function UrineScreen(props) {
                 "reference": "Patient/"+rowData.id
             }
         };
-        console.log("resource ", resource);
         setSaveInProgress(true);
         setError("");
         fetch("/fhir/ServiceRequest", {
@@ -181,7 +187,8 @@ export default function UrineScreen(props) {
             setTimeout(() => setSaveInProgress(false), 150);
             setSaveInProgress(false);
             setOpen(true);
-            getHistory();
+            clearFields();
+            setTimeout(() => getHistory(), 50);
         }).catch(e => {
             console.log("error submtting request ", e)
             setError("Data submission failed.  Unable to add.");
@@ -197,8 +204,8 @@ export default function UrineScreen(props) {
         const resource = history[0].resource;
         const orderText = resource && resource.code && resource.code.text ? resource.code.text : "";
         const orderDate = resource.authoredOn.substring(0,resource.authoredOn.indexOf("T"));
-        if (orderText) return orderText + " ordered on " + orderDate;
-        return "Ordered on " + orderDate;
+        if (orderText) return orderText + " ordered on <b>" + orderDate + "</b>";
+        return "Ordered on <b>" + orderDate + "</b>";
     };
     React.useEffect(() => {
         getHistory();
@@ -253,11 +260,11 @@ export default function UrineScreen(props) {
             </div>
             <div className={classes.typeContainer}>
                 <FormControl variant="standard">
-                    <InputLabel>Name</InputLabel>
+                    <InputLabel>Urine Drug Screen Name</InputLabel>
                     <Select
                     value={type}
                     onChange={handleTypeChange}
-                    label="Name"
+                    label="Urine Drug Screen Name"
                     className={classes.selectBox}
                     >
                     {
@@ -282,10 +289,10 @@ export default function UrineScreen(props) {
             {error && <Error message={error}></Error>}
             </div>
             <div className={classes.historyContainer}>
-                <Typography variant="caption" display="block" gutterBottom>
-                    Last Urine Screen
+                <Typography variant="caption" display="block" className={classes.historyTitle} gutterBottom>
+                    Last Urine Drug Screen
                 </Typography>
-                {displayHistory()}
+                <div dangerouslySetInnerHTML={{ __html: displayHistory()}}></div>
             </div>
         </div>
     );
