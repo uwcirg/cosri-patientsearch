@@ -200,7 +200,7 @@ export default function UrineScreen(props) {
         return (!history || !history.length);
     };
     const displayHistory = () => {
-        if (hasHistory()) return "No previous recorded urine screen";
+        if (hasHistory()) return "No previous recorded urine drug screen";
         const resource = history[0].resource;
         const orderText = resource && resource.code && resource.code.text ? resource.code.text : "";
         const orderDate = resource.authoredOn.substring(0,resource.authoredOn.indexOf("T"));
@@ -278,7 +278,7 @@ export default function UrineScreen(props) {
             <div className={classes.buttonsContainer}>
                 <Button variant="contained" color="primary" className={classes.addButton} disabled={!hasValues()} onClick={handleAdd}>Add</Button>
                 <Tooltip title="Clear fields">
-                    <Button variant="outlined" onClick={clearFields}>Clear</Button>
+                    <Button variant="outlined" onClick={clearFields} disabled={!hasValues()}>Clear</Button>
                 </Tooltip>
                 {saveInProgress && <div className={classes.progressContainer}><CircularProgress className={classes.progressIcon} color="primary" size={32} /></div>}
             </div>
