@@ -22,7 +22,8 @@ const useStyles = makeStyles((theme) => ({
         background: "#FFF",
         display: "flex",
         flexDirection: "row",
-        justifyContent: "space-between"
+        justifyContent: "space-between",
+        flexWrap: "wrap"
     },
     toolbarIcon: {
         display: 'flex',
@@ -50,7 +51,8 @@ const useStyles = makeStyles((theme) => ({
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        marginRight: theme.spacing(4)
+        marginRight: theme.spacing(4),
+        marginLeft: theme.spacing(4)
     },
     welcomeText: {
         marginTop: theme.spacing(0.5),

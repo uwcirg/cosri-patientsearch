@@ -66,6 +66,10 @@ const useStyles = makeStyles({
         minWidth: "248px",
         fontSize: "14px"
     },
+    dateLabel: {
+        fontSize: "12px",
+        marginBottom: theme.spacing(0.25)
+    },
     menuItem: {
         fontSize: "14px"
     },
@@ -222,6 +226,7 @@ export default function UrineScreen(props) {
             <div>
                 <MuiPickersUtilsProvider utils={DateFnsUtils}>
                     {/* order date field */}
+                    <InputLabel className={classes.dateLabel}>Order Date</InputLabel>
                     <KeyboardDatePicker
                         autoOk={true}
                         variant="dialog"
@@ -243,7 +248,6 @@ export default function UrineScreen(props) {
                         disableFuture
                         placeholder="YYYY-MM-DD"
                         value={date}
-                        label="Order Date"
                         orientation="landscape"
                         onChange={(event, dateString) => {
                             setDateInput(dateString);
@@ -260,11 +264,10 @@ export default function UrineScreen(props) {
             </div>
             <div className={classes.typeContainer}>
                 <FormControl variant="standard">
-                    <InputLabel>Urine Drug Screen Name</InputLabel>
+                    <InputLabel className={classes.label}>Urine Drug Screen Name</InputLabel>
                     <Select
                     value={type}
                     onChange={handleTypeChange}
-                    label="Urine Drug Screen Name"
                     className={classes.selectBox}
                     >
                     {

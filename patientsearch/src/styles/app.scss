@@ -3,6 +3,7 @@ $color-blue-light: #46777f;
 $color-muted: #777;
 $color-muter: rgba(165, 158, 158, 0.64);
 $input-icon-color: #686b6b;
+$base-font-size: 16px;
 $small-font-size: 14px;
 $table-header-bg-color: rgb(224, 242, 241);
 
@@ -302,6 +303,7 @@ only screen and (max-width: 736px),
 	tbody td:nth-of-type(2):before { content: "Last Name"; }
 	tbody td:nth-of-type(3):before { content: "Birth Date"; }
   tbody td:not(:empty):nth-of-type(4):before { content: "Last updated";  text-align: left !important}
+  tbody td:not(:empty):nth-of-type(4) { text-align: left !important}
   tfoot .MuiTablePagination-toolbar {
     display: flex;
     flex-direction: column;

@@ -153,7 +153,7 @@ const useStyles = makeStyles({
       width: "100%",
       paddingTop: theme.spacing(0.5),
       paddingBottom: theme.spacing(0.5),
-      backgroundColor: theme.palette.primary.main,
+      backgroundColor: theme.palette.primary.dark,
       color: "#FFF"
     },
     menuIcon: {
@@ -915,30 +915,29 @@ export default function PatientListTable(props) {
               </div>
             </div>
           </Modal>
-
-            <Menu
-              id="rowMenu"
-              anchorEl={anchorEl}
-              keepMounted
-              open={Boolean(anchorEl)}
-              onClose={handleMenuClose}
-              transformOrigin={{
-                vertical: 'top',
-                horizontal: 'center',
-              }}
-              elevation={1}
-            >
-              <div className={classes.menuTitle}>
-                <Typography variant="caption" className={classes.menuTitleText}>Select</Typography>
-                <Button size="small" onClick={handleMenuClose} className={classes.menuCloseButton}>X</Button>
-              </div>
-              <MenuItem onClick={(event) => handleMenuSelect(event)} datatopic="urine screen"  dense>
-                <ListItemIcon className={classes.menuIcon} datatopic="urine screen" >
-                  <AddCircleOutlineIcon size="small"/>
-                </ListItemIcon>
-                <Typography variant="subtitle2" datatopic="urine screen">Add Urine Tox Screen</Typography>
-              </MenuItem>
-            </Menu>
+          <Menu
+            id="rowMenu"
+            anchorEl={anchorEl}
+            keepMounted
+            open={Boolean(anchorEl)}
+            onClose={handleMenuClose}
+            transformOrigin={{
+              vertical: 'top',
+              horizontal: 'center',
+            }}
+            elevation={1}
+          >
+            <div className={classes.menuTitle}>
+              <Typography variant="subtitle2" className={classes.menuTitleText}>Select</Typography>
+              <Button size="small" onClick={handleMenuClose} className={classes.menuCloseButton}>X</Button>
+            </div>
+            <MenuItem onClick={(event) => handleMenuSelect(event)} datatopic="urine screen"  dense>
+              <ListItemIcon className={classes.menuIcon} datatopic="urine screen" >
+                <AddCircleOutlineIcon size="small"/>
+              </ListItemIcon>
+              <Typography variant="subtitle2" datatopic="urine screen">Add Urine Tox Screen</Typography>
+            </MenuItem>
+          </Menu>
         </Container>
     </React.Fragment>
   );
