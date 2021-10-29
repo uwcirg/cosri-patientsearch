@@ -81,7 +81,7 @@ export function isString (obj) {
 }
 
 export function pad (val, len) {
-  if (!val) return "";
+  if (!val && parseInt(val) !== 0) return "";
   val = String(val);
   len = len || 2;
   while (val.length < len) val = "0" + val;
