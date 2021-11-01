@@ -1,25 +1,33 @@
 import React from 'react';
 import { forwardRef } from 'react';
-import { makeStyles} from '@material-ui/core/styles';
+import { makeStyles, styled } from '@material-ui/core/styles';
 import MaterialTable from 'material-table';
 import ArrowDownward from '@material-ui/icons/ArrowDownward';
 import Check from '@material-ui/icons/Check';
 import ChevronLeft from '@material-ui/icons/ChevronLeft';
 import ChevronRight from '@material-ui/icons/ChevronRight';
+import AddCircleOutlineIcon from '@material-ui/icons/AddCircleOutline';
 import ClearIcon from '@material-ui/icons/Clear';
 import RefreshIcon from '@material-ui/icons/Refresh';
+import MoreHorizIcon from '@material-ui/icons/MoreHoriz';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import Button from '@material-ui/core/Button';
 import Container from '@material-ui/core/Container';
 import Delete from '@material-ui/icons/Delete';
 import FirstPage from '@material-ui/icons/FirstPage';
+import ListItemIcon from '@material-ui/core/ListItemIcon';
 import LastPage from '@material-ui/icons/LastPage';
 import Search from '@material-ui/icons/Search';
-import Tooltip from '@material-ui/core/Tooltip';
+import Menu from '@material-ui/core/Menu';
+import MenuItem from '@material-ui/core/MenuItem';
 import Modal from '@material-ui/core/Modal';
+import Paper from '@material-ui/core/Paper';
 import TablePagination from '@material-ui/core/TablePagination';
+import Tooltip from '@material-ui/core/Tooltip';
+import Typography from '@material-ui/core/Typography';
 import Error from "./Error";
 import FilterRow from "./FilterRow";
+import UrineScreen from "./UrineScreen";
 import theme from '../context/theme';
 import {getLocalDateTimeString, getUrlParameter, isString} from "./Utility";
 
@@ -35,7 +43,7 @@ const useStyles = makeStyles({
       marginBottom: theme.spacing(1)
     },
     table: {
-        minWidth: 450,
+        minWidth: 320,
         maxWidth: "100%"
     },
     paper: {
@@ -121,6 +129,48 @@ const useStyles = makeStyles({
     spacer: {
       minWidth: "20px",
       minHeight: "20px"
+    },
+    detailPanelWrapper: {
+      backgroundColor: "#dde7e6",
+      padding: theme.spacing(0.25)
+    },
+    detailPanelContainer: {
+      position: "relative",
+      minHeight: theme.spacing(8)
+    },
+    detailPanelCloseButton: {
+      position: "absolute",
+      top: theme.spacing(1.5),
+      right: theme.spacing(6),
+      color: theme.palette.primary.main
+    },
+    menu: {
+      paddingTop: theme.spacing(2.5)
+    },
+    menuTitle: {
+      position: "absolute",
+      top: 0,
+      width: "100%",
+      paddingTop: theme.spacing(0.5),
+      paddingBottom: theme.spacing(0.5),
+      backgroundColor: theme.palette.primary.dark,
+      color: "#FFF"
+    },
+    menuIcon: {
+      minWidth: theme.spacing(3),
+      marginRight: theme.spacing(0.5)
+    },
+    menuTitleText: {
+      display: "inline-block",
+      marginLeft: theme.spacing(2),
+      fontWeight: 500
+    },
+    menuCloseButton: {
+      position: "absolute",
+      right: "-8px",
+      top: "0",
+      fontSize: "12px",
+      color: "#FFF"
     }
 });
 
@@ -148,6 +198,9 @@ export default function PatientListTable(props) {
   const [openLoadingModal, setOpenLoadingModal] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState("");
   const [containNoPMPRow, setContainNoPMPRow] = React.useState(false);
+  const [anchorEl, setAnchorEl] = React.useState(null);
+  const [selectedMenuItem, setSelectedMenuItem] = React.useState("");
+  const [currentRow, setCurrentRow] = React.useState(null);
   const tableRef = React.useRef();
   const LAUNCH_BUTTON_LABEL = "VIEW";
   const CREATE_BUTTON_LABEL = "CREATE";
@@ -159,6 +212,7 @@ export default function PatientListTable(props) {
     Filter: forwardRef((props, ref) => <Search {...props} ref={ref} color="primary" />),
     FirstPage: forwardRef((props, ref) => <FirstPage {...props} ref={ref} />),
     LastPage: forwardRef((props, ref) => <LastPage {...props} ref={ref} />),
+    DetailPanel: forwardRef((props, ref) => <div {...props} ref={ref} color="primary" className="detail-panel"/>),
     NextPage: forwardRef((props, ref) => <ChevronRight {...props} ref={ref} />),
     PreviousPage: forwardRef((props, ref) => <ChevronLeft {...props} ref={ref} />),
     SortArrow: forwardRef((props, ref) => <ArrowDownward {...props} ref={ref} color="primary" />),
@@ -514,8 +568,63 @@ export default function PatientListTable(props) {
     setPageSize(pageSize);
   }
 
+  const handleChangePage = (event, newPage) => {
+    setPrevPageNumber(pageNumber);
+    setPageNumber(newPage);
+    if (tableRef && tableRef.current) tableRef.current.onQueryChange();
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setPageSize(parseInt(event.target.value, 10));
+    if (tableRef && tableRef.current) tableRef.current.onQueryChange();
+  };
+
   const handleRefresh = () => {
     document.querySelector("#btnClear").click();
+  }
+
+  const StyledMenu = styled((props) => (
+    <Menu
+      {...props}
+    />
+  ))(({ theme }) => ({
+    '& .MuiPaper-root': {
+      borderRadius: 0,
+      marginTop: theme.spacing(3),
+      minWidth: 180,
+      '& .MuiMenu-list': {
+        padding: '4px 0',
+      },
+      '& .MuiMenuItem-root': {
+        '& .MuiSvgIcon-root': {
+          fontSize: 16,
+          marginRight: theme.spacing(1),
+        },
+      },
+    },
+  }));
+  const handleMenuClick = (event, rowData) => {
+    event.stopPropagation();
+    setAnchorEl(event.currentTarget);
+    setCurrentRow(rowData);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleMenuSelect = (event) => {
+    event.stopPropagation();
+    const selectedTarget = event.target.getAttribute("datatopic");
+    setSelectedMenuItem(selectedTarget);
+    if (!selectedTarget) return;
+    setTimeout(function() {
+      tableRef.current.onToggleDetailPanel(
+        [currentRow.tableData.id],
+        tableRef.current.props.detailPanel[0].render
+      )
+    }, 200);
+    handleMenuClose();
   }
 
   const getPatientList = (query) => {
@@ -611,17 +720,6 @@ export default function PatientListTable(props) {
       });
   };
 
-  const handleChangePage = (event, newPage) => {
-    setPrevPageNumber(pageNumber);
-    setPageNumber(newPage);
-    if (tableRef && tableRef.current) tableRef.current.onQueryChange();
-  };
-
-  const handleChangeRowsPerPage = (event) => {
-    setPageSize(parseInt(event.target.value, 10));
-    if (tableRef && tableRef.current) tableRef.current.onQueryChange();
-  };
-
   React.useEffect(() => {
     //when page unloads, remove loading indicator
     window.addEventListener("beforeunload", function() { setOpenLoadingModal(false); });
@@ -660,6 +758,37 @@ export default function PatientListTable(props) {
                 }
                 tableRef={tableRef}
                 hideSortIcon={false}
+                detailPanel={[{
+                  render : rowData => {
+                            return (
+                              <div className={classes.detailPanelWrapper}>
+                                <Paper elevation={1} variant="outlined" className={classes.detailPanelContainer}>
+                                  {selectedMenuItem === "urine screen" && <UrineScreen rowData={rowData}></UrineScreen>}
+                                  <Button onClick={() => {
+                                    tableRef.current.onToggleDetailPanel(
+                                      [rowData.tableData.id],
+                                      tableRef.current.props.detailPanel[0].render
+                                    );
+                                    handleMenuClose();
+                                  }} className={classes.detailPanelCloseButton} size="small">Close X</Button>
+                                </Paper>
+                              </div>
+                            )
+                          },
+                  isFreeAction: false
+                }]}
+                actions={[
+                  {
+                    icon: () => <span className={classes.button}>{LAUNCH_BUTTON_LABEL}</span>,
+                    onClick: (event, rowData) => handleSearch(event, rowData),
+                    tooltip: 'Launch COSRI application for the user'
+                  },
+                  {
+                    icon: () => <MoreHorizIcon color="primary"></MoreHorizIcon>,
+                    onClick: (event, rowData) => handleMenuClick(event, rowData),
+                    tooltip: "More"
+                  }
+                ]}
                 options={{
                     paginationTypestepped: "stepped",
                     showFirstLastPageButtons: false,
@@ -669,6 +798,7 @@ export default function PatientListTable(props) {
                     padding: "dense",
                     emptyRowsWhenPaging: false,
                     debounceInterval:300,
+                    detailPanelColumnAlignment: "right",
                     toolbar: false,
                     filtering: false,
                     sorting: true,
@@ -710,40 +840,28 @@ export default function PatientListTable(props) {
                        setErrorMessage("Unable to remove patient from the list.");
                      })
                 }}
-                actions={[
-                  rowData => ({
-                      icon: () => (
-                        <Tooltip title={!inPDMP(rowData)? 'Patient was not found in PMP. Launch COSRI Application for the user.': 'Launch COSRI application for the user'}><span className={classes.button} color="primary" fontSize="small" variant="contained">{LAUNCH_BUTTON_LABEL}</span></Tooltip>
-                      ),
-                      //tooltip: 'Launch COSRI application for the user',
-                      onClick: (event, rowData) => {handleSearch(event, rowData);},
-                      title: "",
-                      position: "row",
-                      align: "center"
-                    })
-                  ]}
-                  localization={{
-                    header: {
-                      actions: ""
-                    },
-                  pagination: {
-                    labelRowsSelect: "rows"
+                localization={{
+                  header: {
+                    actions: ""
                   },
-                  body: {
-                      deleteTooltip: "Remove from the list",
-                      editRow: {
-                        deleteText: "Are you sure you want to remove this patient from the list? (You can add them back later by searching for them)",
-                        saveTooltip: "OK",
+                pagination: {
+                  labelRowsSelect: "rows"
+                },
+                body: {
+                    deleteTooltip: "Remove from the list",
+                    editRow: {
+                      deleteText: "Are you sure you want to remove this patient from the list? (You can add them back later by searching for them)",
+                      saveTooltip: "OK",
 
-                      },
-                      emptyDataSourceMessage: (
-                        <div id="emptyDataContainer" className={classes.flex}>
-                            <div className={classes.warning}>
-                              <div>No matching patient found.</div>
-                              <div id={`${NO_DATA_ELEMENT_ID}`}></div>
-                            </div>
-                        </div>
-                      ),
+                    },
+                    emptyDataSourceMessage: (
+                      <div id="emptyDataContainer" className={classes.flex}>
+                          <div className={classes.warning}>
+                            <div>No matching patient found.</div>
+                            <div id={`${NO_DATA_ELEMENT_ID}`}></div>
+                          </div>
+                      </div>
+                    ),
                   },
                 }}
               />
@@ -817,6 +935,29 @@ export default function PatientListTable(props) {
               </div>
             </div>
           </Modal>
+          <StyledMenu
+            id="rowMenu"
+            anchorEl={anchorEl}
+            keepMounted
+            open={Boolean(anchorEl)}
+            onClose={handleMenuClose}
+            transformOrigin={{
+              vertical: 'top',
+              horizontal: 'center',
+            }}
+            elevation={1}
+          >
+            <div className={classes.menuTitle}>
+              <Typography variant="subtitle2" className={classes.menuTitleText}>Select</Typography>
+              <Button size="small" onClick={handleMenuClose} className={classes.menuCloseButton}>X</Button>
+            </div>
+            <MenuItem onClick={(event) => handleMenuSelect(event)} dense>
+              <ListItemIcon className={classes.menuIcon} datatopic="urine screen">
+                <AddCircleOutlineIcon fontSize="small"/>
+              </ListItemIcon>
+              <Typography variant="subtitle2" datatopic="urine screen">Add Urine Tox Screen</Typography>
+            </MenuItem>
+          </StyledMenu>
         </Container>
     </React.Fragment>
   );

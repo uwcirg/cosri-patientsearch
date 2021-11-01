@@ -1,9 +1,14 @@
-export function sendRequest (url) {
+export function sendRequest (url, params) {
+    params = params || {};
     // Return a new promise.
     return new Promise(function(resolve, reject) {
       // Do the usual XHR stuff
       var req = new XMLHttpRequest();
       req.open('GET', url);
+      if (params.nocache) {
+        // via Cache-Control header:
+        req.setRequestHeader("Cache-Control", "no-cache");
+      }
 
       req.onload = function() {
         // This is called even on 404 etc
@@ -73,7 +78,7 @@ export function isString (obj) {
 }
 
 export function pad (val, len) {
-  if (!val) return "";
+  if (!val && parseInt(val) !== 0) return "";
   val = String(val);
   len = len || 2;
   while (val.length < len) val = "0" + val;
@@ -94,4 +99,21 @@ export function getLocalDateTimeString(utcDateString) {
   let hours = pad(dateObj.getHours());
   let minutes = pad(dateObj.getMinutes());
   return `${year}-${month}-${day} ${hours}:${minutes}`;
+}
+
+
+/*
+ *  given two date/time string, sort it in descending order
+ */
+export function dateTimeCompare(a, b) {
+  if (a == null && b != null) {
+    return 1;
+  } else if (a != null && b == null) {
+    return -1;
+  } else if (a == null && b == null) {
+    return 0;
+  }
+  a = new Date(a).getTime();
+  b = new Date(b).getTime();
+  return b > a ? 1 : -1;
 }

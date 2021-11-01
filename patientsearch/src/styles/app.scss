@@ -3,6 +3,7 @@ $color-blue-light: #46777f;
 $color-muted: #777;
 $color-muter: rgba(165, 158, 158, 0.64);
 $input-icon-color: #686b6b;
+$base-font-size: 16px;
 $small-font-size: 14px;
 $table-header-bg-color: rgb(224, 242, 241);
 
@@ -27,6 +28,12 @@ html {
   width: 100%;
   padding-left: 24px;
   padding-right: 24px;
+}
+.landing {
+  .version-container {
+    margin-top: 24px;
+    text-align: center;
+  }
 }
 .logout-container {
   margin-top: 196px;
@@ -69,9 +76,16 @@ img[disabled] {
 #patientList tr:empty {
   height: 0 !important;
 }
+#rowMenu {
+  .MuiMenu-list {
+    padding-top: 28px;
+    padding-bottom: 0;
+  }
+}
 .menu-icon {
   margin-left: 8px;
 }
+
 .muted-text {
   color: $color-muted;
 }
@@ -192,6 +206,13 @@ button.disabled:focus,
     position: relative;
     overflow: hidden;
   }
+  tr {
+    td {
+      button:not(:first-of-type):not(:last-of-type) {
+        order: 10
+      }
+    }
+  }
 }
 #toolbarGoButton {
   text-align: center;
@@ -233,45 +254,29 @@ only screen and (max-width: 736px),
 
 	//tr { border: 1px solid #ccc; }
 
-  tbody tr:first-of-type {
+  tbody tr {
     min-height: 280px;
     display: flex;
     flex-direction: column;
     padding: 16px 16px;
   }
-  tbody tr:nth-of-type(2) {
-    padding-top: 48px;
-    position: relative;
-    &:before {
-      display: block;
-      position: absolute;
-      left: 0;
-      right: 0;
-      top: 0;
-      content: "Results";
-      font-weight: 500;
-      font-size: 18px;
-      border-bottom: 1px solid $color-muted;
-      margin-bottom: 16px;
-      padding: 8px;
-      background: #FFF;
-    }
-  }
   tbody tr {
     display: flex !important;
     flex-direction: column;
     padding: 16px;
-    &:first-of-type {
-      border-bottom: 2px solid $color-muter;
-    }
+    border-bottom: 2px solid $color-muter;
   }
 
 	tbody tr td {
 		/* Behave  like a "row" */
-		border-bottom: 1px solid $color-muter;
+		border-bottom: 0 !important;
     padding: 24px 8px 8px !important;
 		position: relative;
     width: 100% !important;
+    h1, h2, h3 {
+      width: 50%;
+      max-width: 100%
+    }
 	}
 
   tbody tr:first-of-type td {
@@ -294,10 +299,11 @@ only screen and (max-width: 736px),
 	/*
 	Label the data
 	*/
-	tbody td:nth-of-type(1):before { content: "First Name"; }
+	tbody td:nth-of-type(1):not(:last-of-type):before { content: "First Name"; }
 	tbody td:nth-of-type(2):before { content: "Last Name"; }
 	tbody td:nth-of-type(3):before { content: "Birth Date"; }
-
+  tbody td:not(:empty):nth-of-type(4):before { content: "Last updated";  text-align: left !important}
+  tbody td:not(:empty):nth-of-type(4) { text-align: left !important}
   tfoot .MuiTablePagination-toolbar {
     display: flex;
     flex-direction: column;
