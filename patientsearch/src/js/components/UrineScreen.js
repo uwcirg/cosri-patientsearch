@@ -54,7 +54,7 @@ const useStyles = makeStyles({
         display: "inline-block",
         paddingBottom: "2px",
         borderBottom: `2px solid ${theme.palette.primary.main}`,
-        marginBottom: theme.spacing(1.5)
+        marginBottom: theme.spacing(1)
     },
     addButton: {
         marginRight: theme.spacing(1)
