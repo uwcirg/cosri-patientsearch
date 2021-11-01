@@ -1,6 +1,6 @@
 import React from 'react';
 import { forwardRef } from 'react';
-import { makeStyles} from '@material-ui/core/styles';
+import { makeStyles, styled, alpha } from '@material-ui/core/styles';
 import MaterialTable from 'material-table';
 import ArrowDownward from '@material-ui/icons/ArrowDownward';
 import Check from '@material-ui/icons/Check';
@@ -583,6 +583,26 @@ export default function PatientListTable(props) {
     document.querySelector("#btnClear").click();
   }
 
+  const StyledMenu = styled((props) => (
+    <Menu
+      {...props}
+    />
+  ))(({ theme }) => ({
+    '& .MuiPaper-root': {
+      borderRadius: 0,
+      marginTop: theme.spacing(3),
+      minWidth: 180,
+      '& .MuiMenu-list': {
+        padding: '4px 0',
+      },
+      '& .MuiMenuItem-root': {
+        '& .MuiSvgIcon-root': {
+          fontSize: 16,
+          marginRight: theme.spacing(1),
+        },
+      },
+    },
+  }));
   const handleMenuClick = (event, rowData) => {
     event.stopPropagation();
     setAnchorEl(event.currentTarget);
@@ -597,7 +617,6 @@ export default function PatientListTable(props) {
     event.stopPropagation();
     const selectedTarget = event.target.getAttribute("datatopic");
     setSelectedMenuItem(selectedTarget);
-    handleMenuClose();
     if (!selectedTarget) return;
     setTimeout(function() {
       tableRef.current.onToggleDetailPanel(
@@ -605,6 +624,7 @@ export default function PatientListTable(props) {
         tableRef.current.props.detailPanel[0].render
       )
     }, 200);
+    handleMenuClose();
   }
 
   const getPatientList = (query) => {
@@ -915,7 +935,7 @@ export default function PatientListTable(props) {
               </div>
             </div>
           </Modal>
-          <Menu
+          <StyledMenu
             id="rowMenu"
             anchorEl={anchorEl}
             keepMounted
@@ -931,13 +951,13 @@ export default function PatientListTable(props) {
               <Typography variant="subtitle2" className={classes.menuTitleText}>Select</Typography>
               <Button size="small" onClick={handleMenuClose} className={classes.menuCloseButton}>X</Button>
             </div>
-            <MenuItem onClick={(event) => handleMenuSelect(event)} datatopic="urine screen"  dense>
-              <ListItemIcon className={classes.menuIcon} datatopic="urine screen" >
-                <AddCircleOutlineIcon size="small"/>
+            <MenuItem onClick={(event) => handleMenuSelect(event)} dense>
+              <ListItemIcon className={classes.menuIcon} datatopic="urine screen">
+                <AddCircleOutlineIcon fontSize="small"/>
               </ListItemIcon>
               <Typography variant="subtitle2" datatopic="urine screen">Add Urine Tox Screen</Typography>
             </MenuItem>
-          </Menu>
+          </StyledMenu>
         </Container>
     </React.Fragment>
   );
