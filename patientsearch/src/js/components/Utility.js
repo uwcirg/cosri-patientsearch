@@ -8,9 +8,6 @@ export function sendRequest (url, params) {
       if (params.nocache) {
         // via Cache-Control header:
         req.setRequestHeader("Cache-Control", "no-cache, no-store, max-age=0");
-        // fallbacks for IE and older browsers
-        req.setRequestHeader("Expires", "Tue, 01 Jan 1980 1:00:00 GMT");
-        req.setRequestHeader("Pragma", "no-cache");
       }
 
       req.onload = function() {
