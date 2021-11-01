@@ -7,7 +7,7 @@ export function sendRequest (url, params) {
       req.open('GET', url);
       if (params.nocache) {
         // via Cache-Control header:
-        req.setRequestHeader("Cache-Control", "no-cache, no-store, max-age=0");
+        req.setRequestHeader("Cache-Control", "no-cache");
       }
 
       req.onload = function() {
