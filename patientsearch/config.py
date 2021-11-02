@@ -14,11 +14,10 @@ def load_json_config(potential_json_string):
         return json.loads(potential_json_string)
 
 
-
 LANDING_INTRO = os.getenv("LANDING_INTRO", "")
 LANDING_BUTTON_TEXT = os.getenv("LANDING_BUTTON_TEXT", "")
 LANDING_BODY = os.getenv("LANDING_BODY", "")
-
+MORE_MENU = json.loads(os.getenv("MORE_MENU", '[]'))
 SERVER_NAME = os.getenv("SERVER_NAME")
 SECRET_KEY = os.getenv("SECRET_KEY")
 SYSTEM_TYPE = os.getenv("SYSTEM_TYPE", "development")
