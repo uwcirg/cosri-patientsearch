@@ -10,6 +10,13 @@ $table-header-bg-color: rgb(224, 242, 241);
 html {
   scroll-behavior: smooth;
 }
+.ghost {
+  display: none;
+  z-index: -1;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
 .landing {
   display: flex;
   flex-direction: column;
