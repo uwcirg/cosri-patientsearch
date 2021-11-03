@@ -626,6 +626,15 @@ export default function PatientListTable(props) {
     }, 200);
     handleMenuClose();
   }
+  const MORE_MENU_KEY = "MORE_MENU";
+  const shouldHideMoreMenu = () => {
+    //TODO fix this if we have more menu items added, right now just hide the ... menu link if no urine drug screen is specfied as a menu item, since that means no menu item to show
+    return shouldHideUrineScreenMenu() || (Object.keys(appSettings).length && (!appSettings[MORE_MENU_KEY] || appSettings[MORE_MENU_KEY].length === 0));
+  }
+  const shouldHideUrineScreenMenu = () => {
+    let arrMenu = appSettings[MORE_MENU_KEY] ? appSettings[MORE_MENU_KEY]: [];
+    return arrMenu.indexOf("UDS") === -1;
+  }
 
   const getPatientList = (query) => {
     let sortField = query.orderBy && query.orderBy.field? FieldNameMaps[query.orderBy.field] : "_lastUpdated";
@@ -784,7 +793,7 @@ export default function PatientListTable(props) {
                     tooltip: 'Launch COSRI application for the user'
                   },
                   {
-                    icon: () => <MoreHorizIcon color="primary"></MoreHorizIcon>,
+                    icon: () => <MoreHorizIcon color="primary" className={`more-icon ${shouldHideMoreMenu()?'ghost': ''}`}></MoreHorizIcon>,
                     onClick: (event, rowData) => handleMenuClick(event, rowData),
                     tooltip: "More"
                   }
@@ -951,7 +960,7 @@ export default function PatientListTable(props) {
               <Typography variant="subtitle2" className={classes.menuTitleText}>Select</Typography>
               <Button size="small" onClick={handleMenuClose} className={classes.menuCloseButton}>X</Button>
             </div>
-            <MenuItem onClick={(event) => handleMenuSelect(event)} dense>
+            <MenuItem onClick={(event) => handleMenuSelect(event)} className={`${shouldHideUrineScreenMenu()?'ghost':''}`}dense>
               <ListItemIcon className={classes.menuIcon} datatopic="urine screen">
                 <AddCircleOutlineIcon fontSize="small"/>
               </ListItemIcon>
