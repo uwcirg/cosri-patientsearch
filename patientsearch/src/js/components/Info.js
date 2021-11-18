@@ -7,9 +7,22 @@ import {imageOK, sendRequest} from './Utility';
 import theme from '../context/theme';
 
 const useStyles = makeStyles({
+    wrapper: {
+        position: "relative"
+    },
     loader: {
-        marginTop: theme.spacing(24),
-        textAlign: "center"
+        textAlign: "center",
+        position: "absolute",
+        top: 0,
+        left: 0,
+        right: 0,
+        left: 0,
+        bottom: 0,
+        zIndex: 50
+    },
+    loadingIcon: {
+        position: "absolute",
+        top: "45vh"
     },
     container: {
         textAlign: "center",
@@ -27,7 +40,10 @@ const useStyles = makeStyles({
         width: "280px",
         borderWidth: "2px",
         marginTop: theme.spacing(3),
-        fontWeight: 500
+        fontWeight: 500,
+        '&:hover': {
+            borderWidth: "2px"
+        }
     },
     introText: {
         marginBottom: theme.spacing(2.5),
@@ -69,7 +85,7 @@ export default function Info() {
             setSetting(data);
             setSiteID(getSiteId());
             setInitialized(true);
-            setLoading(false);
+            setTimeout(() => setLoading(false), 250);
         }, error => {
             console.log("Failed to retrieve data", error.statusText);
             setInitialized(true);
@@ -147,8 +163,8 @@ export default function Info() {
         return "This system is only for use by clinical staff.";
     }
     return (
-        <div>
-            {loading && <div className={classes.loader}><CircularProgress  size={56} color="primary"></CircularProgress></div>}
+        <div className={classes.wrapper}>
+            {loading && <div className={classes.loader}><CircularProgress  size={56} color="primary" className={classes.loadingIcon}></CircularProgress></div>}
             {!loading && <div className={classes.container}>
                 {/* intro text, e.g. HTML block 1 */}
                 <div className={classes.introText}>
