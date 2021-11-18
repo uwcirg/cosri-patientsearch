@@ -12,7 +12,6 @@ import FormControl from '@material-ui/core/FormControl';
 import MenuItem from '@material-ui/core/MenuItem';
 import Select from '@material-ui/core/Select';
 import Snackbar from '@material-ui/core/Snackbar';
-import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
 import MuiAlert from '@material-ui/lab/Alert';
 import  {MuiPickersUtilsProvider, KeyboardDatePicker } from '@material-ui/pickers';
@@ -27,6 +26,9 @@ const useStyles = makeStyles({
     },
     typeContainer: {
         marginTop: theme.spacing(1)
+    },
+    textDisplay: {
+        marginTop: theme.spacing(3)
     },
     buttonsContainer: {
         marginTop: theme.spacing(4),
@@ -70,12 +72,17 @@ const useStyles = makeStyles({
         fontSize: "12px",
         marginBottom: theme.spacing(0.25)
     },
+    readonlyLabel: {
+        fontSize: "12px",
+        marginBottom: theme.spacing(0.5)
+    },
     menuItem: {
         fontSize: "14px"
     },
     errorContainer: {
         maxWidth: "100%",
-        width: "320px"
+        width: "328px",
+        marginTop: theme.spacing(3)
     }
 });
 function Alert(props) {
@@ -91,39 +98,27 @@ export default function UrineScreen(props) {
     const [saveInProgress, setSaveInProgress] = React.useState(false);
     const [error, setError] = React.useState("");
     const [open, setOpen] = React.useState(false);
+    const [initialized, setInitialized] = React.useState(false);
     const clearDate = () => {
         setDate(null);
         setDateInput("");
     };
     const clearFields = () => {
         clearDate();
-        setType("");
+        if (!onlyOneUrineScreenType()) setType("");
         setError("");
     };
     const handleTypeChange = (event) => {
         setType(event.target.value);
     };
-    //hard-coded urine screen types, replaced with dynamically populated list later
-    const urinScreenTypes = [
-        {
-            code: "763824",
-            display: "12+Oxycodone+Crt-Unbund",
-            text: "Pain Management Profile (13 Drugs), Urine (PMP-13)",
-            system: "https://www.labcorp.com/tests"
-        },
-        {
-            code: "733727",
-            display: "10+Oxycodone+Crt-Scr",
-            text: "Pain Management Screening Profile (11 Drugs), Urine (PMP-11S)",
-            system: "https://www.labcorp.com/tests"
-        }
-    ];
+    const [urineScreenTypes, setUrineScreenTypes] = React.useState([]);
     const hasValues = () => {
         return type && date;
     };
     const rowData = props.rowData ? props.rowData : {};
-    const getHistory = () => {
+    const getHistory = (types) => {
         if (!rowData.id) return [];
+        if (!types) types = urineScreenTypes;
          /*
          * retrieve urine screen history
          */
@@ -137,7 +132,7 @@ export default function UrineScreen(props) {
             if (!data || !data.entry || !data.entry.length) {
                 return;
             }
-            const availableCodes = urinScreenTypes.map(item => item.code);
+            const availableCodes = types.map(item => item.code);
             let urineScreenData = data.entry.filter(item => {
                 let resource = item.resource;
                 if (!resource) return false;
@@ -155,7 +150,7 @@ export default function UrineScreen(props) {
         return "";
     };
     const handleAdd = () => {
-        let typeMatch = urinScreenTypes.filter(item => {
+        let typeMatch = urineScreenTypes.filter(item => {
             return item.code === type
         });
         let resource = {
@@ -187,7 +182,7 @@ export default function UrineScreen(props) {
             body: JSON.stringify(resource)
         })
         .then(response => response.json())
-        .then(data => {
+        .then(() => {
             setTimeout(() => setSaveInProgress(false), 150);
             setSaveInProgress(false);
             setOpen(true);
@@ -211,9 +206,48 @@ export default function UrineScreen(props) {
         if (orderText) return orderText + " ordered on <b>" + orderDate + "</b>";
         return "Ordered on <b>" + orderDate + "</b>";
     };
+    const getOneUrineScreenDisplayText = () => {
+        let matchedType = urineScreenTypes[0];
+        if (matchedType) return matchedType.text;
+        else return "";
+    }
+    const onlyOneUrineScreenType = () => {
+        return urineScreenTypes.length === 1;
+    }
+    const initUrineScreenTypes = () => {
+        const getSettings = async () => {
+            const response = await fetch('/settings').catch(e => console.log("Error retrieving settings ", e)); // get config
+            let data = null;
+            if (response) {
+                try {
+                    data = await response.json(); // parse JSON
+                } catch(e) {
+                    console.log("Error converting setting data to json ", e);
+                }
+            }
+            if (data && data["UDS_LAB_TYPES"]) {
+                setUrineScreenTypes(data["UDS_LAB_TYPES"]);
+            }
+            setInitialized(true);
+        }
+        getSettings();
+    }
+    const hasUrineScreenTypes = () => {
+        return !onlyOneUrineScreenType() && !noUrineScreenTypes();
+    }
+    const noUrineScreenTypes = () => {
+        return !urineScreenTypes || !urineScreenTypes.length;
+    }
     React.useEffect(() => {
-        getHistory();
+        initUrineScreenTypes();
     }, []);
+    React.useEffect(() => {
+        if (onlyOneUrineScreenType()) {
+            //set urine screen type if only one available
+            setType(urineScreenTypes[0].code);
+        }
+        getHistory();
+    },[urineScreenTypes]);
     const handleClose = (event, reason) => {
         if (reason === 'clickaway') {
           return;
@@ -262,8 +296,14 @@ export default function UrineScreen(props) {
                     />
                 </MuiPickersUtilsProvider>
             </div>
-            <div className={classes.typeContainer}>
-                <FormControl variant="standard">
+            {!initialized && <CircularProgress className={classes.progressIcon} color="primary" size={28} />}
+            {initialized && <div className={classes.typeContainer}>
+                {onlyOneUrineScreenType() && <div className={classes.textDisplay}>
+                    <InputLabel className={classes.readonlyLabel}>Urine Drug Screen Name</InputLabel>
+                    <Typography variant="subtitle2">{getOneUrineScreenDisplayText()}</Typography>
+                </div>
+                }
+                {hasUrineScreenTypes() && <FormControl variant="standard">
                     <InputLabel className={classes.label}>Urine Drug Screen Name</InputLabel>
                     <Select
                     value={type}
@@ -271,18 +311,17 @@ export default function UrineScreen(props) {
                     className={classes.selectBox}
                     >
                     {
-                        urinScreenTypes.map(item => {
+                        urineScreenTypes.map(item => {
                             return <MenuItem value={item.code} key={item.code}><Typography variant="body2">{item.text}</Typography></MenuItem>
                         })
                     }
                     </Select>
-                </FormControl>
-            </div>
+                </FormControl>}
+                {noUrineScreenTypes() && <div className={classes.errorContainer}><Error message={"No urine drug screen type list is loaded."}></Error></div>}
+            </div>}
             <div className={classes.buttonsContainer}>
                 <Button variant="contained" color="primary" className={classes.addButton} disabled={!hasValues()} onClick={handleAdd}>Add</Button>
-                <Tooltip title="Clear fields">
-                    <Button variant="outlined" onClick={clearFields} disabled={!hasValues()}>Clear</Button>
-                </Tooltip>
+                <Button variant="outlined" onClick={clearFields} disabled={!hasValues()}>Clear</Button>
                 {saveInProgress && <div className={classes.progressContainer}><CircularProgress className={classes.progressIcon} color="primary" size={32} /></div>}
             </div>
             <Snackbar open={open} autoHideDuration={3000} onClose={handleClose}>
@@ -291,12 +330,12 @@ export default function UrineScreen(props) {
             <div className={classes.errorContainer}>
             {error && <Error message={error}></Error>}
             </div>
-            <div className={classes.historyContainer}>
+            {initialized && <div className={classes.historyContainer}>
                 <Typography variant="caption" display="block" className={classes.historyTitle} gutterBottom>
                     Last Urine Drug Screen
                 </Typography>
                 <div dangerouslySetInnerHTML={{ __html: displayHistory()}}></div>
-            </div>
+            </div>}
         </div>
     );
 
