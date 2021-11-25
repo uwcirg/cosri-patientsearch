@@ -672,6 +672,9 @@ export default function PatientListTable(props) {
           if (nextPageURL) {
             apiURL = nextPageURL;
           }
+          if (prevPageURL) {
+            apiURL = prevPageURL;
+          }
         }
     }
     if (searchString) apiURL += `&${searchString}`;
@@ -718,6 +721,7 @@ export default function PatientListTable(props) {
             setDisableNextButton(!hasNextLink);
             setDisablePrevButton(pageNumber === 0);
             setTotalCount(response.total);
+            console.log("in resolve nextPageURL ", nextPageURL, " prevPageURL ", prevPageURL);
             resolve({
               data: responseData,
               page: currentPage,
