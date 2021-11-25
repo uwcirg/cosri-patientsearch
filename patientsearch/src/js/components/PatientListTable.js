@@ -667,6 +667,10 @@ export default function PatientListTable(props) {
           apiURL = nextPageURL;
         } else if ((pageNumber < prevPageNumber) && prevPageURL) {
           apiURL = prevPageURL;
+        } else {
+          if (nextPageURL) {
+            apiURL = nextPageURL;
+          }
         }
     }
     if (searchString) apiURL += `&${searchString}`;
