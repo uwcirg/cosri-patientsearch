@@ -660,6 +660,7 @@ export default function PatientListTable(props) {
       setInitialized(true);
     };
     let apiURL = `/fhir/Patient?_include=Patient:link&_total=accurate&_count=${pageSize}&_getpagesoffset=0`;
+    console.log("pageNumber ? ", pageNumber, " prevPageNumber ", prevPageNumber, " nextPageURL ", nextPageURL)
     if (searchString) {
       resetPaging();
     } else {
