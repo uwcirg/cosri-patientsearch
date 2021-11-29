@@ -576,11 +576,15 @@ export default function PatientListTable(props) {
 
   const handleChangeRowsPerPage = (event) => {
     setPageSize(parseInt(event.target.value, 10));
+    setNextPageURL("");
+    setPrevPageURL("");
+    setPageNumber(0);
     if (tableRef && tableRef.current) tableRef.current.onQueryChange();
   };
 
   const handleRefresh = () => {
     document.querySelector("#btnClear").click();
+    setErrorMessage("");
   }
 
   const StyledMenu = styled((props) => (
@@ -641,6 +645,7 @@ export default function PatientListTable(props) {
     let sortDirection = query.orderDirection ? query.orderDirection : "desc";
     let sortMinus = sortDirection !== "asc" ? "-" : "";
     let filterBy = [];
+
     if (currentFilters && currentFilters.length) {
       currentFilters.forEach(item => {
         if (item.value) {
@@ -660,23 +665,16 @@ export default function PatientListTable(props) {
       setInitialized(true);
     };
     let apiURL = `/fhir/Patient?_include=Patient:link&_total=accurate&_count=${pageSize}&_getpagesoffset=0`;
-    console.log("pageNumber ? ", pageNumber, " prevPageNumber ", prevPageNumber, " nextPageURL ", nextPageURL)
     if (searchString) {
       resetPaging();
     } else {
-        if ((pageNumber > prevPageNumber) && nextPageURL) {
-          apiURL = nextPageURL;
-        } else if ((pageNumber < prevPageNumber) && prevPageURL) {
-          apiURL = prevPageURL;
-        } else {
-          if (nextPageURL) {
-            apiURL = nextPageURL;
-          }
-          if (prevPageURL) {
-            apiURL = prevPageURL;
-          }
-        }
+      if ((pageNumber > prevPageNumber) && nextPageURL) {
+        apiURL = nextPageURL;
+      } else if ((pageNumber < prevPageNumber) && prevPageURL) {
+        apiURL = prevPageURL;
+      }
     }
+
     if (searchString) apiURL += `&${searchString}`;
     if (sortField && (apiURL.indexOf("sort")===-1)) apiURL += `&_sort=${sortMinus}${sortField}`;
 
@@ -694,10 +692,10 @@ export default function PatientListTable(props) {
               resolve(defaults);
               return;
             }
-            let responseData = formatData(response.entry);
-            setData(responseData || []);
             setInitialized(true);
             setVis();
+            let responseData = formatData(response.entry);
+            setData(responseData || []);
             setNoPMPFlag(responseData);
             let responsePageoffset = 0;
             let responseSelfLink = response.link? response.link.filter(item => {
@@ -716,16 +714,17 @@ export default function PatientListTable(props) {
             let currentPage = responsePageoffset ? (responsePageoffset / pageSize) : 0;
             let hasNextLink = responseNextLink && responseNextLink.length;
             let hasPrevLink = responsePrevLink && responsePrevLink.length;
-            setNextPageURL(hasNextLink ? responseNextLink[0].url: "");
-            setPrevPageURL(hasPrevLink ? responsePrevLink[0].url: (hasSelfLink?responseSelfLink[0].url:""));
+            let newNextURL = hasNextLink ? responseNextLink[0].url: "";
+            let newPrevURL = hasPrevLink ? responsePrevLink[0].url: (hasSelfLink?responseSelfLink[0].url:"");
+            setNextPageURL(newNextURL);
+            setPrevPageURL(newPrevURL);
             setDisableNextButton(!hasNextLink);
             setDisablePrevButton(pageNumber === 0);
-            setTotalCount(response.total);
-            console.log("in resolve nextPageURL ", nextPageURL, " prevPageURL ", prevPageURL);
+            if (!totalCount) setTotalCount(response.total);
             resolve({
               data: responseData,
               page: currentPage,
-              totalCount: response.total,
+              totalCount: response.total
             });
         }).catch(error => {
           console.log("Failed to retrieve data", error);
@@ -810,8 +809,6 @@ export default function PatientListTable(props) {
                 options={{
                     paginationTypestepped: "stepped",
                     showFirstLastPageButtons: false,
-                    pageSize: pageSize,
-                    pageSizeOptions: [10, 20, 50],
                     paging: false,
                     padding: "dense",
                     emptyRowsWhenPaging: false,
@@ -900,7 +897,7 @@ export default function PatientListTable(props) {
              <div>
               {
                 patientListInitialized() &&
-                  <div>
+                  <div className={`${totalCount === 0 ? 'ghost' : ''}`}>
                     <div className={classes.refreshButtonContainer}>
                       <Tooltip title="Refresh the list">
                         <Button
