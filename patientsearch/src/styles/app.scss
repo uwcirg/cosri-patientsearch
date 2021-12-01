@@ -7,6 +7,11 @@ $base-font-size: 16px;
 $small-font-size: 14px;
 $table-header-bg-color: rgb(224, 242, 241);
 
+body {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
 html {
   scroll-behavior: smooth;
 }
@@ -85,12 +90,15 @@ img[disabled] {
 }
 #rowMenu {
   .MuiMenu-list {
-    padding-top: 28px;
-    padding-bottom: 0;
+    padding-top: 32px;
+    padding-bottom: 8px;
   }
 }
 .menu-icon {
   margin-left: 8px;
+}
+#dropdownMenu {
+  overflow: hidden;
 }
 
 .muted-text {
@@ -251,6 +259,10 @@ only screen and (max-width: 736px),
 	table, thead, tbody, thead th, tbody td, tbody tr {
 		display: block;
 	}
+
+  #patientList {
+    margin-top: 24px;
+  }
 
 	/* Hide table headers (but not display: none;, for accessibility) */
 	thead tr {

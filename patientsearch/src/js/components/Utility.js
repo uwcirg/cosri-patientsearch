@@ -1,3 +1,5 @@
+import differenceInMonths from 'date-fns/differenceInMonths';
+
 export function sendRequest (url, params) {
     params = params || {};
     // Return a new promise.
@@ -33,6 +35,53 @@ export function sendRequest (url, params) {
       req.send();
     });
 }
+
+export async function fetchData(url, params, errorCallback) {
+  const MAX_WAIT_TIME = 20000;
+  params = params || {};
+  errorCallback = errorCallback || function() {};
+  // Create a promise that rejects in maximum wait time in milliseconds
+  let timeoutPromise = new Promise((resolve, reject) => {
+    let id = setTimeout(() => {
+      clearTimeout(id);
+      reject(`Timed out in ${MAX_WAIT_TIME} ms.`)
+    }, MAX_WAIT_TIME);
+  });
+  /*
+   * if for some reason fetching the request data doesn't resolve or reject withing the maximum waittime,
+   * then the timeout promise will kick in
+   */
+  let json = null;
+  let results = await Promise.race([
+    fetch(url, params),
+    timeoutPromise
+  ]).catch(e => {
+      console.log("error retrieving data ", e);
+      errorCallback(e);
+      throw e;
+  });
+
+  if (!results || !results.ok) {
+    console.log("no results returned");
+    errorCallback(results ? results : "error retrieving data");
+    return null;
+  }
+
+  try {
+    //read response stream
+    json = await (results.json()).catch(e => {
+        console.log(`There was error processing data.`);
+        throw e.message;
+    });
+  } catch(e) {
+    console.log(`There was error parsing data: ${e}`);
+    json = null;
+    errorCallback(e);
+    throw e;
+  }
+  return json;
+}
+
 
 export function dateFormat(input) {
   if (input == null) return "";
@@ -89,15 +138,16 @@ export function pad (val, len) {
  * convert a UTC date/time string to local date/time string in YYYY-MM-DD HH:MM format
  * example: 2021-10-01T20:31:35.917+00:00 to 2021-10-01 13:31
  */
-export function getLocalDateTimeString(utcDateString) {
+export function getLocalDateTimeString(utcDateString, shortFormat) {
   if (!utcDateString) return "";
   //note javascript Date object automatically convert UTC date/time to locate date/time, no need to parse and convert
-  let dateObj = new Date(utcDateString);
+  let dateObj = (utcDateString instanceof Date) ? utcDateString : new Date(utcDateString);
   let year = dateObj.getFullYear();
   let month = pad(dateObj.getMonth()+1);
   let day = pad(dateObj.getDate());
   let hours = pad(dateObj.getHours());
   let minutes = pad(dateObj.getMinutes());
+  if (shortFormat) return `${year}-${month}-${day}`;
   return `${year}-${month}-${day} ${hours}:${minutes}`;
 }
 
@@ -116,4 +166,46 @@ export function dateTimeCompare(a, b) {
   a = new Date(a).getTime();
   b = new Date(b).getTime();
   return b > a ? 1 : -1;
+}
+
+/*
+ * add n number of years to a date object
+ */
+export function addYearsToDate(dt,n) {
+  if (!(dt instanceof Date)) {
+    let arrDates = getShortDateFromISODateString(dt).split("-");
+    dt = new Date(arrDates[0], arrDates[1], arrDates[2]);
+  }
+  dt.setFullYear(dt.getFullYear() + n);
+  return dt;
+}
+
+/*
+ * check if two dates are within specified number of months
+ */
+export function isInMonthPeriod(dateFrom, dateTo, numOfMonths) {
+  let months = differenceInMonths(dateTo, dateFrom);
+  return  months >= 0 && months <= numOfMonths;
+}
+
+/*
+ * determine if the firstDate is in the past from the secondDate
+ */
+export function isDateInPast(firstDate, secondDate) {
+  if (!(firstDate instanceof Date)) firstDate = new Date(firstDate);
+  if (!(secondDate instanceof Date)) secondDate = new Date(secondDate);
+  if (firstDate.setHours(0, 0, 0, 0) <= secondDate.setHours(0, 0, 0, 0)) {
+    return true;
+  }
+  return false;
+}
+
+/*
+ * return a date string in YYYY-MM-DD formate
+ */
+export function getShortDateFromISODateString(dateString) {
+  if (!dateString) return "";
+  let TIndex = dateString.indexOf("T");
+  if (TIndex > 0) return dateString.substring(0, TIndex);
+  return dateString;
 }

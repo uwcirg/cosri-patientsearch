@@ -1,12 +1,11 @@
 import React from 'react';
 import { forwardRef } from 'react';
-import { makeStyles, styled } from '@material-ui/core/styles';
+import { makeStyles } from '@material-ui/core/styles';
 import MaterialTable from 'material-table';
 import ArrowDownward from '@material-ui/icons/ArrowDownward';
 import Check from '@material-ui/icons/Check';
 import ChevronLeft from '@material-ui/icons/ChevronLeft';
 import ChevronRight from '@material-ui/icons/ChevronRight';
-import AddCircleOutlineIcon from '@material-ui/icons/AddCircleOutline';
 import ClearIcon from '@material-ui/icons/Clear';
 import RefreshIcon from '@material-ui/icons/Refresh';
 import MoreHorizIcon from '@material-ui/icons/MoreHoriz';
@@ -15,21 +14,19 @@ import Button from '@material-ui/core/Button';
 import Container from '@material-ui/core/Container';
 import Delete from '@material-ui/icons/Delete';
 import FirstPage from '@material-ui/icons/FirstPage';
-import ListItemIcon from '@material-ui/core/ListItemIcon';
 import LastPage from '@material-ui/icons/LastPage';
 import Search from '@material-ui/icons/Search';
-import Menu from '@material-ui/core/Menu';
-import MenuItem from '@material-ui/core/MenuItem';
 import Modal from '@material-ui/core/Modal';
 import Paper from '@material-ui/core/Paper';
 import TablePagination from '@material-ui/core/TablePagination';
 import Tooltip from '@material-ui/core/Tooltip';
-import Typography from '@material-ui/core/Typography';
+import Dropdown from "./Dropdown";
 import Error from "./Error";
 import FilterRow from "./FilterRow";
 import UrineScreen from "./UrineScreen";
+import Agreement from "./Agreement";
 import theme from '../context/theme';
-import {getLocalDateTimeString, getUrlParameter, isString} from "./Utility";
+import {fetchData, getLocalDateTimeString, getUrlParameter, isString} from "./Utility";
 
 const useStyles = makeStyles({
     container: {
@@ -143,34 +140,6 @@ const useStyles = makeStyles({
       top: theme.spacing(1.5),
       right: theme.spacing(6),
       color: theme.palette.primary.main
-    },
-    menu: {
-      paddingTop: theme.spacing(2.5)
-    },
-    menuTitle: {
-      position: "absolute",
-      top: 0,
-      width: "100%",
-      paddingTop: theme.spacing(0.5),
-      paddingBottom: theme.spacing(0.5),
-      backgroundColor: theme.palette.primary.dark,
-      color: "#FFF"
-    },
-    menuIcon: {
-      minWidth: theme.spacing(3),
-      marginRight: theme.spacing(0.5)
-    },
-    menuTitleText: {
-      display: "inline-block",
-      marginLeft: theme.spacing(2),
-      fontWeight: 500
-    },
-    menuCloseButton: {
-      position: "absolute",
-      right: "-8px",
-      top: "0",
-      fontSize: "12px",
-      color: "#FFF"
     }
 });
 
@@ -198,7 +167,7 @@ export default function PatientListTable(props) {
   const [openLoadingModal, setOpenLoadingModal] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState("");
   const [containNoPMPRow, setContainNoPMPRow] = React.useState(false);
-  const [anchorEl, setAnchorEl] = React.useState(null);
+  const [anchorEl, setAnchorEl] = React.useState(false);
   const [selectedMenuItem, setSelectedMenuItem] = React.useState("");
   const [currentRow, setCurrentRow] = React.useState(null);
   const tableRef = React.useRef();
@@ -206,6 +175,13 @@ export default function PatientListTable(props) {
   const CREATE_BUTTON_LABEL = "CREATE";
   const NO_DATA_ELEMENT_ID = "noDataContainer";
   const TOOLBAR_ACTION_BUTTON_ID = "toolbarGoButton";
+  const menuItems = [{
+    "text": "Add Urine Tox Screen",
+    "id": "UDS"
+  }, {
+    "text": "Add Controlled Substance Agreement",
+    "id": "CS_agreement"
+  }];
   const tableIcons = {
     Check: forwardRef((props, ref) => <Check {...props} ref={ref} className={classes.success} />),
     Clear: forwardRef((props, ref) => <ClearIcon {...props} ref={ref} />),
@@ -272,51 +248,6 @@ export default function PatientListTable(props) {
   };
   const noCacheParam = {cache: "no-cache"};
 
-  async function fetchData(url, params, errorCallback) {
-    const MAX_WAIT_TIME = 20000;
-    params = params || {};
-    errorCallback = errorCallback || function() {};
-    // Create a promise that rejects in maximum wait time in milliseconds
-    let timeoutPromise = new Promise((resolve, reject) => {
-      let id = setTimeout(() => {
-        clearTimeout(id);
-        reject(`Timed out in ${MAX_WAIT_TIME} ms.`)
-      }, MAX_WAIT_TIME);
-    });
-    /*
-     * if for some reason fetching the request data doesn't resolve or reject withing the maximum waittime,
-     * then the timeout promise will kick in
-     */
-    let json = null;
-    let results = await Promise.race([
-      fetch(url, params),
-      timeoutPromise
-    ]).catch(e => {
-        console.log("error retrieving data ", e);
-        errorCallback(e);
-        throw e;
-    });
-
-    if (!results || !results.ok) {
-      console.log("no results returned");
-      errorCallback(results ? results : "error retrieving data");
-      return null;
-    }
-
-    try {
-      //read response stream
-      json = await (results.json()).catch(e => {
-          console.log(`There was error processing data.`);
-          throw e.message;
-      });
-    } catch(e) {
-      console.log(`There was error parsing data: ${e}`);
-      json = null;
-      errorCallback(e);
-      throw e;
-    }
-    return json;
-  }
   const existsIndata = function(rowData) {
     if (!data) return false;
     if (!rowData) return false;
@@ -552,6 +483,10 @@ export default function PatientListTable(props) {
     return initialized;
   }
 
+  function hasAppSettings() {
+    return Object.keys(appSettings) > 0;
+  }
+
   function handleErrorCallback(e) {
     if (e && e.status === 401) {
       setErrorMessage("Unauthorized.");
@@ -560,7 +495,6 @@ export default function PatientListTable(props) {
     }
     setErrorMessage(isString(e) ? e : (e && e.message? e.message: "Error occurred processing data"));
   }
-
   const resetPaging = () => {
     setNextPageURL("");
     setPrevPageURL("");
@@ -586,27 +520,6 @@ export default function PatientListTable(props) {
     document.querySelector("#btnClear").click();
     setErrorMessage("");
   }
-
-  const StyledMenu = styled((props) => (
-    <Menu
-      {...props}
-    />
-  ))(({ theme }) => ({
-    '& .MuiPaper-root': {
-      borderRadius: 0,
-      marginTop: theme.spacing(3),
-      minWidth: 180,
-      '& .MuiMenu-list': {
-        padding: '4px 0',
-      },
-      '& .MuiMenuItem-root': {
-        '& .MuiSvgIcon-root': {
-          fontSize: 16,
-          marginRight: theme.spacing(1),
-        },
-      },
-    },
-  }));
   const handleMenuClick = (event, rowData) => {
     event.stopPropagation();
     setAnchorEl(event.currentTarget);
@@ -630,16 +543,15 @@ export default function PatientListTable(props) {
     }, 200);
     handleMenuClose();
   }
-  const MORE_MENU_KEY = "MORE_MENU";
-  const shouldHideMoreMenu = () => {
-    //TODO fix this if we have more menu items added, right now just hide the ... menu link if no urine drug screen is specfied as a menu item, since that means no menu item to show
-    return shouldHideUrineScreenMenu() || (Object.keys(appSettings).length && (!appSettings[MORE_MENU_KEY] || appSettings[MORE_MENU_KEY].length === 0));
-  }
-  const shouldHideUrineScreenMenu = () => {
+  const shouldShowMenuItem = (id) => {
     let arrMenu = appSettings[MORE_MENU_KEY] ? appSettings[MORE_MENU_KEY]: [];
-    return arrMenu.indexOf("UDS") === -1;
+    return arrMenu.indexOf(id) !== -1;
   }
 
+  const MORE_MENU_KEY = "MORE_MENU";
+  const shouldHideMoreMenu = () => {
+    return (Object.keys(appSettings).length && (!appSettings[MORE_MENU_KEY] || appSettings[MORE_MENU_KEY].length === 0));
+  }
   const getPatientList = (query) => {
     let sortField = query.orderBy && query.orderBy.field? FieldNameMaps[query.orderBy.field] : "_lastUpdated";
     let sortDirection = query.orderDirection ? query.orderDirection : "desc";
@@ -737,18 +649,35 @@ export default function PatientListTable(props) {
       });
   };
 
+  const getSettings = async (callback) => {
+    callback = callback || function() {};
+    if (hasAppSettings()) {
+      callback();
+      return appSettings;
+    }
+    const response = await fetch("./settings").catch(e => {
+      handleErrorCallback(e);
+      setErrorMessage(`Error retrieving app setting: ${e}`);
+      callback();
+    });
+    let data = null;
+    try {
+      data = await response.json();
+    } catch(e) {
+      handleErrorCallback(e);
+      callback();
+    }
+    if (data) {
+      setAppSettings(data);
+    }
+    callback();
+    console.log("the end")
+  }
+
   React.useEffect(() => {
     //when page unloads, remove loading indicator
-    window.addEventListener("beforeunload", function() { setOpenLoadingModal(false); });
-    fetchData("./settings", false, handleErrorCallback).then(response => {
-        if (response) {
-            setAppSettings(response);
-        }
-    }).catch(e => {
-        //unauthorized error
-        handleErrorCallback(error);
-        setErrorMessage(`Error retrieving app setting: ${e}`);
-    });
+    window.addEventListener("beforeunload", function() { setTimeout(() => setOpenLoadingModal(false), 50); });
+    getSettings();
   }, []);
 
   return (
@@ -780,7 +709,8 @@ export default function PatientListTable(props) {
                             return (
                               <div className={classes.detailPanelWrapper}>
                                 <Paper elevation={1} variant="outlined" className={classes.detailPanelContainer}>
-                                  {selectedMenuItem === "urine screen" && <UrineScreen rowData={rowData}></UrineScreen>}
+                                  {selectedMenuItem === "UDS" && <UrineScreen rowData={rowData}></UrineScreen>}
+                                  {selectedMenuItem === "CS_agreement" && <Agreement rowData={rowData}></Agreement>}
                                   <Button onClick={() => {
                                     tableRef.current.onToggleDetailPanel(
                                       [rowData.tableData.id],
@@ -829,7 +759,7 @@ export default function PatientListTable(props) {
                     actionsCellStyle: {
                       paddingLeft: theme.spacing(2),
                       paddingRight: theme.spacing(2),
-                      minWidth: "20%",
+                      minWidth: "25%",
                       justifyContent: "center"
                     },
                     actionsColumnIndex: -1
@@ -950,29 +880,11 @@ export default function PatientListTable(props) {
               </div>
             </div>
           </Modal>
-          <StyledMenu
-            id="rowMenu"
+          <Dropdown
             anchorEl={anchorEl}
-            keepMounted
-            open={Boolean(anchorEl)}
-            onClose={handleMenuClose}
-            transformOrigin={{
-              vertical: 'top',
-              horizontal: 'center',
-            }}
-            elevation={1}
-          >
-            <div className={classes.menuTitle}>
-              <Typography variant="subtitle2" className={classes.menuTitleText}>Select</Typography>
-              <Button size="small" onClick={handleMenuClose} className={classes.menuCloseButton}>X</Button>
-            </div>
-            <MenuItem onClick={(event) => handleMenuSelect(event)} className={`${shouldHideUrineScreenMenu()?'ghost':''}`}dense>
-              <ListItemIcon className={classes.menuIcon} datatopic="urine screen">
-                <AddCircleOutlineIcon fontSize="small"/>
-              </ListItemIcon>
-              <Typography variant="subtitle2" datatopic="urine screen">Add Urine Tox Screen</Typography>
-            </MenuItem>
-          </StyledMenu>
+            handleMenuClose={handleMenuClose}
+            handleMenuSelect={handleMenuSelect}
+            menuItems={menuItems.filter(item => shouldShowMenuItem(item.id))}></Dropdown>
         </Container>
     </React.Fragment>
   );

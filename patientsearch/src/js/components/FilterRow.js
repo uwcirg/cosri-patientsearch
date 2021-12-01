@@ -41,7 +41,7 @@ const useStyles = makeStyles({
         paddingRight: theme.spacing(1)
     },
     empty: {
-        width: "20%",
+        width: "10%",
         backgroundColor: "#f7f7f7"
     }
 });
