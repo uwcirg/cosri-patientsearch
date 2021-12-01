@@ -720,7 +720,7 @@ export default function PatientListTable(props) {
             setPrevPageURL(newPrevURL);
             setDisableNextButton(!hasNextLink);
             setDisablePrevButton(pageNumber === 0);
-            if (!totalCount) setTotalCount(response.total);
+            setTotalCount(response.total);
             resolve({
               data: responseData,
               page: currentPage,
