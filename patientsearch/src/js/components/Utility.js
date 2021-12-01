@@ -36,6 +36,9 @@ export function sendRequest (url, params) {
     });
 }
 
+/*
+ * helper function for retrieving data via ajax
+ */
 export async function fetchData(url, params, errorCallback) {
   const MAX_WAIT_TIME = 20000;
   params = params || {};

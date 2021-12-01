@@ -179,11 +179,11 @@ export default function PatientListTable(props) {
   const menuItems = [{
     "text": "Add Urine Tox Screen",
     "id": "UDS",
-    "component": function (rowData) { return <UrineScreen rowData={rowData}></UrineScreen>; }
+    "component": (rowData) => <UrineScreen rowData={rowData}></UrineScreen>
   }, {
     "text": "Add Controlled Substance Agreement",
     "id": "CS_agreement",
-    "component": function (rowData) { return <Agreement rowData={rowData}></Agreement>; }
+    "component": (rowData) => <Agreement rowData={rowData}></Agreement>
   }];
   const tableIcons = {
     Check: forwardRef((props, ref) => <Check {...props} ref={ref} className={classes.success} />),
@@ -721,8 +721,6 @@ export default function PatientListTable(props) {
                             return (
                               <div className={classes.detailPanelWrapper}>
                                 <Paper elevation={1} variant="outlined" className={classes.detailPanelContainer}>
-                                  {/* {selectedMenuItem.toLowerCase() === "UDS" && <UrineScreen rowData={rowData}></UrineScreen>}
-                                  {selectedMenuItem === "CS_agreement" && <Agreement rowData={rowData}></Agreement>} */}
                                   {getSelectedItemComponent(selectedMenuItem, rowData)}
                                   <Button onClick={() => {
                                     tableRef.current.onToggleDetailPanel(
