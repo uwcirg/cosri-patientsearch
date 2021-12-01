@@ -133,6 +133,7 @@ export default function Agreement(props) {
     };
     const getHistory = () => {
         if (!rowData.id) return [];
+        setHistoryInitialized(false);
          /*
           * retrieve agreement history
           */

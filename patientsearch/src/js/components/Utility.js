@@ -174,7 +174,7 @@ export function dateTimeCompare(a, b) {
 export function addYearsToDate(dt,n) {
   if (!(dt instanceof Date)) {
     let arrDates = getShortDateFromISODateString(dt).split("-");
-    dt = new Date(arrDates[0], arrDates[1], arrDates[2]);
+    dt = new Date(arrDates[0], arrDates[1]-1, arrDates[2]);
   }
   dt.setFullYear(dt.getFullYear() + n);
   return dt;

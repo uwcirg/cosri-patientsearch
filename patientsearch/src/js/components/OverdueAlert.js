@@ -42,7 +42,7 @@ export default function OverdueAlert(props) {
         let currentDate = new Date();
         let shortDate = getShortDateFromISODateString(dt);
         let arrDates = shortDate.split("-");
-        let nextDueDate  = addYearsToDate(new Date(arrDates[0], arrDates[1], arrDates[2]), 1);
+        let nextDueDate  = addYearsToDate(new Date(arrDates[0], arrDates[1]-1, arrDates[2]), 1);
         return isInMonthPeriod(currentDate, nextDueDate, 4);
     }
 
@@ -54,7 +54,7 @@ export default function OverdueAlert(props) {
         let currentDate = new Date();
         let shortDate = getShortDateFromISODateString(dt);
         let arrDates = shortDate.split("-");
-        let nextDueDate  = addYearsToDate(new Date(arrDates[0], arrDates[1], arrDates[2]), 1);
+        let nextDueDate  = addYearsToDate(new Date(arrDates[0], arrDates[1]-1, arrDates[2]), 1);
         return isInMonthPeriod(currentDate, nextDueDate, 3) || isDateInPast(nextDueDate, currentDate);
     }
 
