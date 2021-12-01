@@ -175,12 +175,15 @@ export default function PatientListTable(props) {
   const CREATE_BUTTON_LABEL = "CREATE";
   const NO_DATA_ELEMENT_ID = "noDataContainer";
   const TOOLBAR_ACTION_BUTTON_ID = "toolbarGoButton";
+  const MORE_MENU_KEY = "MORE_MENU";
   const menuItems = [{
     "text": "Add Urine Tox Screen",
-    "id": "UDS"
+    "id": "UDS",
+    "component": function (rowData) { return <UrineScreen rowData={rowData}></UrineScreen>; }
   }, {
     "text": "Add Controlled Substance Agreement",
-    "id": "CS_agreement"
+    "id": "CS_agreement",
+    "component": function (rowData) { return <Agreement rowData={rowData}></Agreement>; }
   }];
   const tableIcons = {
     Check: forwardRef((props, ref) => <Check {...props} ref={ref} className={classes.success} />),
@@ -543,12 +546,22 @@ export default function PatientListTable(props) {
     }, 200);
     handleMenuClose();
   }
+
+  const getMoreMenuSetting = () => {
+    return appSettings[MORE_MENU_KEY] ? appSettings[MORE_MENU_KEY]: []
+  }
   const shouldShowMenuItem = (id) => {
-    let arrMenu = appSettings[MORE_MENU_KEY] ? appSettings[MORE_MENU_KEY]: [];
-    return arrMenu.indexOf(id) !== -1;
+    let arrMenu = getMoreMenuSetting();
+    return arrMenu.filter(item => item.toLowerCase() === id.toLowerCase()).length > 0;
   }
 
-  const MORE_MENU_KEY = "MORE_MENU";
+  const getSelectedItemComponent = (selectedMenuItem, rowData) => {
+    let selected =  menuItems.filter(item => item.id.toLowerCase() === selectedMenuItem.toLowerCase());
+    if (selected.length) {
+      return selected[0].component(rowData);
+    }
+    return null;
+  }
   const shouldHideMoreMenu = () => {
     return (Object.keys(appSettings).length && (!appSettings[MORE_MENU_KEY] || appSettings[MORE_MENU_KEY].length === 0));
   }
@@ -671,7 +684,6 @@ export default function PatientListTable(props) {
       setAppSettings(data);
     }
     callback();
-    console.log("the end")
   }
 
   React.useEffect(() => {
@@ -709,8 +721,9 @@ export default function PatientListTable(props) {
                             return (
                               <div className={classes.detailPanelWrapper}>
                                 <Paper elevation={1} variant="outlined" className={classes.detailPanelContainer}>
-                                  {selectedMenuItem === "UDS" && <UrineScreen rowData={rowData}></UrineScreen>}
-                                  {selectedMenuItem === "CS_agreement" && <Agreement rowData={rowData}></Agreement>}
+                                  {/* {selectedMenuItem.toLowerCase() === "UDS" && <UrineScreen rowData={rowData}></UrineScreen>}
+                                  {selectedMenuItem === "CS_agreement" && <Agreement rowData={rowData}></Agreement>} */}
+                                  {getSelectedItemComponent(selectedMenuItem, rowData)}
                                   <Button onClick={() => {
                                     tableRef.current.onToggleDetailPanel(
                                       [rowData.tableData.id],

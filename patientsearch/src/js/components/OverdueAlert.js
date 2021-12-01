@@ -34,6 +34,9 @@ const BootstrapTooltip = styled(({ className, ...props }) => (
 }));
 export default function OverdueAlert(props) {
 
+    /*
+     * four months before next due date
+     */
     function shouldShowSoftAlert(dt) {
         if (!dt) return false;
         let currentDate = new Date();
@@ -43,6 +46,9 @@ export default function OverdueAlert(props) {
         return isInMonthPeriod(currentDate, nextDueDate, 4);
     }
 
+    /*
+     * 3 months before next due date
+     */
     function shouldShowHardAlert(dt) {
         if (!dt) return false;
         let currentDate = new Date();
