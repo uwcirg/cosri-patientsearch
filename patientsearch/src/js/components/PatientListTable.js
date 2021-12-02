@@ -450,11 +450,6 @@ export default function PatientListTable(props) {
     document.querySelector(`#${NO_DATA_ELEMENT_ID}`).innerText = noDataText;
   }
 
-  function hasFilters(filters) {
-    if (!filters || !filters.length) return false;
-    return filters.filter(item => item.value !== '' && item.value !== null).length > 0;
-  }
-
   function onFiltersDidChange(filters, clearAll) {
     clearTimeout(filterIntervalId);
     filterIntervalId = setTimeout(function() {
@@ -463,7 +458,7 @@ export default function PatientListTable(props) {
       if (filters && filters.length) {
         setCurrentFilters(filters);
         resetPaging();
-        if (!hasFilters(filters)) {
+        if (!containEmptyFilter(filters)) {
           handleRefresh();
           return filters;
         }
@@ -531,17 +526,15 @@ export default function PatientListTable(props) {
   const handleRefresh = () => {
     document.querySelector("#btnClear").click();
     setErrorMessage("");
-  }
+  };
   const handleMenuClick = (event, rowData) => {
     event.stopPropagation();
     setAnchorEl(event.currentTarget);
     setCurrentRow(rowData);
   };
-
   const handleMenuClose = () => {
     setAnchorEl(null);
   };
-
   const handleMenuSelect = (event) => {
     event.stopPropagation();
     const selectedTarget = event.target.getAttribute("datatopic");
@@ -554,26 +547,25 @@ export default function PatientListTable(props) {
       )
     }, 200);
     handleMenuClose();
-  }
+  };
 
   const getMoreMenuSetting = () => {
     return appSettings[MORE_MENU_KEY] ? appSettings[MORE_MENU_KEY]: []
+  };
+  const shouldHideMoreMenu = () => {
+    return (Object.keys(appSettings).length && (!appSettings[MORE_MENU_KEY] || appSettings[MORE_MENU_KEY].length === 0));
   }
   const shouldShowMenuItem = (id) => {
     let arrMenu = getMoreMenuSetting();
     return arrMenu.filter(item => item.toLowerCase() === id.toLowerCase()).length > 0;
-  }
-
+  };
   const getSelectedItemComponent = (selectedMenuItem, rowData) => {
     let selected =  menuItems.filter(item => item.id.toLowerCase() === selectedMenuItem.toLowerCase());
     if (selected.length) {
       return selected[0].component(rowData);
     }
     return null;
-  }
-  const shouldHideMoreMenu = () => {
-    return (Object.keys(appSettings).length && (!appSettings[MORE_MENU_KEY] || appSettings[MORE_MENU_KEY].length === 0));
-  }
+  };
   const getPatientList = (query) => {
     let sortField = query.orderBy && query.orderBy.field? FieldNameMaps[query.orderBy.field] : "_lastUpdated";
     let sortDirection = query.orderDirection ? query.orderDirection : "desc";
@@ -606,6 +598,7 @@ export default function PatientListTable(props) {
     }
     if (searchString && (apiURL.indexOf("contains") === -1)) apiURL += `&${searchString}`;
     if (sortField && (apiURL.indexOf("sort")===-1)) apiURL += `&_sort=${sortMinus}${sortField}`;
+
 
      /*
       * get patient list
@@ -871,11 +864,7 @@ export default function PatientListTable(props) {
                         disabled: disablePrevButton,
                         color: "primary"
                       }}
-                      SelectProps={
-                        {
-                          variant: "outlined"
-                        }
-                      }
+                      SelectProps={{variant: "outlined"}}
                     />
                   </div>
               }
