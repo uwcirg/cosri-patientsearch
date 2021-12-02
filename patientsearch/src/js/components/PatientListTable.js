@@ -450,6 +450,11 @@ export default function PatientListTable(props) {
     document.querySelector(`#${NO_DATA_ELEMENT_ID}`).innerText = noDataText;
   }
 
+  function hasFilters(filters) {
+    if (!filters || !filters.length) return false;
+    return filters.filter(item => item.value !== '' && item.value !== null).length > 0;
+  }
+
   function onFiltersDidChange(filters, clearAll) {
     clearTimeout(filterIntervalId);
     filterIntervalId = setTimeout(function() {
@@ -457,9 +462,13 @@ export default function PatientListTable(props) {
       setToolbarActionButtonVis(filters);
       if (filters && filters.length) {
         setCurrentFilters(filters);
+        resetPaging();
+        if (!hasFilters(filters)) {
+          handleRefresh();
+          return filters;
+        }
         if (tableRef && tableRef.current) tableRef.current.onQueryChange();
         return filters;
-
       }
       else {
         if (clearAll) {
@@ -589,18 +598,13 @@ export default function PatientListTable(props) {
       setVis();
       setInitialized(true);
     };
-    let apiURL = `/fhir/Patient?_include=Patient:link&_total=accurate&_count=${pageSize}&_getpagesoffset=0`;
-    if (searchString) {
-      resetPaging();
-    } else {
-      if ((pageNumber > prevPageNumber) && nextPageURL) {
-        apiURL = nextPageURL;
-      } else if ((pageNumber < prevPageNumber) && prevPageURL) {
-        apiURL = prevPageURL;
-      }
+    let apiURL = `/fhir/Patient?_include=Patient:link&_total=accurate&_count=${pageSize}`;
+    if ((pageNumber > prevPageNumber) && nextPageURL) {
+      apiURL = nextPageURL;
+    } else if ((pageNumber < prevPageNumber) && prevPageURL) {
+      apiURL = prevPageURL;
     }
-
-    if (searchString) apiURL += `&${searchString}`;
+    if (searchString && (apiURL.indexOf("contains") === -1)) apiURL += `&${searchString}`;
     if (sortField && (apiURL.indexOf("sort")===-1)) apiURL += `&_sort=${sortMinus}${sortField}`;
 
      /*
