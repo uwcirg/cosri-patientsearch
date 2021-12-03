@@ -1,6 +1,6 @@
 import React from 'react';
 import { makeStyles} from '@material-ui/core/styles';
-import {sendRequest} from './Utility';
+import {getSettings} from './Utility';
 import theme from '../context/theme';
 
 const useStyles = makeStyles({
@@ -24,18 +24,13 @@ export default function SystemBanner() {
         /*
          * retrieve setting information
          */
-        sendRequest("./settings").then(response => {
-            let data = null;
-            try {
-                data = JSON.parse(response);
-            } catch(e) {
-                console.log("error parsing data ", e);
+        getSettings(data => {
+            if (data.error) {
+                setInitialized(true);
+                console.log("Failed to retrieve system data", data.error);
             }
             setSetting(data);
             setSystemType(getSystemType());
-            setInitialized(true);
-        }, error => {
-            console.log("Failed to retrieve data", error.statusText);
             setInitialized(true);
         });
     }, [initialized]);

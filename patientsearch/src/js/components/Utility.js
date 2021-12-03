@@ -84,7 +84,33 @@ export async function fetchData(url, params, errorCallback) {
   }
   return json;
 }
-
+/*
+ * return application settings in JSON
+ */
+export async function getSettings(callback, noCache){
+  callback = callback || function () {};
+  const today = new Date();
+  const settingStorageKey = "FEMR_APP_SETTINGS_"+today.getFullYear()+pad(today.getMonth())+pad(today.getDate())+pad(today.getMinutes());
+  if (!noCache && sessionStorage.getItem(settingStorageKey)) {
+    let cachedSetting = JSON.parse(sessionStorage.getItem(settingStorageKey));
+    callback(cachedSetting);
+    return cachedSetting;
+  }
+  const response = await fetch("./settings").catch(e => {
+    callback({error: e});
+  });
+  let data = null;
+  try {
+    data = await response.json();
+  } catch(e) {
+    callback({error: e});
+  }
+  if (data && Object.keys(data).length) {
+    sessionStorage.setItem(settingStorageKey, JSON.stringify(data));
+  }
+  callback(data);
+  return data;
+}
 
 export function dateFormat(input) {
   if (input == null) return "";

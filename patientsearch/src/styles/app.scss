@@ -2,6 +2,7 @@ $color-blue: #00838f;
 $color-blue-light: #46777f;
 $color-muted: #777;
 $color-muter: rgba(165, 158, 158, 0.64);
+$color-error: #c91616;
 $input-icon-color: #686b6b;
 $base-font-size: 16px;
 $small-font-size: 14px;
@@ -14,6 +15,16 @@ body {
 }
 html {
   scroll-behavior: smooth;
+}
+.app-error-container {
+  padding: 24px;
+  .error {
+    margin-top: 24px;
+    color: $color-error;
+  }
+  .buttons-container {
+    margin-top: 24px;
+  }
 }
 .ghost {
   display: none;

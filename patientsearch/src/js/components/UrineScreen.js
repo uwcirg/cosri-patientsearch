@@ -16,7 +16,7 @@ import Typography from '@material-ui/core/Typography';
 import MuiAlert from '@material-ui/lab/Alert';
 import  {MuiPickersUtilsProvider, KeyboardDatePicker } from '@material-ui/pickers';
 import Error from './Error';
-import {sendRequest, dateTimeCompare} from './Utility';
+import {getSettings, dateTimeCompare, sendRequest} from './Utility';
 import theme from '../context/theme';
 
 const useStyles = makeStyles({
@@ -215,22 +215,12 @@ export default function UrineScreen(props) {
         return urineScreenTypes.length === 1;
     }
     const initUrineScreenTypes = () => {
-        const getSettings = async () => {
-            const response = await fetch('/settings').catch(e => console.log("Error retrieving settings ", e)); // get config
-            let data = null;
-            if (response) {
-                try {
-                    data = await response.json(); // parse JSON
-                } catch(e) {
-                    console.log("Error converting setting data to json ", e);
-                }
-            }
+        getSettings(data => {
             if (data && data["UDS_LAB_TYPES"]) {
                 setUrineScreenTypes(data["UDS_LAB_TYPES"]);
             }
             setInitialized(true);
-        }
-        getSettings();
+        });
     }
     const hasUrineScreenTypes = () => {
         return !onlyOneUrineScreenType() && !noUrineScreenTypes();

@@ -200,7 +200,6 @@ export default function Agreement(props) {
                         }}
                         format="yyyy-MM-dd"
                         minDate={new Date("1950-01-01")}
-                        initialFocusedDate={new Date()}
                         invalidDateMessage="Date must be in YYYY-MM-DD format, e.g. 1977-01-12"
                         disableFuture
                         placeholder="YYYY-MM-DD"

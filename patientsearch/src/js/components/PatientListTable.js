@@ -26,7 +26,7 @@ import FilterRow from "./FilterRow";
 import UrineScreen from "./UrineScreen";
 import Agreement from "./Agreement";
 import theme from '../context/theme';
-import {fetchData, getLocalDateTimeString, getUrlParameter, isString} from "./Utility";
+import {fetchData, getLocalDateTimeString, getSettings, getUrlParameter, isString} from "./Utility";
 
 const useStyles = makeStyles({
     container: {
@@ -76,7 +76,7 @@ const useStyles = makeStyles({
       fontSize: "12px",
       borderRadius: "4px",
       width: "120px",
-      fontWeight: 500,
+      fontWeight: 600,
       textTransform: "uppercase",
       border: 0
     },
@@ -490,10 +490,6 @@ export default function PatientListTable(props) {
     return initialized;
   }
 
-  function hasAppSettings() {
-    return Object.keys(appSettings) > 0;
-  }
-
   function handleErrorCallback(e) {
     if (e && e.status === 401) {
       setErrorMessage("Unauthorized.");
@@ -599,7 +595,6 @@ export default function PatientListTable(props) {
     if (searchString && (apiURL.indexOf("contains") === -1)) apiURL += `&${searchString}`;
     if (sortField && (apiURL.indexOf("sort")===-1)) apiURL += `&_sort=${sortMinus}${sortField}`;
 
-
      /*
       * get patient list
       */
@@ -659,34 +654,17 @@ export default function PatientListTable(props) {
       });
   };
 
-  const getSettings = async (callback) => {
-    callback = callback || function() {};
-    if (hasAppSettings()) {
-      callback();
-      return appSettings;
-    }
-    const response = await fetch("./settings").catch(e => {
-      handleErrorCallback(e);
-      setErrorMessage(`Error retrieving app setting: ${e}`);
-      callback();
-    });
-    let data = null;
-    try {
-      data = await response.json();
-    } catch(e) {
-      handleErrorCallback(e);
-      callback();
-    }
-    if (data) {
-      setAppSettings(data);
-    }
-    callback();
-  }
-
   React.useEffect(() => {
     //when page unloads, remove loading indicator
     window.addEventListener("beforeunload", function() { setTimeout(() => setOpenLoadingModal(false), 50); });
-    getSettings();
+    getSettings(data => {
+      if (data.error) {
+        handleErrorCallback(data.error);
+        setErrorMessage(`Error retrieving app setting: ${data.error}`);
+        return;
+      }
+      setAppSettings(data);
+    });
   }, []);
 
   return (
