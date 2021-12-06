@@ -1,8 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { makeStyles, styled } from '@material-ui/core/styles';
+import { makeStyles } from '@material-ui/core/styles';
 import AssignmentLateIcon from '@material-ui/icons/AssignmentLate';
-import Tooltip from '@material-ui/core/Tooltip';
+import Typography from '@material-ui/core/Typography';
 import {addYearsToDate, getLocalDateTimeString, getShortDateFromISODateString, isInMonthPeriod, isDateInPast} from "./Utility";
 
 const useStyles = makeStyles({
@@ -10,28 +10,26 @@ const useStyles = makeStyles({
         fill: "#b5382f",
         position: "relative",
         top: "4px",
-        left: "4px",
         fontSize: "1.2rem"
     },
     warningIcon: {
         fill: "#d58808",
         position: "relative",
         top: "4px",
-        left: "4px",
         fontSize: "1.2rem"
+    },
+    alertText: {
+        color: "#b5382f",
+        display: "inline-block",
+        marginLeft: "6px"
+    },
+    warningText: {
+        color: "#d58808",
+        display: "inline-block",
+        marginLeft: "6px"
     }
 });
-const BootstrapTooltip = styled(({ className, ...props }) => (
-    <Tooltip {...props} arrow classes={{ popper: className }} />
-  ))(({ theme }) => ({
-    [`& .MuiTooltip-arrow`]: {
-      color: theme.palette.secondary.main,
-    },
-    [`& .MuiTooltip-tooltip`]: {
-      backgroundColor: theme.palette.secondary.main,
-      fontSize: "12px"
-    },
-}));
+
 export default function OverdueAlert(props) {
 
     /*
@@ -66,13 +64,20 @@ export default function OverdueAlert(props) {
         let dueDate = getLocalDateTimeString(addYearsToDate(dt, 1), true);
         return message.replace("[duedate]", dueDate);
     }
+    function getIconClass(dt) {
+        return shouldShowHardAlert(dt) ? classes.alertIcon : classes.warningIcon;
+    }
+    function getMessageClass(dt) {
+        return shouldShowHardAlert(dt) ? classes.alertText : classes.warningText;
+    }
     const classes = useStyles();
 
     return (
         <React.Fragment>{shouldShowAlerts(props.date) &&
-            <BootstrapTooltip title={formatMessage(props.message, props.date)} aria-label={formatMessage(props.message, props.date)} placement="top">
-                <AssignmentLateIcon size="small" className={shouldShowHardAlert(props.date) ? classes.alertIcon : classes.warningIcon}></AssignmentLateIcon>
-            </BootstrapTooltip>}
+                <div>
+                    <AssignmentLateIcon size="small" className={getIconClass(props.date)}></AssignmentLateIcon>
+                    <Typography variant="body2" className={getMessageClass(props.date)}>{formatMessage(props.message, props.date)}</Typography>
+                </div>}
         </React.Fragment>);
 };
 OverdueAlert.propTypes = {
