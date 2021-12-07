@@ -232,11 +232,11 @@ export default function Agreement(props) {
             {!historyInitialized && <div className={classes.progressContainer}><CircularProgress color="primary" size={32} /></div>}
             {historyInitialized && <div className={classes.historyContainer}>
                 <Typography variant="caption" display="block" className={classes.historyTitle} gutterBottom>
-                    Last Controlled Substance Agreement
+                    Latest Controlled Substance Agreement
                 </Typography>
                 <br/>
                 <span dangerouslySetInnerHTML={{ __html: displayHistory()}}></span>
-                <OverdueAlert date={lastAgreementDate}  message="A new opioid agreement is due for this patient on or before [duedate]."></OverdueAlert>
+                <OverdueAlert date={lastAgreementDate}  message="A new opioid agreement is due for this patient on or before <b>[duedate]</b>."></OverdueAlert>
             </div>}
         </div>
     );
