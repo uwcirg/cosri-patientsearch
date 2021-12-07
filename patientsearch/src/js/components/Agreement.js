@@ -236,7 +236,7 @@ export default function Agreement(props) {
                 </Typography>
                 <br/>
                 <span dangerouslySetInnerHTML={{ __html: displayHistory()}}></span>
-                <OverdueAlert date={lastAgreementDate}  message="A new opioid agreement is due for this patient on or before <b>[duedate]</b>."></OverdueAlert>
+                <OverdueAlert date={lastAgreementDate}  message="A new opioid agreement is due for this patient on or before [duedate]."></OverdueAlert>
             </div>}
         </div>
     );
