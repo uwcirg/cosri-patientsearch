@@ -1,22 +1,22 @@
-import React from 'react';
-import { makeStyles} from '@material-ui/core/styles';
-import PropTypes from 'prop-types';
-import DateFnsUtils from '@date-io/date-fns';
+import React from "react";
+import { makeStyles} from "@material-ui/core/styles";
+import PropTypes from "prop-types";
+import DateFnsUtils from "@date-io/date-fns";
 import isValid from "date-fns/isValid";
-import ClearIcon from '@material-ui/icons/Clear';
-import Button from '@material-ui/core/Button';
-import CircularProgress from '@material-ui/core/CircularProgress';
-import IconButton from '@material-ui/core/IconButton';
-import InputAdornment from '@material-ui/core/InputAdornment';
-import InputLabel from '@material-ui/core/InputLabel';
-import Snackbar from '@material-ui/core/Snackbar';
-import Typography from '@material-ui/core/Typography';
-import MuiAlert from '@material-ui/lab/Alert';
-import  {MuiPickersUtilsProvider, KeyboardDatePicker } from '@material-ui/pickers';
-import Error from './Error';
-import OverdueAlert from './OverdueAlert';
-import {sendRequest, dateTimeCompare, getShortDateFromISODateString} from './Utility';
-import theme from '../context/theme';
+import ClearIcon from "@material-ui/icons/Clear";
+import Button from "@material-ui/core/Button";
+import CircularProgress from "@material-ui/core/CircularProgress";
+import IconButton from "@material-ui/core/IconButton";
+import InputAdornment from "@material-ui/core/InputAdornment";
+import InputLabel from "@material-ui/core/InputLabel";
+import Snackbar from "@material-ui/core/Snackbar";
+import Typography from "@material-ui/core/Typography";
+import MuiAlert from "@material-ui/lab/Alert";
+import  {MuiPickersUtilsProvider, KeyboardDatePicker } from "@material-ui/pickers";
+import Error from "./Error";
+import OverdueAlert from "./OverdueAlert";
+import {sendRequest, dateTimeCompare, getShortDateFromISODateString} from "./Utility";
+import theme from "../context/theme";
 const LOINC_SYSTEM_URL = "https://loinc.org";
 const CONTRACT_CODE = "94136-9";
 const useStyles = makeStyles({
@@ -123,7 +123,7 @@ export default function Agreement(props) {
         })
     }
     const handleClose = (event, reason) => {
-        if (reason === 'clickaway') {
+        if (reason === "clickaway") {
           return;
         }
         setOpen(false);
@@ -201,14 +201,13 @@ export default function Agreement(props) {
                         format="yyyy-MM-dd"
                         minDate={new Date("1950-01-01")}
                         invalidDateMessage="Date must be in YYYY-MM-DD format, e.g. 1977-01-12"
-                        disableFuture
                         placeholder="YYYY-MM-DD"
                         value={date}
                         orientation="landscape"
                         onChange={(event, dateString) => {
                             setDateInput(dateString);
                             if (!event || !isValid(event)) {
-                                if (event && ((String(dateInput).replace(/[-_]/g, '').length) >= 8)) setDate(event);
+                                if (event && ((String(dateInput).replace(/[-_]/g, "").length) >= 8)) setDate(event);
                                 return;
                             }
                             setDate(event);

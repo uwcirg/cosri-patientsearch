@@ -1,14 +1,14 @@
-import React from 'react';
-import PropTypes from 'prop-types';
-import theme from '../context/theme';
-import { makeStyles, styled } from '@material-ui/core/styles';
-import AddCircleOutlineIcon from '@material-ui/icons/AddCircleOutline';
-import Button from '@material-ui/core/Button';
-import Fade from '@material-ui/core/Fade';
-import ListItemIcon from '@material-ui/core/ListItemIcon';
-import Menu from '@material-ui/core/Menu';
-import MenuItem from '@material-ui/core/MenuItem';
-import Typography from '@material-ui/core/Typography';
+import React from "react";
+import PropTypes from "prop-types";
+import theme from "../context/theme";
+import { makeStyles, styled } from "@material-ui/core/styles";
+import AddCircleOutlineIcon from "@material-ui/icons/AddCircleOutline";
+import Button from "@material-ui/core/Button";
+import Fade from "@material-ui/core/Fade";
+import ListItemIcon from "@material-ui/core/ListItemIcon";
+import Menu from "@material-ui/core/Menu";
+import MenuItem from "@material-ui/core/MenuItem";
+import Typography from "@material-ui/core/Typography";
 
 const useStyles = makeStyles({
     menu: {
@@ -47,18 +47,18 @@ export default function Dropdown(props) {
           {...props}
         />
       ))(({ theme }) => ({
-        '& .MuiPaper-root': {
+        "& .MuiPaper-root": {
           borderRadius: 0,
           marginTop: theme.spacing(3),
           minWidth: 180,
-          '& .MuiMenu-list': {
-            padding: '32px 0 8px',
+          "& .MuiMenu-list": {
+            padding: "32px 0 8px",
           },
-          '& .MuiMenuItem-root': {
+          "& .MuiMenuItem-root": {
             paddingBottom: theme.spacing(0.5),
             paddingLeft: theme.spacing(1.5),
             paddingRight: theme.spacing(2.5),
-            '& .MuiSvgIcon-root': {
+            "& .MuiSvgIcon-root": {
               fontSize: 16,
               marginRight: theme.spacing(0.25),
             },
@@ -84,8 +84,8 @@ export default function Dropdown(props) {
         open={Boolean(props.anchorEl)}
         onClose={(event) => handleMenuClose(event)}
         transformOrigin={{
-            vertical: 'top',
-            horizontal: 'center',
+            vertical: "top",
+            horizontal: "center",
         }}
         elevation={2}
         TransitionComponent={Fade}
