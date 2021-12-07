@@ -1,31 +1,31 @@
-import React from 'react';
-import { forwardRef } from 'react';
-import { makeStyles } from '@material-ui/core/styles';
-import MaterialTable from 'material-table';
-import ArrowDownward from '@material-ui/icons/ArrowDownward';
-import Check from '@material-ui/icons/Check';
-import ChevronLeft from '@material-ui/icons/ChevronLeft';
-import ChevronRight from '@material-ui/icons/ChevronRight';
-import ClearIcon from '@material-ui/icons/Clear';
-import RefreshIcon from '@material-ui/icons/Refresh';
-import MoreHorizIcon from '@material-ui/icons/MoreHoriz';
-import CircularProgress from '@material-ui/core/CircularProgress';
-import Button from '@material-ui/core/Button';
-import Container from '@material-ui/core/Container';
-import Delete from '@material-ui/icons/Delete';
-import FirstPage from '@material-ui/icons/FirstPage';
-import LastPage from '@material-ui/icons/LastPage';
-import Search from '@material-ui/icons/Search';
-import Modal from '@material-ui/core/Modal';
-import Paper from '@material-ui/core/Paper';
-import TablePagination from '@material-ui/core/TablePagination';
-import Tooltip from '@material-ui/core/Tooltip';
+import React from "react";
+import { forwardRef } from "react";
+import { makeStyles } from "@material-ui/core/styles";
+import MaterialTable from "material-table";
+import ArrowDownward from "@material-ui/icons/ArrowDownward";
+import Check from "@material-ui/icons/Check";
+import ChevronLeft from "@material-ui/icons/ChevronLeft";
+import ChevronRight from "@material-ui/icons/ChevronRight";
+import ClearIcon from "@material-ui/icons/Clear";
+import RefreshIcon from "@material-ui/icons/Refresh";
+import MoreHorizIcon from "@material-ui/icons/MoreHoriz";
+import CircularProgress from "@material-ui/core/CircularProgress";
+import Button from "@material-ui/core/Button";
+import Container from "@material-ui/core/Container";
+import Delete from "@material-ui/icons/Delete";
+import FirstPage from "@material-ui/icons/FirstPage";
+import LastPage from "@material-ui/icons/LastPage";
+import Search from "@material-ui/icons/Search";
+import Modal from "@material-ui/core/Modal";
+import Paper from "@material-ui/core/Paper";
+import TablePagination from "@material-ui/core/TablePagination";
+import Tooltip from "@material-ui/core/Tooltip";
 import Dropdown from "./Dropdown";
 import Error from "./Error";
 import FilterRow from "./FilterRow";
 import UrineScreen from "./UrineScreen";
 import Agreement from "./Agreement";
-import theme from '../context/theme';
+import theme from "../context/theme";
 import {fetchData, getLocalDateTimeString, getSettings, getUrlParameter, isString} from "./Utility";
 
 const useStyles = makeStyles({
@@ -51,15 +51,15 @@ const useStyles = makeStyles({
       minWidth: "250px",
     },
     flex: {
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      flexWrap: 'wrap'
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      flexWrap: "wrap"
     },
     modal: {
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
       border: 0
     },
     loadingText: {
@@ -278,7 +278,7 @@ export default function PatientListTable(props) {
       return false;
     }
     setOpenLoadingModal(true);
-    setErrorMessage('');
+    setErrorMessage("");
     const urls = [
       getPatientPMPSearchURL(rowData),
       "./validate_token"
@@ -341,7 +341,7 @@ export default function PatientListTable(props) {
       } catch(e) {
         console.log("Error occurred adding row to table ", e);
       }
-      setErrorMessage('');
+      setErrorMessage("");
       let launchURL = "";
       let launchID = response.id;
       if (!launchID) {
@@ -598,7 +598,7 @@ export default function PatientListTable(props) {
      /*
       * get patient list
       */
-      return new Promise((resolve, reject) => {
+      return new Promise((resolve) => {
           fetchData(apiURL, noCacheParam, function(e) {
             resetAll();
             handleErrorCallback(e);
@@ -714,10 +714,10 @@ export default function PatientListTable(props) {
                   {
                     icon: () => <span className={classes.button}>{LAUNCH_BUTTON_LABEL}</span>,
                     onClick: (event, rowData) => handleSearch(event, rowData),
-                    tooltip: 'Launch COSRI application for the user'
+                    tooltip: "Launch COSRI application for the user"
                   },
                   {
-                    icon: () => <MoreHorizIcon color="primary" className={`more-icon ${shouldHideMoreMenu()?'ghost': ''}`}></MoreHorizIcon>,
+                    icon: () => <MoreHorizIcon color="primary" className={`more-icon ${shouldHideMoreMenu()?"ghost": ""}`}></MoreHorizIcon>,
                     onClick: (event, rowData) => handleMenuClick(event, rowData),
                     tooltip: "More"
                   }
@@ -740,7 +740,7 @@ export default function PatientListTable(props) {
                         padding: theme.spacing(1, 2, 1)
                     },
                     rowStyle: rowData => ({
-                      backgroundColor: (!inPDMP(rowData) ? theme.palette.primary.disabled : '#FFF')
+                      backgroundColor: (!inPDMP(rowData) ? theme.palette.primary.disabled : "#FFF")
                     }),
                     actionsCellStyle: {
                       paddingLeft: theme.spacing(2),
@@ -759,7 +759,7 @@ export default function PatientListTable(props) {
                 }
                 editable={{
                   onRowDelete: oldData =>
-                    fetchData("/fhir/Patient/"+oldData.id, {method: "DELETE"}).then(response => {
+                    fetchData("/fhir/Patient/"+oldData.id, {method: "DELETE"}).then(() => {
                         setTimeout(() => {
                             const dataDelete = [...data];
                             const index = oldData.tableData.id;
@@ -813,7 +813,7 @@ export default function PatientListTable(props) {
              <div>
               {
                 patientListInitialized() &&
-                  <div className={`${totalCount === 0 ? 'ghost' : ''}`}>
+                  <div className={`${totalCount === 0 ? "ghost" : ""}`}>
                     <div className={classes.refreshButtonContainer}>
                       <Tooltip title="Refresh the list">
                         <Button
