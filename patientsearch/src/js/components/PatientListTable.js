@@ -535,14 +535,17 @@ export default function PatientListTable(props) {
     event.stopPropagation();
     const selectedTarget = event.target.getAttribute("datatopic");
     setSelectedMenuItem(selectedTarget);
-    if (!selectedTarget) return;
+    if (!selectedTarget) {
+      handleMenuClose();
+      return;
+    }
     setTimeout(function() {
+      currentRow.tableData.showDetailPanel = true;
       tableRef.current.onToggleDetailPanel(
         [currentRow.tableData.id],
         tableRef.current.props.detailPanel[0].render
       )
     }, 200);
-    handleMenuClose();
   };
 
   const getMoreMenuSetting = () => {

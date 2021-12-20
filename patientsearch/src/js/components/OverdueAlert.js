@@ -48,7 +48,7 @@ export default function OverdueAlert(props) {
      * 3 months before next due date
      */
     function shouldShowHardAlert(dt) {
-        if (!dt) return false;
+        if (!dt) return true;
         let currentDate = new Date();
         let shortDate = getShortDateFromISODateString(dt);
         let arrDates = shortDate.split("-");
@@ -61,6 +61,7 @@ export default function OverdueAlert(props) {
     }
 
     function formatMessage(message, dt) {
+        if (!dt) return message;
         let dueDate = getLocalDateTimeString(addYearsToDate(dt, 1), true);
         return message.replace("[duedate]", dueDate);
     }

@@ -161,7 +161,7 @@ export default function Agreement(props) {
                 setHistory(agreementData);
                 setLastAgreementDate(getShortDateFromISODateString(agreementData[0].resource.date));
             }
-            setHistoryInitialized(true);
+            setTimeout (() => setHistoryInitialized(true), 150);
 
         }, error => {
             setHistoryInitialized(true);
@@ -170,9 +170,13 @@ export default function Agreement(props) {
         return "";
     };
     const displayHistory = () => {
-        if (hasHistory()) return "No previous recorded agreement.";
+        if (hasHistory()) return "";
         return "Added on <b>" + lastAgreementDate + "</b>";
     };
+    const getMessage = () => {
+        if (!lastAgreementDate) return "No controlled substance agreement found for this patient.";
+        return "A new opioid agreement is due for this patient on or before [duedate].";
+    }
     React.useEffect(() => {
         getHistory();
     },[]);
@@ -235,7 +239,7 @@ export default function Agreement(props) {
                 </Typography>
                 <br/>
                 <span dangerouslySetInnerHTML={{ __html: displayHistory()}}></span>
-                <OverdueAlert date={lastAgreementDate}  message="A new opioid agreement is due for this patient on or before [duedate]."></OverdueAlert>
+                <OverdueAlert date={lastAgreementDate}  message={getMessage()}></OverdueAlert>
             </div>}
         </div>
     );

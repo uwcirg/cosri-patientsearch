@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from "prop-types";
 import { makeStyles} from '@material-ui/core/styles';
 import DateFnsUtils from '@date-io/date-fns';
 import isValid from "date-fns/isValid";
@@ -16,6 +17,7 @@ import Typography from '@material-ui/core/Typography';
 import MuiAlert from '@material-ui/lab/Alert';
 import  {MuiPickersUtilsProvider, KeyboardDatePicker } from '@material-ui/pickers';
 import Error from './Error';
+import OverdueAlert from "./OverdueAlert";
 import {getSettings, dateTimeCompare, sendRequest} from './Utility';
 import theme from '../context/theme';
 
@@ -93,6 +95,7 @@ export default function UrineScreen(props) {
     const classes = useStyles();
     const [type, setType] = React.useState("");
     const [date, setDate] = React.useState(null);
+    const [lastUrineScreenDate, setLastUrineScreenDate] = React.useState("");
     const [dateInput, setDateInput] = React.useState(null);
     const [history, setHistory] = React.useState([]);
     const [saveInProgress, setSaveInProgress] = React.useState(false);
@@ -142,7 +145,10 @@ export default function UrineScreen(props) {
             urineScreenData = urineScreenData.sort(function(a, b) {
                 return dateTimeCompare(a.resource.authoredOn, b.resource.authoredOn);
             });
-            if (urineScreenData.length) setHistory(urineScreenData)
+            if (urineScreenData.length) {
+                setHistory(urineScreenData);
+                setLastUrineScreenDate(urineScreenData[0].resource.authoredOn.substring(0,urineScreenData[0].resource.authoredOn.indexOf("T")));
+            }
 
         }, error => {
             console.log("Failed to retrieve data", error);
@@ -199,7 +205,7 @@ export default function UrineScreen(props) {
         return (!history || !history.length);
     };
     const displayHistory = () => {
-        if (hasHistory()) return "No previous recorded urine drug screen";
+        if (hasHistory()) return "";
         const resource = history[0].resource;
         const orderText = resource && resource.code && resource.code.text ? resource.code.text : "";
         const orderDate = resource.authoredOn.substring(0,resource.authoredOn.indexOf("T"));
@@ -219,7 +225,7 @@ export default function UrineScreen(props) {
             if (data && data["UDS_LAB_TYPES"]) {
                 setUrineScreenTypes(data["UDS_LAB_TYPES"]);
             }
-            setInitialized(true);
+            setTimeout(() => setInitialized(true), 150);
         });
     }
     const hasUrineScreenTypes = () => {
@@ -227,6 +233,10 @@ export default function UrineScreen(props) {
     }
     const noUrineScreenTypes = () => {
         return !urineScreenTypes || !urineScreenTypes.length;
+    }
+    const getMessage = () => {
+        if (!lastUrineScreenDate) return "No urine drug screen found for this patient.";
+        return "A new urine drug screen is due for this patient on or before [duedate].";
     }
     React.useEffect(() => {
         initUrineScreenTypes();
@@ -324,8 +334,12 @@ export default function UrineScreen(props) {
                     Last Urine Drug Screen
                 </Typography>
                 <div dangerouslySetInnerHTML={{ __html: displayHistory()}}></div>
+                <OverdueAlert date={lastUrineScreenDate}  message={getMessage()}></OverdueAlert>
             </div>}
         </div>
     );
 
+};
+UrineScreen.proptypes = {
+    rowData: PropTypes.object
 };
