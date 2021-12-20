@@ -234,10 +234,6 @@ export default function UrineScreen(props) {
     const noUrineScreenTypes = () => {
         return !urineScreenTypes || !urineScreenTypes.length;
     }
-    const getMessage = () => {
-        if (!lastUrineScreenDate) return "No urine drug screen found for this patient.";
-        return "A new urine drug screen is due for this patient on or before [duedate].";
-    }
     React.useEffect(() => {
         initUrineScreenTypes();
     }, []);
@@ -334,7 +330,7 @@ export default function UrineScreen(props) {
                     Last Urine Drug Screen
                 </Typography>
                 <div dangerouslySetInnerHTML={{ __html: displayHistory()}}></div>
-                <OverdueAlert date={lastUrineScreenDate}  message={getMessage()}></OverdueAlert>
+                <OverdueAlert date={lastUrineScreenDate}  type="urine drug screen"></OverdueAlert>
             </div>}
         </div>
     );

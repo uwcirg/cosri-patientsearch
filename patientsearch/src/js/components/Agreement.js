@@ -173,10 +173,6 @@ export default function Agreement(props) {
         if (hasHistory()) return "";
         return "Added on <b>" + lastAgreementDate + "</b>";
     };
-    const getMessage = () => {
-        if (!lastAgreementDate) return "No controlled substance agreement found for this patient.";
-        return "A new opioid agreement is due for this patient on or before [duedate].";
-    }
     React.useEffect(() => {
         getHistory();
     },[]);
@@ -239,7 +235,7 @@ export default function Agreement(props) {
                 </Typography>
                 <br/>
                 <span dangerouslySetInnerHTML={{ __html: displayHistory()}}></span>
-                <OverdueAlert date={lastAgreementDate}  message={getMessage()}></OverdueAlert>
+                <OverdueAlert date={lastAgreementDate}  type="controlled substance agreement"></OverdueAlert>
             </div>}
         </div>
     );

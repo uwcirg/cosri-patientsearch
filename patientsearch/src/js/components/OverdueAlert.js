@@ -33,7 +33,7 @@ const useStyles = makeStyles({
 export default function OverdueAlert(props) {
 
     /*
-     * four months before next due date
+     * 3 or 4 months before next due date
      */
     function shouldShowSoftAlert(dt) {
         if (!dt) return false;
@@ -41,11 +41,11 @@ export default function OverdueAlert(props) {
         let shortDate = getShortDateFromISODateString(dt);
         let arrDates = shortDate.split("-");
         let nextDueDate  = addYearsToDate(new Date(arrDates[0], arrDates[1]-1, arrDates[2]), 1);
-        return isInMonthPeriod(currentDate, nextDueDate, 4);
+        return isInMonthPeriod(currentDate, nextDueDate, 4) || isInMonthPeriod(currentDate, nextDueDate, 3);
     }
 
     /*
-     * 3 months before next due date
+     * overdue
      */
     function shouldShowHardAlert(dt) {
         if (!dt) return true;
@@ -53,7 +53,16 @@ export default function OverdueAlert(props) {
         let shortDate = getShortDateFromISODateString(dt);
         let arrDates = shortDate.split("-");
         let nextDueDate  = addYearsToDate(new Date(arrDates[0], arrDates[1]-1, arrDates[2]), 1);
-        return isInMonthPeriod(currentDate, nextDueDate, 3) || isDateInPast(nextDueDate, currentDate);
+        return isDateInPast(nextDueDate, currentDate);
+    }
+
+    function isOverdue(dt) {
+        if (!dt) return false;
+        let currentDate = new Date();
+        let shortDate = getShortDateFromISODateString(dt);
+        let arrDates = shortDate.split("-");
+        let nextDueDate  = addYearsToDate(new Date(arrDates[0], arrDates[1]-1, arrDates[2]), 1);
+        return isDateInPast(nextDueDate, currentDate);
     }
 
     function shouldShowAlerts(dt) {
@@ -71,17 +80,22 @@ export default function OverdueAlert(props) {
     function getMessageClass(dt) {
         return shouldShowHardAlert(dt) ? classes.alertText : classes.warningText;
     }
+    const getMessage = () => {
+        if (!props.date) return `No ${props.type} found for this patient.`;
+        if (isOverdue(props.date)) return `It has been more than 12 months since the last ${props.type} with this patient. ([duedate])`;
+        return `A new ${props.type} is due for this patient on or before [duedate].`;
+    }
     const classes = useStyles();
 
     return (
         <React.Fragment>{shouldShowAlerts(props.date) &&
                 <div>
                     <AssignmentLateIcon size="small" className={getIconClass(props.date)}></AssignmentLateIcon>
-                    <Typography variant="body2" className={getMessageClass(props.date)}>{formatMessage(props.message, props.date)}</Typography>
+                    <Typography variant="body2" className={getMessageClass(props.date)}>{formatMessage(getMessage(), props.date)}</Typography>
                 </div>}
         </React.Fragment>);
 };
 OverdueAlert.propTypes = {
     date: PropTypes.string.isRequired,
-    message: PropTypes.string.isRequired
+    type: PropTypes.string.isRequired
 }
