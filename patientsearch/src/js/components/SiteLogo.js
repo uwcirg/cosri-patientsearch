@@ -1,6 +1,6 @@
 import React from 'react';
 import { makeStyles} from '@material-ui/core/styles';
-import {imageOK, sendRequest} from './Utility';
+import {getSettings, imageOK} from './Utility';
 import theme from '../context/theme';
 
 const useStyles = makeStyles({
@@ -21,18 +21,14 @@ export default function SiteLogo() {
         /*
          * retrieve setting information
          */
-        sendRequest("./settings").then(response => {
-            let data = null;
-            try {
-                data = JSON.parse(response);
-            } catch(e) {
-                console.log("error parsing data ", e);
+        getSettings(data => {
+            if (data.error) {
+                console.log("Failed to retrieve data",data.error);
+                setInitialized(true);
+                return;
             }
             setSetting(data);
             setSiteID(getSiteId());
-            setInitialized(true);
-        }, error => {
-            console.log("Failed to retrieve data", error.statusText);
             setInitialized(true);
         });
     }, [initialized]);

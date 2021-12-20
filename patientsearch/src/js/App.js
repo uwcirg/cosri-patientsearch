@@ -10,7 +10,24 @@ import theme from './context/theme';
 import '../styles/app.scss';
 
 export default class App extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error) {
+    //force rendering of fallback UI after an error has been thrown by app
+    return { hasError: true };
+  }
+
   render () {
+    if (this.state.hasError) {
+      return <div className="app-error-container">
+        <h1>Application Error  - Something went wrong.</h1>
+        <h2 className="error">See console for detail</h2>
+        <div className="buttons-container"><a href="/">Refresh</a></div>
+      </div>;
+    }
     return (
       <React.Fragment>
         <ThemeProvider theme={theme}>

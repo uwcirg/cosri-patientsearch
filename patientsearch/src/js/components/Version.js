@@ -1,5 +1,6 @@
 import React from 'react';
 import { makeStyles} from '@material-ui/core/styles';
+import {getSettings} from './Utility';
 import theme from '../context/theme';
 
 const useStyles = makeStyles({
@@ -42,15 +43,15 @@ export default function Version(props) {
         /*
          * retrieve setting information
          */
-        fetch("./settings")
-        .then(response => response.json())
-        .then((data) => {
+        getSettings(data => {
+            if (data.error) {
+                console.log("Error retrieving data for version string ", data.error);
+                return;
+            }
             setSetting(data);
             setVersion(getVersionString());
             setInitialized(true);
-        }).catch(e => {
-            console.log(e);
-        })
+        });
     }, [initialized]);
     function getVersionString() {
         if (!Object.keys(setting)) return "";

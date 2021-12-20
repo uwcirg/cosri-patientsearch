@@ -1,35 +1,32 @@
-import React from 'react';
-import { forwardRef } from 'react';
-import { makeStyles, styled } from '@material-ui/core/styles';
-import MaterialTable from 'material-table';
-import ArrowDownward from '@material-ui/icons/ArrowDownward';
-import Check from '@material-ui/icons/Check';
-import ChevronLeft from '@material-ui/icons/ChevronLeft';
-import ChevronRight from '@material-ui/icons/ChevronRight';
-import AddCircleOutlineIcon from '@material-ui/icons/AddCircleOutline';
-import ClearIcon from '@material-ui/icons/Clear';
-import RefreshIcon from '@material-ui/icons/Refresh';
-import MoreHorizIcon from '@material-ui/icons/MoreHoriz';
-import CircularProgress from '@material-ui/core/CircularProgress';
-import Button from '@material-ui/core/Button';
-import Container from '@material-ui/core/Container';
-import Delete from '@material-ui/icons/Delete';
-import FirstPage from '@material-ui/icons/FirstPage';
-import ListItemIcon from '@material-ui/core/ListItemIcon';
-import LastPage from '@material-ui/icons/LastPage';
-import Search from '@material-ui/icons/Search';
-import Menu from '@material-ui/core/Menu';
-import MenuItem from '@material-ui/core/MenuItem';
-import Modal from '@material-ui/core/Modal';
-import Paper from '@material-ui/core/Paper';
-import TablePagination from '@material-ui/core/TablePagination';
-import Tooltip from '@material-ui/core/Tooltip';
-import Typography from '@material-ui/core/Typography';
+import React from "react";
+import { forwardRef } from "react";
+import { makeStyles } from "@material-ui/core/styles";
+import MaterialTable from "material-table";
+import ArrowDownward from "@material-ui/icons/ArrowDownward";
+import Check from "@material-ui/icons/Check";
+import ChevronLeft from "@material-ui/icons/ChevronLeft";
+import ChevronRight from "@material-ui/icons/ChevronRight";
+import ClearIcon from "@material-ui/icons/Clear";
+import RefreshIcon from "@material-ui/icons/Refresh";
+import MoreHorizIcon from "@material-ui/icons/MoreHoriz";
+import CircularProgress from "@material-ui/core/CircularProgress";
+import Button from "@material-ui/core/Button";
+import Container from "@material-ui/core/Container";
+import Delete from "@material-ui/icons/Delete";
+import FirstPage from "@material-ui/icons/FirstPage";
+import LastPage from "@material-ui/icons/LastPage";
+import Search from "@material-ui/icons/Search";
+import Modal from "@material-ui/core/Modal";
+import Paper from "@material-ui/core/Paper";
+import TablePagination from "@material-ui/core/TablePagination";
+import Tooltip from "@material-ui/core/Tooltip";
+import Dropdown from "./Dropdown";
 import Error from "./Error";
 import FilterRow from "./FilterRow";
 import UrineScreen from "./UrineScreen";
-import theme from '../context/theme';
-import {getLocalDateTimeString, getUrlParameter, isString} from "./Utility";
+import Agreement from "./Agreement";
+import theme from "../context/theme";
+import {fetchData, getLocalDateTimeString, getSettings, getUrlParameter, isString} from "./Utility";
 
 const useStyles = makeStyles({
     container: {
@@ -54,15 +51,15 @@ const useStyles = makeStyles({
       minWidth: "250px",
     },
     flex: {
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      flexWrap: 'wrap'
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      flexWrap: "wrap"
     },
     modal: {
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
       border: 0
     },
     loadingText: {
@@ -79,7 +76,7 @@ const useStyles = makeStyles({
       fontSize: "12px",
       borderRadius: "4px",
       width: "120px",
-      fontWeight: 500,
+      fontWeight: 600,
       textTransform: "uppercase",
       border: 0
     },
@@ -143,34 +140,6 @@ const useStyles = makeStyles({
       top: theme.spacing(1.5),
       right: theme.spacing(6),
       color: theme.palette.primary.main
-    },
-    menu: {
-      paddingTop: theme.spacing(2.5)
-    },
-    menuTitle: {
-      position: "absolute",
-      top: 0,
-      width: "100%",
-      paddingTop: theme.spacing(0.5),
-      paddingBottom: theme.spacing(0.5),
-      backgroundColor: theme.palette.primary.dark,
-      color: "#FFF"
-    },
-    menuIcon: {
-      minWidth: theme.spacing(3),
-      marginRight: theme.spacing(0.5)
-    },
-    menuTitleText: {
-      display: "inline-block",
-      marginLeft: theme.spacing(2),
-      fontWeight: 500
-    },
-    menuCloseButton: {
-      position: "absolute",
-      right: "-8px",
-      top: "0",
-      fontSize: "12px",
-      color: "#FFF"
     }
 });
 
@@ -198,7 +167,7 @@ export default function PatientListTable(props) {
   const [openLoadingModal, setOpenLoadingModal] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState("");
   const [containNoPMPRow, setContainNoPMPRow] = React.useState(false);
-  const [anchorEl, setAnchorEl] = React.useState(null);
+  const [anchorEl, setAnchorEl] = React.useState(false);
   const [selectedMenuItem, setSelectedMenuItem] = React.useState("");
   const [currentRow, setCurrentRow] = React.useState(null);
   const tableRef = React.useRef();
@@ -206,6 +175,16 @@ export default function PatientListTable(props) {
   const CREATE_BUTTON_LABEL = "CREATE";
   const NO_DATA_ELEMENT_ID = "noDataContainer";
   const TOOLBAR_ACTION_BUTTON_ID = "toolbarGoButton";
+  const MORE_MENU_KEY = "MORE_MENU";
+  const menuItems = [{
+    "text": "Add Urine Tox Screen",
+    "id": "UDS",
+    "component": (rowData) => <UrineScreen rowData={rowData}></UrineScreen>
+  }, {
+    "text": "Add Controlled Substance Agreement",
+    "id": "CS_agreement",
+    "component": (rowData) => <Agreement rowData={rowData}></Agreement>
+  }];
   const tableIcons = {
     Check: forwardRef((props, ref) => <Check {...props} ref={ref} className={classes.success} />),
     Clear: forwardRef((props, ref) => <ClearIcon {...props} ref={ref} />),
@@ -272,51 +251,6 @@ export default function PatientListTable(props) {
   };
   const noCacheParam = {cache: "no-cache"};
 
-  async function fetchData(url, params, errorCallback) {
-    const MAX_WAIT_TIME = 20000;
-    params = params || {};
-    errorCallback = errorCallback || function() {};
-    // Create a promise that rejects in maximum wait time in milliseconds
-    let timeoutPromise = new Promise((resolve, reject) => {
-      let id = setTimeout(() => {
-        clearTimeout(id);
-        reject(`Timed out in ${MAX_WAIT_TIME} ms.`)
-      }, MAX_WAIT_TIME);
-    });
-    /*
-     * if for some reason fetching the request data doesn't resolve or reject withing the maximum waittime,
-     * then the timeout promise will kick in
-     */
-    let json = null;
-    let results = await Promise.race([
-      fetch(url, params),
-      timeoutPromise
-    ]).catch(e => {
-        console.log("error retrieving data ", e);
-        errorCallback(e);
-        throw e;
-    });
-
-    if (!results || !results.ok) {
-      console.log("no results returned");
-      errorCallback(results ? results : "error retrieving data");
-      return null;
-    }
-
-    try {
-      //read response stream
-      json = await (results.json()).catch(e => {
-          console.log(`There was error processing data.`);
-          throw e.message;
-      });
-    } catch(e) {
-      console.log(`There was error parsing data: ${e}`);
-      json = null;
-      errorCallback(e);
-      throw e;
-    }
-    return json;
-  }
   const existsIndata = function(rowData) {
     if (!data) return false;
     if (!rowData) return false;
@@ -344,7 +278,7 @@ export default function PatientListTable(props) {
       return false;
     }
     setOpenLoadingModal(true);
-    setErrorMessage('');
+    setErrorMessage("");
     const urls = [
       getPatientPMPSearchURL(rowData),
       "./validate_token"
@@ -407,7 +341,7 @@ export default function PatientListTable(props) {
       } catch(e) {
         console.log("Error occurred adding row to table ", e);
       }
-      setErrorMessage('');
+      setErrorMessage("");
       let launchURL = "";
       let launchID = response.id;
       if (!launchID) {
@@ -516,11 +450,6 @@ export default function PatientListTable(props) {
     document.querySelector(`#${NO_DATA_ELEMENT_ID}`).innerText = noDataText;
   }
 
-  function hasFilters(filters) {
-    if (!filters || !filters.length) return false;
-    return filters.filter(item => item.value !== '' && item.value !== null).length > 0;
-  }
-
   function onFiltersDidChange(filters, clearAll) {
     clearTimeout(filterIntervalId);
     filterIntervalId = setTimeout(function() {
@@ -529,7 +458,7 @@ export default function PatientListTable(props) {
       if (filters && filters.length) {
         setCurrentFilters(filters);
         resetPaging();
-        if (!hasFilters(filters)) {
+        if (!containEmptyFilter(filters)) {
           handleRefresh();
           return filters;
         }
@@ -569,7 +498,6 @@ export default function PatientListTable(props) {
     }
     setErrorMessage(isString(e) ? e : (e && e.message? e.message: "Error occurred processing data"));
   }
-
   const resetPaging = () => {
     setNextPageURL("");
     setPrevPageURL("");
@@ -594,61 +522,49 @@ export default function PatientListTable(props) {
   const handleRefresh = () => {
     document.querySelector("#btnClear").click();
     setErrorMessage("");
-  }
-
-  const StyledMenu = styled((props) => (
-    <Menu
-      {...props}
-    />
-  ))(({ theme }) => ({
-    '& .MuiPaper-root': {
-      borderRadius: 0,
-      marginTop: theme.spacing(3),
-      minWidth: 180,
-      '& .MuiMenu-list': {
-        padding: '4px 0',
-      },
-      '& .MuiMenuItem-root': {
-        '& .MuiSvgIcon-root': {
-          fontSize: 16,
-          marginRight: theme.spacing(1),
-        },
-      },
-    },
-  }));
+  };
   const handleMenuClick = (event, rowData) => {
     event.stopPropagation();
     setAnchorEl(event.currentTarget);
     setCurrentRow(rowData);
   };
-
   const handleMenuClose = () => {
     setAnchorEl(null);
   };
-
   const handleMenuSelect = (event) => {
     event.stopPropagation();
     const selectedTarget = event.target.getAttribute("datatopic");
     setSelectedMenuItem(selectedTarget);
-    if (!selectedTarget) return;
+    if (!selectedTarget) {
+      handleMenuClose();
+      return;
+    }
     setTimeout(function() {
+      currentRow.tableData.showDetailPanel = true;
       tableRef.current.onToggleDetailPanel(
         [currentRow.tableData.id],
         tableRef.current.props.detailPanel[0].render
       )
     }, 200);
-    handleMenuClose();
-  }
-  const MORE_MENU_KEY = "MORE_MENU";
-  const shouldHideMoreMenu = () => {
-    //TODO fix this if we have more menu items added, right now just hide the ... menu link if no urine drug screen is specfied as a menu item, since that means no menu item to show
-    return shouldHideUrineScreenMenu() || (Object.keys(appSettings).length && (!appSettings[MORE_MENU_KEY] || appSettings[MORE_MENU_KEY].length === 0));
-  }
-  const shouldHideUrineScreenMenu = () => {
-    let arrMenu = appSettings[MORE_MENU_KEY] ? appSettings[MORE_MENU_KEY]: [];
-    return arrMenu.indexOf("UDS") === -1;
-  }
+  };
 
+  const getMoreMenuSetting = () => {
+    return appSettings[MORE_MENU_KEY] ? appSettings[MORE_MENU_KEY]: []
+  };
+  const shouldHideMoreMenu = () => {
+    return (Object.keys(appSettings).length && (!appSettings[MORE_MENU_KEY] || appSettings[MORE_MENU_KEY].length === 0));
+  }
+  const shouldShowMenuItem = (id) => {
+    let arrMenu = getMoreMenuSetting();
+    return arrMenu.filter(item => item.toLowerCase() === id.toLowerCase()).length > 0;
+  };
+  const getSelectedItemComponent = (selectedMenuItem, rowData) => {
+    let selected =  menuItems.filter(item => item.id.toLowerCase() === selectedMenuItem.toLowerCase());
+    if (selected.length) {
+      return selected[0].component(rowData);
+    }
+    return null;
+  };
   const getPatientList = (query) => {
     let sortField = query.orderBy && query.orderBy.field? FieldNameMaps[query.orderBy.field] : "_lastUpdated";
     let sortDirection = query.orderDirection ? query.orderDirection : "desc";
@@ -685,7 +601,7 @@ export default function PatientListTable(props) {
      /*
       * get patient list
       */
-      return new Promise((resolve, reject) => {
+      return new Promise((resolve) => {
           fetchData(apiURL, noCacheParam, function(e) {
             resetAll();
             handleErrorCallback(e);
@@ -743,15 +659,14 @@ export default function PatientListTable(props) {
 
   React.useEffect(() => {
     //when page unloads, remove loading indicator
-    window.addEventListener("beforeunload", function() { setOpenLoadingModal(false); });
-    fetchData("./settings", false, handleErrorCallback).then(response => {
-        if (response) {
-            setAppSettings(response);
-        }
-    }).catch(e => {
-        //unauthorized error
-        handleErrorCallback(error);
-        setErrorMessage(`Error retrieving app setting: ${e}`);
+    window.addEventListener("beforeunload", function() { setTimeout(() => setOpenLoadingModal(false), 50); });
+    getSettings(data => {
+      if (data.error) {
+        handleErrorCallback(data.error);
+        setErrorMessage(`Error retrieving app setting: ${data.error}`);
+        return;
+      }
+      setAppSettings(data);
     });
   }, []);
 
@@ -784,7 +699,7 @@ export default function PatientListTable(props) {
                             return (
                               <div className={classes.detailPanelWrapper}>
                                 <Paper elevation={1} variant="outlined" className={classes.detailPanelContainer}>
-                                  {selectedMenuItem === "urine screen" && <UrineScreen rowData={rowData}></UrineScreen>}
+                                  {getSelectedItemComponent(selectedMenuItem, rowData)}
                                   <Button onClick={() => {
                                     tableRef.current.onToggleDetailPanel(
                                       [rowData.tableData.id],
@@ -802,10 +717,10 @@ export default function PatientListTable(props) {
                   {
                     icon: () => <span className={classes.button}>{LAUNCH_BUTTON_LABEL}</span>,
                     onClick: (event, rowData) => handleSearch(event, rowData),
-                    tooltip: 'Launch COSRI application for the user'
+                    tooltip: "Launch COSRI application for the user"
                   },
                   {
-                    icon: () => <MoreHorizIcon color="primary" className={`more-icon ${shouldHideMoreMenu()?'ghost': ''}`}></MoreHorizIcon>,
+                    icon: () => <MoreHorizIcon color="primary" className={`more-icon ${shouldHideMoreMenu()?"ghost": ""}`}></MoreHorizIcon>,
                     onClick: (event, rowData) => handleMenuClick(event, rowData),
                     tooltip: "More"
                   }
@@ -828,12 +743,12 @@ export default function PatientListTable(props) {
                         padding: theme.spacing(1, 2, 1)
                     },
                     rowStyle: rowData => ({
-                      backgroundColor: (!inPDMP(rowData) ? theme.palette.primary.disabled : '#FFF')
+                      backgroundColor: (!inPDMP(rowData) ? theme.palette.primary.disabled : "#FFF")
                     }),
                     actionsCellStyle: {
                       paddingLeft: theme.spacing(2),
                       paddingRight: theme.spacing(2),
-                      minWidth: "20%",
+                      minWidth: "25%",
                       justifyContent: "center"
                     },
                     actionsColumnIndex: -1
@@ -847,7 +762,7 @@ export default function PatientListTable(props) {
                 }
                 editable={{
                   onRowDelete: oldData =>
-                    fetchData("/fhir/Patient/"+oldData.id, {method: "DELETE"}).then(response => {
+                    fetchData("/fhir/Patient/"+oldData.id, {method: "DELETE"}).then(() => {
                         setTimeout(() => {
                             const dataDelete = [...data];
                             const index = oldData.tableData.id;
@@ -901,7 +816,7 @@ export default function PatientListTable(props) {
              <div>
               {
                 patientListInitialized() &&
-                  <div className={`${totalCount === 0 ? 'ghost' : ''}`}>
+                  <div className={`${totalCount === 0 ? "ghost" : ""}`}>
                     <div className={classes.refreshButtonContainer}>
                       <Tooltip title="Refresh the list">
                         <Button
@@ -930,11 +845,7 @@ export default function PatientListTable(props) {
                         disabled: disablePrevButton,
                         color: "primary"
                       }}
-                      SelectProps={
-                        {
-                          variant: "outlined"
-                        }
-                      }
+                      SelectProps={{variant: "outlined"}}
                     />
                   </div>
               }
@@ -954,29 +865,11 @@ export default function PatientListTable(props) {
               </div>
             </div>
           </Modal>
-          <StyledMenu
-            id="rowMenu"
+          <Dropdown
             anchorEl={anchorEl}
-            keepMounted
-            open={Boolean(anchorEl)}
-            onClose={handleMenuClose}
-            transformOrigin={{
-              vertical: 'top',
-              horizontal: 'center',
-            }}
-            elevation={1}
-          >
-            <div className={classes.menuTitle}>
-              <Typography variant="subtitle2" className={classes.menuTitleText}>Select</Typography>
-              <Button size="small" onClick={handleMenuClose} className={classes.menuCloseButton}>X</Button>
-            </div>
-            <MenuItem onClick={(event) => handleMenuSelect(event)} className={`${shouldHideUrineScreenMenu()?'ghost':''}`}dense>
-              <ListItemIcon className={classes.menuIcon} datatopic="urine screen">
-                <AddCircleOutlineIcon fontSize="small"/>
-              </ListItemIcon>
-              <Typography variant="subtitle2" datatopic="urine screen">Add Urine Tox Screen</Typography>
-            </MenuItem>
-          </StyledMenu>
+            handleMenuClose={handleMenuClose}
+            handleMenuSelect={handleMenuSelect}
+            menuItems={menuItems.filter(item => shouldShowMenuItem(item.id))}></Dropdown>
         </Container>
     </React.Fragment>
   );

@@ -1,23 +1,25 @@
-import React from 'react';
-import { makeStyles} from '@material-ui/core/styles';
-import DateFnsUtils from '@date-io/date-fns';
+import React from "react";
+import PropTypes from "prop-types";
+import { makeStyles} from "@material-ui/core/styles";
+import DateFnsUtils from "@date-io/date-fns";
 import isValid from "date-fns/isValid";
-import ClearIcon from '@material-ui/icons/Clear';
-import Button from '@material-ui/core/Button';
-import CircularProgress from '@material-ui/core/CircularProgress';
-import IconButton from '@material-ui/core/IconButton';
-import InputAdornment from '@material-ui/core/InputAdornment';
-import InputLabel from '@material-ui/core/InputLabel';
-import FormControl from '@material-ui/core/FormControl';
-import MenuItem from '@material-ui/core/MenuItem';
-import Select from '@material-ui/core/Select';
-import Snackbar from '@material-ui/core/Snackbar';
-import Typography from '@material-ui/core/Typography';
-import MuiAlert from '@material-ui/lab/Alert';
-import  {MuiPickersUtilsProvider, KeyboardDatePicker } from '@material-ui/pickers';
-import Error from './Error';
-import {sendRequest, dateTimeCompare} from './Utility';
-import theme from '../context/theme';
+import ClearIcon from "@material-ui/icons/Clear";
+import Button from "@material-ui/core/Button";
+import CircularProgress from "@material-ui/core/CircularProgress";
+import IconButton from "@material-ui/core/IconButton";
+import InputAdornment from "@material-ui/core/InputAdornment";
+import InputLabel from "@material-ui/core/InputLabel";
+import FormControl from "@material-ui/core/FormControl";
+import MenuItem from "@material-ui/core/MenuItem";
+import Select from "@material-ui/core/Select";
+import Snackbar from "@material-ui/core/Snackbar";
+import Typography from "@material-ui/core/Typography";
+import MuiAlert from "@material-ui/lab/Alert";
+import  {MuiPickersUtilsProvider, KeyboardDatePicker } from "@material-ui/pickers";
+import Error from "./Error";
+import OverdueAlert from "./OverdueAlert";
+import {getSettings, dateTimeCompare, sendRequest, isAdult} from "./Utility";
+import theme from "../context/theme";
 
 const useStyles = makeStyles({
     container: {
@@ -93,6 +95,7 @@ export default function UrineScreen(props) {
     const classes = useStyles();
     const [type, setType] = React.useState("");
     const [date, setDate] = React.useState(null);
+    const [lastUrineScreenDate, setLastUrineScreenDate] = React.useState("");
     const [dateInput, setDateInput] = React.useState(null);
     const [history, setHistory] = React.useState([]);
     const [saveInProgress, setSaveInProgress] = React.useState(false);
@@ -142,7 +145,10 @@ export default function UrineScreen(props) {
             urineScreenData = urineScreenData.sort(function(a, b) {
                 return dateTimeCompare(a.resource.authoredOn, b.resource.authoredOn);
             });
-            if (urineScreenData.length) setHistory(urineScreenData)
+            if (urineScreenData.length) {
+                setHistory(urineScreenData);
+                setLastUrineScreenDate(urineScreenData[0].resource.authoredOn.substring(0,urineScreenData[0].resource.authoredOn.indexOf("T")));
+            }
 
         }, error => {
             console.log("Failed to retrieve data", error);
@@ -196,10 +202,10 @@ export default function UrineScreen(props) {
         })
     }
     const hasHistory = () => {
-        return (!history || !history.length);
+        return (history && history.length);
     };
     const displayHistory = () => {
-        if (hasHistory()) return "No previous recorded urine drug screen";
+        if (!hasHistory()) return "";
         const resource = history[0].resource;
         const orderText = resource && resource.code && resource.code.text ? resource.code.text : "";
         const orderDate = resource.authoredOn.substring(0,resource.authoredOn.indexOf("T"));
@@ -215,22 +221,12 @@ export default function UrineScreen(props) {
         return urineScreenTypes.length === 1;
     }
     const initUrineScreenTypes = () => {
-        const getSettings = async () => {
-            const response = await fetch('/settings').catch(e => console.log("Error retrieving settings ", e)); // get config
-            let data = null;
-            if (response) {
-                try {
-                    data = await response.json(); // parse JSON
-                } catch(e) {
-                    console.log("Error converting setting data to json ", e);
-                }
-            }
+        getSettings(data => {
             if (data && data["UDS_LAB_TYPES"]) {
                 setUrineScreenTypes(data["UDS_LAB_TYPES"]);
             }
-            setInitialized(true);
-        }
-        getSettings();
+            setTimeout(() => setInitialized(true), 150);
+        });
     }
     const hasUrineScreenTypes = () => {
         return !onlyOneUrineScreenType() && !noUrineScreenTypes();
@@ -249,7 +245,7 @@ export default function UrineScreen(props) {
         getHistory();
     },[urineScreenTypes]);
     const handleClose = (event, reason) => {
-        if (reason === 'clickaway') {
+        if (reason === "clickaway") {
           return;
         }
         setOpen(false);
@@ -279,14 +275,13 @@ export default function UrineScreen(props) {
                         format="yyyy-MM-dd"
                         minDate={new Date("1950-01-01")}
                         invalidDateMessage="Date must be in YYYY-MM-DD format, e.g. 1977-01-12"
-                        disableFuture
                         placeholder="YYYY-MM-DD"
                         value={date}
                         orientation="landscape"
                         onChange={(event, dateString) => {
                             setDateInput(dateString);
                             if (!event || !isValid(event)) {
-                                if (event && ((String(dateInput).replace(/[-_]/g, '').length) >= 8)) setDate(event);
+                                if (event && ((String(dateInput).replace(/[-_]/g, "").length) >= 8)) setDate(event);
                                 return;
                             }
                             setDate(event);
@@ -335,8 +330,13 @@ export default function UrineScreen(props) {
                     Last Urine Drug Screen
                 </Typography>
                 <div dangerouslySetInnerHTML={{ __html: displayHistory()}}></div>
+                {!isAdult(rowData.dob) && !hasHistory() && <div>No previously recorded urine drug screen</div>}
+                {isAdult(rowData.dob) && <OverdueAlert date={lastUrineScreenDate}  type="urine drug screen"></OverdueAlert>}
             </div>}
         </div>
     );
 
+};
+UrineScreen.proptypes = {
+    rowData: PropTypes.object
 };
