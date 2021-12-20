@@ -1,25 +1,25 @@
-import React from 'react';
+import React from "react";
 import PropTypes from "prop-types";
-import { makeStyles} from '@material-ui/core/styles';
-import DateFnsUtils from '@date-io/date-fns';
+import { makeStyles} from "@material-ui/core/styles";
+import DateFnsUtils from "@date-io/date-fns";
 import isValid from "date-fns/isValid";
-import ClearIcon from '@material-ui/icons/Clear';
-import Button from '@material-ui/core/Button';
-import CircularProgress from '@material-ui/core/CircularProgress';
-import IconButton from '@material-ui/core/IconButton';
-import InputAdornment from '@material-ui/core/InputAdornment';
-import InputLabel from '@material-ui/core/InputLabel';
-import FormControl from '@material-ui/core/FormControl';
-import MenuItem from '@material-ui/core/MenuItem';
-import Select from '@material-ui/core/Select';
-import Snackbar from '@material-ui/core/Snackbar';
-import Typography from '@material-ui/core/Typography';
-import MuiAlert from '@material-ui/lab/Alert';
-import  {MuiPickersUtilsProvider, KeyboardDatePicker } from '@material-ui/pickers';
-import Error from './Error';
+import ClearIcon from "@material-ui/icons/Clear";
+import Button from "@material-ui/core/Button";
+import CircularProgress from "@material-ui/core/CircularProgress";
+import IconButton from "@material-ui/core/IconButton";
+import InputAdornment from "@material-ui/core/InputAdornment";
+import InputLabel from "@material-ui/core/InputLabel";
+import FormControl from "@material-ui/core/FormControl";
+import MenuItem from "@material-ui/core/MenuItem";
+import Select from "@material-ui/core/Select";
+import Snackbar from "@material-ui/core/Snackbar";
+import Typography from "@material-ui/core/Typography";
+import MuiAlert from "@material-ui/lab/Alert";
+import  {MuiPickersUtilsProvider, KeyboardDatePicker } from "@material-ui/pickers";
+import Error from "./Error";
 import OverdueAlert from "./OverdueAlert";
-import {getSettings, dateTimeCompare, sendRequest, isAdult} from './Utility';
-import theme from '../context/theme';
+import {getSettings, dateTimeCompare, sendRequest, isAdult} from "./Utility";
+import theme from "../context/theme";
 
 const useStyles = makeStyles({
     container: {
@@ -245,7 +245,7 @@ export default function UrineScreen(props) {
         getHistory();
     },[urineScreenTypes]);
     const handleClose = (event, reason) => {
-        if (reason === 'clickaway') {
+        if (reason === "clickaway") {
           return;
         }
         setOpen(false);
@@ -281,7 +281,7 @@ export default function UrineScreen(props) {
                         onChange={(event, dateString) => {
                             setDateInput(dateString);
                             if (!event || !isValid(event)) {
-                                if (event && ((String(dateInput).replace(/[-_]/g, '').length) >= 8)) setDate(event);
+                                if (event && ((String(dateInput).replace(/[-_]/g, "").length) >= 8)) setDate(event);
                                 return;
                             }
                             setDate(event);

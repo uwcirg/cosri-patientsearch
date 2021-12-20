@@ -88,7 +88,7 @@ export default function OverdueAlert(props) {
             return `It has been more than 12 months since the last ${props.type} with this patient. ([duedate])`;
         }
         if (props.message) return props.message;
-        return `A new ${props.type} is due for this patient on or before [duedate].`;
+        return `A ${props.type} is due for this patient on or before [duedate].`;
     }
     const classes = useStyles();
 
