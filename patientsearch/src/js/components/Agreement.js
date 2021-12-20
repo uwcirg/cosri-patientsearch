@@ -15,7 +15,7 @@ import MuiAlert from "@material-ui/lab/Alert";
 import  {MuiPickersUtilsProvider, KeyboardDatePicker } from "@material-ui/pickers";
 import Error from "./Error";
 import OverdueAlert from "./OverdueAlert";
-import {sendRequest, dateTimeCompare, getShortDateFromISODateString} from "./Utility";
+import {sendRequest, dateTimeCompare, getShortDateFromISODateString, isAdult} from "./Utility";
 import theme from "../context/theme";
 const LOINC_SYSTEM_URL = "https://loinc.org";
 const CONTRACT_CODE = "94136-9";
@@ -129,7 +129,7 @@ export default function Agreement(props) {
         setOpen(false);
     };
     const hasHistory = () => {
-        return (!history || !history.length);
+        return (history && history.length);
     };
     const getHistory = () => {
         if (!rowData.id) return [];
@@ -170,8 +170,8 @@ export default function Agreement(props) {
         return "";
     };
     const displayHistory = () => {
-        if (hasHistory()) return "";
-        return "Added on <b>" + lastAgreementDate + "</b>";
+        if (!hasHistory()) return "";
+        return "Last controlled substance agreement signed on <b>" + lastAgreementDate + "</b>";
     };
     React.useEffect(() => {
         getHistory();
@@ -235,7 +235,8 @@ export default function Agreement(props) {
                 </Typography>
                 <br/>
                 <span dangerouslySetInnerHTML={{ __html: displayHistory()}}></span>
-                <OverdueAlert date={lastAgreementDate}  type="controlled substance agreement"></OverdueAlert>
+                {!isAdult(rowData.dob) && !hasHistory() && <div>No previously recorded controlled substance agreement</div>}
+                {isAdult(rowData.dob) && <OverdueAlert date={lastAgreementDate}  type="controlled substance agreement" overdueMessage="It has been more than 12 months since the patient has signed a controlled substance agreement."></OverdueAlert>}
             </div>}
         </div>
     );

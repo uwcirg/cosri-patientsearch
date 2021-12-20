@@ -238,3 +238,26 @@ export function getShortDateFromISODateString(dateString) {
   if (TIndex > 0) return dateString.substring(0, TIndex);
   return dateString;
 }
+
+/*
+ * return age based on date string
+ */
+export function getAge(birthDateString) {
+  const today = new Date();
+  const birthDate = new Date(birthDateString);
+  const yearsDifference = today.getFullYear() - birthDate.getFullYear();
+  if (
+    today.getMonth() < birthDate.getMonth() ||
+    (today.getMonth() === birthDate.getMonth() && today.getDate() < birthDate.getDate())
+  ) {
+    return yearsDifference - 1;
+  }
+  return yearsDifference;
+};
+
+/*
+ * determine whether datestring is greater than 18 in age
+ */
+export function isAdult(birthDateString) {
+  return getAge(birthDateString) >= 18;
+}

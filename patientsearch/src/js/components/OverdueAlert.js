@@ -81,8 +81,13 @@ export default function OverdueAlert(props) {
         return shouldShowHardAlert(dt) ? classes.alertText : classes.warningText;
     }
     const getMessage = () => {
+
         if (!props.date) return `No ${props.type} found for this patient.`;
-        if (isOverdue(props.date)) return `It has been more than 12 months since the last ${props.type} with this patient. ([duedate])`;
+        if (isOverdue(props.date)) {
+            if (props.overdueMessage) return props.overdueMessage;
+            return `It has been more than 12 months since the last ${props.type} with this patient. ([duedate])`;
+        }
+        if (props.message) return props.message;
         return `A new ${props.type} is due for this patient on or before [duedate].`;
     }
     const classes = useStyles();
@@ -97,5 +102,7 @@ export default function OverdueAlert(props) {
 };
 OverdueAlert.propTypes = {
     date: PropTypes.string.isRequired,
-    type: PropTypes.string.isRequired
+    type: PropTypes.string.isRequired,
+    message: PropTypes.string,
+    overdueMessage: PropTypes.string
 }

@@ -18,7 +18,7 @@ import MuiAlert from '@material-ui/lab/Alert';
 import  {MuiPickersUtilsProvider, KeyboardDatePicker } from '@material-ui/pickers';
 import Error from './Error';
 import OverdueAlert from "./OverdueAlert";
-import {getSettings, dateTimeCompare, sendRequest} from './Utility';
+import {getSettings, dateTimeCompare, sendRequest, isAdult} from './Utility';
 import theme from '../context/theme';
 
 const useStyles = makeStyles({
@@ -202,10 +202,10 @@ export default function UrineScreen(props) {
         })
     }
     const hasHistory = () => {
-        return (!history || !history.length);
+        return (history && history.length);
     };
     const displayHistory = () => {
-        if (hasHistory()) return "";
+        if (!hasHistory()) return "";
         const resource = history[0].resource;
         const orderText = resource && resource.code && resource.code.text ? resource.code.text : "";
         const orderDate = resource.authoredOn.substring(0,resource.authoredOn.indexOf("T"));
@@ -330,7 +330,8 @@ export default function UrineScreen(props) {
                     Last Urine Drug Screen
                 </Typography>
                 <div dangerouslySetInnerHTML={{ __html: displayHistory()}}></div>
-                <OverdueAlert date={lastUrineScreenDate}  type="urine drug screen"></OverdueAlert>
+                {!isAdult(rowData.dob) && !hasHistory() && <div>No previously recorded urine drug screen</div>}
+                {isAdult(rowData.dob) && <OverdueAlert date={lastUrineScreenDate}  type="urine drug screen"></OverdueAlert>}
             </div>}
         </div>
     );
