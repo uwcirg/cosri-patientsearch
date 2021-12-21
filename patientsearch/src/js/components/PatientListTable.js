@@ -423,10 +423,8 @@ export default function PatientListTable(props) {
   }
 
   function containEmptyFilter(filters) {
-    if (!filters) return true;
-    return filters.filter(item => {
-      return !item.value;
-    }).length > 0;
+    if (!filters || !filters.length) return true;
+    return filters.filter(item => item.value !== "" && item.value !== null).length === 0;
   }
 
   function setToolbarActionButtonVis(filters) {
@@ -458,7 +456,7 @@ export default function PatientListTable(props) {
       if (filters && filters.length) {
         setCurrentFilters(filters);
         resetPaging();
-        if (!containEmptyFilter(filters)) {
+        if (containEmptyFilter(filters)) {
           handleRefresh();
           return filters;
         }
