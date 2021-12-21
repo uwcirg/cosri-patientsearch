@@ -665,8 +665,8 @@ export default function PatientListTable(props) {
         return;
       }
       setAppSettings(data);
-    });
-  }, []);
+    }, true); //no caching
+  }, [!patientListInitialized()]); //retrieval of settings should occur prior to patient list being rendered/initialized
 
   return (
       <React.Fragment>
