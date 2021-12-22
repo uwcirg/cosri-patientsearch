@@ -1,4 +1,4 @@
-import differenceInMonths from 'date-fns/differenceInMonths';
+import differenceInMonths from "date-fns/differenceInMonths";
 
 export function sendRequest (url, params) {
     params = params || {};
@@ -6,7 +6,7 @@ export function sendRequest (url, params) {
     return new Promise(function(resolve, reject) {
       // Do the usual XHR stuff
       var req = new XMLHttpRequest();
-      req.open('GET', url);
+      req.open("GET", url);
       if (params.nocache) {
         // via Cache-Control header:
         req.setRequestHeader("Cache-Control", "no-cache");
@@ -47,7 +47,7 @@ export async function fetchData(url, params, errorCallback) {
   let timeoutPromise = new Promise((resolve, reject) => {
     let id = setTimeout(() => {
       clearTimeout(id);
-      reject(`Timed out in ${MAX_WAIT_TIME} ms.`)
+      reject(`Timed out in ${MAX_WAIT_TIME} ms.`);
     }, MAX_WAIT_TIME);
   });
   /*
@@ -73,7 +73,7 @@ export async function fetchData(url, params, errorCallback) {
   try {
     //read response stream
     json = await (results.json()).catch(e => {
-        console.log(`There was error processing data.`);
+        console.log("There was error processing data.");
         throw e.message;
     });
   } catch(e) {
@@ -145,14 +145,14 @@ export function imageOK(img) {
 }
 
 export function getUrlParameter(name, queryString) {
-  name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
-  var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+  name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+  var regex = new RegExp("[\\?&]" + name + "=([^&#]*)");
   var results = regex.exec(queryString ? queryString : location.search);
-  return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+  return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
 }
 
 export function isString (obj) {
-  return (Object.prototype.toString.call(obj) === '[object String]');
+  return (Object.prototype.toString.call(obj) === "[object String]");
 }
 
 export function pad (val, len) {
@@ -253,7 +253,7 @@ export function getAge(birthDateString) {
     return yearsDifference - 1;
   }
   return yearsDifference;
-};
+}
 
 /*
  * determine whether datestring is greater than 18 in age

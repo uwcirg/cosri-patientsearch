@@ -7,7 +7,8 @@
     "build": "webpack --mode production",
     "start": "webpack-dev-server --mode development",
     "watch": "webpack -debug --config webpack.config.js --watch --progress --mode development",
-    "lint:js": "eslint src/js/**/*.js",
+    "lint:js": "eslint patientsearch/src/js/*.js patientsearch/src/js/**/*.js; exit 0",
+    "lint:js:fix": "eslint patientsearch/src/js/*.js patientsearch/src/js/**/*.js --fix; exit 0",
     "test": "jest",
     "test:watch": "jest --watch"
   },
@@ -35,6 +36,7 @@
     "whatwg-fetch": "^3.0.0"
   },
   "devDependencies": {
+    "@babel/eslint-parser": "^7.16.5",
     "@babel/plugin-transform-runtime": "^7.10.1",
     "@babel/runtime-corejs3": "^7.10.2",
     "babel-jest": "^25.3.0",
@@ -45,8 +47,9 @@
     "enzyme": "^3.11.0",
     "enzyme-adapter-react-16": "^1.15.2",
     "enzyme-to-json": "^3.4.4",
-    "eslint": "^7.2.0",
+    "eslint": "^7.32.0",
     "eslint-plugin-compat": "^3.7.0",
+    "eslint-plugin-react": "^7.27.1",
     "filemanager-webpack-plugin": "^2.0.5",
     "html-webpack-plugin": "^4.0.4",
     "jest": "^25.3.0",
@@ -62,21 +65,6 @@
     "webpack-bundle-analyzer": "^3.6.1",
     "webpack-cli": "^3.3.11",
     "webpack-dev-server": "^3.8.1"
-  },
-  "eslintConfig": {
-    "parserOptions": {
-      "ecmaVersion": 2018,
-      "sourceType": "module",
-      "ecmaFeatures": {
-        "jsx": true
-      }
-    },
-    "plugins": [
-      "compat"
-    ],
-    "rules": {
-      "compat/compat": "warn"
-    }
   },
   "jest": {
     "snapshotSerializers": [

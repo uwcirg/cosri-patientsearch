@@ -1,13 +1,13 @@
 import React from "react";
-import { render } from 'react-dom';
-import CssBaseline from '@material-ui/core/CssBaseline';
-import { ThemeProvider } from '@material-ui/styles';
-import Button from '@material-ui/core/Button';
-import Typography from '@material-ui/core/Typography';
-import Header from './components/Header';
-import {getUrlParameter} from './components/Utility';
-import theme from './context/theme';
-import '../styles/app.scss';
+import { render } from "react-dom";
+import CssBaseline from "@material-ui/core/CssBaseline";
+import { ThemeProvider } from "@material-ui/styles";
+import Button from "@material-ui/core/Button";
+import Typography from "@material-ui/core/Typography";
+import Header from "./components/Header";
+import {getUrlParameter} from "./components/Utility";
+import theme from "./context/theme";
+import "../styles/app.scss";
 
 function getMessage() {
     if (getUrlParameter("user_initiated")) return "You have been logged out as requested.";

@@ -157,7 +157,7 @@ export default function UrineScreen(props) {
     };
     const handleAdd = () => {
         let typeMatch = urineScreenTypes.filter(item => {
-            return item.code === type
+            return item.code === type;
         });
         let resource = {
             "authoredOn": date,
@@ -195,17 +195,17 @@ export default function UrineScreen(props) {
             clearFields();
             setTimeout(() => getHistory(), 50);
         }).catch(e => {
-            console.log("error submtting request ", e)
+            console.log("error submtting request ", e);
             setError("Data submission failed.  Unable to add.");
             setOpen(false);
             setTimeout(() => setSaveInProgress(false), 150);
-        })
-    }
+        });
+    };
     const hasHistory = () => {
         return (history && history.length);
     };
     const displayHistory = () => {
-        if (!hasHistory()) return "";
+        if (!hasHistory()) return "No previously recorded urine drug screen";
         const resource = history[0].resource;
         const orderText = resource && resource.code && resource.code.text ? resource.code.text : "";
         const orderDate = resource.authoredOn.substring(0,resource.authoredOn.indexOf("T"));
@@ -216,10 +216,10 @@ export default function UrineScreen(props) {
         let matchedType = urineScreenTypes[0];
         if (matchedType) return matchedType.text;
         else return "";
-    }
+    };
     const onlyOneUrineScreenType = () => {
         return urineScreenTypes.length === 1;
-    }
+    };
     const initUrineScreenTypes = () => {
         getSettings(data => {
             if (data && data["UDS_LAB_TYPES"]) {
@@ -227,13 +227,13 @@ export default function UrineScreen(props) {
             }
             setTimeout(() => setInitialized(true), 150);
         });
-    }
+    };
     const hasUrineScreenTypes = () => {
         return !onlyOneUrineScreenType() && !noUrineScreenTypes();
-    }
+    };
     const noUrineScreenTypes = () => {
         return !urineScreenTypes || !urineScreenTypes.length;
-    }
+    };
     React.useEffect(() => {
         initUrineScreenTypes();
     }, []);
@@ -307,7 +307,7 @@ export default function UrineScreen(props) {
                     >
                     {
                         urineScreenTypes.map(item => {
-                            return <MenuItem value={item.code} key={item.code}><Typography variant="body2">{item.text}</Typography></MenuItem>
+                            return <MenuItem value={item.code} key={item.code}><Typography variant="body2">{item.text}</Typography></MenuItem>;
                         })
                     }
                     </Select>
@@ -330,13 +330,13 @@ export default function UrineScreen(props) {
                     Last Urine Drug Screen
                 </Typography>
                 <div dangerouslySetInnerHTML={{ __html: displayHistory()}}></div>
-                {!isAdult(rowData.dob) && !hasHistory() && <div>No previously recorded urine drug screen</div>}
                 {isAdult(rowData.dob) && <OverdueAlert date={lastUrineScreenDate}  type="urine drug screen"></OverdueAlert>}
             </div>}
         </div>
     );
 
-};
-UrineScreen.proptypes = {
-    rowData: PropTypes.object
+}
+
+UrineScreen.propTypes = {
+    rowData: PropTypes.object.isRequired
 };

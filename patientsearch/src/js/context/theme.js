@@ -1,43 +1,43 @@
-import { createMuiTheme } from '@material-ui/core/styles';
-import cyan from '@material-ui/core/colors/cyan';
-import teal from '@material-ui/core/colors/teal';
+import { createMuiTheme } from "@material-ui/core/styles";
+import cyan from "@material-ui/core/colors/cyan";
+import teal from "@material-ui/core/colors/teal";
 
 const theme = createMuiTheme({
   palette: {
     primary: {
-        lightest: teal[50],
-        lighter: teal[100],
-        light: teal[200],
-        medium: cyan[600],
-        main: cyan[800],
-        dark: cyan[900],
-        disabled: "rgb(231, 238, 231)",
-        success: "green",
-        warning: "#bb812a",
-        warningLight: "rgba(250,194,25,.7)"
+      lightest: teal[50],
+      lighter: teal[100],
+      light: teal[200],
+      medium: cyan[600],
+      main: cyan[800],
+      dark: cyan[900],
+      disabled: "rgb(231, 238, 231)",
+      success: "green",
+      warning: "#bb812a",
+      warningLight: "rgba(250,194,25,.7)",
     },
     secondary: {
       main: "#3c3535",
-      light: "#524949"
+      light: "#524949",
     },
     muted: {
       main: "#888",
-      light: "#ececec"
+      light: "#ececec",
     },
     table: {
-        heading: {
-            background: cyan[700],
-            color: "#fff"
-        }
+      heading: {
+        background: cyan[700],
+        color: "#fff",
+      },
     },
   },
   overrides: {
     MuiTableSortLabel: {
       icon: {
-        color: cyan[600]
+        color: cyan[600],
       },
       active: {
-        color: cyan[600]
+        color: cyan[600],
       },
     },
   },
