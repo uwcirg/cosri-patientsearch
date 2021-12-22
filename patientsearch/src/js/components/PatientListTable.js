@@ -772,7 +772,6 @@ export default function PatientListTable() {
           setDisableNextButton(!hasNextLink);
           setDisablePrevButton(pageNumber === 0);
           setTotalCount(response.total);
-          console.log("list")
           resolve({
             data: responseData,
             page: currentPage,
@@ -806,7 +805,6 @@ export default function PatientListTable() {
         return;
       }
       setAppSettings(data);
-      console.log("set settings? ")
     }, true); //no caching
   }, [!patientListInitialized()]); //retrieval of settings should occur prior to patient list being rendered/initialized
 
