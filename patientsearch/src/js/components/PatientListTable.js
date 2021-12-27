@@ -42,6 +42,19 @@ const useStyles = makeStyles({
     marginTop: 148,
     maxWidth: "1080px",
   },
+  overlayContainer: {
+    display: "table",
+    width: "100%",
+    height: "100%",
+    background: "rgb(255 255 255 / 70%)"
+  },
+  overlayElement: {
+    display: "table-cell",
+    width: "100%",
+    height: "100%",
+    verticalAlign: "middle",
+    textAlign: "center"
+  },
   filterTable: {
     marginBottom: theme.spacing(1),
   },
@@ -865,6 +878,16 @@ export default function PatientListTable() {
                   isFreeAction: false,
                 },
               ]}
+              //overlay
+              components={{
+                OverlayLoading: () => (
+                    <div className={classes.overlayContainer}>
+                        <div className={classes.overlayElement}>
+                          <CircularProgress></CircularProgress>
+                        </div>
+                    </div>
+                )
+              }}
               actions={[
                 {
                   icon: () => (
@@ -995,10 +1018,10 @@ export default function PatientListTable() {
                 <TablePagination
                   className={classes.pagination}
                   rowsPerPageOptions={[10, 20, 50]}
-                  onChangePage={handleChangePage}
+                  onPageChange={handleChangePage}
                   page={pageNumber}
                   rowsPerPage={pageSize}
-                  onChangeRowsPerPage={handleChangeRowsPerPage}
+                  onRowsPerPageChange={handleChangeRowsPerPage}
                   count={totalCount}
                   size="small"
                   component="div"

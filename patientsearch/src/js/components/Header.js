@@ -166,7 +166,7 @@ export default function Header() {
               <Link color="secondary" variant="body1" href={logoutURL}>
                 <ExitToAppIcon
                   color="secondary"
-                  fontSize="default"
+                  fontSize="medium"
                   className={classes.linkIcon}
                 ></ExitToAppIcon>
               </Link>

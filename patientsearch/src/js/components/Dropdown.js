@@ -4,7 +4,6 @@ import theme from "../context/theme";
 import { makeStyles, styled } from "@material-ui/core/styles";
 import AddCircleOutlineIcon from "@material-ui/icons/AddCircleOutline";
 import Button from "@material-ui/core/Button";
-import Fade from "@material-ui/core/Fade";
 import ListItemIcon from "@material-ui/core/ListItemIcon";
 import Menu from "@material-ui/core/Menu";
 import MenuItem from "@material-ui/core/MenuItem";
@@ -85,7 +84,6 @@ export default function Dropdown(props) {
         horizontal: "center",
       }}
       elevation={2}
-      TransitionComponent={Fade}
     >
       <div className={classes.menuTitle}>
         <Typography variant="subtitle2" className={classes.menuTitleText}>

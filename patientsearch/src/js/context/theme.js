@@ -1,8 +1,8 @@
-import { createMuiTheme } from "@material-ui/core/styles";
+import { createTheme } from "@material-ui/core/styles";
 import cyan from "@material-ui/core/colors/cyan";
 import teal from "@material-ui/core/colors/teal";
 
-const theme = createMuiTheme({
+const theme = createTheme({
   palette: {
     primary: {
       lightest: teal[50],
