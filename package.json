@@ -7,8 +7,8 @@
     "build": "webpack --mode production",
     "start": "webpack-dev-server --mode development",
     "watch": "webpack -debug --config webpack.config.js --watch --progress --mode development",
-    "lint:js": "eslint patientsearch/src/js/*.js patientsearch/src/js/**/*.js; exit 0",
-    "lint:js:fix": "eslint patientsearch/src/js/*.js patientsearch/src/js/**/*.js --fix; exit 0",
+    "lint:js": "eslint ./*.js patientsearch/src/js/*.js patientsearch/src/js/**/*.js; exit 0",
+    "lint:js:fix": "eslint ./*.js patientsearch/src/js/*.js patientsearch/src/js/**/*.js --fix; exit 0",
     "test": "jest",
     "test:watch": "jest --watch"
   },

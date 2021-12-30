@@ -48,6 +48,6 @@
         "compat/compat": "warn",
         "react/react-in-jsx-scope": "off",
         "react/display-name": "off",
-        "quotes": ["error", "double"]
+        "no-useless-escape": "off"
     }
 }
