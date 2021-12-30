@@ -2,11 +2,8 @@
 # TODO lint python code and enable
 ---
 name: Lint
-on:
-  pull_request:
-    branches:
-      - main
-      - develop
+on: [pull_request]
+
 jobs:
   run-javascript-linters:
     name: Run javascript linters
