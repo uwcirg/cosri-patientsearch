@@ -83,7 +83,7 @@ export default function Info() {
           console.log("error parsing data ", e);
         }
         setSetting(data);
-        setSiteID(getSiteId());
+        setSiteID(getConfig(SITE_ID_STRING));
         setInitialized(true);
         setTimeout(() => setLoading(false), 250);
       },
@@ -94,34 +94,10 @@ export default function Info() {
       }
     );
   }, [initialized]);
-  /*
-   * return site specific intro HTML text for the site, e.g. HTML block 1
-   */
-  function getSiteLandingIntroText() {
+  /* return config variable by key */
+  function getConfig(key) {
     if (!Object.keys(setting)) return "";
-    return setting["LANDING_INTRO"];
-  }
-  /*
-   * return site specific button text for the site
-   */
-  function getSiteLandingButtonText() {
-    if (!Object.keys(setting)) return "";
-    return setting["LANDING_BUTTON_TEXT"];
-  }
-  /*
-   * return site specific body HTML text for the site, e.g. HTML block 2
-   */
-  function getSiteLandingBodyText() {
-    if (!Object.keys(setting)) return "";
-    return setting["LANDING_BODY"];
-  }
-  function getSiteId() {
-    if (!Object.keys(setting)) return "";
-    return setting[SITE_ID_STRING];
-  }
-  function getSystemType() {
-    if (!Object.keys(setting)) return "test";
-    return setting[SYSTEM_TYPE_STRING];
+    return setting[key];
   }
   function handleImageLoaded(e) {
     if (!e.target) {
@@ -148,21 +124,21 @@ export default function Info() {
     }
   }
   function getIntroText() {
-    const siteIntroText = getSiteLandingIntroText();
+    const siteIntroText = getConfig("LANDING_INTRO");
     if (siteIntroText) return siteIntroText;
-    return `${getSystemType()} System`;
+    return `${getConfig(SYSTEM_TYPE_STRING)} System`;
   }
   function getButtonText() {
-    const siteButtonText = getSiteLandingButtonText();
+    const siteButtonText = getConfig("LANDING_BUTTON_TEXT");
     if (siteButtonText) return siteButtonText;
     return "Click here to log in";
   }
   function getBodyText() {
     //configurable display HTML body text for a specific site, IF available, will use it.
-    if (getSiteLandingBodyText()) return getSiteLandingBodyText();
+    if (getConfig("LANDING_BODY")) return getConfig("LANDING_BODY");
     //defaults
     if (!siteID)
-      return `This is a ${getSystemType()} system.  Not for clinical use.`;
+      return `This is a ${getConfig(SYSTEM_TYPE_STRING)} system.  Not for clinical use.`;
     return "This system is only for use by clinical staff.";
   }
   return (

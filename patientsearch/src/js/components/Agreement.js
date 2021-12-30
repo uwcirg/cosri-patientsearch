@@ -129,7 +129,7 @@ export default function Agreement(props) {
       })
       .catch((e) => {
         console.log("error submtting request ", e);
-        setError("Data submission failed.  Unable to add.");
+        setError("Data submission failed. Unable to add.");
         setOpen(false);
         setTimeout(() => setSaveInProgress(false), 150);
       });

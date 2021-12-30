@@ -167,6 +167,7 @@ let filterIntervalId = 0;
 
 export default function PatientListTable() {
   const classes = useStyles();
+  const [settingInitialized, setSettingInitialized] = React.useState(false);
   const [initialized, setInitialized] = React.useState(false);
   const [data, setData] = React.useState([]);
   const defaultFilters = {
@@ -435,7 +436,7 @@ export default function PatientListTable() {
           launchURL = rowData.url || getLaunchURL(launchID);
         } catch (e) {
           setErrorMessage(
-            "Unable to launch application.  Invalid launch URL. Missing configurations."
+            "Unable to launch application. Invalid launch URL. Missing configurations."
           );
           toTop();
           setOpenLoadingModal(false);
@@ -445,7 +446,7 @@ export default function PatientListTable() {
         }
         if (!launchURL) {
           setErrorMessage(
-            "Unable to launch application.  Missing launch URL. Missing configurations."
+            "Unable to launch application. Missing launch URL. Missing configurations."
           );
           toTop();
           setOpenLoadingModal(false);
@@ -814,12 +815,14 @@ export default function PatientListTable() {
     getSettings((data) => {
       if (data.error) {
         handleErrorCallback(data.error);
+        setSettingInitialized(true);
         setErrorMessage(`Error retrieving app setting: ${data.error}`);
         return;
       }
+      setSettingInitialized(true);
       setAppSettings(data);
     }, true); //no caching
-  }, [!patientListInitialized()]); //retrieval of settings should occur prior to patient list being rendered/initialized
+  }, []); //retrieval of settings should occur prior to patient list being rendered/initialized
 
   return (
     <React.Fragment>
@@ -836,8 +839,7 @@ export default function PatientListTable() {
             />
           </tbody>
         </table>
-        {
-          <div className={classes.table} aria-label="patient list table">
+        {settingInitialized && <div className={classes.table} aria-label="patient list table">
             <MaterialTable
               className={classes.table}
               columns={columns}
