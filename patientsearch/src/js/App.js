@@ -1,13 +1,15 @@
+import "core-js/stable";
+import "regenerator-runtime/runtime";
 import React, { Component } from "react";
-import CssBaseline from '@material-ui/core/CssBaseline';
-import { ThemeProvider } from '@material-ui/styles';
-import Header from './components/Header';
-import PatientListTable from './components/PatientListTable';
-import TimeoutModal from './components/TimeoutModal.js';
-import SystemBanner from './components/SystemBanner';
-import Version from './components/Version';
-import theme from './context/theme';
-import '../styles/app.scss';
+import CssBaseline from "@material-ui/core/CssBaseline";
+import { ThemeProvider } from "@material-ui/styles";
+import Header from "./components/Header";
+import PatientListTable from "./components/PatientListTable";
+import TimeoutModal from "./components/TimeoutModal.js";
+import SystemBanner from "./components/SystemBanner";
+import Version from "./components/Version";
+import theme from "./context/theme";
+import "../styles/app.scss";
 
 export default class App extends Component {
   constructor(props) {
@@ -15,7 +17,7 @@ export default class App extends Component {
     this.state = { hasError: false };
   }
 
-  static getDerivedStateFromError(error) {
+  static getDerivedStateFromError() {
     //force rendering of fallback UI after an error has been thrown by app
     return { hasError: true };
   }

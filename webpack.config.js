@@ -1,14 +1,13 @@
-const webpack = require('webpack');
-const path = require('path');
+const webpack = require("webpack");
+const path = require("path");
 const TerserWebpackPlugin = require("terser-webpack-plugin");
 const OptimizeCssAssetsPlugin = require("optimize-css-assets-webpack-plugin");
-const HtmlWebpackPlugin = require('html-webpack-plugin');
-const { CleanWebpackPlugin } = require('clean-webpack-plugin');
-const FileManagerPlugin = require('filemanager-webpack-plugin');
-const dotenv = require('dotenv');
+const HtmlWebpackPlugin = require("html-webpack-plugin");
+const { CleanWebpackPlugin } = require("clean-webpack-plugin");
+const FileManagerPlugin = require("filemanager-webpack-plugin");
 const appTitle = "COSRI Patient Search";
-const templateFilePath = path.join(__dirname, '/patientsearch/src/index.html');
-const faviconFilePath = path.join(__dirname, '/patientsearch/src/assets/favicon.ico');
+const templateFilePath = path.join(__dirname, "/patientsearch/src/index.html");
+const faviconFilePath = path.join(__dirname, "/patientsearch/src/assets/favicon.ico");
 
 module.exports = function(_env, argv) {
   const isProduction = argv.mode === "production";
@@ -22,9 +21,9 @@ module.exports = function(_env, argv) {
 
   return {
     entry:  {
-      "index" : ['whatwg-fetch', path.join(__dirname, '/patientsearch/src/js/Entry.js')],
-      "info": path.join(__dirname, '/patientsearch/src/js/Landing.js'),
-      "logout": path.join(__dirname, '/patientsearch/src/js/Logout.js')
+      "index" : ["whatwg-fetch", path.join(__dirname, "/patientsearch/src/js/Entry.js")],
+      "info": ["whatwg-fetch", path.join(__dirname, "/patientsearch/src/js/Landing.js")],
+      "logout": ["whatwg-fetch", path.join(__dirname, "/patientsearch/src/js/Logout.js")]
     },
     watchOptions: {
       aggregateTimeout: 300,
@@ -35,11 +34,11 @@ module.exports = function(_env, argv) {
       /*
        * create a new hash for each new build
        */
-      filename: `app.bundle.[name]-[hash:6].js`,
+      filename: "app.bundle.[name]-[hash:6].js",
       publicPath: "/static/js/"
     },
     resolve: {
-        extensions: ['.js', '.jsx', '.css']
+        extensions: [".js", ".jsx", ".css"]
     },
     module: {
         rules: [
@@ -47,9 +46,9 @@ module.exports = function(_env, argv) {
           {
             test: /\.css$/,
             use:[ {
-              loader: 'style-loader'
+              loader: "style-loader"
             }, {
-              loader: 'css-loader',
+              loader: "css-loader",
               options: {
                 "sourceMap": !isProduction
               }
@@ -57,27 +56,27 @@ module.exports = function(_env, argv) {
           },
           {
             test: /\.(png|jpe?g|gif)$/i,
-            loader: 'url-loader'
+            loader: "url-loader"
           },
           {
             test: /\.js?/,
             exclude: /node_modules/,
-            use: 'babel-loader'
+            use: "babel-loader"
           },
           {
             test: /\.json$/,
-            use: 'json-loader',
+            use: "json-loader",
             type: "javascript/auto"
           },
           {
             test: /\.s[ac]ss$/i,
             use: [
               // Creates `style` nodes from JS strings
-              'style-loader',
+              "style-loader",
               // Translates CSS into CommonJS
-              'css-loader',
+              "css-loader",
               // Compiles Sass to CSS
-              'sass-loader',
+              "sass-loader",
             ],
           },
         ],
@@ -89,25 +88,25 @@ module.exports = function(_env, argv) {
         template: templateFilePath,
         filename: path.join(__dirname, `${templateDirectory}/index.html`),
         favicon: faviconFilePath,
-        chunks: ['index']
+        chunks: ["index"]
       }),
       new HtmlWebpackPlugin({
         title: appTitle,
         template: templateFilePath,
         filename: path.join(__dirname, `${templateDirectory}/home.html`),
         favicon: faviconFilePath,
-        chunks: ['info']
+        chunks: ["info"]
       }),
       new HtmlWebpackPlugin({
         title: appTitle,
         template: templateFilePath,
         filename: path.join(__dirname, `${templateDirectory}/logout.html`),
         favicon: faviconFilePath,
-        chunks: ['logout']
+        chunks: ["logout"]
       }),
       new webpack.ProvidePlugin({
-        React: 'react',
-        Promise: 'es6-promise'
+        React: "react",
+        Promise: "es6-promise"
       }),
       new webpack.DefinePlugin({
         "process.env.NODE_ENV": JSON.stringify(
@@ -117,14 +116,14 @@ module.exports = function(_env, argv) {
       new FileManagerPlugin({
         onStart: {
           delete: [
-            path.join(__dirname, '/patientsearch/dist')
+            path.join(__dirname, "/patientsearch/dist")
           ]
         },
         onEnd: {
           copy: [
             {
-              source:  path.join(__dirname, '/patientsearch/src/public'),
-              destination: path.join(__dirname, '/patientsearch/dist/public')
+              source:  path.join(__dirname, "/patientsearch/src/public"),
+              destination: path.join(__dirname, "/patientsearch/dist/public")
             }
           ]
         }
@@ -135,7 +134,7 @@ module.exports = function(_env, argv) {
       historyApiFallback: true,
       open: true,
       overlay: true,
-      contentBase: './dist',
+      contentBase: "./dist",
     },
     optimization: {
       minimize: true,
@@ -183,4 +182,4 @@ module.exports = function(_env, argv) {
       }
     }
   };
-}
+};
