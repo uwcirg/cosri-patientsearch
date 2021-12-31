@@ -99,7 +99,7 @@ def home():
     """Main route, entry point for react.  Requires authorized user"""
     ## issue with path resolution after build
     return send_from_directory(
-        # todo: remove templates directory reference; index.html isn't a jinja template
+        # TODO remove templates directory reference; index.html isn't a jinja template
         safe_join(
             current_app.config.get("STATIC_DIR") or current_app.static_folder,
             "templates",
