@@ -97,7 +97,7 @@ def current_user_id(token):
 @oidc.require_login
 def home():
     """Main route, entry point for react.  Requires authorized user"""
-    ## issue with path resolution after build
+    # issue with path resolution after build
     return send_from_directory(
         # TODO remove templates directory reference; index.html isn't a jinja template
         safe_join(
