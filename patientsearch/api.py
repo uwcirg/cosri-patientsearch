@@ -253,7 +253,8 @@ def post_resource(resource_type):
             raise ValueError("missing FHIR Resource in JSON format")
         if resource["resourceType"] != resource_type:
             raise ValueError(
-                f"type mismatch - POSTed resource type {resource['resourceType']} != {resource_type}"
+                "type mismatch - POSTed resource type "
+                f"{resource['resourceType']} != {resource_type}"
             )
 
         return jsonify(
@@ -285,7 +286,8 @@ def update_resource_by_id(resource_type, resource_id):
         if not resource:
             return jsonify_abort(
                 status_code=400,
-                message=f"Can't PUT {resource_type}/{resource_id} without resource in `body` header",
+                message=f"Can't PUT {resource_type}/{resource_id}"
+                "without resource in `body` header",
             )
 
         # Increment a count identifier to force update - lastUpdated only moves on changed data

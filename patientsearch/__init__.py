@@ -29,14 +29,14 @@ def create_app(testing=False):
         app.config["TESTING"] = True
         app.config["OIDC_CLIENT_SECRETS"] = {
             "web": {
-                "auth_uri": "https://keycloak.fake/auth/realms/cosri-launcher/protocol/openid-connect/auth",
+                "auth_uri": "https://keycloak.fake/auth/realms/cosri-launcher/protocol/openid-connect/auth",  # noqa: E501
                 "client_id": "cosri-patientsearch",
                 "client_secret": "unknown",
                 "issuer": "https://keycloak.fake/auth/realms/cosri-launcher",
                 "redirect_uris": ["http://localhost:8000/oidc_callback"],
-                "userinfo_uri": "https://keycloak.fake/auth/realms/cosri-launcher/protocol/openid-connect/userinfo",
-                "token_uri": "https://keycloak.fake/auth/realms/cosri-launcher/protocol/openid-connect/token",
-                "token_introspection_uri": "https://keycloak.fake/auth/realms/cosri-launcher/protocol/openid-connect/token/introspect",
+                "userinfo_uri": "https://keycloak.fake/auth/realms/cosri-launcher/protocol/openid-connect/userinfo",  # noqa: E501
+                "token_uri": "https://keycloak.fake/auth/realms/cosri-launcher/protocol/openid-connect/token",  # noqa: E501
+                "token_introspection_uri": "https://keycloak.fake/auth/realms/cosri-launcher/protocol/openid-connect/token/introspect",  # noqa: E501
             }
         }
 
