@@ -2,7 +2,7 @@
 from copy import deepcopy
 from json.decoder import JSONDecodeError
 
-from flask import current_app, jsonify
+from flask import current_app
 from jmespath import search as json_search
 import requests
 
