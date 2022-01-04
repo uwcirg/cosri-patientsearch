@@ -123,7 +123,7 @@ export default function Agreement(props) {
   const [historyInitialized, setHistoryInitialized] = React.useState(false);
   const [history, setHistory] = React.useState([]);
   const [error, setError] = React.useState("");
-  const [open, setOpen] = React.useState(false);
+  const [snackOpen, setSnackOpen] = React.useState(false);
   const clearDate = () => {
     setDate(null);
     setDateInput("");
@@ -183,7 +183,7 @@ export default function Agreement(props) {
       callback(e);
     })
       .then(() => {
-        setOpen(true);
+        setSnackOpen(true);
         clearFields();
         setTimeout(() => getHistory(callback), 50);
       })
@@ -207,14 +207,14 @@ export default function Agreement(props) {
   };
   const handleSubmissionError = () => {
     setError("Data submission failed. Unable to process your request.");
-    setOpen(false);
+    setSnackOpen(false);
     setHistoryInitialized(true);
   };
-  const handleClose = (event, reason) => {
+  const handleSnackClose = (event, reason) => {
     if (reason === "clickaway") {
       return;
     }
-    setOpen(false);
+    setSnackOpen(false);
   };
   const hasHistory = () => {
     return history && history.length > 0;
@@ -427,8 +427,8 @@ export default function Agreement(props) {
           </div>
         </div>
         {/* submission feedback UI */}
-        <Snackbar open={open} autoHideDuration={3000} onClose={handleClose}>
-          <Alert onClose={handleClose} severity="success">
+        <Snackbar open={snackOpen} autoHideDuration={3000} onClose={handleSnackClose}>
+          <Alert onClose={handleSnackClose} severity="success">
             Request processed successfully.
           </Alert>
         </Snackbar>

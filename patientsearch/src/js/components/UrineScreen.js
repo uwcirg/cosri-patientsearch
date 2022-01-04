@@ -147,7 +147,7 @@ export default function UrineScreen(props) {
     const [addInProgress, setAddInProgress] = React.useState(false);
     const [updateInProgress, setUpdateInProgress] = React.useState(false);
     const [error, setError] = React.useState("");
-    const [open, setOpen] = React.useState(false);
+    const [snackOpen, setSnackOpen] = React.useState(false);
     const [initialized, setInitialized] = React.useState(false);
     const [historyInitialized, setHistoryInitialized] = React.useState(false);
     const [editMode, setEditMode] = React.useState(false);
@@ -293,7 +293,7 @@ export default function UrineScreen(props) {
             callback(e);
         })
         .then(() => {
-            setOpen(true);
+            setSnackOpen(true);
             clearFields();
             setTimeout(() => {
                 getHistory(urineScreenTypes, callback);
@@ -306,7 +306,7 @@ export default function UrineScreen(props) {
     };
     const handleSubmissionError = () => {
         setError("Data submission failed. Unable to process your request.");
-        setOpen(false);
+        setSnackOpen(false);
     }
     const handleEnableEditMode = () => {
         setError("");
@@ -428,11 +428,11 @@ export default function UrineScreen(props) {
         }
         getHistory();
     },[urineScreenTypes]);
-    const handleClose = (event, reason) => {
+    const handleSnackClose = (event, reason) => {
         if (reason === "clickaway") {
           return;
         }
-        setOpen(false);
+        setSnackOpen(false);
     };
     return (
         <div className={classes.container}>
@@ -541,8 +541,8 @@ export default function UrineScreen(props) {
                     {/* total record count */}
                     {hasHistory() && <div className={classes.totalEntriesContainer}><b>{history.length}</b> urine drug screen record(s) found</div>}
                 </div>
-                <Snackbar open={open} autoHideDuration={3000} onClose={handleClose}>
-                    <Alert onClose={handleClose} severity="success">Request processed successfully.</Alert>
+                <Snackbar open={snackOpen} autoHideDuration={3000} onClose={handleSnackClose}>
+                    <Alert onClose={handleSnackClose} severity="success">Request processed successfully.</Alert>
                 </Snackbar>
                 <div className={classes.errorContainer}>
                     {error && <Error message={error}></Error>}
