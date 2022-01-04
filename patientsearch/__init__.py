@@ -7,7 +7,6 @@ import os
 from patientsearch.api import api_blueprint
 from patientsearch.audit import audit_entry, audit_log_init
 from patientsearch.extensions import oidc
-from patientsearch.logserverhandler import LogServerHandler
 
 session = Session()
 
