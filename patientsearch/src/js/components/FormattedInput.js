@@ -33,6 +33,7 @@ TextMaskCustom.propTypes = {
     inputRef: PropTypes.func.isRequired,
     mask: PropTypes.array
 };
+// text input field with mask
 export default function FormattedInput(props) {
     const classes = useStyles();
 

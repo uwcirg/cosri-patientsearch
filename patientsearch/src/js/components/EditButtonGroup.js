@@ -23,6 +23,7 @@ const useStyles = makeStyles({
         marginRight: theme.spacing(0.5)
     },
 });
+// button group: Edit, Update, Delete and Cancel buttons
 export default function EditButtonGroup(props) {
     const classes = useStyles();
     const [editMode, setEditMode] = React.useState(false);
