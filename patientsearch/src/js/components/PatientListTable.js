@@ -1018,6 +1018,7 @@ export default function PatientListTable() {
                   </Tooltip>
                 </div>
                 <TablePagination
+                  id="patientListPagination"
                   className={classes.pagination}
                   rowsPerPageOptions={[10, 20, 50]}
                   onPageChange={handleChangePage}

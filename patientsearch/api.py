@@ -257,7 +257,7 @@ def update_resource_by_id(resource_type, resource_id):
     token = validate_auth()
 
     try:
-        resource = json.loads(request.headers.get('body', ''))
+        resource = request.get_json()
         if not resource:
             return jsonify_abort(status_code=400, message=f"Can't PUT {resource_type}/{resource_id} without resource in `body` header")
 
