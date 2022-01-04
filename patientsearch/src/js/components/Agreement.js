@@ -43,7 +43,7 @@ const useStyles = makeStyles({
   addContainer: {
     position: "relative",
     marginBottom: theme.spacing(2),
-    padding: theme.spacing(1, 2, 2, 2)
+    padding: theme.spacing(2)
   },
   addTitle: {
     display: "inline-block",
@@ -86,7 +86,7 @@ const useStyles = makeStyles({
   historyContainer: {
     position: "relative",
     marginBottom: theme.spacing(3),
-    padding: theme.spacing(1, 2, 2, 2),
+    padding: theme.spacing(2),
     minHeight: theme.spacing(9)
   },
   historyTitle: {
@@ -199,7 +199,7 @@ export default function Agreement(props) {
       handleAdd();
     }
     return false;
-  };
+  }
   const handleAdd = (params) => {
     setAddInProgress(true);
     handleUpdate(params, () => {
@@ -338,7 +338,7 @@ export default function Agreement(props) {
     let dateObj = new Date(editDate).setHours(0,0,0,0);
     let today = new Date().setHours(0,0,0,0);
     return isValid(dateObj) && !(dateObj > today);
-  };
+  }
   const handleSnackClose = (event, reason) => {
     if (reason === "clickaway") {
       return;
