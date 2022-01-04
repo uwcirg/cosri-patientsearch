@@ -4,14 +4,14 @@ from .sync import (
     add_identifier_to_resource_type,
     external_request,
     internal_patient_search,
-    sync_bundle
+    sync_bundle,
 )
 
 __all__ = [
-    'BearerAuth',
-    'HAPI_request',
-    'add_identifier_to_resource_type',
-    'external_request',
-    'internal_patient_search',
-    'sync_bundle',
+    "BearerAuth",
+    "HAPI_request",
+    "add_identifier_to_resource_type",
+    "external_request",
+    "internal_patient_search",
+    "sync_bundle",
 ]
