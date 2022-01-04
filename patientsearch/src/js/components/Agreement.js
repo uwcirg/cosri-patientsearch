@@ -185,7 +185,6 @@ export default function Agreement(props) {
       .then(() => {
         setOpen(true);
         clearFields();
-        setEditMode(false);
         setTimeout(() => getHistory(callback), 50);
       })
       .catch((e) => {
@@ -196,6 +195,12 @@ export default function Agreement(props) {
       });
     return false;
   };
+  const handleKeyDownAdd = (event) => {
+    if (String(event.key).toLowerCase() === "enter") {
+      handleAdd();
+    }
+    return false;
+  }
   const handleAdd = (params) => {
     setAddInProgress(true);
     handleUpdate(params, () =>  setTimeout(() => setAddInProgress(false), 250));
@@ -216,7 +221,7 @@ export default function Agreement(props) {
   };
   const getHistory = (callback) => {
     callback = callback || function() {};
-    if (!rowData.id) {
+    if (!rowData || !rowData.id) {
       setHistoryInitialized(true);
       callback();
       return [];
@@ -388,6 +393,7 @@ export default function Agreement(props) {
               placeholder="YYYY-MM-DD"
               value={date}
               orientation="landscape"
+              onKeyDown={(event) => handleKeyDownAdd(event)}
               onChange={(event, dateString) => {
                 setDateInput(dateString);
                 if (!event || !isValid(event)) {
