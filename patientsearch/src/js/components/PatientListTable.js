@@ -153,6 +153,7 @@ const useStyles = makeStyles({
   detailPanelContainer: {
     position: "relative",
     minHeight: theme.spacing(8),
+    backgroundColor: "#fbfbfb",
   },
   detailPanelCloseButton: {
     position: "absolute",

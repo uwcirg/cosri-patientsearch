@@ -23,7 +23,7 @@ function TextMaskCustom(props) {
         ref={(ref) => {
           inputRef(ref ? ref.inputElement : null);
         }}
-        mask={props.mask ? props.mask : [/[1-2]/, /\d/, /\d/, /\d/, "-", /\d/, /\d/, "-", /\d/, /\d/]}
+        mask={props.mask ? props.mask : [/[1-2]/, /[0,9]/, /\d/, /\d/, "-", /\d/, /\d/, "-", /\d/, /\d/]}
         placeholderChar={"\u2000"}
         showMask
       />

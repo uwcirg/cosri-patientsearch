@@ -9,6 +9,7 @@ import CircularProgress from "@material-ui/core/CircularProgress";
 import IconButton from "@material-ui/core/IconButton";
 import InputAdornment from "@material-ui/core/InputAdornment";
 import InputLabel from "@material-ui/core/InputLabel";
+import Paper from "@material-ui/core/Paper";
 import Snackbar from "@material-ui/core/Snackbar";
 import Typography from "@material-ui/core/Typography";
 import MuiAlert from "@material-ui/lab/Alert";
@@ -34,7 +35,7 @@ const useStyles = makeStyles({
   container: {
     paddingLeft: theme.spacing(3),
     paddingRight: theme.spacing(3),
-    paddingTop: theme.spacing(1),
+    paddingTop: theme.spacing(1)
   },
   contentContainer: {
     position: "relative"
@@ -42,12 +43,18 @@ const useStyles = makeStyles({
   addContainer: {
     position: "relative",
     marginBottom: theme.spacing(2),
-    padding: theme.spacing(2),
-    border: `2px solid ${theme.palette.muted.light}`
+    padding: theme.spacing(1, 2, 2, 2)
+  },
+  addTitle: {
+    display: "inline-block",
+    color: theme.palette.dark.main,
+    fontWeight: 500,
+    borderBottom: `2px solid ${theme.palette.primary.lightest}`,
+    marginBottom: theme.spacing(2.5)
   },
   buttonsContainer: {
     marginTop: theme.spacing(2),
-    position: "relative",
+    position: "relative"
   },
   progressContainer: {
    position: "absolute",
@@ -64,7 +71,7 @@ const useStyles = makeStyles({
     left: "15%"
   },
   addButton: {
-    marginRight: theme.spacing(1),
+    marginRight: theme.spacing(1)
   },
   editInput: {
     width: theme.spacing(10)
@@ -74,27 +81,20 @@ const useStyles = makeStyles({
   },
   dateLabel: {
     fontSize: "12px",
-    marginBottom: theme.spacing(0.25),
+    marginBottom: theme.spacing(0.25)
   },
   historyContainer: {
     position: "relative",
     marginBottom: theme.spacing(3),
-    padding: theme.spacing(1, 2),
-    border: `2px solid ${theme.palette.muted.light}`,
+    padding: theme.spacing(1, 2, 2, 2),
     minHeight: theme.spacing(9)
   },
   historyTitle: {
     display: "inline-block",
-    paddingBottom: "2px",
     color: theme.palette.dark.main,
-    borderBottom: `2px solid ${theme.palette.dark.secondary}`,
-    marginBottom: theme.spacing(0.5)
-  },
-  addTitle: {
-    display: "inline-block",
-    color: theme.palette.dark.main,
-    borderBottom: `2px solid ${theme.palette.dark.secondary}`,
-    marginBottom: theme.spacing(2.5)
+    fontWeight: 500,
+    borderBottom: `2px solid ${theme.palette.primary.lightest}`,
+    marginBottom: theme.spacing(1)
   },
   errorContainer: {
     maxWidth: "100%",
@@ -124,6 +124,7 @@ export default function Agreement(props) {
   const [history, setHistory] = React.useState([]);
   const [error, setError] = React.useState("");
   const [snackOpen, setSnackOpen] = React.useState(false);
+  const rowData = props.rowData ? props.rowData : {};
   const clearDate = () => {
     setDate(null);
     setDateInput("");
@@ -143,7 +144,6 @@ export default function Agreement(props) {
   const hasError = () => {
     return error !== "";
   };
-  const rowData = props.rowData ? props.rowData : {};
   const handleUpdate = (params, callback) => {
     params = params || {};
     callback = callback || function() {};
@@ -184,7 +184,6 @@ export default function Agreement(props) {
     })
       .then(() => {
         setSnackOpen(true);
-        clearFields();
         setTimeout(() => getHistory(callback), 50);
       })
       .catch((e) => {
@@ -200,21 +199,40 @@ export default function Agreement(props) {
       handleAdd();
     }
     return false;
-  }
+  };
   const handleAdd = (params) => {
     setAddInProgress(true);
-    handleUpdate(params, () =>  setTimeout(() => setAddInProgress(false), 250));
+    handleUpdate(params, () => {
+      clearFields();
+      setTimeout(() => {
+        setAddInProgress(false);
+      }, 250);
+    });
+  };
+  const handleEditSave = () => {
+    setUpdateInProgress(true);
+    handleUpdate({
+      method: "PUT",
+      id: lastEntryId,
+      contractDate: editDate
+    }, () => {
+      setTimeout(setUpdateInProgress(false), 350);
+    });
+  };
+  const handleDelete = () => {
+    setUpdateInProgress(true);
+    handleUpdate({
+      method: "DELETE",
+      id: lastEntryId,
+      contractDate: lastAgreementDate
+    }, () => {
+      setTimeout(setUpdateInProgress(false), 350);
+    });
   };
   const handleSubmissionError = () => {
     setError("Data submission failed. Unable to process your request.");
     setSnackOpen(false);
     setHistoryInitialized(true);
-  };
-  const handleSnackClose = (event, reason) => {
-    if (reason === "clickaway") {
-      return;
-    }
-    setSnackOpen(false);
   };
   const hasHistory = () => {
     return history && history.length > 0;
@@ -243,9 +261,11 @@ export default function Agreement(props) {
         }
         if (!data || !data.entry || !data.entry.length) {
           clearHistory();
-          setEditMode(false);
           callback();
-          setTimeout(() => setHistoryInitialized(true), 300);
+          setTimeout(() => {
+            setEditMode(false);
+            setHistoryInitialized(true);
+          }, 300);
           return;
         }
         let agreementData = data.entry.filter((item) => {
@@ -315,27 +335,15 @@ export default function Agreement(props) {
     setEditDate(event.target.value);
   };
   const isValidEditDate = () => {
-    return isValid(new Date(editDate));
+    let dateObj = new Date(editDate).setHours(0,0,0,0);
+    let today = new Date().setHours(0,0,0,0);
+    return isValid(dateObj) && !(dateObj > today);
   };
-  const handleEditSave = () => {
-    setUpdateInProgress(true);
-    handleUpdate({
-      method: "PUT",
-      id: lastEntryId,
-      contractDate: editDate
-    }, () => {
-      setTimeout(setUpdateInProgress(false), 350);
-    });
-  };
-  const handleDelete = () => {
-    setUpdateInProgress(true);
-    handleUpdate({
-      method: "DELETE",
-      id: lastEntryId,
-      contractDate: lastAgreementDate
-    }, () => {
-      setTimeout(setUpdateInProgress(false), 350);
-    });
+  const handleSnackClose = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+    setSnackOpen(false);
   };
   React.useEffect(() => {
     getHistory();
@@ -354,7 +362,7 @@ export default function Agreement(props) {
         )}
         <h3>{`Controlled Substance Agreement for ${rowData.first_name} ${rowData.last_name}`}</h3>
         {/* add new agreement UI */}
-        <div className={classes.addContainer}>
+        <Paper className={classes.addContainer} elevation={1}>
           <Typography variant="caption" display="block" className={classes.addTitle}>
               Add New
           </Typography>
@@ -425,15 +433,9 @@ export default function Agreement(props) {
               Clear
             </Button>
           </div>
-        </div>
-        {/* submission feedback UI */}
-        <Snackbar open={snackOpen} autoHideDuration={3000} onClose={handleSnackClose}>
-          <Alert onClose={handleSnackClose} severity="success">
-            Request processed successfully.
-          </Alert>
-        </Snackbar>
+        </Paper>
         {/* history UI */}
-        <div className={classes.historyContainer}>
+        <Paper className={classes.historyContainer} elevation={1}>
           {!historyInitialized && <div className={classes.progressContainer}>
             <CircularProgress color="primary" size={32} className={classes.progressIcon} />
           </div>}
@@ -471,7 +473,13 @@ export default function Agreement(props) {
           )}
           {/* total record counts */}
           {hasHistory() && <div className={classes.totalEntriesContainer}><b>{history.length}</b> agreement record(s) found</div>}
-        </div>
+        </Paper>
+        {/* submission feedback UI */}
+        <Snackbar open={snackOpen} autoHideDuration={3000} onClose={handleSnackClose}>
+          <Alert onClose={handleSnackClose} severity="success">
+            Request processed successfully.
+          </Alert>
+        </Snackbar>
         <div className={classes.errorContainer}>
           {error && <Error message={error}></Error>}
         </div>

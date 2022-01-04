@@ -13,6 +13,7 @@ import InputLabel from "@material-ui/core/InputLabel";
 import FormControl from "@material-ui/core/FormControl";
 import FormHelperText from "@material-ui/core/FormHelperText";
 import MenuItem from "@material-ui/core/MenuItem";
+import Paper from "@material-ui/core/Paper";
 import Select from "@material-ui/core/Select";
 import Snackbar from "@material-ui/core/Snackbar";
 import Typography from "@material-ui/core/Typography";
@@ -44,8 +45,7 @@ const useStyles = makeStyles({
     addContainer: {
         position: "relative",
         marginBottom: theme.spacing(2),
-        padding: theme.spacing(1, 2, 2, 2),
-        border: `2px solid ${theme.palette.muted.light}`
+        padding: theme.spacing(1, 2, 2, 2)
     },
     typeContainer: {
         position: "relative"
@@ -76,21 +76,21 @@ const useStyles = makeStyles({
     historyContainer: {
         position: "relative",
         marginBottom: theme.spacing(3),
-        padding: theme.spacing(1, 2),
-        border: `2px solid ${theme.palette.muted.light}`,
+        padding: theme.spacing(1, 2, 2, 2),
         minHeight: theme.spacing(9)
     },
     historyTitle: {
         display: "inline-block",
-        paddingBottom: "2px",
+        fontWeight: 500,
         color: theme.palette.dark.main,
-        borderBottom: `2px solid ${theme.palette.dark.secondary}`,
-        marginBottom: theme.spacing(0.5)
+        borderBottom: `2px solid ${theme.palette.primary.lightest}`,
+        marginBottom: theme.spacing(1)
     },
     addTitle: {
         display: "inline-block",
+        fontWeight: 500,
         color: theme.palette.dark.main,
-        borderBottom: `2px solid ${theme.palette.dark.secondary}`,
+        borderBottom: `2px solid ${theme.palette.primary.lightest}`,
         marginBottom: theme.spacing(2.5)
     },
     addButton: {
@@ -153,7 +153,9 @@ export default function UrineScreen(props) {
     const [editMode, setEditMode] = React.useState(false);
     const [editType, setEditType] = React.useState("");
     const [editDate, setEditDate] = React.useState("");
+    const [urineScreenTypes, setUrineScreenTypes] = React.useState([]);
     const URINE_SCREEN_TYPE_LABEL = "Urine Drug Screen Name";
+    const rowData = props.rowData ? props.rowData : {};
     const clearDate = () => {
         setDate(null);
         setDateInput("");
@@ -163,7 +165,7 @@ export default function UrineScreen(props) {
         setLastType("");
         setLastEntryId(null);
         setLastUrineScreenDate("");
-    }
+    };
     const clearFields = () => {
         clearDate();
         if (!onlyOneUrineScreenType()) setType("");
@@ -174,15 +176,13 @@ export default function UrineScreen(props) {
     };
     const handleEditTypeChange = (event) => {
         setEditType(event.target.value);
-    }
-    const [urineScreenTypes, setUrineScreenTypes] = React.useState([]);
+    };
     const hasValues = () => {
         return type && date;
     };
     const hasError = () => {
         return error !== "";
-    }
-    const rowData = props.rowData ? props.rowData : {};
+    };
     const getHistory = (types, callback) => {
         callback = callback || function() {};
         if (!rowData.id) {
@@ -204,9 +204,11 @@ export default function UrineScreen(props) {
                 console.log("Eerror parsing urine screen service request data ", e);
             }
             if (!data || !data.entry || !data.entry.length) {
-                setEditMode(false);
                 clearHistory();
-                setTimeout(() => setHistoryInitialized(true), 300);
+                setTimeout(() => {
+                    setEditMode(false);
+                    setHistoryInitialized(true);
+                }, 300);
                 callback();
                 return;
             }
@@ -245,8 +247,11 @@ export default function UrineScreen(props) {
     };
     const handleAdd = (params) => {
         setAddInProgress(true);
-        handleUpdate(params, () => setTimeout(() => setAddInProgress(false), 250));
-    }
+        handleUpdate(params, () => {
+            clearFields();
+            setTimeout(() => setAddInProgress(false), 250);
+        });
+    };
     const handleUpdate = (params, callback) => {
         params = params || {};
         callback = callback || function() {};
@@ -294,7 +299,6 @@ export default function UrineScreen(props) {
         })
         .then(() => {
             setSnackOpen(true);
-            clearFields();
             setTimeout(() => {
                 getHistory(urineScreenTypes, callback);
             }, 150);
@@ -304,33 +308,6 @@ export default function UrineScreen(props) {
             handleSubmissionError();
         });
     };
-    const handleSubmissionError = () => {
-        setError("Data submission failed. Unable to process your request.");
-        setSnackOpen(false);
-    }
-    const handleEnableEditMode = () => {
-        setError("");
-        setEditMode(true);
-    }
-    const handleDisableEditMode = () => {
-        setEditType(lastType);
-        setEditDate(lastUrineScreenDate);
-        setError("");
-        setEditMode(false);
-    }
-    const isValidEditType = () => {
-        if (onlyOneUrineScreenType()) return true;
-        return editType;
-    }
-    const isValidEditDate = () => {
-        return isValid(new Date(editDate));
-    }
-    const hasValidEditEntry = () => {
-        return isValidEditType() && isValidEditDate();
-    }
-    const handleEditChange = (event) => {
-        setEditDate(event.target.value);
-    }
     const handleEditSave = () => {
         setUpdateInProgress(true);
         handleUpdate({
@@ -339,7 +316,7 @@ export default function UrineScreen(props) {
             date: editDate,
             type: editType
         }, () => setTimeout(setUpdateInProgress(false), 350));
-    }
+    };
     const handleDelete = () => {
         setUpdateInProgress(true);
         handleUpdate({
@@ -348,7 +325,36 @@ export default function UrineScreen(props) {
             date: editDate,
             type: editType
         }, () => setTimeout(setUpdateInProgress(false), 350));
-    }
+    };
+    const handleSubmissionError = () => {
+        setError("Data submission failed. Unable to process your request.");
+        setSnackOpen(false);
+    };
+    const handleEnableEditMode = () => {
+        setError("");
+        setEditMode(true);
+    };
+    const handleDisableEditMode = () => {
+        setEditType(lastType);
+        setEditDate(lastUrineScreenDate);
+        setError("");
+        setEditMode(false);
+    };
+    const isValidEditType = () => {
+        if (onlyOneUrineScreenType()) return true;
+        return editType;
+    };
+    const isValidEditDate = () => {
+        let dateObj = new Date(editDate).setHours(0,0,0,0);
+        let today = new Date().setHours(0,0,0,0);
+        return isValid(dateObj) && !(dateObj > today);
+    };
+    const hasValidEditEntry = () => {
+        return isValidEditType() && isValidEditDate();
+    };
+    const handleEditChange = (event) => {
+        setEditDate(event.target.value);
+    };
     const hasHistory = () => {
         return (history && history.length > 0);
     };
@@ -390,7 +396,7 @@ export default function UrineScreen(props) {
                     error={hasError()}></FormattedInput></div>
             </React.Fragment>
         );
-      }
+      };
     const getOneUrineScreenDisplayText = () => {
         let matchedType = urineScreenTypes[0];
         if (matchedType) return matchedType.text;
@@ -416,8 +422,8 @@ export default function UrineScreen(props) {
     const getUrineScreenTypeSelectList = () => {
         return urineScreenTypes.map(item => {
             return <MenuItem value={item.code} key={item.code}><Typography variant="body2">{item.text}</Typography></MenuItem>;
-        })
-    }
+        });
+    };
     React.useEffect(() => {
         initUrineScreenTypes();
     }, []);
@@ -440,7 +446,7 @@ export default function UrineScreen(props) {
             <div className={classes.contentContainer}>
                 {addInProgress && <div className={classes.progressContainer}><CircularProgress className={classes.progressIcon} color="primary" size={32} /></div>}
                 {/* UI to add new */}
-                <div className={classes.addContainer}>
+                <Paper className={classes.addContainer} elevation={1}>
                     <Typography variant="caption" display="block" className={classes.addTitle}>
                         Add New
                     </Typography>
@@ -512,14 +518,14 @@ export default function UrineScreen(props) {
                         <Button variant="contained" color="primary" className={classes.addButton} disabled={!hasValues()} onClick={() => handleAdd()}>Add</Button>
                         <Button variant="outlined" onClick={clearFields} disabled={!hasValues()}>Clear</Button>
                     </div>
-                </div>
+                </Paper>
                 {/* history */}
-                <div className={classes.historyContainer}>
+                <Paper className={classes.historyContainer} elevation={1}>
                     {!historyInitialized && <div className={classes.progressContainer}>
                         <CircularProgress color="primary" size={32} className={classes.progressIcon} />
                     </div>}
                     {updateInProgress && <div className={classes.progressContainer}><CircularProgress className={classes.progressIcon} color="primary" size={28} /></div>}
-                    <Typography variant="caption" display="block" className={classes.historyTitle} gutterBottom>
+                    <Typography variant="caption" display="block" className={classes.historyTitle}>
                         Last Urine Drug Screen
                     </Typography>
                     <div>
@@ -540,10 +546,12 @@ export default function UrineScreen(props) {
                     {isAdult(rowData.dob) && <OverdueAlert date={lastUrineScreenDate}  type="urine drug screen"></OverdueAlert>}
                     {/* total record count */}
                     {hasHistory() && <div className={classes.totalEntriesContainer}><b>{history.length}</b> urine drug screen record(s) found</div>}
-                </div>
+                </Paper>
+                {/* feedback snack popup */}
                 <Snackbar open={snackOpen} autoHideDuration={3000} onClose={handleSnackClose}>
                     <Alert onClose={handleSnackClose} severity="success">Request processed successfully.</Alert>
                 </Snackbar>
+                {/* error message UI */}
                 <div className={classes.errorContainer}>
                     {error && <Error message={error}></Error>}
                 </div>
