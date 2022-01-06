@@ -1,5 +1,4 @@
 """Manages synchronization of Model data, between external and internal stores"""
-import json
 from copy import deepcopy
 from json.decoder import JSONDecodeError
 
@@ -40,7 +39,7 @@ def log_hapi_change(method, resource, resource_type=None, resource_id=None):
     msg = f"{method} {rt}/{id}"
     extra = {"tags": [rt, method]}
     if resource:
-        extra['resource'] = json.dumps(resource)
+        extra['resource'] = resource
 
     audit_entry(message=msg, extra=extra)
 
