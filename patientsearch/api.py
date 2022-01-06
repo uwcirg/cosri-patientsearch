@@ -11,7 +11,6 @@ from flask import (
     send_from_directory,
 )
 from flask.json import JSONEncoder
-import json
 import jwt
 import requests
 from werkzeug.exceptions import Unauthorized
