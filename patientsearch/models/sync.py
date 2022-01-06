@@ -1,4 +1,5 @@
 """Manages synchronization of Model data, between external and internal stores"""
+import json
 from copy import deepcopy
 from json.decoder import JSONDecodeError
 
@@ -31,6 +32,17 @@ def add_identifier_to_resource_type(bundle, resource_type, identifier):
             identifiers.append(identifier)
             resource["identifier"] = identifiers
     return result
+
+
+def log_hapi_change(method, resource, resource_type=None, resource_id=None):
+    rt = resource_type or resource and resource.get('resourceType')
+    id = resource_id or resource and resource.get('_id', '')
+    msg = f"{method} {rt}/{id}"
+    extra = {"tags": [rt, method]}
+    if resource:
+        extra['resource'] = json.dumps(resource)
+
+    audit_entry(message=msg, extra=extra)
 
 
 def HAPI_request(
@@ -90,6 +102,13 @@ def HAPI_request(
             level="error",
         )
         raise ValueError(err)
+
+    if VERB != "GET":
+        log_hapi_change(
+            method=method,
+            resource=resource,
+            resource_type=resource_type,
+            resource_id=resource_id)
     return resp.json()
 
 
