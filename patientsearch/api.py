@@ -28,10 +28,10 @@ from patientsearch.models import (
 from patientsearch.extensions import oidc
 from patientsearch.jsonify_abort import jsonify_abort
 
-api_blueprint = Blueprint('patientsearch-api', __name__)
+api_blueprint = Blueprint("patientsearch-api", __name__)
 
 
-@api_blueprint.route('/clear_session', methods=["GET"])
+@api_blueprint.route("/clear_session", methods=["GET"])
 def refresh_session():
     """Clear flask_oidc session
     The next request to a protected endpoint will generate a new token, or require logging into IDP
@@ -47,12 +47,12 @@ def terminate_session():
     token = oidc.user_loggedin and oidc.get_access_token()
     if token and oidc.validate_token(token):
         # Direct POST to Keycloak necessary to clear KC domain browser cookie
-        logout_uri = oidc.client_secrets['userinfo_uri'].replace(
-            'userinfo', 'logout')
+        logout_uri = oidc.client_secrets["userinfo_uri"].replace("userinfo", "logout")
         data = {
-            'client_id': oidc.client_secrets['client_id'],
-            'client_secret': oidc.client_secrets['client_secret'],
-            'refresh_token': oidc.get_refresh_token()}
+            "client_id": oidc.client_secrets["client_id"],
+            "client_secret": oidc.client_secrets["client_secret"],
+            "refresh_token": oidc.get_refresh_token(),
+        }
         requests.post(logout_uri, auth=BearerAuth(token), data=data)
 
     oidc.logout()  # clears local cookie only
@@ -74,53 +74,54 @@ def validate_auth():
         raise Unauthorized(
             "Your COSRI session timed out. "
             "Please refresh your browser to enter your user name and password "
-            "to log back in.")
+            "to log back in."
+        )
     return token
 
 
 def current_user_id(token):
     """Safe wrapper to lookup logged in user's identifier string for logging"""
     try:
-        username = oidc.user_getfield('preferred_username')
+        username = oidc.user_getfield("preferred_username")
     except Exception:
         # mystery how token was valid at entry and now inaccessible
         username = "unknown"
     try:
-        DEA = oidc.user_getfield('DEA')
+        DEA = oidc.user_getfield("DEA")
     except Exception:
         DEA = "unknown"
-    return {'username': username, 'DEA': DEA}
+    return {"username": username, "DEA": DEA}
 
 
-@api_blueprint.route('/home', methods=["GET"])
+@api_blueprint.route("/home", methods=["GET"])
 @oidc.require_login
 def home():
-    """ Main route, entry point for react.  Requires authorized user """
-    ## issue with path resolution after build
+    """Main route, entry point for react.  Requires authorized user"""
+    # issue with path resolution after build
     return send_from_directory(
-        #todo: remove templates directory reference; index.html isn't a jinja template
+        # TODO remove templates directory reference; index.html isn't a jinja template
         safe_join(
             current_app.config.get("STATIC_DIR") or current_app.static_folder,
-            'templates'
+            "templates",
         ),
-        'index.html',
-        cache_timeout=-1
+        "index.html",
+        cache_timeout=-1,
     )
 
 
-@api_blueprint.route('/user_info', methods=["GET"])
+@api_blueprint.route("/user_info", methods=["GET"])
 def user_info():
     """API to retrieve user profile info"""
     validate_auth()
     try:
-        user_info = oidc.user_getinfo(['name', 'email'])
+        user_info = oidc.user_getinfo(["name", "email"])
     except Unauthorized:
         return jsonify_abort(status_code=401, message="Unauthorized")
     return jsonify(user_info)
 
 
-@api_blueprint.route('/settings', defaults={'config_key': None})
-@api_blueprint.route('/settings/<string:config_key>')
+@api_blueprint.route("/settings", defaults={"config_key": None})
+@api_blueprint.route("/settings/<string:config_key>")
 def config_settings(config_key):
     """Non-secret application settings"""
 
@@ -128,16 +129,19 @@ def config_settings(config_key):
     class CustomJSONEncoder(JSONEncoder):
         def default(self, obj):
             return str(obj)
+
     current_app.json_encoder = CustomJSONEncoder
 
     # return selective keys - not all can be be viewed by users, e.g.secret key
-    blacklist = ('SECRET', 'KEY', 'TOKEN', 'CREDENTIALS')
+    blacklist = ("SECRET", "KEY", "TOKEN", "CREDENTIALS")
 
     if config_key:
         key = config_key.upper()
         for pattern in blacklist:
             if pattern in key:
-                jsonify_abort(status_code=400, messag=f"Configuration key {key} not available")
+                jsonify_abort(
+                    status_code=400, messag=f"Configuration key {key} not available"
+                )
         return jsonify({key: current_app.config.get(key)})
 
     config_settings = {}
@@ -150,7 +154,7 @@ def config_settings(config_key):
     return jsonify(config_settings)
 
 
-@api_blueprint.route('/validate_token', methods=["GET"])
+@api_blueprint.route("/validate_token", methods=["GET"])
 def validate_token():
     """API to confirm header token is still valid
 
@@ -162,24 +166,32 @@ def validate_token():
         return jsonify(valid=False, access_expires_in=0, refresh_expires_in=0)
 
     now = datetime.now().timestamp()
-    access_token  = jwt.decode(oidc.get_access_token(), options={"verify_signature": False, "verify_aud": False})
-    refresh_token  = jwt.decode(oidc.get_refresh_token(), options={"verify_signature": False, "verify_aud": False})
+    access_token = jwt.decode(
+        oidc.get_access_token(),
+        options={"verify_signature": False, "verify_aud": False},
+    )
+    refresh_token = jwt.decode(
+        oidc.get_refresh_token(),
+        options={"verify_signature": False, "verify_aud": False},
+    )
 
     return jsonify(
         valid=True,
-        access_expires_in=access_token['exp']-now,
-        refresh_expires_in=refresh_token['exp']-now,
+        access_expires_in=access_token["exp"] - now,
+        refresh_expires_in=refresh_token["exp"] - now,
     )
 
 
-@api_blueprint.route('/favicon.ico')
+@api_blueprint.route("/favicon.ico")
 def favicon():
     return send_from_directory(
         current_app.config.get("STATIC_DIR") or current_app.static_folder,
-        'favicon.ico', mimetype='image/vnd.microsoft.icon')
+        "favicon.ico",
+        mimetype="image/vnd.microsoft.icon",
+    )
 
 
-@api_blueprint.route('/fhir', methods=["GET"])
+@api_blueprint.route("/fhir", methods=["GET"])
 def bundle_getpages():
     """Base Query HAPI, typically used for paging w/o naming resource type
 
@@ -192,12 +204,12 @@ def bundle_getpages():
     """
     token = validate_auth()
     try:
-        return jsonify(HAPI_request(token=token, method='GET', params=request.args))
+        return jsonify(HAPI_request(token=token, method="GET", params=request.args))
     except (RuntimeError, ValueError) as error:
         return jsonify_abort(status_code=400, message=str(error))
 
 
-@api_blueprint.route('/fhir/<string:resource_type>', methods=["GET"])
+@api_blueprint.route("/fhir/<string:resource_type>", methods=["GET"])
 def resource_bundle(resource_type):
     """Query HAPI for resource_type and return as JSON FHIR Bundle
 
@@ -211,13 +223,19 @@ def resource_bundle(resource_type):
     """
     token = validate_auth()
     try:
-        return jsonify(HAPI_request(
-            token=token, method='GET', resource_type=resource_type, params=request.args))
+        return jsonify(
+            HAPI_request(
+                token=token,
+                method="GET",
+                resource_type=resource_type,
+                params=request.args,
+            )
+        )
     except (RuntimeError, ValueError) as error:
         return jsonify_abort(status_code=400, message=str(error))
 
 
-@api_blueprint.route('/fhir/<string:resource_type>', methods=["POST"])
+@api_blueprint.route("/fhir/<string:resource_type>", methods=["POST"])
 def post_resource(resource_type):
     """Delegate request to POST given resource in post body to HAPI
 
@@ -233,18 +251,25 @@ def post_resource(resource_type):
         resource = request.get_json()
         if not resource:
             raise ValueError("missing FHIR Resource in JSON format")
-        if resource['resourceType'] != resource_type:
+        if resource["resourceType"] != resource_type:
             raise ValueError(
-                f"type mismatch - POSTed resource type {resource['resourceType']} != {resource_type}")
+                "type mismatch - POSTed resource type "
+                f"{resource['resourceType']} != {resource_type}"
+            )
 
-        return jsonify(HAPI_request(
-            token=token, method='POST', resource_type=resource_type, resource=resource))
+        return jsonify(
+            HAPI_request(
+                token=token,
+                method="POST",
+                resource_type=resource_type,
+                resource=resource,
+            )
+        )
     except (RuntimeError, ValueError) as error:
         return jsonify_abort(status_code=400, message=str(error))
 
 
-@api_blueprint.route(
-    '/fhir/<string:resource_type>/<int:resource_id>', methods=["PUT"])
+@api_blueprint.route("/fhir/<string:resource_type>/<int:resource_id>", methods=["PUT"])
 def update_resource_by_id(resource_type, resource_id):
     """Update individual resource within HAPI; return JSON result
 
@@ -259,29 +284,41 @@ def update_resource_by_id(resource_type, resource_id):
     try:
         resource = request.get_json()
         if not resource:
-            return jsonify_abort(status_code=400, message=f"Can't PUT {resource_type}/{resource_id} without resource in `body` header")
+            return jsonify_abort(
+                status_code=400,
+                message=f"Can't PUT {resource_type}/{resource_id}"
+                "without resource in `body` header",
+            )
 
         # Increment a count identifier to force update - lastUpdated only moves on changed data
-        identifiers = resource.get('identifier', [])
+        identifiers = resource.get("identifier", [])
         count = 1
         system = "https://github.com/uwcirg/cosri-patientsearch/counter"
         for ident in identifiers:
-            if ident['system'] == system:
-                count = int(ident['value']) + 1
-                ident['value'] = count
+            if ident["system"] == system:
+                count = int(ident["value"]) + 1
+                ident["value"] = count
                 break
         if count == 1:
             identifiers.append({"system": system, "value": count})
-        resource['identifier'] = identifiers
+        resource["identifier"] = identifiers
 
-        return jsonify(HAPI_request(
-            method='PUT', resource_type=resource_type, resource_id=resource_id, resource=resource, token=token))
+        return jsonify(
+            HAPI_request(
+                method="PUT",
+                resource_type=resource_type,
+                resource_id=resource_id,
+                resource=resource,
+                token=token,
+            )
+        )
     except (RuntimeError, ValueError) as error:
         return jsonify_abort(status_code=400, message=str(error))
 
 
 @api_blueprint.route(
-    '/fhir/<string:resource_type>/<int:resource_id>', methods=["DELETE"])
+    "/fhir/<string:resource_type>/<int:resource_id>", methods=["DELETE"]
+)
 def delete_resource_by_id(resource_type, resource_id):
     """Delete individual resource from HAPI; return JSON result
 
@@ -289,20 +326,25 @@ def delete_resource_by_id(resource_type, resource_id):
     redirect.  Client should watch for 401 and redirect appropriately.
     """
     token = validate_auth()
-    extra = {'tags': ['patient', 'delete'], 'user': current_user_id(token)}
-    if resource_type == 'Patient':
-        extra['patient'] = {'subject.id': resource_id}
+    extra = {"tags": ["patient", "delete"], "user": current_user_id(token)}
+    if resource_type == "Patient":
+        extra["patient"] = {"subject.id": resource_id}
     audit_entry(f"DELETE {resource_type}/{resource_id}", extra=extra)
 
     try:
-        return jsonify(HAPI_request(
-            method='DELETE', resource_type=resource_type, resource_id=resource_id, token=token))
+        return jsonify(
+            HAPI_request(
+                method="DELETE",
+                resource_type=resource_type,
+                resource_id=resource_id,
+                token=token,
+            )
+        )
     except (RuntimeError, ValueError) as error:
         return jsonify_abort(status_code=400, message=str(error))
 
 
-@api_blueprint.route(
-    '/fhir/<string:resource_type>/<int:resource_id>', methods=["GET"])
+@api_blueprint.route("/fhir/<string:resource_type>/<int:resource_id>", methods=["GET"])
 def resource_by_id(resource_type, resource_id):
     """Query HAPI for individual resource; return JSON FHIR Resource
 
@@ -311,8 +353,14 @@ def resource_by_id(resource_type, resource_id):
     """
     token = validate_auth()
     try:
-        return jsonify(HAPI_request(
-            method='GET', resource_type=resource_type, resource_id=resource_id, token=token))
+        return jsonify(
+            HAPI_request(
+                method="GET",
+                resource_type=resource_type,
+                resource_id=resource_id,
+                token=token,
+            )
+        )
     except (RuntimeError, ValueError) as error:
         return jsonify_abort(status_code=400, message=str(error))
 
@@ -321,30 +369,32 @@ def resource_from_args(resource_type, args):
     """Generate FHIR resource from given type and args"""
     # refactor into model as need expands
     current_app.logger.debug(f"generate {resource_type} from {args}")
-    if resource_type != 'Patient':
+    if resource_type != "Patient":
         raise ValueError("only Patient aware ATM")
 
     # The birthdate includes HAPI search syntax; parse from a pattern such as:
     #   Patient.birthdate=eq1977-01-12
-    splits = args.get('subject:Patient.birthdate', '').split('eq')
+    splits = args.get("subject:Patient.birthdate", "").split("eq")
     if len(splits) != 2:
         err = (
             f"Unexpected `Patient.birthdate` format: "
-            f"{args.get('subject:Patient.birthdate')}")
+            f"{args.get('subject:Patient.birthdate')}"
+        )
         current_app.logger.warn(err)
         raise ValueError(err)
     dob = splits[1]
 
     return {
-        'resourceType': resource_type,
-        'name': {
-            'given': args.get('subject:Patient.name.given'),
-            'family': args.get('subject:Patient.name.family')},
-        'birthDate': dob}
+        "resourceType": resource_type,
+        "name": {
+            "given": args.get("subject:Patient.name.given"),
+            "family": args.get("subject:Patient.name.family"),
+        },
+        "birthDate": dob,
+    }
 
 
-@api_blueprint.route(
-    '/external_search/<string:resource_type>', methods=["PUT"])
+@api_blueprint.route("/external_search/<string:resource_type>", methods=["PUT"])
 def external_search(resource_type):
     """Query external source for resource_type
 
@@ -370,18 +420,24 @@ def external_search(resource_type):
             bundle=external_request(token, resource_type, request.args),
             resource_type=resource_type,
             identifier={
-                'system': 'https://github.com/uwcirg/script-fhir-facade',
-                'value': 'found'})
+                "system": "https://github.com/uwcirg/script-fhir-facade",
+                "value": "found",
+            },
+        )
     except (RuntimeError, ValueError) as error:
         return jsonify_abort(status_code=400, message=str(error))
 
-    external_match_count = len(external_search_bundle['entry']) if (
-        'entry' in external_search_bundle) else 0
+    external_match_count = (
+        len(external_search_bundle["entry"])
+        if ("entry" in external_search_bundle)
+        else 0
+    )
 
-    extra={
-        'tags': ['search'],
-        'patient': dict(request.args.copy()),
-        'user': current_user_id(token)}
+    extra = {
+        "tags": ["search"],
+        "patient": dict(request.args.copy()),
+        "user": current_user_id(token),
+    }
 
     if external_match_count:
         # Merge result details with internal resources
@@ -390,7 +446,7 @@ def external_search(resource_type):
         except ValueError:
             return jsonify_abort(message="Error in local sync", status_code=400)
         if local_fhir_patient:
-            extra['patient']['subject.id'] = local_fhir_patient['id']
+            extra["patient"]["subject.id"] = local_fhir_patient["id"]
     else:
         # See if local match already exists
         patient = resource_from_args(resource_type, request.args)
@@ -399,64 +455,75 @@ def external_search(resource_type):
         except (RuntimeError, ValueError) as error:
             return jsonify_abort(status_code=400, message=str(error))
         local_fhir_patient = None
-        if internal_bundle['total'] > 0:
-            local_fhir_patient = internal_bundle['entry'][0]['resource']
-        if internal_bundle['total'] > 1:
-            audit_entry(f"found multiple internal matches ({patient}), return first", extra=extra, level='warn')
+        if internal_bundle["total"] > 0:
+            local_fhir_patient = internal_bundle["entry"][0]["resource"]
+        if internal_bundle["total"] > 1:
+            audit_entry(
+                f"found multiple internal matches ({patient}), return first",
+                extra=extra,
+                level="warn",
+            )
 
     if not local_fhir_patient:
         # Add at this time in the local store
         try:
             local_fhir_patient = HAPI_request(
-                token=token, method='POST', resource_type='Patient', resource=patient)
+                token=token, method="POST", resource_type="Patient", resource=patient
+            )
         except (RuntimeError, ValueError) as error:
             return jsonify_abort(status_code=400, message=str(error))
-        audit_entry("PDMP search failed; create new patient from search params", extra=extra)
+        audit_entry(
+            "PDMP search failed; create new patient from search params", extra=extra
+        )
 
     # TODO: handle multiple patient results
     if external_match_count > 1:
-        audit_entry('multiple patients returned from PDMP', extra=extra, level="warn")
+        audit_entry("multiple patients returned from PDMP", extra=extra, level="warn")
 
     if external_match_count:
-        external_search_bundle['entry'][0].setdefault('id', local_fhir_patient['id'])
+        external_search_bundle["entry"][0].setdefault("id", local_fhir_patient["id"])
 
     message = "PDMP found match" if external_match_count else "fEMR found match"
     audit_entry(message, extra=extra)
     return jsonify(external_search_bundle)
 
 
-@api_blueprint.route('/logout', methods=["GET"])
+@api_blueprint.route("/logout", methods=["GET"])
 def logout():
     token = oidc.user_loggedin and oidc.get_access_token()
     if token:
-        tags = ['logout']
+        tags = ["logout"]
         for k in request.args.keys():
             tags.append(k)  # pick-up tags like `user-initiated` and `timed-out`
-        audit_entry("logout on request", extra={'tags': tags, 'user': current_user_id(token)})
+        audit_entry(
+            "logout on request", extra={"tags": tags, "user": current_user_id(token)}
+        )
     terminate_session()
 
     # Shouldn't be present, but just in case, manually clear the oidc cookie
-    resp = make_response(send_from_directory(
-        safe_join(
-            current_app.config.get("STATIC_DIR") or current_app.static_folder,
-            'templates'
-        ),
-        'logout.html',
-        cache_timeout=-1
-    ))
-    resp.set_cookie('oidc_id_token', '', expires=0)
+    resp = make_response(
+        send_from_directory(
+            safe_join(
+                current_app.config.get("STATIC_DIR") or current_app.static_folder,
+                "templates",
+            ),
+            "logout.html",
+            cache_timeout=-1,
+        )
+    )
+    resp.set_cookie("oidc_id_token", "", expires=0)
     return resp
 
 
-@api_blueprint.route('/', methods=["GET"])
+@api_blueprint.route("/", methods=["GET"])
 def main():
-    """ entry point for pre-authenticated access, aka `landing` """
+    """entry point for pre-authenticated access, aka `landing`"""
     try:
         token = oidc.user_loggedin and oidc.get_access_token()
         if token and oidc.validate_token(token):
-            extra = {'tags': ['landing', 'authorized'], 'user': current_user_id(token)}
+            extra = {"tags": ["landing", "authorized"], "user": current_user_id(token)}
             audit_entry("request to landing by authenticated user", extra=extra)
-            return redirect('/home')
+            return redirect("/home")
     except Exception as ex:
         # Naked except to prevent any strange logged in token access errors from
         # generating the landing page.
@@ -465,8 +532,8 @@ def main():
     return send_from_directory(
         safe_join(
             current_app.config.get("STATIC_DIR") or current_app.static_folder,
-            'templates'
+            "templates",
         ),
-        'home.html',
-        cache_timeout=-1
+        "home.html",
+        cache_timeout=-1,
     )

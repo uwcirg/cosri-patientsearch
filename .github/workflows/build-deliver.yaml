@@ -16,7 +16,7 @@ jobs:
         run: echo "VERSION_STRING=$(git describe --always --tags)" >> $GITHUB_ENV
 
       - name: Publish to Dockerhub registry
-        # todo: pin to hash
+        # TODO pin to hash
         uses: elgohr/Publish-Docker-Github-Action@master
         with:
           # https://help.github.com/en/actions/reference/context-and-expression-syntax-for-github-actions

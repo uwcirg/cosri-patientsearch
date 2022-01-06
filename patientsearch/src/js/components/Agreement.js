@@ -149,7 +149,7 @@ export default function Agreement(props) {
     callback = callback || function() {};
     const resourceId = params.id || null;
     const method = params.method || "POST";
-    const contractDate = params.contractDate || date;
+    const contractDate = params.contractDate || dateInput;
     setError("");
     let resource = {
       id: resourceId,
@@ -199,7 +199,7 @@ export default function Agreement(props) {
       handleAdd();
     }
     return false;
-  }
+  };
   const handleAdd = (params) => {
     setAddInProgress(true);
     handleUpdate(params, () => {
@@ -338,7 +338,7 @@ export default function Agreement(props) {
     let dateObj = new Date(editDate).setHours(0,0,0,0);
     let today = new Date().setHours(0,0,0,0);
     return isValid(dateObj) && !(dateObj > today);
-  }
+  };
   const handleSnackClose = (event, reason) => {
     if (reason === "clickaway") {
       return;
