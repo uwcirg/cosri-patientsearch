@@ -491,7 +491,7 @@ export default function UrineScreen(props) {
             filtering: false
         },
         {
-            title: "Type",
+            title: "Urine Screen Name",
             field: "type",
             emptyValue: "--",
             cellStyle: {
@@ -501,7 +501,7 @@ export default function UrineScreen(props) {
             editable: !onlyOneUrineScreenType() ? "always" : "never"
         },
         {
-          title: "Date",
+          title: "Order Date",
           field: "date",
           emptyValue: "--",
           editComponent: params => <FormattedInput defaultValue={params.value} handleChange={e => params.onChange(e.target.value)}></FormattedInput>
