@@ -409,8 +409,8 @@ export default function UrineScreen(props) {
                 date: date,
                 index: index,
                 patientId: rowData.id
-            }
-        })
+            };
+        });
     };
     const displayHistory = () => {
         if (!hasHistory()) return "";
