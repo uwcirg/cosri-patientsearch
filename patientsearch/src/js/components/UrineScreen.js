@@ -177,7 +177,7 @@ export default function UrineScreen(props) {
     const resetEdits = () => {
         setEditType("");
         setEditDate(null);
-    }
+    };
     const clearFields = () => {
         clearDate();
         if (!onlyOneUrineScreenType()) setType("");
@@ -290,7 +290,7 @@ export default function UrineScreen(props) {
                 "reference": "Patient/"+(params.patientId ? params.patientId : rowData.id)
             }
         };
-    }
+    };
     const handleUpdate = (params, callback) => {
         params = params || {};
         callback = callback || function() {};
@@ -348,7 +348,7 @@ export default function UrineScreen(props) {
         handleUpdate({...params, ...{
             method:"PUT"
         }}, () => setTimeout(setUpdateInProgress(false), 350));
-    }
+    };
     const handleDelete = (params) => {
         params = params || {};
         if (!Object.keys(params).length) params = {
@@ -358,11 +358,11 @@ export default function UrineScreen(props) {
         handleUpdate({...params, ...{
             method:"DELETE"
         }}, () => setTimeout(setUpdateInProgress(false), 350));
-    }
+    };
     const handleSubmissionError = () => {
         setError("Data submission failed. Unable to process your request.");
         setSnackOpen(false);
-    }
+    };
     const handleEnableEditMode = () => {
         setEditType(lastType);
         setEditDate(lastUrineScreenDate);
@@ -407,8 +407,8 @@ export default function UrineScreen(props) {
                 date: date,
                 index: index,
                 patientId: rowData.id
-            }
-        })
+            };
+        });
     };
     const displayHistory = () => {
         if (!hasHistory()) return "";
