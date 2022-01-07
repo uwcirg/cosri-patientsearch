@@ -491,7 +491,7 @@ export default function UrineScreen(props) {
             filtering: false
         },
         {
-            title: "Urine Screen Name",
+            title: "Urine Drug Screen Name",
             field: "type",
             emptyValue: "--",
             cellStyle: {
