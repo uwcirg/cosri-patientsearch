@@ -111,21 +111,21 @@ export default function HistoryTable(props) {
                     </div>
                 </div>
             ),
-            Pagination: props => (
+            Pagination: parentProps => (
               <TablePagination
                 count={data.length}
                 page={page}
                 onPageChange={(e,page) => {
                   handleChangePage(e,page);
-                  if (props.onChangePage) props.onChangePage(e, page);
-                  if (props.onPageChange) props.onPageChange(e, page);
+                  if (parentProps.onChangePage) parentProps.onChangePage(e, page);
+                  if (parentProps.onPageChange) parentProps.onPageChange(e, page);
                 }}
                 rowsPerPageOptions={[5]}
                 rowsPerPage={rowsPerPage}
                 onRowsPerPageChange={(e) => {
                   handleChangeRowsPerPage(e);
-                  if (props.onChangeRowsPerPage) props.onChangeRowsPerPage(e);
-                  if (props.onRowsPerPageChange) props.onRowsPerPageChange(e);
+                  if (parentProps.onChangeRowsPerPage) parentProps.onChangeRowsPerPage(e);
+                  if (parentProps.onRowsPerPageChange) parentProps.onRowsPerPageChange(e);
                 }}
                 classes={
                   {
