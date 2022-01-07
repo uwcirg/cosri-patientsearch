@@ -114,8 +114,7 @@ const useStyles = makeStyles({
   },
   endIcon: {
     marginLeft: "-4px",
-    position: "relative",
-    top: "-2px"
+    position: "relative"
   },
   tableContainer: {
     position: "relative"
@@ -543,7 +542,7 @@ export default function Agreement(props) {
                   History
               </Typography>
               <div>
-                <span>{history.length} record(s)</span>
+                <span><b>{history.length}</b> record(s)</span>
                 {!showHistory && <Button
                     arial-label="expand"
                     color="primary"

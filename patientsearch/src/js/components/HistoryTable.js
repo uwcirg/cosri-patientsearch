@@ -31,8 +31,13 @@ const useStyles = makeStyles((theme) => ({
     verticalAlign: "middle",
     textAlign: "center"
   },
+  paginationRoot: {
+    minHeight: theme.spacing(3),
+    display: "block",
+    float: "right",
+    overflowX: "auto"
+  },
   paginationToolbar: {
-    minHeight: theme.spacing(6),
     paddingLeft: theme.spacing(2)
   },
   paginationActions: {
@@ -79,8 +84,7 @@ export default function HistoryTable(props) {
             actionsCellStyle: {
               paddingLeft: theme.spacing(2),
               paddingRight: theme.spacing(2),
-              minWidth: "25%",
-              justifyContent: "center",
+              justifyContent: "center"
             },
             actionsColumnIndex: -1,
           },...customOptions}}
@@ -100,7 +104,8 @@ export default function HistoryTable(props) {
             },
             pagination: {
               labelRowsSelect: "records",
-            },
+              labelRowsPerPage: "Records per page"
+            }
           }}
           //overlay
           components={{
@@ -129,11 +134,12 @@ export default function HistoryTable(props) {
                 }}
                 classes={
                   {
+                    root: classes.paginationRoot,
                     actions: classes.paginationActions,
                     toolbar: classes.paginationToolbar
                   }
                 }
-                labelRowsPerPage="Records per page"
+                labelRowsPerPage="Records per page:"
               />
             )
           }}

@@ -136,8 +136,7 @@ const useStyles = makeStyles({
     },
     endIcon: {
         marginLeft: "-4px",
-        position: "relative",
-        top: "-2px"
+        position: "relative"
     },
     tableContainer: {
         position: "relative"
@@ -500,7 +499,6 @@ export default function UrineScreen(props) {
             field: "type",
             emptyValue: "--",
             cellStyle: {
-                "width": "60%",
                 "padding": "4px 24px 4px 16px"
             },
             lookup: selectTypeLookup,
@@ -641,7 +639,7 @@ export default function UrineScreen(props) {
                         History
                     </Typography>
                     <div className={classes.totalEntriesContainer}>
-                        <span>{history.length} record(s)</span>
+                        <span><b>{history.length}</b> record(s)</span>
                         {!showHistory && <Button
                             arial-label="expand"
                             color="primary"
