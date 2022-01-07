@@ -248,7 +248,8 @@ export default function Agreement(props) {
   const handleDelete = (params) => {
     params = params || {};
     if (!Object.keys(params).length) params = {
-        id: lastEntryId
+        id: lastEntryId,
+        date: editDate
     };
     setUpdateInProgress(true);
     handleUpdate({...params, ...{

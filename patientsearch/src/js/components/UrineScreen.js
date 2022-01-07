@@ -352,7 +352,9 @@ export default function UrineScreen(props) {
     const handleDelete = (params) => {
         params = params || {};
         if (!Object.keys(params).length) params = {
-            id: lastEntryId
+            id: lastEntryId,
+            date: editDate,
+            type: editType
         };
         setUpdateInProgress(true);
         handleUpdate({...params, ...{
@@ -407,8 +409,8 @@ export default function UrineScreen(props) {
                 date: date,
                 index: index,
                 patientId: rowData.id
-            };
-        });
+            }
+        })
     };
     const displayHistory = () => {
         if (!hasHistory()) return "";
