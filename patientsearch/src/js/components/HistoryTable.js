@@ -12,7 +12,7 @@ import {tableIcons} from "../context/consts";
 const useStyles = makeStyles((theme) => ({
   root: {
     flexShrink: 0,
-    marginTop: theme.spacing(2)
+    marginTop: theme.spacing(3)
   },
   errorContainer: {
     marginTop: theme.spacing(2)
@@ -56,7 +56,9 @@ export default function HistoryTable(props) {
             showTitle: false,
             pageSizeOptions: [5],
             headerStyle: {
-              backgroundColor: theme.palette.primary.lightest
+              backgroundColor: "#f3f9f9",
+              paddingTop: theme.spacing(0.5),
+              paddingBottom: theme.spacing(0.5)
             },
             actionsCellStyle: {
               paddingLeft: theme.spacing(2),

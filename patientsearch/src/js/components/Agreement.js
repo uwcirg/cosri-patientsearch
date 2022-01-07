@@ -30,6 +30,7 @@ import {
   fetchData,
   getShortDateFromISODateString,
   isAdult,
+  padDateString,
 } from "./Utility";
 import theme from "../context/theme";
 const LOINC_SYSTEM_URL = "https://loinc.org";
@@ -176,7 +177,7 @@ export default function Agreement(props) {
         "reference": "Patient/"+(params.patientId ? params.patientId : rowData.id)
       },
       "resourceType": "DocumentReference",
-      "date": contractDate
+      "date": padDateString(contractDate)
     };
 
   };
@@ -392,13 +393,15 @@ export default function Agreement(props) {
   const columns = [
     {
         field: "id",
-        hidden: true,
-        filtering: false
+        hidden: true
     },
     {
         title: "Agreement Date",
         field: "date",
         emptyValue: "--",
+        cellStyle: {
+          "padding": "4px 24px 4px 16px"
+        },
         editComponent: params => <FormattedInput defaultValue={params.value} handleChange={e => params.onChange(e.target.value)}></FormattedInput>
     },
   ];

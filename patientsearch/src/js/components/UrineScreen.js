@@ -32,6 +32,7 @@ import {
     getShortDateFromISODateString,
     getSettings,
     isAdult,
+    padDateString,
     sendRequest,
 } from "./Utility";
 import theme from "../context/theme";
@@ -273,7 +274,7 @@ export default function UrineScreen(props) {
         });
         return {
             "id": params.id,
-            "authoredOn": testDate,
+            "authoredOn": padDateString(testDate),
             "code": {
                 "coding": [
                     {
@@ -487,24 +488,27 @@ export default function UrineScreen(props) {
     const columns = [
         {
             field: "id",
-            hidden: true,
-            filtering: false
+            hidden: true
         },
         {
             title: "Urine Drug Screen Name",
             field: "type",
             emptyValue: "--",
             cellStyle: {
-                "width": "60%"
+                "width": "60%",
+                "padding": "4px 24px 4px 16px"
             },
             lookup: selectTypeLookup,
             editable: !onlyOneUrineScreenType() ? "always" : "never"
         },
         {
-          title: "Order Date",
-          field: "date",
-          emptyValue: "--",
-          editComponent: params => <FormattedInput defaultValue={params.value} handleChange={e => params.onChange(e.target.value)}></FormattedInput>
+            title: "Order Date",
+            field: "date",
+            emptyValue: "--",
+            cellStyle: {
+                "padding": "4px 24px 4px 16px"
+            },
+            editComponent: params => <FormattedInput defaultValue={params.value} handleChange={e => params.onChange(e.target.value)}></FormattedInput>
         },
     ];
     React.useEffect(() => {
