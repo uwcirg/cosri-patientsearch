@@ -264,14 +264,17 @@ export function isAdult(birthDateString) {
   return getAge(birthDateString) >= 18;
 }
 
+/*
+ * given a date string in YYYY-MM-DD format
+ * pad 0 for month and day fields where applicable
+ */
 export function padDateString(dateString) {
   if (!dateString) return "";
   dateString = dateString.trim();
   if (!isValid(new Date(dateString))) return dateString;
   let arrDate = dateString.split("-");
-  let year = pad(arrDate[0]);
+  let year = arrDate[0];
   let month = pad(arrDate[1]);
   let day = pad(arrDate[2]);
-  console.log("year? ", year, " month ", month, " day ", day)
   return [year, month, day].join("-");
 }
