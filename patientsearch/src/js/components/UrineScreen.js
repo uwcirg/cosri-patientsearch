@@ -409,7 +409,7 @@ export default function UrineScreen(props) {
                 patientId: rowData.id
             }
         })
-    }
+    };
     const displayHistory = () => {
         if (!hasHistory()) return "";
         if (history[0].text) return history[0].text + " ordered on <b>" + lastUrineScreenDate + "</b>";
@@ -464,7 +464,7 @@ export default function UrineScreen(props) {
                 setUrineScreenTypes(data["UDS_LAB_TYPES"]);
                 let types = {};
                 data["UDS_LAB_TYPES"].forEach(item => {
-                    types[item.code] = item.text
+                    types[item.code] = item.text;
                 });
                 setSelectTypeLookup(types);
             }
