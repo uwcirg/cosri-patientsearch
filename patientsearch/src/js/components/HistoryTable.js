@@ -2,6 +2,7 @@ import PropTypes from 'prop-types';
 import React from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import MaterialTable from "material-table";
+import TablePagination from "@material-ui/core/TablePagination";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import Error from "./Error";
 import {fetchData} from "./Utility";
@@ -12,7 +13,7 @@ import {tableIcons} from "../context/consts";
 const useStyles = makeStyles((theme) => ({
   root: {
     flexShrink: 0,
-    marginTop: theme.spacing(3)
+    marginTop: theme.spacing(2)
   },
   errorContainer: {
     marginTop: theme.spacing(2)
@@ -30,6 +31,13 @@ const useStyles = makeStyles((theme) => ({
     verticalAlign: "middle",
     textAlign: "center"
   },
+  paginationToolbar: {
+    minHeight: theme.spacing(6),
+    paddingLeft: theme.spacing(2)
+  },
+  paginationActions: {
+    color: theme.palette.primary.main
+  }
 }));
 
 export default function HistoryTable(props) {
@@ -38,6 +46,15 @@ export default function HistoryTable(props) {
   const errorStyle = { display: errorMessage ? "block" : "none" };
   const [data, setData] = React.useState(props.data);
   const customOptions = props.options? props.options: {};
+  const [page, setPage] = React.useState(0);
+  const [rowsPerPage, setRowsPerPage] = React.useState(5);
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 5));
+    setPage(0);
+  };
   return (
     <React.Fragment>
       <div className={classes.root}>
@@ -46,7 +63,6 @@ export default function HistoryTable(props) {
           columns={props.columns}
           data={data}
           options={{...{
-            paginationTypestepped: "stepped",
             padding: "dense",
             emptyRowsWhenPaging: false,
             toolbar: false,
@@ -74,16 +90,16 @@ export default function HistoryTable(props) {
             header: {
               actions: "",
             },
-            pagination: {
-              labelRowsSelect: "rows",
-            },
             body: {
-              deleteTooltip: "Remove from the list",
+              deleteTooltip: "Remove record",
               editRow: {
                 deleteText:
                   "Are you sure you want to remove this record?",
                 saveTooltip: "OK",
               },
+            },
+            pagination: {
+              labelRowsSelect: "records",
             },
           }}
           //overlay
@@ -94,6 +110,31 @@ export default function HistoryTable(props) {
                       <CircularProgress></CircularProgress>
                     </div>
                 </div>
+            ),
+            Pagination: props => (
+              <TablePagination
+                count={data.length}
+                page={page}
+                onPageChange={(e,page) => {
+                  handleChangePage(e,page);
+                  if (props.onChangePage) props.onChangePage(e, page);
+                  if (props.onPageChange) props.onPageChange(e, page);
+                }}
+                rowsPerPageOptions={[5]}
+                rowsPerPage={rowsPerPage}
+                onRowsPerPageChange={(e) => {
+                  handleChangeRowsPerPage(e);
+                  if (props.onChangeRowsPerPage) props.onChangeRowsPerPage(e);
+                  if (props.onRowsPerPageChange) props.onRowsPerPageChange(e);
+                }}
+                classes={
+                  {
+                    actions: classes.paginationActions,
+                    toolbar: classes.paginationToolbar
+                  }
+                }
+                labelRowsPerPage="Records per page"
+              />
             )
           }}
           editable={{

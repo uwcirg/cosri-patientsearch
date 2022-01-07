@@ -79,7 +79,7 @@ const useStyles = makeStyles({
     },
     historyContainer: {
         position: "relative",
-        marginBottom: theme.spacing(3),
+        marginBottom: theme.spacing(2),
         padding: theme.spacing(2),
         minHeight: theme.spacing(9)
     },
@@ -133,6 +133,11 @@ const useStyles = makeStyles({
         marginLeft: theme.spacing(2),
         verticalAlign: "middle",
         fontSize: "12px"
+    },
+    endIcon: {
+        marginLeft: "-4px",
+        position: "relative",
+        top: "-2px"
     },
     tableContainer: {
         position: "relative"
@@ -639,18 +644,16 @@ export default function UrineScreen(props) {
                         <span>{history.length} record(s)</span>
                         {!showHistory && <Button
                             arial-label="expand"
-                            variant="outlined"
                             color="primary"
                             onClick={() => setShowHistory(true)}
-                            endIcon={<ExpandMoreIcon></ExpandMoreIcon>}
+                            endIcon={<ExpandMoreIcon className={classes.endIcon}></ExpandMoreIcon>}
                             size="small"
                             className={classes.expandIcon}>View</Button>}
                         {showHistory && <Button
                             arial-label="collapse"
-                            variant="outlined"
                             color="primary"
                             onClick={() => setShowHistory(false)}
-                            endIcon={<ExpandLessIcon></ExpandLessIcon>}
+                            endIcon={<ExpandLessIcon className={classes.endIcon}></ExpandLessIcon>}
                             size="small"
                             className={classes.expandIcon}>Hide</Button>}
                     </div>
