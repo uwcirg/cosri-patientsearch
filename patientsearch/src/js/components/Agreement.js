@@ -554,7 +554,6 @@ export default function Agreement(props) {
               </div>
             </div>
             <div className={classes.tableContainer}>
-              {updateInProgress && <div className={classes.progressContainer}><CircularProgress className={classes.progressIcon} color="primary" size={28} /></div>}
               {showHistory && <div className="history-table"><HistoryTable
                   data={history}
                   columns={columns}
