@@ -1,21 +1,11 @@
 import React from "react";
-import { forwardRef } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import MaterialTable from "material-table";
-import ArrowDownward from "@material-ui/icons/ArrowDownward";
-import Check from "@material-ui/icons/Check";
-import ChevronLeft from "@material-ui/icons/ChevronLeft";
-import ChevronRight from "@material-ui/icons/ChevronRight";
-import ClearIcon from "@material-ui/icons/Clear";
 import RefreshIcon from "@material-ui/icons/Refresh";
 import MoreHorizIcon from "@material-ui/icons/MoreHoriz";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import Button from "@material-ui/core/Button";
 import Container from "@material-ui/core/Container";
-import Delete from "@material-ui/icons/Delete";
-import FirstPage from "@material-ui/icons/FirstPage";
-import LastPage from "@material-ui/icons/LastPage";
-import Search from "@material-ui/icons/Search";
 import Modal from "@material-ui/core/Modal";
 import Paper from "@material-ui/core/Paper";
 import TablePagination from "@material-ui/core/TablePagination";
@@ -25,6 +15,7 @@ import Error from "./Error";
 import FilterRow from "./FilterRow";
 import UrineScreen from "./UrineScreen";
 import Agreement from "./Agreement";
+import {tableIcons} from "../context/consts";
 import theme from "../context/theme";
 import {
   fetchData,
@@ -57,6 +48,10 @@ const useStyles = makeStyles({
   },
   filterTable: {
     marginBottom: theme.spacing(1),
+    marginTop: theme.spacing(20),
+    ["@media (min-width:639px)"]: {
+      marginTop: 0
+    }
   },
   table: {
     minWidth: 320,
@@ -209,32 +204,6 @@ export default function PatientListTable() {
       component: (rowData) => <Agreement rowData={rowData}></Agreement>,
     },
   ];
-  const tableIcons = {
-    Check: forwardRef((props, ref) => (
-      <Check {...props} ref={ref} className={classes.success} />
-    )),
-    Clear: forwardRef((props, ref) => <ClearIcon {...props} ref={ref} />),
-    Filter: forwardRef((props, ref) => (
-      <Search {...props} ref={ref} color="primary" />
-    )),
-    FirstPage: forwardRef((props, ref) => <FirstPage {...props} ref={ref} />),
-    LastPage: forwardRef((props, ref) => <LastPage {...props} ref={ref} />),
-    DetailPanel: forwardRef((props, ref) => (
-      <div {...props} ref={ref} color="primary" className="detail-panel" />
-    )),
-    NextPage: forwardRef((props, ref) => <ChevronRight {...props} ref={ref} />),
-    PreviousPage: forwardRef((props, ref) => (
-      <ChevronLeft {...props} ref={ref} />
-    )),
-    SortArrow: forwardRef((props, ref) => (
-      <ArrowDownward {...props} ref={ref} color="primary" />
-    )),
-    Delete: forwardRef((props, ref) => (
-      <Delete {...props} ref={ref} size="small" className={classes.muted}>
-        Remove
-      </Delete>
-    )),
-  };
   const FieldNameMaps = {
     first_name: "given",
     last_name: "family",
@@ -840,7 +809,7 @@ export default function PatientListTable() {
             />
           </tbody>
         </table>
-        {settingInitialized && <div className={classes.table} aria-label="patient list table">
+        {settingInitialized && <div className={`${classes.table} main`} aria-label="patient list table">
             <MaterialTable
               className={classes.table}
               columns={columns}

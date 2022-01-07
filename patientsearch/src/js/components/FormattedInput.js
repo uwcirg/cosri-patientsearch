@@ -55,6 +55,7 @@ export default function FormattedInput(props) {
         <FormControl>
           <Input
             value={props.value}
+            defaultValue={props.defaultValue}
             onChange={handleChange}
             onKeyDown={handleKeyDown}
             name="formattedInput"
@@ -70,6 +71,7 @@ export default function FormattedInput(props) {
 }
 FormattedInput.propTypes = {
     value: PropTypes.string,
+    defaultValue: PropTypes.string,
     error: PropTypes.bool,
     disableFocus: PropTypes.bool,
     handleChange: PropTypes.func,

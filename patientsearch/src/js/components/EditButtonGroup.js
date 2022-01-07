@@ -13,6 +13,7 @@ import theme from "../context/theme";
 const useStyles = makeStyles({
     buttonGroupContainer: {
         marginLeft: theme.spacing(1.5),
+        marginTop: theme.spacing(0.5),
         marginBottom: theme.spacing(0.5),
         display: "inline-block"
     },
@@ -52,11 +53,11 @@ export default function EditButtonGroup(props) {
     return (<div className={classes.buttonGroupContainer}>
         {/* edit/remove button group */}
         <ButtonGroup variant="outlined">
-            {editMode && <Button size="small" endIcon={<SaveIcon></SaveIcon>} disabled={props.isUpdateDisabled} onClick={props.handleEditSave} color="primary" variant="contained">Update</Button>}
-            {editMode && <Button size="small" endIcon={<ClearIcon></ClearIcon>} className="btn-edit-cancel" onClick={disableEditMode}>Cancel</Button>}
+            {editMode && <Button size="small" color="primary" endIcon={<SaveIcon></SaveIcon>} disabled={props.isUpdateDisabled} onClick={props.handleEditSave} variant="contained">Update</Button>}
+            {editMode && <Button size="small" color="primary" endIcon={<ClearIcon></ClearIcon>} className="btn-edit-cancel" onClick={disableEditMode}>Cancel</Button>}
             {!editMode &&
-                <Button size="small" onClick={enableEditMode} endIcon={<EditIcon></EditIcon>}>Edit</Button>}
-            {!editMode && <Button size="small" endIcon={<Delete></Delete>} onClick={handleDeleteModalOpen} >Remove</Button>}
+                <Button size="small" onClick={enableEditMode} endIcon={<EditIcon></EditIcon>} color="primary" >Edit</Button>}
+            {!editMode && <Button size="small" color="primary"  endIcon={<Delete></Delete>} onClick={handleDeleteModalOpen} >Remove</Button>}
         </ButtonGroup>
         {/* entry removal warning modal */}
         <Modal

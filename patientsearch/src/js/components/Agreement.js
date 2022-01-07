@@ -6,6 +6,8 @@ import isValid from "date-fns/isValid";
 import ClearIcon from "@material-ui/icons/Clear";
 import Button from "@material-ui/core/Button";
 import CircularProgress from "@material-ui/core/CircularProgress";
+import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
+import ExpandLessIcon from "@material-ui/icons/ExpandLess";
 import IconButton from "@material-ui/core/IconButton";
 import InputAdornment from "@material-ui/core/InputAdornment";
 import InputLabel from "@material-ui/core/InputLabel";
@@ -21,6 +23,7 @@ import EditButtonGroup from "./EditButtonGroup";
 import Error from "./Error";
 import FormattedInput from "./FormattedInput";
 import OverdueAlert from "./OverdueAlert";
+import HistoryTable from "./HistoryTable";
 import {
   sendRequest,
   dateTimeCompare,
@@ -101,9 +104,15 @@ const useStyles = makeStyles({
     marginTop: theme.spacing(3),
   },
   totalEntriesContainer: {
-    fontSize: "12px",
-    color: theme.palette.muted.main,
     marginTop: theme.spacing(1)
+  },
+  expandIcon: {
+    marginLeft: theme.spacing(2),
+    verticalAlign: "middle",
+    fontSize: "12px"
+  },
+  tableContainer: {
+    position: "relative"
   }
 });
 function Alert(props) {
@@ -122,6 +131,7 @@ export default function Agreement(props) {
   const [updateInProgress, setUpdateInProgress] = React.useState(false);
   const [historyInitialized, setHistoryInitialized] = React.useState(false);
   const [history, setHistory] = React.useState([]);
+  const [showHistory, setShowHistory] = React.useState(false);
   const [error, setError] = React.useState("");
   const [snackOpen, setSnackOpen] = React.useState(false);
   const rowData = props.rowData ? props.rowData : {};
@@ -135,8 +145,11 @@ export default function Agreement(props) {
   };
   const clearHistory = () => {
     setHistory([]);
-    setLastEntryId(null);
     setLastAgreementDate("");
+    setLastEntryId(null);
+  };
+  const resetEdits = () => {
+    setEditDate("");
   };
   const hasValues = () => {
     return date;
@@ -144,30 +157,42 @@ export default function Agreement(props) {
   const hasError = () => {
     return error !== "";
   };
+  const submitDataFormatter = (params) => {
+    params = params || {};
+    const resourceId = params.id || null;
+    const contractDate = params.date || dateInput;
+    return {
+      "id": resourceId,
+      "type": {
+        "coding": [
+          {
+            "system": params.system ? params.system : LOINC_SYSTEM_URL,
+            "code": params.code ? params.code: CONTRACT_CODE,
+            "display": "Controlled substance agreement",
+          },
+        ],
+      },
+      "subject": {
+        "reference": "Patient/"+(params.patientId ? params.patientId : rowData.id)
+      },
+      "resourceType": "DocumentReference",
+      "date": contractDate
+    };
+
+  };
   const handleUpdate = (params, callback) => {
     params = params || {};
     callback = callback || function() {};
     const resourceId = params.id || null;
     const method = params.method || "POST";
-    const contractDate = params.contractDate || dateInput;
+    const contractDate = params.date || dateInput;
+    if (String(params.method).toLowerCase() !== "delete" && !contractDate) {
+      setError("No contract date provided.");
+      callback();
+      return false;
+    }
     setError("");
-    let resource = {
-      id: resourceId,
-      type: {
-        coding: [
-          {
-            system: LOINC_SYSTEM_URL,
-            code: CONTRACT_CODE,
-            display: "Controlled substance agreement",
-          },
-        ],
-      },
-      subject: {
-        reference: "Patient/" + rowData.id,
-      },
-      resourceType: "DocumentReference",
-      date: contractDate,
-    };
+    let resource = submitDataFormatter(params);
     fetchData("/fhir/DocumentReference"+(resourceId?"/"+resourceId:""), {
       method: method,
       headers: {
@@ -209,25 +234,26 @@ export default function Agreement(props) {
       }, 250);
     });
   };
-  const handleEditSave = () => {
-    setUpdateInProgress(true);
-    handleUpdate({
-      method: "PUT",
+  const handleEditSave = (params) => {
+    params = params || {};
+    if (!Object.keys(params).length) params = {
       id: lastEntryId,
-      contractDate: editDate
-    }, () => {
-      setTimeout(setUpdateInProgress(false), 350);
-    });
+      date: editDate
+    };
+    setUpdateInProgress(true);
+    handleUpdate({...params, ...{
+        method:"PUT"
+    }}, () => setTimeout(setUpdateInProgress(false), 350));
   };
-  const handleDelete = () => {
+  const handleDelete = (params) => {
+    params = params || {};
+    if (!Object.keys(params).length) params = {
+        id: lastEntryId
+    };
     setUpdateInProgress(true);
-    handleUpdate({
-      method: "DELETE",
-      id: lastEntryId,
-      contractDate: lastAgreementDate
-    }, () => {
-      setTimeout(setUpdateInProgress(false), 350);
-    });
+    handleUpdate({...params, ...{
+        method:"DELETE"
+    }}, () => setTimeout(setUpdateInProgress(false), 350));
   };
   const handleSubmissionError = () => {
     setError("Data submission failed. Unable to process your request.");
@@ -283,11 +309,11 @@ export default function Agreement(props) {
           return dateTimeCompare(a.resource.date, b.resource.date);
         });
         if (agreementData.length) {
-          setHistory(agreementData);
-          setLastEntryId(agreementData[0].resource.id);
-          const resourceDate = getShortDateFromISODateString(agreementData[0].resource.date);
-          setLastAgreementDate(resourceDate);
-          setEditDate(resourceDate);
+          const formattedData = createHistoryData(agreementData);
+          resetEdits();
+          setHistory(formattedData);
+          setLastEntryId(formattedData[0].id);
+          setLastAgreementDate(formattedData[0].date);
         } else clearHistory();
         setTimeout(() => {
           setEditMode(false);
@@ -303,6 +329,22 @@ export default function Agreement(props) {
     );
     return "";
   };
+  const createHistoryData = (data) => {
+    if (!data) return [];
+    return data.map((item,index) => {
+        const resource = item.resource;
+        if (!resource) return {};
+        let date = getShortDateFromISODateString(resource.date);
+        return {
+            id: resource.id,
+            date: date,
+            index: index,
+            patientId: rowData.id,
+            system: LOINC_SYSTEM_URL,
+            code: CONTRACT_CODE
+        };
+    });
+  };
   const displayHistory = () => {
     if (!hasHistory()) return "";
     return (
@@ -314,21 +356,22 @@ export default function Agreement(props) {
   const displayEditHistory = () => {
     if (!hasHistory()) return null;
     return (
-      <div style={{display: "inline-block"}}>Last controlled substance agreement signed on <FormattedInput value={editDate}
+      <div style={{display: "inline-block"}}>Last controlled substance agreement signed on <FormattedInput defaultValue={lastAgreementDate}
       helperText="(YYYY-MM-DD)"
       inputClass={{input: classes.editInput}}
       handleChange={(e) => handleEditChange(e)}
-      handleKeyDown={(e) => handleEditSave(e)}
+      handleKeyDown={() => handleEditSave()}
       error={hasError()}></FormattedInput></div>
     );
   };
   const handleEnableEditMode = () => {
+    setEditDate(lastAgreementDate);
     setError("");
     setEditMode(true);
   };
   const handleDisableEditMode = () => {
     setError("");
-    setEditDate(lastAgreementDate);
+    resetEdits();
     setEditMode(false);
   };
   const handleEditChange = (event) => {
@@ -345,6 +388,19 @@ export default function Agreement(props) {
     }
     setSnackOpen(false);
   };
+  const columns = [
+    {
+        field: "id",
+        hidden: true,
+        filtering: false
+    },
+    {
+        title: "Agreement Date",
+        field: "date",
+        emptyValue: "--",
+        editComponent: params => <FormattedInput defaultValue={params.value} handleChange={e => params.onChange(e.target.value)}></FormattedInput>
+    },
+  ];
   React.useEffect(() => {
     getHistory();
   }, []);
@@ -450,18 +506,18 @@ export default function Agreement(props) {
           >
             Latest Controlled Substance Agreement
           </Typography>
-          <br />
-          {historyInitialized && hasHistory() && !editMode && <span dangerouslySetInnerHTML={{ __html: displayHistory() }}></span>}
-          {historyInitialized && hasHistory() && editMode && displayEditHistory()}
-          {historyInitialized && hasHistory() &&
-          <EditButtonGroup
-            onEnableEditMode={handleEnableEditMode}
-            onDisableEditMode={handleDisableEditMode}
-            isUpdateDisabled={!isValidEditDate()}
-            handleEditSave={handleEditSave}
-            handleDelete={handleDelete}
-            entryDescription={`Controlled substance agreement signed on <b>${lastAgreementDate}</b>`}
-          ></EditButtonGroup>}
+          {historyInitialized && hasHistory() && <div>
+            {!editMode && <span dangerouslySetInnerHTML={{ __html: displayHistory() }}></span>}
+            {editMode && displayEditHistory()}
+            <EditButtonGroup
+              onEnableEditMode={handleEnableEditMode}
+              onDisableEditMode={handleDisableEditMode}
+              isUpdateDisabled={!isValidEditDate()}
+              handleEditSave={() => handleEditSave()}
+              handleDelete={() => handleDelete()}
+              entryDescription={`Controlled substance agreement signed on <b>${lastAgreementDate}</b>`}
+            ></EditButtonGroup>
+          </div>}
           {!isAdult(rowData.dob) && !hasHistory() && <div>No previously recorded controlled substance agreement</div>}
           {/* alerts */}
           {isAdult(rowData.dob) && (
@@ -471,9 +527,52 @@ export default function Agreement(props) {
               overdueMessage="It has been more than 12 months since the patient has signed a controlled substance agreement."
             ></OverdueAlert>
           )}
-          {/* total record counts */}
-          {hasHistory() && <div className={classes.totalEntriesContainer}><b>{history.length}</b> agreement record(s) found</div>}
-        </Paper>
+          </Paper>
+          { hasHistory() && historyInitialized && <Paper className={classes.historyContainer} elevation={1}>
+            <div className={classes.totalEntriesContainer}>
+              <Typography variant="caption" display="block" className={classes.historyTitle}>
+                  History
+              </Typography>
+              <div>
+                <span>{history.length} record(s)</span>
+                {!showHistory && <Button
+                    arial-label="expand"
+                    variant="outlined"
+                    color="primary"
+                    onClick={() => setShowHistory(true)}
+                    endIcon={<ExpandMoreIcon></ExpandMoreIcon>}
+                    size="small"
+                    className={classes.expandIcon}>View</Button>}
+                {showHistory && <Button
+                    arial-label="collapse"
+                    variant="outlined"
+                    color="primary"
+                    onClick={() => setShowHistory(false)}
+                    endIcon={<ExpandLessIcon></ExpandLessIcon>}
+                    size="small"
+                    className={classes.expandIcon}>Hide</Button>}
+              </div>
+            </div>
+            <div className={classes.tableContainer}>
+              {updateInProgress && <div className={classes.progressContainer}><CircularProgress className={classes.progressIcon} color="primary" size={28} /></div>}
+              {showHistory && <div className="history-table"><HistoryTable
+                  data={history}
+                  columns={columns}
+                  APIURL="/fhir/DocumentReference/"
+                  submitDataFormatter={submitDataFormatter}
+                  onRowUpdate={() => getHistory()}
+                  onRowDelete={() => getHistory()}
+                  options= {
+                    {
+                      actionsCellStyle: {
+                        width: "80%",
+                        textAlign: "left"
+                      }
+                    }
+                  }
+              ></HistoryTable></div>}
+            </div>
+        </Paper>}
         {/* submission feedback UI */}
         <Snackbar open={snackOpen} autoHideDuration={3000} onClose={handleSnackClose}>
           <Alert onClose={handleSnackClose} severity="success">
