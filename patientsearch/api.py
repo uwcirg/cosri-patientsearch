@@ -15,7 +15,7 @@ import jwt
 import requests
 from werkzeug.exceptions import Unauthorized
 
-from patientsearch.audit import audit_entry
+from patientsearch.audit import audit_entry, audit_HAPI_change
 from patientsearch.models import (
     BearerAuth,
     HAPI_request,
@@ -78,8 +78,8 @@ def validate_auth():
     return token
 
 
-def current_user_id(token):
-    """Safe wrapper to lookup logged in user's identifier string for logging"""
+def current_user_info(token):
+    """Safe wrapper to lookup logged in user's info for DEA and logging"""
     try:
         username = oidc.user_getfield("preferred_username")
     except Exception:
@@ -256,10 +256,17 @@ def post_resource(resource_type):
                 f"{resource['resourceType']} != {resource_type}"
             )
 
+        method = "POST"
+        audit_HAPI_change(
+            user_info=current_user_info(token),
+            method=method,
+            resource=resource,
+            resource_type=resource_type,
+        )
         return jsonify(
             HAPI_request(
                 token=token,
-                method="POST",
+                method=method,
                 resource_type=resource_type,
                 resource=resource,
             )
@@ -289,22 +296,35 @@ def update_resource_by_id(resource_type, resource_id):
                 "without resource in `body` header",
             )
 
-        # Increment a count identifier to force update - lastUpdated only moves on changed data
-        identifiers = resource.get("identifier", [])
-        count = 1
-        system = "https://github.com/uwcirg/cosri-patientsearch/counter"
-        for ident in identifiers:
-            if ident["system"] == system:
-                count = int(ident["value"]) + 1
-                ident["value"] = count
-                break
-        if count == 1:
-            identifiers.append({"system": system, "value": count})
-        resource["identifier"] = identifiers
+        ignorable_id_increment_audit = False
+        if resource_type == "Patient":
+            # Increment a count identifier to force update - lastUpdated only moves on changed data
+            identifiers = resource.get("identifier", [])
+            count = 1
+            system = "https://github.com/uwcirg/cosri-patientsearch/counter"
+            for ident in identifiers:
+                if ident["system"] == system:
+                    count = int(ident["value"]) + 1
+                    ident["value"] = count
+                    break
+            if count == 1:
+                identifiers.append({"system": system, "value": count})
+            else:
+                ignorable_id_increment_audit = True
+            resource["identifier"] = identifiers
 
+        method = "PUT"
+        if not ignorable_id_increment_audit:
+            audit_HAPI_change(
+                user_info=current_user_info(token),
+                method=method,
+                resource=resource,
+                resource_type=resource_type,
+                resource_id=resource_id
+            )
         return jsonify(
             HAPI_request(
-                method="PUT",
+                method=method,
                 resource_type=resource_type,
                 resource_id=resource_id,
                 resource=resource,
@@ -325,15 +345,18 @@ def delete_resource_by_id(resource_type, resource_id):
     redirect.  Client should watch for 401 and redirect appropriately.
     """
     token = validate_auth()
-    extra = {"tags": ["patient", "delete"], "user": current_user_id(token)}
-    if resource_type == "Patient":
-        extra["patient"] = {"subject.id": resource_id}
-    audit_entry(f"DELETE {resource_type}/{resource_id}", extra=extra)
+    method = "DELETE"
+    audit_HAPI_change(
+        user_info=current_user_info(token),
+        method=method,
+        resource_type=resource_type,
+        resource_id=resource_id
+    )
 
     try:
         return jsonify(
             HAPI_request(
-                method="DELETE",
+                method=method,
                 resource_type=resource_type,
                 resource_id=resource_id,
                 token=token,
@@ -435,7 +458,7 @@ def external_search(resource_type):
     extra = {
         "tags": ["search"],
         "patient": dict(request.args.copy()),
-        "user": current_user_id(token),
+        "user": current_user_info(token),
     }
 
     if external_match_count:
@@ -464,10 +487,21 @@ def external_search(resource_type):
             )
 
     if not local_fhir_patient:
-        # Add at this time in the local store
+        # Add at this time in the local (HAPI) store
         try:
+            method = "POST"
+            resource_type = "Patient"
+            audit_HAPI_change(
+                user_info=current_user_info(token),
+                method=method,
+                resource_type=resource_type,
+                resource=patient
+            )
             local_fhir_patient = HAPI_request(
-                token=token, method="POST", resource_type="Patient", resource=patient
+                token=token,
+                method=method,
+                resource_type="Patient",
+                resource=patient
             )
         except (RuntimeError, ValueError) as error:
             return jsonify_abort(status_code=400, message=str(error))
@@ -495,7 +529,7 @@ def logout():
         for k in request.args.keys():
             tags.append(k)  # pick-up tags like `user-initiated` and `timed-out`
         audit_entry(
-            "logout on request", extra={"tags": tags, "user": current_user_id(token)}
+            "logout on request", extra={"tags": tags, "user": current_user_info(token)}
         )
     terminate_session()
 
@@ -520,7 +554,7 @@ def main():
     try:
         token = oidc.user_loggedin and oidc.get_access_token()
         if token and oidc.validate_token(token):
-            extra = {"tags": ["landing", "authorized"], "user": current_user_id(token)}
+            extra = {"tags": ["landing", "authorized"], "user": current_user_info(token)}
             audit_entry("request to landing by authenticated user", extra=extra)
             return redirect("/home")
     except Exception as ex:
