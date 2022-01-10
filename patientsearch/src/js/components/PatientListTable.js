@@ -316,9 +316,9 @@ export default function PatientListTable() {
           method: "PUT",
           headers: {
             Accept: "application/json",
-            "Content-Type": "application/json",
-            body: rowData.resource ? JSON.stringify(rowData.resource) : null,
+            "Content-Type": "application/json"
           },
+          body: rowData.resource ? JSON.stringify(rowData.resource) : null
         },
         ...noCacheParam,
       }),
