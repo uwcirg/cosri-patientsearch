@@ -293,7 +293,7 @@ def update_resource_by_id(resource_type, resource_id):
             return jsonify_abort(
                 status_code=400,
                 message=f"Can't PUT {resource_type}/{resource_id}"
-                "without resource in `body` header",
+                "without resource in `body`",
             )
 
         ignorable_id_increment_audit = False
