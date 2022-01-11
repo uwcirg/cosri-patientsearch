@@ -329,10 +329,11 @@ export default function UrineScreen(props) {
         }, (e) => {
             if (e) {
                 handleSubmissionError();
-            } else setSnackOpen(true);
+            }
             callback(e);
         })
         .then(() => {
+            setSnackOpen(true);
             setTimeout(() => {
                 getHistory(urineScreenTypes, callback);
             }, 150);
