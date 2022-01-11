@@ -4,6 +4,10 @@ import teal from "@material-ui/core/colors/teal";
 
 const theme = createTheme({
   palette: {
+    dark: {
+      main: "#024144",
+      secondary: cyan[900],
+    },
     primary: {
       lightest: teal[50],
       lighter: teal[100],
@@ -13,8 +17,9 @@ const theme = createTheme({
       dark: cyan[900],
       disabled: "rgb(231, 238, 231)",
       success: "green",
-      warning: "#bb812a",
+      warning: "#a56906",
       warningLight: "rgba(250,194,25,.7)",
+      alert: "#b5382f"
     },
     secondary: {
       main: "#3c3535",

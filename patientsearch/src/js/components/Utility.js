@@ -1,4 +1,5 @@
 import differenceInMonths from "date-fns/differenceInMonths";
+import isValid from "date-fns/isValid";
 
 export function sendRequest (url, params) {
     params = params || {};
@@ -65,8 +66,11 @@ export async function fetchData(url, params, errorCallback) {
   });
 
   if (!results || !results.ok) {
-    console.log("no results returned");
+    console.log("no results returned ", results);
     errorCallback(results ? results : "error retrieving data");
+    if (!results.ok) {
+        throw "There was error processing data.";
+    }
     return null;
   }
 
@@ -260,4 +264,19 @@ export function getAge(birthDateString) {
  */
 export function isAdult(birthDateString) {
   return getAge(birthDateString) >= 18;
+}
+
+/*
+ * given a date string in YYYY-MM-DD format
+ * pad 0 for month and day fields where applicable
+ */
+export function padDateString(dateString) {
+  if (!dateString) return "";
+  dateString = dateString.trim();
+  if (!isValid(new Date(dateString))) return dateString;
+  let arrDate = dateString.split("-");
+  let year = arrDate[0];
+  let month = pad(arrDate[1]);
+  let day = pad(arrDate[2]);
+  return [year, month, day].join("-");
 }

@@ -53,6 +53,7 @@ export default function Dropdown(props) {
         paddingBottom: theme.spacing(0.5),
         paddingLeft: theme.spacing(1.5),
         paddingRight: theme.spacing(2.5),
+        width: "100%",
         "& .MuiSvgIcon-root": {
           fontSize: 16,
           marginRight: theme.spacing(0.25),

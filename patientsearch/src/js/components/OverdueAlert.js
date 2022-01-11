@@ -3,6 +3,7 @@ import PropTypes from "prop-types";
 import { makeStyles } from "@material-ui/core/styles";
 import AssignmentLateIcon from "@material-ui/icons/AssignmentLate";
 import Typography from "@material-ui/core/Typography";
+import theme from "../context/theme";
 import {
   addYearsToDate,
   getLocalDateTimeString,
@@ -13,24 +14,24 @@ import {
 
 const useStyles = makeStyles({
   alertIcon: {
-    fill: "#b5382f",
+    fill: theme.palette.primary.alert,
     position: "relative",
     top: "4px",
     fontSize: "1.2rem",
   },
   warningIcon: {
-    fill: "#d58808",
+    fill: theme.palette.primary.warning,
     position: "relative",
     top: "4px",
     fontSize: "1.2rem",
   },
   alertText: {
-    color: "#b5382f",
+    color: theme.palette.primary.alert,
     display: "inline-block",
     marginLeft: "6px",
   },
   warningText: {
-    color: "#d58808",
+    color: theme.palette.primary.warning,
     display: "inline-block",
     marginLeft: "6px",
   },

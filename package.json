@@ -32,6 +32,7 @@
     "react": "^16.14.0",
     "react-dom": "^16.14.0",
     "react-render-html": "^0.6.0",
+    "react-text-mask": "^5.4.3",
     "styled-components": "^5.3.3",
     "whatwg-fetch": "^3.6.2"
   },
