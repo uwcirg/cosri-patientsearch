@@ -6,7 +6,7 @@ from flask import current_app
 from jmespath import search as json_search
 import requests
 
-from patientsearch.audit import audit_entry
+from patientsearch.audit import audit_entry, audit_HAPI_change
 from patientsearch.models.bearer_auth import BearerAuth
 
 
@@ -46,6 +46,8 @@ def HAPI_request(
     :param params: Optional additional search parameters
 
     """
+    from patientsearch.api import current_user_info
+
     url = current_app.config.get("MAP_API")
     if resource_type:
         url = url + resource_type
@@ -90,6 +92,16 @@ def HAPI_request(
             level="error",
         )
         raise ValueError(err)
+
+    # Fencing out - too much noise.  All API endpoints should audit when appropriate
+    if False and VERB != "GET":
+        audit_HAPI_change(
+            user_info=current_user_info(token),
+            method=method,
+            resource=resource,
+            resource_type=resource_type,
+            resource_id=resource_id,
+        )
     return resp.json()
 
 
@@ -101,12 +113,12 @@ def external_request(token, resource_type, params):
     :param params: Search parameters
 
     """
-    from patientsearch.api import current_user_id
+    from patientsearch.api import current_user_info
 
     if not resource_type:
         raise ValueError("Required `resource_type` not included")
 
-    user = current_user_id(token)
+    user = current_user_info(token)
     if "DEA" not in user:
         raise ValueError("DEA not found")
     search_params = dict(deepcopy(params))  # Necessary on ImmutableMultiDict
