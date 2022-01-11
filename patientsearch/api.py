@@ -320,7 +320,7 @@ def update_resource_by_id(resource_type, resource_id):
                 method=method,
                 resource=resource,
                 resource_type=resource_type,
-                resource_id=resource_id
+                resource_id=resource_id,
             )
         return jsonify(
             HAPI_request(
@@ -350,7 +350,7 @@ def delete_resource_by_id(resource_type, resource_id):
         user_info=current_user_info(token),
         method=method,
         resource_type=resource_type,
-        resource_id=resource_id
+        resource_id=resource_id,
     )
 
     try:
@@ -495,13 +495,10 @@ def external_search(resource_type):
                 user_info=current_user_info(token),
                 method=method,
                 resource_type=resource_type,
-                resource=patient
+                resource=patient,
             )
             local_fhir_patient = HAPI_request(
-                token=token,
-                method=method,
-                resource_type="Patient",
-                resource=patient
+                token=token, method=method, resource_type="Patient", resource=patient
             )
         except (RuntimeError, ValueError) as error:
             return jsonify_abort(status_code=400, message=str(error))
@@ -554,7 +551,10 @@ def main():
     try:
         token = oidc.user_loggedin and oidc.get_access_token()
         if token and oidc.validate_token(token):
-            extra = {"tags": ["landing", "authorized"], "user": current_user_info(token)}
+            extra = {
+                "tags": ["landing", "authorized"],
+                "user": current_user_info(token),
+            }
             audit_entry("request to landing by authenticated user", extra=extra)
             return redirect("/home")
     except Exception as ex:

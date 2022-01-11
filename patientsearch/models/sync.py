@@ -100,7 +100,8 @@ def HAPI_request(
             method=method,
             resource=resource,
             resource_type=resource_type,
-            resource_id=resource_id)
+            resource_id=resource_id,
+        )
     return resp.json()
 
 
