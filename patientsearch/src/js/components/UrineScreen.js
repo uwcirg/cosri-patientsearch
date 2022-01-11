@@ -277,7 +277,6 @@ export default function UrineScreen(props) {
             return item.code === testType;
         });
         return {
-            "id": params.id,
             "authoredOn": padDateString(testDate),
             "code": {
                 "coding": [
@@ -317,22 +316,23 @@ export default function UrineScreen(props) {
             }
         }
         let resource = submitDataFormatter(params);
+        if (params.id) resource = {...resource, ...{"id": params.id}};
         setError("");
         fetchData("/fhir/ServiceRequest"+(params.id?"/"+params.id:""), {
             "method": params.method ? params.method : "POST",
             headers: {
                 "Accept": "application/json",
-                "Content-Type": "application/json"},
-            cache: "no-cache",
+                "Content-Type": "application/json",
+                cache: "no-cache"
+            },
             body: JSON.stringify(resource)
         }, (e) => {
             if (e) {
                 handleSubmissionError();
-            }
+            } else setSnackOpen(true);
             callback(e);
         })
         .then(() => {
-            setSnackOpen(true);
             setTimeout(() => {
                 getHistory(urineScreenTypes, callback);
             }, 150);

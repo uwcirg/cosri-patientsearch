@@ -164,7 +164,7 @@ export default function Agreement(props) {
   };
   const submitDataFormatter = (params) => {
     params = params || {};
-    const resourceId = params.id || null;
+    const resourceId = params.id || "";
     const contractDate = params.date || dateInput;
     return {
       "id": resourceId,
@@ -203,17 +203,17 @@ export default function Agreement(props) {
       headers: {
         Accept: "application/json",
         "Content-Type": "application/json",
+        body: JSON.stringify(resource),
+        cache: "no-cache"
       },
-      cache: "no-cache",
-      body: JSON.stringify(resource),
+      body: JSON.stringify(resource)
     }, (e) => {
       if (e) {
         handleSubmissionError();
-      }
+      } else setSnackOpen(true);
       callback(e);
     })
       .then(() => {
-        setSnackOpen(true);
         setTimeout(() => getHistory(callback), 50);
       })
       .catch((e) => {
