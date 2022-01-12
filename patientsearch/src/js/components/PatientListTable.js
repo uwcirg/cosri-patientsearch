@@ -328,6 +328,16 @@ export default function PatientListTable() {
         const searchResponse = searchResult.value;
         const tokenResponse = tokenResult.value;
 
+        //dealing with unauthorized error, status code = 401
+        if (!searchResponse.ok || !tokenResponse.ok) {
+          if (parseInt(searchResponse.status) === 401 ||
+          parseInt(tokenResponse.status) === 401) {
+            //redirect to home
+            handleExpiredSession();
+            throw "Unauthorized";
+          }
+        }
+
         //fetch returns a simple flag of ok to indicate whether whether an HTTP response’s status code is in the successful range or not
         if (!searchResponse.ok) {
           //check if error response is text/html first
