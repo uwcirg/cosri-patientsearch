@@ -15,7 +15,7 @@ export default function SettingContextProvider({children}) {
         });
     }, []);
     return <SettingContext.Provider value={{appSettings}}>{children}</SettingContext.Provider>;
-};
+}
 SettingContextProvider.propTypes = {
     children: PropTypes.element.isRequired
 };
@@ -28,4 +28,4 @@ export function useSettingContext() {
         throw new Error("Context must be used within a Provider");
       }
     return context;
-};
+}
