@@ -69,7 +69,7 @@ export async function fetchData(url, params, errorCallback) {
     console.log("no results returned ", results);
     errorCallback(results ? results : "error retrieving data");
     if (!results.ok) {
-        throw "There was error processing data.";
+      throw "There was error processing data. " + (results && results.status ? "Status code: " + results.status : "");
     }
     return null;
   }
