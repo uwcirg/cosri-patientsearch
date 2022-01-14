@@ -1,6 +1,6 @@
 import React from "react";
 import { makeStyles } from "@material-ui/core/styles";
-import { getSettings, imageOK } from "./Utility";
+import { imageOK } from "./Utility";
 import { useSettingContext } from "../context/SettingContextProvider";
 import theme from "../context/theme";
 

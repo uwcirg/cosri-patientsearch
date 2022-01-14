@@ -1,4 +1,5 @@
-import React, { useContext, useState, useEffect, createContext } from "react";
+import React, { useContext, useState, useEffect } from "react";
+import PropTypes from "prop-types";
 import {getSettings} from "../components/Utility";
 const SettingContext = React.createContext();
 /*
@@ -13,8 +14,11 @@ export default function SettingContextProvider({children}) {
             }
         });
     }, []);
-    return <SettingContext.Provider value={{appSettings}}>{children}</SettingContext.Provider>
-}
+    return <SettingContext.Provider value={{appSettings}}>{children}</SettingContext.Provider>;
+};
+SettingContextProvider.propTypes = {
+    children: PropTypes.element.isRequired
+};
 /*
  * helper function to access application setting context
  */
@@ -24,4 +28,4 @@ export function useSettingContext() {
         throw new Error("Context must be used within a Provider");
       }
     return context;
-}
+};
