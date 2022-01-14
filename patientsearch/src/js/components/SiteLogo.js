@@ -1,6 +1,7 @@
 import React from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import { getSettings, imageOK } from "./Utility";
+import { useSettingContext } from "../context/SettingContextProvider";
 import theme from "../context/theme";
 
 const useStyles = makeStyles({
@@ -13,28 +14,15 @@ const useStyles = makeStyles({
 
 export default function SiteLogo() {
   const classes = useStyles();
-  const [setting, setSetting] = React.useState({});
   const [siteID, setSiteID] = React.useState("");
-  const [initialized, setInitialized] = React.useState(false);
+  const {appSettings} = useSettingContext();
   const SITE_ID_STRING = "SITE_ID";
   React.useEffect(() => {
-    /*
-     * retrieve setting information
-     */
-    getSettings((data) => {
-      if (data.error) {
-        console.log("Failed to retrieve data", data.error);
-        setInitialized(true);
-        return;
-      }
-      setSetting(data);
-      setSiteID(getSiteId());
-      setInitialized(true);
-    });
-  }, [initialized]);
+    setSiteID(getSiteId());
+  }, [appSettings]);
   function getSiteId() {
-    if (!Object.keys(setting)) return "";
-    return setting[SITE_ID_STRING];
+    if (!Object.keys(appSettings)) return "";
+    return appSettings[SITE_ID_STRING];
   }
   function handleImageLoaded(e) {
     if (!e.target) {

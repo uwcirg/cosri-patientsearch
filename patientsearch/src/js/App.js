@@ -8,6 +8,7 @@ import PatientListTable from "./components/PatientListTable";
 import TimeoutModal from "./components/TimeoutModal.js";
 import SystemBanner from "./components/SystemBanner";
 import Version from "./components/Version";
+import SettingContextProvider from "./context/SettingContextProvider";
 import theme from "./context/theme";
 import "../styles/app.scss";
 
@@ -31,16 +32,18 @@ export default class App extends Component {
       </div>;
     }
     return (
-      <React.Fragment>
-        <ThemeProvider theme={theme}>
-          <CssBaseline />
-          <SystemBanner />
-          <Header />
-          <PatientListTable />
-          <TimeoutModal />
-          <Version />
-        </ThemeProvider>
-      </React.Fragment>
+      <SettingContextProvider>
+        <React.Fragment>
+          <ThemeProvider theme={theme}>
+            <CssBaseline />
+              <SystemBanner />
+              <Header />
+              <PatientListTable />
+              <TimeoutModal />
+              <Version />
+          </ThemeProvider>
+        </React.Fragment>
+      </SettingContextProvider>
     );
   }
 }

@@ -1,8 +1,8 @@
 import React from "react";
 import PropTypes from "prop-types";
 import { makeStyles } from "@material-ui/core/styles";
-import { getSettings } from "./Utility";
 import theme from "../context/theme";
+import { useSettingContext } from "../context/SettingContextProvider";
 
 const useStyles = makeStyles({
   container: {
@@ -21,10 +21,9 @@ const useStyles = makeStyles({
 
 export default function Version(props) {
   const classes = useStyles();
-  const [setting, setSetting] = React.useState({});
   const [version, setVersion] = React.useState("");
-  const [initialized, setInitialized] = React.useState(false);
   const VERSION_STRING = "VERSION_STRING";
+  const {appSettings} = useSettingContext();
   const getVersionLink = () => {
     if (!version) return "";
     const arrVersion = version.split("-");
@@ -51,19 +50,11 @@ export default function Version(props) {
     /*
      * retrieve setting information
      */
-    getSettings((data) => {
-      if (data.error) {
-        console.log("Error retrieving data for version string ", data.error);
-        return;
-      }
-      setSetting(data);
-      setVersion(getVersionString());
-      setInitialized(true);
-    });
-  }, [initialized]);
+    setVersion(getVersionString());
+  }, [appSettings]);
   function getVersionString() {
-    if (!Object.keys(setting)) return "";
-    return setting[VERSION_STRING];
+    if (!Object.keys(appSettings)) return "";
+    return appSettings[VERSION_STRING];
   }
   return (
     <div className={props.className ? props.className : classes.container}>

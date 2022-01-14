@@ -6,6 +6,7 @@ import Button from "@material-ui/core/Button";
 import Typography from "@material-ui/core/Typography";
 import Header from "./components/Header";
 import {getUrlParameter} from "./components/Utility";
+import SettingContextProvider from "./context/SettingContextProvider";
 import theme from "./context/theme";
 import "../styles/app.scss";
 
@@ -15,7 +16,7 @@ function getMessage() {
     return "You have been logged out.";
 }
 // entry point
-render(<React.Fragment>
+render(<SettingContextProvider><React.Fragment>
     <ThemeProvider theme={theme}>
         <CssBaseline />
         <Header />
@@ -27,5 +28,5 @@ render(<React.Fragment>
             <Button color="primary" href="/home" align="center" variant="outlined" size="large">Click here to log in</Button>
         </div>
     </ThemeProvider>
-</React.Fragment>,
+</React.Fragment></SettingContextProvider>,
 document.getElementById("content"));
