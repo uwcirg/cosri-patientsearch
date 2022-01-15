@@ -299,7 +299,7 @@ export default function UrineScreen(props) {
             resource = {...resource, ...{"id": params.id}};
         }
         return resource;
-    }
+    };
     const handleUpdate = (params, callback) => {
         params = params || {};
         callback = callback || function() {};
