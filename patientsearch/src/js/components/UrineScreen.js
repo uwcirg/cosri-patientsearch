@@ -276,7 +276,7 @@ export default function UrineScreen(props) {
         let typeMatch = urineScreenTypes.filter(item => {
             return item.code === testType;
         });
-        var resource =  {
+        return {
             "authoredOn": padDateString(testDate),
             "code": {
                 "coding": [
@@ -294,11 +294,7 @@ export default function UrineScreen(props) {
                 "reference": "Patient/"+(params.patientId ? params.patientId : rowData.id)
             }
         };
-        if (params.id) {
-            resource = {...resource, ...{"id": params.id}};
-        }
-        return resource;
-    }
+    };
     const handleUpdate = (params, callback) => {
         params = params || {};
         callback = callback || function() {};
@@ -320,6 +316,7 @@ export default function UrineScreen(props) {
             }
         }
         let resource = submitDataFormatter(params);
+        if (params.id) resource = {...resource, ...{"id": params.id}};
         setError("");
         fetchData("/fhir/ServiceRequest"+(params.id?"/"+params.id:""), {
             "method": params.method ? params.method : "POST",
