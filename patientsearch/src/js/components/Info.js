@@ -63,7 +63,7 @@ const useStyles = makeStyles({
   },
 });
 
-export default function Info() {
+export default function Info(props) {
   const classes = useStyles();
   const [loading, setLoading] = React.useState(true);
   const [siteID, setSiteID] = React.useState("");
