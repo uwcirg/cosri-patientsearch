@@ -541,7 +541,9 @@ def logout():
             cache_timeout=-1,
         )
     )
-    resp.set_cookie("oidc_id_token", "", expires=0, httponly=True, secure=True, samesite="Strict")
+    resp.set_cookie(
+        "oidc_id_token", "", expires=0, httponly=True, secure=True, samesite="Strict"
+    )
     return resp
 
 

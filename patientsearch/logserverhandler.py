@@ -24,7 +24,9 @@ class LogServerHandler(logging.Handler):
             "Authorization": f"Bearer {self.jwt}",
         }
         try:
-            response = requests.post(url=self.url, headers=headers, json=log_entry, timeout=30)
+            response = requests.post(
+                url=self.url, headers=headers, json=log_entry, timeout=30
+            )
             response.raise_for_status()
         except RequestException as ex:
             # bootstrap problems - attempt to log to root logger
