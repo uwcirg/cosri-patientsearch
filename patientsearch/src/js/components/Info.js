@@ -1,9 +1,11 @@
 import React from "react";
+import PropTypes from "prop-types";
 import { makeStyles } from "@material-ui/core/styles";
 import Button from "@material-ui/core/Button";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import Typography from "@material-ui/core/Typography";
-import { imageOK, sendRequest } from "./Utility";
+import { imageOK } from "./Utility";
+import { getAppSettings } from "../context/SettingContextProvider";
 import theme from "../context/theme";
 
 const useStyles = makeStyles({
@@ -61,12 +63,11 @@ const useStyles = makeStyles({
   },
 });
 
-export default function Info() {
+export default function Info(props) {
   const classes = useStyles();
   const [loading, setLoading] = React.useState(true);
-  const [setting, setSetting] = React.useState({});
   const [siteID, setSiteID] = React.useState("");
-  const [initialized, setInitialized] = React.useState(false);
+  const appSettings = props.appSettings ? props.appSettings : getAppSettings(); //provide default if none provided
   const SYSTEM_TYPE_STRING = "SYSTEM_TYPE";
   const SITE_ID_STRING = "SITE_ID";
 
@@ -74,30 +75,14 @@ export default function Info() {
     /*
      * retrieve setting information
      */
-    sendRequest("./settings").then(
-      (response) => {
-        let data = null;
-        try {
-          data = JSON.parse(response);
-        } catch (e) {
-          console.log("error parsing data ", e);
-        }
-        setSetting(data);
-        setSiteID(getConfig(SITE_ID_STRING));
-        setInitialized(true);
-        setTimeout(() => setLoading(false), 250);
-      },
-      (error) => {
-        console.log("Failed to retrieve data", error.statusText);
-        setInitialized(true);
-        setLoading(false);
-      }
-    );
-  }, [initialized]);
+    setSiteID(getConfig(SITE_ID_STRING));
+    setTimeout(() => setLoading(false), 250);
+  }, [appSettings]);
   /* return config variable by key */
   function getConfig(key) {
-    if (!Object.keys(setting)) return "";
-    return setting[key];
+    if (props.appSettings) return props.appSettings[key];
+    if (!Object.keys(appSettings)) return "";
+    return appSettings[key];
   }
   function handleImageLoaded(e) {
     if (!e.target) {
@@ -194,3 +179,6 @@ export default function Info() {
     </div>
   );
 }
+Info.propTypes = {
+  appSettings: PropTypes.object
+};

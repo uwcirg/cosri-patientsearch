@@ -1,6 +1,8 @@
 import React from "react";
+import PropTypes from "prop-types";
 import { makeStyles } from "@material-ui/core/styles";
-import { getSettings, imageOK } from "./Utility";
+import { imageOK } from "./Utility";
+import { getAppSettings } from "../context/SettingContextProvider";
 import theme from "../context/theme";
 
 const useStyles = makeStyles({
@@ -11,30 +13,17 @@ const useStyles = makeStyles({
   },
 });
 
-export default function SiteLogo() {
+export default function SiteLogo(props) {
   const classes = useStyles();
-  const [setting, setSetting] = React.useState({});
-  const [siteID, setSiteID] = React.useState("");
-  const [initialized, setInitialized] = React.useState(false);
+  const appSettings = props.appSettings ? props.appSettings : getAppSettings(); //provide default if none provided
   const SITE_ID_STRING = "SITE_ID";
   React.useEffect(() => {
-    /*
-     * retrieve setting information
-     */
-    getSettings((data) => {
-      if (data.error) {
-        console.log("Failed to retrieve data", data.error);
-        setInitialized(true);
-        return;
-      }
-      setSetting(data);
-      setSiteID(getSiteId());
-      setInitialized(true);
-    });
-  }, [initialized]);
+    //wait for application settings
+  }, [appSettings]);
   function getSiteId() {
-    if (!Object.keys(setting)) return "";
-    return setting[SITE_ID_STRING];
+    if (props.siteID) return props.siteID;
+    if (!Object.keys(appSettings)) return "";
+    return appSettings[SITE_ID_STRING];
   }
   function handleImageLoaded(e) {
     if (!e.target) {
@@ -63,9 +52,9 @@ export default function SiteLogo() {
 
   return (
     <div className={classes.container}>
-      {siteID && (
+      {getSiteId() && (
         <img
-          src={"/static/" + siteID + "/img/logo.png"}
+          src={"/static/" + getSiteId() + "/img/logo.png"}
           onLoad={handleImageLoaded}
           onError={handleImageLoadError}
         ></img>
@@ -73,3 +62,7 @@ export default function SiteLogo() {
     </div>
   );
 }
+SiteLogo.propTypes = {
+  siteID: PropTypes.string,
+  appSettings: PropTypes.object
+};

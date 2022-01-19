@@ -1,7 +1,8 @@
 import React from "react";
+import PropTypes from "prop-types";
 import { makeStyles } from "@material-ui/core/styles";
-import { getSettings } from "./Utility";
 import theme from "../context/theme";
+import { getAppSettings } from "../context/SettingContextProvider";
 
 const useStyles = makeStyles({
   container: {
@@ -14,39 +15,32 @@ const useStyles = makeStyles({
   },
 });
 
-export default function SystemBanner() {
+export default function SystemBanner(props) {
   const classes = useStyles();
-  const [setting, setSetting] = React.useState({});
-  const [systemType, setSystemType] = React.useState("");
-  const [initialized, setInitialized] = React.useState(false);
   const SYSTEM_TYPE_STRING = "SYSTEM_TYPE";
-  React.useEffect(() => {
-    /*
-     * retrieve setting information
-     */
-    getSettings((data) => {
-      if (data.error) {
-        setInitialized(true);
-        console.log("Failed to retrieve system data", data.error);
-      }
-      setSetting(data);
-      setSystemType(getSystemType());
-      setInitialized(true);
-    });
-  }, [initialized]);
+  const appSettings = props.appSettings ? props.appSettings : getAppSettings(); //provide default if none provided
   function getSystemType() {
-    if (!Object.keys(setting)) return "";
-    return setting[SYSTEM_TYPE_STRING];
+    if (props.systemType) return props.systemType;
+    if (!Object.keys(appSettings)) return "";
+    return appSettings[SYSTEM_TYPE_STRING];
   }
   function isNonProduction() {
+    let systemType = getSystemType();
     return systemType && String(systemType.toLowerCase()) !== "production";
   }
+  React.useEffect(() => {
+    //wait for application settings
+  }, [appSettings]);
   return (
     /* display system type for non-production instances */
     <div className={classes.container}>
       {isNonProduction() && (
-        <span>{systemType} version - not for clinical use</span>
+        <span>{getSystemType()} version - not for clinical use</span>
       )}
     </div>
   );
 }
+SystemBanner.propTypes = {
+  systemType: PropTypes.string,
+  appSettings: PropTypes.object
+};
