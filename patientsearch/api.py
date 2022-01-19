@@ -52,7 +52,7 @@ def terminate_session():
             "client_secret": oidc.client_secrets["client_secret"],
             "refresh_token": oidc.get_refresh_token(),
         }
-        requests.post(logout_uri, auth=BearerAuth(token), data=data)
+        requests.post(logout_uri, auth=BearerAuth(token), data=data, timeout=30)
 
     oidc.logout()  # clears local cookie only
     session.clear()
