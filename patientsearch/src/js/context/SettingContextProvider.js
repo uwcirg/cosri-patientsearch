@@ -14,7 +14,11 @@ export default function SettingContextProvider({children}) {
             }
         });
     }, []);
-    return <SettingContext.Provider value={{appSettings}}>{children}</SettingContext.Provider>;
+    return <SettingContext.Provider
+                value={React.useMemo(() => ({appSettings, setAppSettings}), [
+                    appSettings,
+                    setAppSettings
+                ])}>{children}</SettingContext.Provider>;
 }
 SettingContextProvider.propTypes = {
     children: PropTypes.element.isRequired
