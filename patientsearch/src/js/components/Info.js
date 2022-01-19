@@ -1,10 +1,11 @@
 import React from "react";
+import PropTypes from "prop-types";
 import { makeStyles } from "@material-ui/core/styles";
 import Button from "@material-ui/core/Button";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import Typography from "@material-ui/core/Typography";
 import { imageOK } from "./Utility";
-import { useSettingContext } from "../context/SettingContextProvider";
+import { getAppSettings } from "../context/SettingContextProvider";
 import theme from "../context/theme";
 
 const useStyles = makeStyles({
@@ -66,7 +67,7 @@ export default function Info() {
   const classes = useStyles();
   const [loading, setLoading] = React.useState(true);
   const [siteID, setSiteID] = React.useState("");
-  const {appSettings} = useSettingContext();
+  const appSettings = props.appSettings ? props.appSettings : getAppSettings(); //provide default if none provided
   const SYSTEM_TYPE_STRING = "SYSTEM_TYPE";
   const SITE_ID_STRING = "SITE_ID";
 
@@ -79,6 +80,7 @@ export default function Info() {
   }, [appSettings]);
   /* return config variable by key */
   function getConfig(key) {
+    if (props.appSettings) return props.appSettings[key];
     if (!Object.keys(appSettings)) return "";
     return appSettings[key];
   }
@@ -177,3 +179,6 @@ export default function Info() {
     </div>
   );
 }
+Info.propTypes = {
+  appSettings: PropTypes.object
+};

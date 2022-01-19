@@ -1,7 +1,8 @@
 import React from "react";
+import PropTypes from "prop-types";
 import { makeStyles } from "@material-ui/core/styles";
 import { imageOK } from "./Utility";
-import { useSettingContext } from "../context/SettingContextProvider";
+import { getAppSettings } from "../context/SettingContextProvider";
 import theme from "../context/theme";
 
 const useStyles = makeStyles({
@@ -12,15 +13,15 @@ const useStyles = makeStyles({
   },
 });
 
-export default function SiteLogo() {
+export default function SiteLogo(props) {
   const classes = useStyles();
-  const [siteID, setSiteID] = React.useState("");
-  const {appSettings} = useSettingContext();
+  const appSettings = props.appSettings ? props.appSettings : getAppSettings(); //provide default if none provided
   const SITE_ID_STRING = "SITE_ID";
   React.useEffect(() => {
-    setSiteID(getSiteId());
+    //wait for application settings
   }, [appSettings]);
   function getSiteId() {
+    if (props.siteID) return props.siteID;
     if (!Object.keys(appSettings)) return "";
     return appSettings[SITE_ID_STRING];
   }
@@ -51,9 +52,9 @@ export default function SiteLogo() {
 
   return (
     <div className={classes.container}>
-      {siteID && (
+      {getSiteId() && (
         <img
-          src={"/static/" + siteID + "/img/logo.png"}
+          src={"/static/" + getSiteId() + "/img/logo.png"}
           onLoad={handleImageLoaded}
           onError={handleImageLoadError}
         ></img>
@@ -61,3 +62,7 @@ export default function SiteLogo() {
     </div>
   );
 }
+SiteLogo.propTypes = {
+  siteID: PropTypes.string,
+  appSettings: PropTypes.object
+};

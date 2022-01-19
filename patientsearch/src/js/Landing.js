@@ -10,16 +10,16 @@ import theme from "./context/theme";
 import "../styles/app.scss";
 
 // entry point for pre-authenticated access
-render(<React.Fragment>
-    <SettingContextProvider>
-        <ThemeProvider theme={theme}>
-            <CssBaseline />
-            <section className="landing">
-                <Header />
-                <Info />
-                <Version className="version-container" />
-            </section>
-        </ThemeProvider>
-    </SettingContextProvider>
-</React.Fragment>,
-document.getElementById("content"));
+render(
+    <React.Fragment>
+        <SettingContextProvider>
+            <ThemeProvider theme={theme}>
+                <CssBaseline />
+                <section className="landing">
+                    <Header />
+                    <Info />
+                    <Version className="version-container" />
+                </section>
+            </ThemeProvider>
+        </SettingContextProvider>
+    </React.Fragment>, document.getElementById("content"));

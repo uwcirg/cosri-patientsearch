@@ -33,3 +33,19 @@ export function useSettingContext() {
       }
     return context;
 }
+
+/*
+ * helper function to access application setting object
+ */
+export function getAppSettings() {
+    let appSettings = {};
+    let appCtx = null;
+    try {
+        appCtx = useSettingContext();
+        appSettings = appCtx ? appCtx.appSettings : {};
+    } catch(e) {
+        console.log("Error retrieving context ", e);
+        return appSettings;
+    }
+    return appSettings;
+}

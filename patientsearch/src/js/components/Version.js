@@ -2,7 +2,7 @@ import React from "react";
 import PropTypes from "prop-types";
 import { makeStyles } from "@material-ui/core/styles";
 import theme from "../context/theme";
-import { useSettingContext } from "../context/SettingContextProvider";
+import { getAppSettings } from "../context/SettingContextProvider";
 
 const useStyles = makeStyles({
   container: {
@@ -21,10 +21,10 @@ const useStyles = makeStyles({
 
 export default function Version(props) {
   const classes = useStyles();
-  const [version, setVersion] = React.useState("");
   const VERSION_STRING = "VERSION_STRING";
-  const {appSettings} = useSettingContext();
+  const appSettings = props.appSettings ? props.appSettings : getAppSettings(); //provide default if none provided
   const getVersionLink = () => {
+    let version = getVersionString();
     if (!version) return "";
     const arrVersion = version.split("-");
     /*
@@ -46,23 +46,23 @@ export default function Version(props) {
       version
     );
   };
-  React.useEffect(() => {
-    /*
-     * retrieve setting information
-     */
-    setVersion(getVersionString());
-  }, [appSettings]);
   function getVersionString() {
+    if (props.version) return props.version;
     if (!Object.keys(appSettings)) return "";
     return appSettings[VERSION_STRING];
   }
+  React.useEffect(() => {
+    //wait for application settings
+  }, [appSettings]);
   return (
     <div className={props.className ? props.className : classes.container}>
-      {version && <div>Version Number: {getVersionLink()}</div>}
+      {getVersionString() && <div>Version Number: {getVersionLink()}</div>}
     </div>
   );
 }
 
 Version.propTypes = {
+  version: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  appSettings: PropTypes.object,
   className: PropTypes.oneOfType([PropTypes.string, PropTypes.object])
 };
