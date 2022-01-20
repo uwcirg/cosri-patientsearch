@@ -1,5 +1,6 @@
 import React from "react";
 import PropTypes from "prop-types";
+import DOMPurify from "dompurify";
 import { makeStyles } from "@material-ui/core/styles";
 import ClearIcon from "@material-ui/icons/Clear";
 import Delete from "@material-ui/icons/Delete";
@@ -69,7 +70,7 @@ export default function EditButtonGroup(props) {
             <div className="warning-modal-body">
                 <div className="warning-modal-content">
                     <h3>Are you sure you want to remove this entry?</h3>
-                    {props.entryDescription && <div className={classes.description}  dangerouslySetInnerHTML={{ __html: props.entryDescription}}></div>}
+                    {props.entryDescription && <div className={classes.description}  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(props.entryDescription)}}></div>}
                     <div>
                         <Button variant="contained" color="primary" onClick={handleDelete} className={classes.delYesButton}>Yes</Button>
                         <Button variant="outlined" color="primary" onClick={handleDeleteModalClose}>No</Button>
