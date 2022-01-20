@@ -3,6 +3,8 @@ import { makeStyles } from "@material-ui/core/styles";
 import Button from "@material-ui/core/Button";
 import Modal from "@material-ui/core/Modal";
 import { sendRequest } from "./Utility";
+import theme from "../context/theme";
+import { getAppSettings } from "../context/SettingContextProvider";
 
 function getModalStyle() {
   const top = 50;
@@ -23,6 +25,16 @@ const useStyles = makeStyles((theme) => ({
     boxShadow: theme.shadows[5],
     padding: theme.spacing(2, 4, 3),
   },
+  infoDescription: {
+    color: theme.palette.primary.warning,
+    marginTop: theme.spacing(1),
+    marginBottom: theme.spacing(2),
+    fontWeight: 500
+  },
+  expiredDisplay: {
+    fontWeight: 500,
+    marginLeft: theme.spacing(0.5)
+  }
 }));
 
 let expiredIntervalId = 0;
@@ -30,10 +42,12 @@ let expiresIn = null;
 let refresh = false;
 
 export default function TimeoutModal() {
-  const classes = useStyles();
+  const classes = useStyles(theme);
   const [modalStyle] = React.useState(getModalStyle);
   const [open, setOpen] = React.useState(false);
+  const [disabled, setDisabled] = React.useState(false);
   const trackInterval = 15000;
+  const appSettings = getAppSettings();
 
   const clearExpiredIntervalId = () => {
     clearInterval(expiredIntervalId);
@@ -81,6 +95,10 @@ export default function TimeoutModal() {
               return;
             }
             if (tokenAboutToExpire) {
+              if (!refreshTokenOnVentilator && disabled) {
+                //automatically refresh the session IF access token is about to expire AND refresh token has not expired yet
+                setTimeout(() => reLoad(), 5000);
+              }
               cleanUpModal();
               if (!open) handleOpen();
             }
@@ -158,23 +176,26 @@ export default function TimeoutModal() {
           <span className="error">Your current session has expired.</span>
         )}
         {expiresIn && expiresIn != 0 && (
-          <span>
-            Your session will expired in approximately{" "}
-            {getExpiresInDisplay(expiresIn)}.
-          </span>
+          <React.Fragment>
+            <span>
+              Your session will expired in approximately
+              <span className={classes.expiredDisplay}>{getExpiresInDisplay(expiresIn)}</span>.
+            </span>
+            {disabled && <div className={classes.infoDescription}>One moment while your browser session is being refreshed....</div>}
+          </React.Fragment>
         )}
         <div className="buttons-container">
           {/*
            * access token about to expire so ask user if they want to refresh session
            * NOTE this button won't show if refresh token is about to expire, i.e. SSO Session Max has been reached
            */}
-          {refresh && (
+          {!disabled && refresh && (
             <Button variant="outlined" onClick={reLoad}>
               Refresh Session
             </Button>
           )}
           <Button variant="outlined" onClick={handleClose}>
-            OK
+            Dismiss
           </Button>
           <Button variant="outlined" onClick={() => handleLogout(true)}>
             Log Out
@@ -184,13 +205,13 @@ export default function TimeoutModal() {
       <TimeoutModal />
     </div>
   );
-
   useEffect(() => {
+    setDisabled(appSettings["ENABLE_INACTIVITY_TIMEOUT"]?false:true);
     initTimeoutTracking();
     return () => {
       clearExpiredIntervalId();
     };
-  }, []);
+  }, [appSettings]);
 
   return (
     <div>
