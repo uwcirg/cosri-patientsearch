@@ -51,7 +51,7 @@ export default function SiteLogo(props) {
   }
   const getSiteImagePath = () => {
     return "/static/" + getSiteId() + "/img/logo.png";
-  }
+  };
 
   return (
     <div className={classes.container}>
