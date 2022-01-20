@@ -27,6 +27,7 @@
     "classnames": "^2.3.1",
     "clsx": "^1.1.0",
     "date-fns": "^2.27.0",
+    "dompurify": "^2.3.4",
     "es6-promise": "^4.2.8",
     "material-table": "^1.69.3",
     "react": "^16.14.0",

@@ -49,12 +49,15 @@ export default function SiteLogo(props) {
       return;
     }
   }
+  const getSiteImagePath = () => {
+    return "/static/" + getSiteId() + "/img/logo.png";
+  }
 
   return (
     <div className={classes.container}>
       {getSiteId() && (
         <img
-          src={"/static/" + getSiteId() + "/img/logo.png"}
+          src={getSiteImagePath()}
           onLoad={handleImageLoaded}
           onError={handleImageLoadError}
         ></img>
