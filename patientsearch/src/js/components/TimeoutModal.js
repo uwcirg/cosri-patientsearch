@@ -177,11 +177,14 @@ export default function TimeoutModal() {
         )}
         {expiresIn && expiresIn != 0 && (
           <React.Fragment>
-            <span>
+            {!disabled && <span>
               Your session will expired in approximately
               <span className={classes.expiredDisplay}>{getExpiresInDisplay(expiresIn)}</span>.
-            </span>
-            {disabled && <div className={classes.infoDescription}>One moment while your browser session is being refreshed....</div>}
+            </span>}
+            {disabled && <div>
+              <div>Your session is about to expired.</div>
+              <div className={classes.infoDescription}>One moment while your browser session is being refreshed....</div>
+            </div>}
           </React.Fragment>
         )}
         <div className="buttons-container">
