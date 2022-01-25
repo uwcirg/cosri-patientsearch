@@ -1,5 +1,6 @@
 import React from "react";
 import PropTypes from "prop-types";
+import DOMPurify from "dompurify";
 import { makeStyles } from "@material-ui/core/styles";
 import Button from "@material-ui/core/Button";
 import CircularProgress from "@material-ui/core/CircularProgress";
@@ -141,7 +142,7 @@ export default function Info(props) {
         <div className={classes.container}>
           {/* intro text, e.g. HTML block 1 */}
           <div className={classes.introText}>
-            <div dangerouslySetInnerHTML={{ __html: getIntroText() }}></div>
+            <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(getIntroText()) }}></div>
           </div>
           {/* logo image */}
           {siteID && (
@@ -171,7 +172,7 @@ export default function Info(props) {
               align="center"
               className={classes.title}
             >
-              <div dangerouslySetInnerHTML={{ __html: getBodyText() }}></div>
+              <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(getBodyText()) }}></div>
             </Typography>
           </div>
         </div>
