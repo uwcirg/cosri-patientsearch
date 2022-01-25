@@ -39,7 +39,7 @@ export default function Version(props) {
       ? `https://github.com/uwcirg/cosri-environments/releases/tag/${version}`
       : "";
     return link ? (
-      <a href={link} target="_blank" rel="noreferrer">
+      <a href={link} target="_blank" rel="noreferrer" noopener="true">
         {version}
       </a>
     ) : (

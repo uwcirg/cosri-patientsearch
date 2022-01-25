@@ -1,5 +1,6 @@
 import React from "react";
 import PropTypes from "prop-types";
+import DOMPurify from "dompurify";
 import { makeStyles} from "@material-ui/core/styles";
 import DateFnsUtils from "@date-io/date-fns";
 import isValid from "date-fns/isValid";
@@ -19,8 +20,8 @@ import Paper from "@material-ui/core/Paper";
 import Select from "@material-ui/core/Select";
 import Snackbar from "@material-ui/core/Snackbar";
 import Typography from "@material-ui/core/Typography";
-import MuiAlert from "@material-ui/lab/Alert";
 import  {MuiPickersUtilsProvider, KeyboardDatePicker } from "@material-ui/pickers";
+import Alert from "./Alert";
 import EditButtonGroup from "./EditButtonGroup";
 import Error from "./Error";
 import HistoryTable from "./HistoryTable";
@@ -142,9 +143,6 @@ const useStyles = makeStyles({
         position: "relative"
     }
 });
-function Alert(props) {
-    return <MuiAlert elevation={6} variant="filled" {...props} />;
-}
 
 export default function UrineScreen(props) {
     const classes = useStyles();
@@ -624,7 +622,7 @@ export default function UrineScreen(props) {
                         Last Urine Drug Screen
                     </Typography>
                     {historyInitialized && hasHistory() && <div>
-                        {!editMode && <span dangerouslySetInnerHTML={{ __html: displayHistory()}}></span>}
+                        {!editMode && <span dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(displayHistory())}}></span>}
                         {editMode && displayEditHistoryByRow(0)}
                         <EditButtonGroup
                             onEnableEditMode={handleEnableEditMode}
@@ -673,7 +671,7 @@ export default function UrineScreen(props) {
                 </Paper>}
                 {/* feedback snack popup */}
                 <Snackbar open={snackOpen} autoHideDuration={3000} onClose={handleSnackClose}>
-                    <Alert onClose={handleSnackClose} severity="success">Request processed successfully.</Alert>
+                    <Alert onClose={handleSnackClose} severity="success" message="Request processed successfully."></Alert>
                 </Snackbar>
                 {/* error message UI */}
                 <div className={classes.errorContainer}>

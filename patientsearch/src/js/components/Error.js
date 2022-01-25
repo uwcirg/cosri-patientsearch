@@ -1,12 +1,7 @@
 import React from "react";
 import PropTypes from "prop-types";
-import renderHTML from "react-render-html";
-import MuiAlert from "@material-ui/lab/Alert";
 import { makeStyles } from "@material-ui/core/styles";
-
-function Alert(props) {
-  return <MuiAlert elevation={6} variant="filled" {...props} />;
-}
+import Alert from "./Alert";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -27,9 +22,7 @@ export default function ErrorMessage(props) {
   const classes = useStyles();
   return (
     <div className={classes.root} style={props.style}>
-      <Alert severity="error">
-        {props.message && renderHTML(props.message)}
-      </Alert>
+      <Alert severity="error" message={props.message}></Alert>
     </div>
   );
 }
