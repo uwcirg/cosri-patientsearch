@@ -182,8 +182,8 @@ export default function TimeoutModal() {
               <span className={classes.expiredDisplay}>{getExpiresInDisplay(expiresIn)}</span>.
             </span>}
             {disabled && <div>
-              <div>Your session is about to expired.</div>
-              <div className={classes.infoDescription}>One moment while your browser session is being refreshed....</div>
+              <div>Your session is about to expire.</div>
+              <div className={classes.infoDescription}>One moment while your browser session is refreshed....</div>
             </div>}
           </React.Fragment>
         )}
@@ -209,11 +209,9 @@ export default function TimeoutModal() {
     </div>
   );
   useEffect(() => {
+    clearExpiredIntervalId();
     setDisabled(appSettings["ENABLE_INACTIVITY_TIMEOUT"]?false:true);
     initTimeoutTracking();
-    return () => {
-      clearExpiredIntervalId();
-    };
   }, [appSettings]);
 
   return (
