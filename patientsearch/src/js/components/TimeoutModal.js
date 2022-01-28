@@ -119,7 +119,7 @@ export default function TimeoutModal() {
         clearExpiredIntervalId();
         console.log(
           "Failed to retrieve token data",
-          error ? error.statusText : ""
+          error && error.status ? "status " + error.status : ""
         );
       }
     );
@@ -140,6 +140,10 @@ export default function TimeoutModal() {
     clearExpiredIntervalId();
     setOpen(false);
   };
+
+  const goHome = () => {
+    window.location = "/";
+  }
 
   const reLoad = () => {
     handleClose();
