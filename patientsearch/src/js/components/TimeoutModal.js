@@ -123,7 +123,10 @@ export default function TimeoutModal() {
           error && error.status ? "status " + error.status : ""
         );
         //try again?
-        initTimeoutTracking();
+        if (retryAttempts < 2) {
+          initTimeoutTracking();
+          retryAttempts++;
+        } else clearExpiredIntervalId();
       }
     );
   };
@@ -214,10 +217,7 @@ export default function TimeoutModal() {
   useEffect(() => {
     clearExpiredIntervalId();
     setDisabled(appSettings["ENABLE_INACTIVITY_TIMEOUT"]?false:true);
-    if (retryAttempts < 2) {
-      initTimeoutTracking();
-      retryAttempts++;
-    } else clearExpiredIntervalId();
+    initTimeoutTracking();
   }, [appSettings]);
 
   return (
