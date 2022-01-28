@@ -141,10 +141,6 @@ export default function TimeoutModal() {
     setOpen(false);
   };
 
-  const goHome = () => {
-    window.location = "/";
-  }
-
   const reLoad = () => {
     handleClose();
     //To force-request a new Access Token (when one is about to expire, but still valid)
