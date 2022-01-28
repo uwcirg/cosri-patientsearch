@@ -40,6 +40,7 @@ const useStyles = makeStyles((theme) => ({
 let expiredIntervalId = 0;
 let expiresIn = null;
 let refresh = false;
+let retryAttempts = 0;
 
 export default function TimeoutModal() {
   const classes = useStyles(theme);
@@ -121,6 +122,8 @@ export default function TimeoutModal() {
           "Failed to retrieve token data",
           error && error.status ? "status " + error.status : ""
         );
+        //try again?
+        initTimeoutTracking();
       }
     );
   };
@@ -211,7 +214,10 @@ export default function TimeoutModal() {
   useEffect(() => {
     clearExpiredIntervalId();
     setDisabled(appSettings["ENABLE_INACTIVITY_TIMEOUT"]?false:true);
-    initTimeoutTracking();
+    if (retryAttempts < 2) {
+      initTimeoutTracking();
+      retryAttempts++;
+    } else clearExpiredIntervalId();
   }, [appSettings]);
 
   return (
