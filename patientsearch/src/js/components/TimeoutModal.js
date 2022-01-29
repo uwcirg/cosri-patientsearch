@@ -73,8 +73,7 @@ export default function TimeoutModal() {
             let refreshTokenExpiresIn = parseFloat(
               tokenData["refresh_expires_in"]
             );
-            let refreshTokenOnVentilator =
-              refreshTokenExpiresIn < accessTokenExpiresIn;
+            let refreshTokenOnVentilator = (refreshTokenExpiresIn === 0) || (refreshTokenExpiresIn < accessTokenExpiresIn);
             //in seconds
             //1. check if refresh token will expire before access token first
             //2. check if access token will expire
