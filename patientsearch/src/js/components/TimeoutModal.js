@@ -127,7 +127,10 @@ export default function TimeoutModal() {
         if (retryAttempts < 2) {
           initTimeoutTracking();
           retryAttempts++;
-        } else clearExpiredIntervalId();
+        } else {
+          retryAttempts = 0;
+          clearExpiredIntervalId();
+        }
       }
     );
   };
