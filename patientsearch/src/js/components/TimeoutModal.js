@@ -95,9 +95,12 @@ export default function TimeoutModal() {
               return;
             }
             if (tokenAboutToExpire) {
-              if (!refreshTokenOnVentilator && disabled) {
+              if (disabled) {
                 //automatically refresh the session IF access token is about to expire AND refresh token has not expired yet
-                setTimeout(() => reLoad(), 5000);
+                setTimeout(() => { 
+                  if (refreshTokenOnVentilator) handleLogout();
+                  else reLoad();
+                }, 5000);
               }
               cleanUpModal();
               if (!open) handleOpen();
@@ -116,7 +119,6 @@ export default function TimeoutModal() {
           handleLogout();
           return;
         }
-        clearExpiredIntervalId();
         console.log(
           "Failed to retrieve token data",
           error && error.status ? "status " + error.status : ""
@@ -188,7 +190,7 @@ export default function TimeoutModal() {
             </span>}
             {disabled && <div>
               <div>Your session is about to expire.</div>
-              <div className={classes.infoDescription}>One moment while your browser session is refreshed....</div>
+              {refresh && <div className={classes.infoDescription}>One moment while your browser session is refreshed....</div>}
             </div>}
           </React.Fragment>
         )}
