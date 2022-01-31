@@ -97,7 +97,7 @@ export default function TimeoutModal() {
             if (tokenAboutToExpire) {
               if (disabled) {
                 //automatically refresh the session IF access token is about to expire AND refresh token has not expired yet
-                setTimeout(() => { 
+                setTimeout(() => {
                   if (refreshTokenOnVentilator) handleLogout();
                   else reLoad();
                 }, 5000);
@@ -107,7 +107,7 @@ export default function TimeoutModal() {
             }
           } catch (e) {
             console.log(`Error occurred parsing token data ${e}`);
-            clearExpiredIntervalId();
+            reTry();
             return;
           }
         }
@@ -123,17 +123,22 @@ export default function TimeoutModal() {
           "Failed to retrieve token data",
           error && error.status ? "status " + error.status : ""
         );
-        //try again?
-        if (retryAttempts < 2) {
-          initTimeoutTracking();
-          retryAttempts++;
-        } else {
-          retryAttempts = 0;
-          clearExpiredIntervalId();
-        }
+        //attempt retry if error
+        reTry();
       }
     );
   };
+
+  const reTry = () => {
+    //try again?
+    if (retryAttempts < 2) {
+      initTimeoutTracking();
+      retryAttempts++;
+      return;
+    }
+    retryAttempts = 0;
+    clearExpiredIntervalId();
+  }
 
   const initTimeoutTracking = () => {
     expiredIntervalId = setInterval(
