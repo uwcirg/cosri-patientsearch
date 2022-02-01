@@ -65,20 +65,20 @@ def HAPI_request(
         headers = {"Cache-Control": "no-cache"}
         try:
             resp = requests.get(
-                url, auth=BearerAuth(token), headers=headers, params=params
+                url, auth=BearerAuth(token), headers=headers, params=params, timeout=30
             )
         except requests.exceptions.ConnectionError as error:
             current_app.logger.exception(error)
             raise RuntimeError("EMR FHIR store inaccessible")
     elif VERB == "POST":
-        resp = requests.post(url, auth=BearerAuth(token), json=resource)
+        resp = requests.post(url, auth=BearerAuth(token), json=resource, timeout=30)
     elif VERB == "PUT":
-        resp = requests.put(url, auth=BearerAuth(token), json=resource)
+        resp = requests.put(url, auth=BearerAuth(token), json=resource, timeout=30)
     elif VERB == "DELETE":
         # Only enable deletion of resource by id
         if not resource_id:
             raise ValueError("'resource_id' required for DELETE")
-        resp = requests.delete(url, auth=BearerAuth(token))
+        resp = requests.delete(url, auth=BearerAuth(token), timeout=30)
     else:
         raise ValueError(f"Invalid HTTP method: {method}")
 
@@ -124,7 +124,7 @@ def external_request(token, resource_type, params):
     search_params = dict(deepcopy(params))  # Necessary on ImmutableMultiDict
     search_params["DEA"] = user.get("DEA")
     url = current_app.config.get("EXTERNAL_FHIR_API") + resource_type
-    resp = requests.get(url, auth=BearerAuth(token), params=search_params)
+    resp = requests.get(url, auth=BearerAuth(token), params=search_params, timeout=30)
     try:
         resp.raise_for_status()
     except requests.exceptions.HTTPError as err:
