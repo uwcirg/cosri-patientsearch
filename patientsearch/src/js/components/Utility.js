@@ -29,7 +29,7 @@ export function sendRequest (url, params) {
 
       // Handle network errors
       req.onerror = function() {
-        reject(Error("Network Error"));
+        reject(req);
       };
 
       // Make the request
