@@ -138,7 +138,7 @@ export default function TimeoutModal() {
     }
     retryAttempts = 0;
     clearExpiredIntervalId();
-  }
+  };
 
   const initTimeoutTracking = () => {
     expiredIntervalId = setInterval(
