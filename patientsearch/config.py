@@ -14,6 +14,8 @@ def load_json_config(potential_json_string):
         return json.loads(potential_json_string)
 
 
+
+ENABLE_INACTIVITY_TIMEOUT = os.getenv("ENABLE_INACTIVITY_TIMEOUT", "true").lower() == "true"
 LANDING_INTRO = os.getenv("LANDING_INTRO", "")
 LANDING_BUTTON_TEXT = os.getenv("LANDING_BUTTON_TEXT", "")
 LANDING_BODY = os.getenv("LANDING_BODY", "")
