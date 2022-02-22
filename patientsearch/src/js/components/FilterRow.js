@@ -56,12 +56,14 @@ export default function FilterRow(props) {
   const [lastName, setLastName] = React.useState("");
   const [date, setDate] = React.useState(null);
   const [dateInput, setDateInput] = React.useState(null);
+  const trimFilterValue = (val) => !val?"":val.trim();
   const handleFirstNameChange = (event) => {
-    setFirstName(event.target.value);
+    let targetValue = trimFilterValue(event.target.value);
+    setFirstName(targetValue);
     props.onFiltersDidChange([
       {
         field: "first_name",
-        value: event.target.value,
+        value: targetValue,
       },
       {
         field: "last_name",
@@ -74,11 +76,12 @@ export default function FilterRow(props) {
     ]);
   };
   const handleLastNameChange = (event) => {
-    setLastName(event.target.value);
+    let targetValue = trimFilterValue(event.target.value);
+    setLastName(targetValue);
     props.onFiltersDidChange([
       {
         field: "last_name",
-        value: event.target.value,
+        value: targetValue,
       },
       {
         field: "first_name",
@@ -94,7 +97,7 @@ export default function FilterRow(props) {
     return firstName || lastName || dateInput;
   };
   const hasCompleteFilters = () => {
-    return firstName && lastName && dateInput;
+    return firstName && lastName && (dateInput && isValid(new Date(dateInput)));
   };
   const getFilterData = () => {
     if (!hasCompleteFilters()) return null;
