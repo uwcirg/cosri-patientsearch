@@ -518,10 +518,9 @@ export default function PatientListTable() {
   function handleNoDataText(filters) {
     let text = "";
     const nonEmptyFilters = getNonEmptyFilters(filters);
-    if (nonEmptyFilters.length > 0 && nonEmptyFilters.length < 3) {
+    if (nonEmptyFilters.length < 3) {
       text = "Try entering all First name, Last name and Birth Date.";
-    }
-    if (nonEmptyFilters.length === 3) {
+    } else if (nonEmptyFilters.length === 3) {
       text = `Click on ${CREATE_BUTTON_LABEL} button to create new patient`;
     }
     setNoDataText(text);
