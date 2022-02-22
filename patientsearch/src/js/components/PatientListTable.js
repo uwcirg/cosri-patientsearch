@@ -515,7 +515,6 @@ export default function PatientListTable() {
   function handleActionLabel(filters) {
     setActionLabel(getNonEmptyFilters(filters).length === 3? CREATE_BUTTON_LABEL: LAUNCH_BUTTON_LABEL);
   }
-
   function handleNoDataText(filters) {
     let text = "";
     const nonEmptyFilters = getNonEmptyFilters(filters);
@@ -685,7 +684,7 @@ export default function PatientListTable() {
     const resetAll = () => {
       resetPaging();
       setInitialized(true);
-    }
+    };
     let apiURL = `/fhir/Patient?_include=Patient:link&_total=accurate&_count=${pageSize}`;
     if (pageNumber > prevPageNumber && nextPageURL) {
       apiURL = nextPageURL;
