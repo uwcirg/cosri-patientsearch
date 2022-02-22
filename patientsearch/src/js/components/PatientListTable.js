@@ -187,10 +187,10 @@ export default function PatientListTable() {
   const [selectedMenuItem, setSelectedMenuItem] = React.useState("");
   const [currentRow, setCurrentRow] = React.useState(null);
   const tableRef = React.useRef();
+  const [actionLabel, setActionLabel] = React.useState(LAUNCH_BUTTON_LABEL);
   const [noDataText, setNoDataText] = React.useState("");
   const LAUNCH_BUTTON_LABEL = "VIEW";
   const CREATE_BUTTON_LABEL = "CREATE";
-  const [actionLabel, setActionLabel] = React.useState(LAUNCH_BUTTON_LABEL);
   const TOOLBAR_ACTION_BUTTON_ID = "toolbarGoButton";
   const MORE_MENU_KEY = "MORE_MENU";
   const menuItems = [
