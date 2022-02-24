@@ -186,10 +186,11 @@ export default function PatientListTable() {
   const [anchorEl, setAnchorEl] = React.useState(false);
   const [selectedMenuItem, setSelectedMenuItem] = React.useState("");
   const [currentRow, setCurrentRow] = React.useState(null);
+  const [actionLabel, setActionLabel] = React.useState(LAUNCH_BUTTON_LABEL);
+  const [noDataText, setNoDataText] = React.useState("");
   const tableRef = React.useRef();
   const LAUNCH_BUTTON_LABEL = "VIEW";
   const CREATE_BUTTON_LABEL = "CREATE";
-  const NO_DATA_ELEMENT_ID = "noDataContainer";
   const TOOLBAR_ACTION_BUTTON_ID = "toolbarGoButton";
   const MORE_MENU_KEY = "MORE_MENU";
   const menuItems = [
@@ -492,11 +493,6 @@ export default function PatientListTable() {
       : data;
   };
 
-  //display body content when table is rendered
-  function setVis() {
-    document.querySelector("body").classList.add("ready");
-  }
-
   function setNoPMPFlag(data) {
     if (!data || !data.length) return false;
     let hasNoPMPRow =
@@ -509,39 +505,32 @@ export default function PatientListTable() {
 
   function containEmptyFilter(filters) {
     if (!filters || !filters.length) return true;
-    return filters.filter(item => item.value !== "" && item.value !== null).length === 0;
+    return getNonEmptyFilters(filters).length === 0;
+  }
+  function getNonEmptyFilters(filters) {
+    if (!filters) return [];
+    return filters.filter(item => item.value && item.value !== "");
   }
 
-  function setToolbarActionButtonVis(filters) {
-    if (!document.querySelector(`#${TOOLBAR_ACTION_BUTTON_ID} span`)) return;
-    if (!containEmptyFilter(filters)) {
-      document.querySelector(`#${TOOLBAR_ACTION_BUTTON_ID} span`).innerText =
-        document.querySelector(`#${NO_DATA_ELEMENT_ID}`)
-          ? CREATE_BUTTON_LABEL
-          : LAUNCH_BUTTON_LABEL;
-      return;
-    }
-    document.querySelector(`#${TOOLBAR_ACTION_BUTTON_ID} span`).innerText =
-      LAUNCH_BUTTON_LABEL;
+  function handleActionLabel(filters) {
+    setActionLabel(getNonEmptyFilters(filters).length === 3? CREATE_BUTTON_LABEL: LAUNCH_BUTTON_LABEL);
   }
-
-  function setNoDataText(filters) {
-    if (!document.querySelector(`#${NO_DATA_ELEMENT_ID}`)) return;
-    let noDataText = "";
-    if (filters && filters.length > 0 && containEmptyFilter(filters)) {
-      noDataText = "Try entering all First name, Last name and Birth Date.";
+  function handleNoDataText(filters) {
+    let text = "";
+    const nonEmptyFilters = getNonEmptyFilters(filters);
+    if (nonEmptyFilters.length < 3) {
+      text = "Try entering all First name, Last name and Birth Date.";
+    } else if (nonEmptyFilters.length === 3) {
+      text = `Click on ${CREATE_BUTTON_LABEL} button to create new patient`;
     }
-    if (!containEmptyFilter(filters)) {
-      noDataText = `Click on ${CREATE_BUTTON_LABEL} button to create new patient`;
-    }
-    document.querySelector(`#${NO_DATA_ELEMENT_ID}`).innerText = noDataText;
+    setNoDataText(text);
   }
 
   function onFiltersDidChange(filters, clearAll) {
     clearTimeout(filterIntervalId);
     filterIntervalId = setTimeout(function () {
-      setNoDataText(filters);
-      setToolbarActionButtonVis(filters);
+      handleNoDataText(filters);
+      handleActionLabel(filters);
       if (filters && filters.length) {
         setCurrentFilters(filters);
         resetPaging();
@@ -693,7 +682,6 @@ export default function PatientListTable() {
     };
     const resetAll = () => {
       resetPaging();
-      setVis();
       setInitialized(true);
     };
     let apiURL = `/fhir/Patient?_include=Patient:link&_total=accurate&_count=${pageSize}`;
@@ -723,7 +711,6 @@ export default function PatientListTable() {
             return;
           }
           setInitialized(true);
-          setVis();
           let responseData = formatData(response.entry);
           setData(responseData || []);
           setNoPMPFlag(responseData);
@@ -814,7 +801,7 @@ export default function PatientListTable() {
             <FilterRow
               onFiltersDidChange={onFiltersDidChange}
               launchFunc={handleSearch}
-              launchButtonLabel={LAUNCH_BUTTON_LABEL}
+              launchButtonLabel={actionLabel}
               launchButtonId={TOOLBAR_ACTION_BUTTON_ID}
             />
           </tbody>
@@ -964,7 +951,7 @@ export default function PatientListTable() {
                     <div id="emptyDataContainer" className={classes.flex}>
                       <div className={classes.warning}>
                         <div>No matching patient found.</div>
-                        <div id={`${NO_DATA_ELEMENT_ID}`}></div>
+                        <div>{noDataText}</div>
                       </div>
                     </div>
                   ),
