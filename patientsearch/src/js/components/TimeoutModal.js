@@ -16,10 +16,6 @@ function getModalStyle() {
   };
 }
 
-function getUniqueId() {
-  return Math.floor(Math.random() * Math.floor(Math.random() * Math.random() * Date.now()));
-}
-
 const useStyles = makeStyles((theme) => ({
   paper: {
     position: "absolute",
@@ -48,6 +44,8 @@ let retryAttempts = 0;
 
 export default function TimeoutModal() {
   const classes = useStyles(theme);
+  //assigned identifier for each tracked session
+  const getUniqueId = () => Math.floor(Math.random() * Math.floor(Math.random() * Math.random() * Date.now()));
   const [modalStyle] = React.useState(getModalStyle);
   const [open, setOpen] = React.useState(false);
   const [disabled, setDisabled] = React.useState(false);
@@ -55,7 +53,6 @@ export default function TimeoutModal() {
   const trackInterval = 15000;
   const appSettings = getAppSettings();
   const LAST_CHECKED_TIME = "FEMR_Session_Last_Checked_Time";
-
 
   const setLastCheckedTime = () => {
     localStorage.setItem(LAST_CHECKED_TIME, Date.now());
@@ -92,8 +89,7 @@ export default function TimeoutModal() {
     const lastCheckedTime = getLastCheckedTime();
     const elapsedTime = lastCheckedTime ? Math.floor((Date.now() - lastCheckedTime) / 1000) : false;
     if (elapsedTime && (elapsedTime > Math.floor(trackInterval / 1000))) {
-      console.log("WTF ? ", elapsedTime)
-      //the last time session validation was checked was more than the tracking interval, could be an indication that computer has gone to sleep, so check API token again
+      // IF the last time that the validity of the current session was checked was more than the tracking interval, it could be an indication that computer has gone to sleep, user gone on another tab, or logged out in another tab, etc., so make a call to the API again to make sure the token still valid
       clearTracker();
       initTimeoutTracking();
       return;
@@ -317,7 +313,6 @@ export default function TimeoutModal() {
   }
   useEffect(() => {
     setDisabled(appSettings["ENABLE_INACTIVITY_TIMEOUT"]?false:true);
-    console.log("disabled ? ", disabled, " app ", appSettings)
     clearTracker();
     initTimeoutTracking();
   }, [appSettings]);
