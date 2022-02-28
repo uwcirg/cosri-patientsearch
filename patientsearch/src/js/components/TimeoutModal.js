@@ -50,7 +50,7 @@ export default function TimeoutModal() {
   const [open, setOpen] = React.useState(false);
   const [disabled, setDisabled] = React.useState(false);
   const [trackerId, setTrackerId] = React.useState(getUniqueId());
-  const trackInterval = 15000;
+  let trackInterval = 15000; //miliseconds
   const appSettings = getAppSettings();
   const LAST_CHECKED_TIME = "FEMR_Session_Last_Checked_Time";
 
@@ -93,9 +93,9 @@ export default function TimeoutModal() {
       // - computer has gone to sleep
       // - user gone on another tab, or
       // - user logged out in another tab, etc.
-      // THEREFORE make a call to the API again to make sure the token still valid
+      // THEREFORE clear previously existing tracker, just reload page here?
       clearTracker();
-      initTimeoutTracking();
+      reLoad();
       return;
     }
 
@@ -121,7 +121,7 @@ export default function TimeoutModal() {
       reTry();
       return;
     }
-    const accessTokenExpiresIn = parseFloat(tokenData["accessTokenLifeTime"]) - currentTime;
+    const accessTokenExpiresIn = parseFloat(tokenData["accessTokenExpiryDateTime"]) - currentTime;
 
     if (accessTokenExpiresIn < 0) {
       //in the past?
@@ -129,9 +129,10 @@ export default function TimeoutModal() {
       return;
     }
 
+    //record check time
     setLastCheckedTime();
 
-    const refreshTokenExpiresIn = parseFloat(tokenData["refreshTokenLifeTime"]) - currentTime;
+    const refreshTokenExpiresIn = parseFloat(tokenData["refreshTokenExpiryDateTime"]) - currentTime;
     const refreshTokenOnVentilator = (!tokenData["valid"] && parseInt(refreshTokenExpiresIn) <= 0) || (refreshTokenExpiresIn < accessTokenExpiresIn);
 
     //in seconds
@@ -172,19 +173,8 @@ export default function TimeoutModal() {
     if (!open) handleOpen();
   };
 
-  const reTry = () => {
-    //try again?
-    if (retryAttempts < 2) {
-      clearTracker();
-      initTimeoutTracking();
-      retryAttempts++;
-      return;
-    }
-    retryAttempts = 0;
-    clearTracker();
-  };
-
   const initTimeoutTracking = () => {
+
     sendRequest("./validate_token").then(
       (response) => {
         if (!response) {
@@ -204,14 +194,17 @@ export default function TimeoutModal() {
         }
         clearTracker();
         const currentTime = Date.now() / 1000;
+        const accessTokenExpiresIn = parseFloat(tokenData["access_expires_in"]);
         //access token lifetime
-        tokenData["accessTokenLifeTime"] = parseFloat(tokenData["access_expires_in"]) + currentTime; //in seconds
+        tokenData["accessTokenExpiryDateTime"] = accessTokenExpiresIn + currentTime; //in seconds
         //refresh token lifetime
-        tokenData["refreshTokenLifeTime"] = parseFloat(tokenData["refresh_expires_in"]) + currentTime; //in seconds
+        tokenData["refreshTokenExpiryDateTime"] = parseFloat(tokenData["refresh_expires_in"]) + currentTime; //in seconds
         //use unique id for each token tracking
         setTrackerId(getUniqueId());
         sessionStorage.setItem(getStorageTrackerId(), JSON.stringify(tokenData));
-        //check token validity based on token lifetime
+        //do an initial check
+        checkSessionValidity();
+        //check token validity based on token lifetime every set interval
         expiredIntervalId = setInterval(
           () => checkSessionValidity(),
           trackInterval
@@ -242,6 +235,18 @@ export default function TimeoutModal() {
   const handleClose = () => {
     clearTracker();
     setOpen(false);
+  };
+
+  const reTry = () => {
+    //try again?
+    if (retryAttempts < 2) {
+      clearTracker();
+      initTimeoutTracking();
+      retryAttempts++;
+      return;
+    }
+    retryAttempts = 0;
+    clearTracker();
   };
 
   const reLoad = () => {
