@@ -78,18 +78,22 @@ export default function TimeoutModal() {
         sessionStorage.removeItem(key);
       }
     });
-  }
+  };
   const clearTracker = () => {
     clearExpiredIntervalId();
     clearStorageTracker();
     clearLastCheckedTime();
-  }
+  };
   const checkSessionValidity = () => {
 
     const lastCheckedTime = getLastCheckedTime();
     const elapsedTime = lastCheckedTime ? Math.floor((Date.now() - lastCheckedTime) / 1000) : false;
     if (elapsedTime && (elapsedTime > Math.floor(trackInterval / 1000))) {
-      // IF the last time that the validity of the current session was checked was more than the tracking interval, it could be an indication that computer has gone to sleep, user gone on another tab, or logged out in another tab, etc., so make a call to the API again to make sure the token still valid
+      // IF the last time that the validity of the current session was checked was more than the tracking interval, it could be an indication that:
+      // - computer has gone to sleep
+      // - user gone on another tab, or
+      // - user logged out in another tab, etc.
+      // THEREFORE make a call to the API again to make sure the token still valid
       clearTracker();
       initTimeoutTracking();
       return;
@@ -114,14 +118,14 @@ export default function TimeoutModal() {
       tokenData = JSON.parse(trackerSessionObj);
     } catch(e) {
       console.log("Unable to parse token data");
-      retry();
+      reTry();
       return;
     }
     const accessTokenExpiresIn = parseFloat(tokenData["accessTokenLifeTime"]) - currentTime;
 
     if (accessTokenExpiresIn < 0) {
       //in the past?
-      retry();
+      reTry();
       return;
     }
 
@@ -267,6 +271,7 @@ export default function TimeoutModal() {
       modalElement.parentNode.removeChild(modalElement);
     }
   };
+
   const body = (
     <div style={modalStyle} className={classes.paper}>
       <h2 id="timeout-modal-title">Session Timeout Notice</h2>
@@ -310,7 +315,8 @@ export default function TimeoutModal() {
 
   const hasAppSettings = () => {
     return appSettings && Object.keys(appSettings).length > 0;
-  }
+  };
+
   useEffect(() => {
     setDisabled(appSettings["ENABLE_INACTIVITY_TIMEOUT"]?false:true);
     clearTracker();
