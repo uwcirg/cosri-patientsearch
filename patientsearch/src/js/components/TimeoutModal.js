@@ -16,6 +16,10 @@ function getModalStyle() {
   };
 }
 
+function getUniqueId() {
+  return Math.floor(Math.random() * Math.floor(Math.random() * Math.random() * Date.now()));
+}
+
 const useStyles = makeStyles((theme) => ({
   paper: {
     position: "absolute",
@@ -47,13 +51,55 @@ export default function TimeoutModal() {
   const [modalStyle] = React.useState(getModalStyle);
   const [open, setOpen] = React.useState(false);
   const [disabled, setDisabled] = React.useState(false);
+  const [trackerId, setTrackerId] = React.useState(getUniqueId());
   const trackInterval = 15000;
   const appSettings = getAppSettings();
+  const LAST_CHECKED_TIME = "FEMR_Session_Last_Checked_Time";
 
+
+  const setLastCheckedTime = () => {
+    localStorage.setItem(LAST_CHECKED_TIME, Date.now());
+  };
+  const getLastCheckedTime = () => {
+    if (!localStorage.getItem(LAST_CHECKED_TIME)) return false;
+    return parseFloat(localStorage.getItem(LAST_CHECKED_TIME));
+  };
+  const clearLastCheckedTime = () => {
+    localStorage.removeItem(LAST_CHECKED_TIME);
+  };
   const clearExpiredIntervalId = () => {
     clearInterval(expiredIntervalId);
   };
+  const getStorageTrackerId = () => {
+    return "token_tracker_"+trackerId;
+  };
+  const clearStorageTracker = () => {
+    const storageKeys = Object.keys(sessionStorage);
+    if (!storageKeys.length) return;
+    storageKeys.forEach(key => {
+      if (key.includes("token_tracker")) {
+        sessionStorage.removeItem(key);
+      }
+    });
+  }
+  const clearTracker = () => {
+    clearExpiredIntervalId();
+    clearStorageTracker();
+    clearLastCheckedTime();
+  }
   const checkSessionValidity = () => {
+
+    const lastCheckedTime = getLastCheckedTime();
+    const elapsedTime = lastCheckedTime ? Math.floor((Date.now() - lastCheckedTime) / 1000) : false;
+    if (elapsedTime && (elapsedTime > Math.floor(trackInterval / 1000))) {
+      console.log("WTF ? ", elapsedTime)
+      //the last time session validation was checked was more than the tracking interval, could be an indication that computer has gone to sleep, so check API token again
+      clearTracker();
+      initTimeoutTracking();
+      return;
+    }
+
+    const currentTime = Date.now() / 1000; //in seconds;
     /*
      * when the expires in is less than the next track interval, the session will have expired, so just logout user
      */
@@ -61,57 +107,117 @@ export default function TimeoutModal() {
       handleLogout();
       return;
     }
+    const trackerSessionObj = sessionStorage.getItem(getStorageTrackerId());
+    if (!trackerSessionObj) {
+      console.log("No session storage item for tracking token validity available");
+      reTry();
+      return;
+    }
+    let tokenData = null;
+    try {
+      tokenData = JSON.parse(trackerSessionObj);
+    } catch(e) {
+      console.log("Unable to parse token data");
+      retry();
+      return;
+    }
+    const accessTokenExpiresIn = parseFloat(tokenData["accessTokenLifeTime"]) - currentTime;
+
+    if (accessTokenExpiresIn < 0) {
+      //in the past?
+      retry();
+      return;
+    }
+
+    setLastCheckedTime();
+
+    const refreshTokenExpiresIn = parseFloat(tokenData["refreshTokenLifeTime"]) - currentTime;
+    const refreshTokenOnVentilator = (!tokenData["valid"] && parseInt(refreshTokenExpiresIn) <= 0) || (refreshTokenExpiresIn < accessTokenExpiresIn);
+
+    //in seconds
+    //1. check if refresh token will expire before access token first
+    //2. check if access token will expire
+    expiresIn = refreshTokenOnVentilator
+      ? refreshTokenExpiresIn
+      : accessTokenExpiresIn;
+
+    if (hasAppSettings() && appSettings["SYSTEM_TYPE"].toLowerCase() === "development") {
+      console.log("Session will expire in? ", expiresIn);
+    }
+    let tokenAboutToExpire =
+      Math.floor(expiresIn) >= 1 && Math.floor(expiresIn) <= 60;
+    //flag for whether to prompt the user to refresh session, i.e. request another access token
+    refresh =
+      tokenAboutToExpire && !refreshTokenOnVentilator ? true : false;
+
+    if (!tokenData["valid"] || expiresIn <= 1) {
+      if (refreshTokenOnVentilator) {
+        handleLogout();
+      } else {
+        reLoad();
+      }
+      return;
+    }
+    if (!tokenAboutToExpire) {
+      return;
+    }
+    if (disabled) {
+      //automatically refresh the session IF access token is about to expire AND refresh token has not expired yet
+      setTimeout(() => {
+        if (refreshTokenOnVentilator) handleLogout();
+        else reLoad();
+      }, 3000);
+    }
+    cleanUpModal();
+    if (!open) handleOpen();
+  };
+
+  const reTry = () => {
+    //try again?
+    if (retryAttempts < 2) {
+      clearTracker();
+      initTimeoutTracking();
+      retryAttempts++;
+      return;
+    }
+    retryAttempts = 0;
+    clearTracker();
+  };
+
+  const initTimeoutTracking = () => {
     sendRequest("./validate_token").then(
       (response) => {
-        if (response) {
-          let tokenData = null;
-          try {
-            tokenData = JSON.parse(response);
-            let accessTokenExpiresIn = parseFloat(
-              tokenData["access_expires_in"]
-            );
-            let refreshTokenExpiresIn = parseFloat(
-              tokenData["refresh_expires_in"]
-            );
-            let refreshTokenOnVentilator = (!tokenData["valid"] && refreshTokenExpiresIn === 0) || (refreshTokenExpiresIn < accessTokenExpiresIn);
-            //in seconds
-            //1. check if refresh token will expire before access token first
-            //2. check if access token will expire
-            expiresIn = refreshTokenOnVentilator
-              ? refreshTokenExpiresIn
-              : accessTokenExpiresIn;
-            let tokenAboutToExpire =
-              Math.floor(expiresIn) >= 1 && Math.floor(expiresIn) <= 60;
-            //flag for whether to prompt the user to refresh session, i.e. request another access token
-            refresh =
-              tokenAboutToExpire && !refreshTokenOnVentilator ? true : false;
-
-            if (!tokenData["valid"] || expiresIn <= 1) {
-              if (refreshTokenOnVentilator) {
-                handleLogout();
-              } else {
-                reLoad();
-              }
-              return;
-            }
-            if (tokenAboutToExpire) {
-              if (disabled) {
-                //automatically refresh the session IF access token is about to expire AND refresh token has not expired yet
-                setTimeout(() => {
-                  if (refreshTokenOnVentilator) handleLogout();
-                  else reLoad();
-                }, 5000);
-              }
-              cleanUpModal();
-              if (!open) handleOpen();
-            }
-          } catch (e) {
-            console.log(`Error occurred parsing token data ${e}`);
-            reTry();
-            return;
-          }
+        if (!response) {
+          reTry();
         }
+        let tokenData = null;
+        try {
+          tokenData = JSON.parse(response);
+        } catch(e) {
+          console.log(`Error occurred parsing token data ${e}`);
+          reTry();
+          return;
+        }
+        if (!tokenData || !Object.keys(tokenData).length) {
+          reTry();
+          return;
+        }
+        clearTracker();
+        const currentTime = Date.now() / 1000;
+        //access token lifetime
+        tokenData["accessTokenLifeTime"] = parseFloat(tokenData["access_expires_in"]) + currentTime; //in seconds
+        //refresh token lifetime
+        tokenData["refreshTokenLifeTime"] = parseFloat(tokenData["refresh_expires_in"]) + currentTime; //in seconds
+        //use unique id for each token tracking
+        setTrackerId(getUniqueId());
+        sessionStorage.setItem(getStorageTrackerId(), JSON.stringify(tokenData));
+        //check token validity based on token lifetime
+        expiredIntervalId = setInterval(
+          () => checkSessionValidity(),
+          trackInterval
+        );
       },
+      //handle error
       (error) => {
         console.log("Error returned ", error);
         if (error && error.status && error.status == 401) {
@@ -129,30 +235,12 @@ export default function TimeoutModal() {
     );
   };
 
-  const reTry = () => {
-    //try again?
-    if (retryAttempts < 2) {
-      initTimeoutTracking();
-      retryAttempts++;
-      return;
-    }
-    retryAttempts = 0;
-    clearExpiredIntervalId();
-  };
-
-  const initTimeoutTracking = () => {
-    expiredIntervalId = setInterval(
-      () => checkSessionValidity(),
-      trackInterval
-    );
-  };
-
   const handleOpen = () => {
     setOpen(true);
   };
 
   const handleClose = () => {
-    clearExpiredIntervalId();
+    clearTracker();
     setOpen(false);
   };
 
@@ -163,7 +251,7 @@ export default function TimeoutModal() {
   };
 
   const handleLogout = (userInitiated) => {
-    clearExpiredIntervalId();
+    clearTracker();
     sessionStorage.clear();
     let param = userInitiated ? "user_initiated=true" : "timeout=true";
     setTimeout(() => {
@@ -223,9 +311,14 @@ export default function TimeoutModal() {
       <TimeoutModal />
     </div>
   );
+
+  const hasAppSettings = () => {
+    return appSettings && Object.keys(appSettings).length > 0;
+  }
   useEffect(() => {
-    clearExpiredIntervalId();
     setDisabled(appSettings["ENABLE_INACTIVITY_TIMEOUT"]?false:true);
+    console.log("disabled ? ", disabled, " app ", appSettings)
+    clearTracker();
     initTimeoutTracking();
   }, [appSettings]);
 
