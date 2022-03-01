@@ -1,4 +1,4 @@
-import React, { useEffect, useReducer } from "react";
+import React, { useEffect } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import Button from "@material-ui/core/Button";
 import Modal from "@material-ui/core/Modal";
@@ -245,7 +245,7 @@ export default function TimeoutModal() {
   const openModal = () => {
     cleanUpModal();
     if (!open) handleOpen();
-  }
+  };
 
   const reTry = () => {
     //try again?
