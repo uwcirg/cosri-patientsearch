@@ -88,7 +88,7 @@ export default function TimeoutModal() {
 
     const lastCheckedTime = getLastCheckedTime();
     const elapsedTime = lastCheckedTime ? Math.floor((Date.now() - lastCheckedTime) / 1000) : false;
-    if (elapsedTime && (elapsedTime > Math.floor(trackInterval / 1000))) {
+    if (elapsedTime && (elapsedTime - Math.floor(trackInterval / 1000)) > 1) {
       // IF the last time that the validity of the current session was checked was more than the tracking interval, it could be an indication that:
       // - computer has gone to sleep
       // - user gone on another tab, or
