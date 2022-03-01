@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useReducer } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import Button from "@material-ui/core/Button";
 import Modal from "@material-ui/core/Modal";
@@ -49,32 +49,33 @@ export default function TimeoutModal() {
   const [modalStyle] = React.useState(getModalStyle);
   const [open, setOpen] = React.useState(false);
   const [disabled, setDisabled] = React.useState(false);
-  const [trackerId, setTrackerId] = React.useState(getUniqueId());
-  let trackInterval = 15000; //miliseconds
+  const [trackerId, setTrackerId] = React.useState(null);
+  const trackInterval = 15000; //miliseconds
   const appSettings = getAppSettings();
   const LAST_CHECKED_TIME = "FEMR_Session_Last_Checked_Time";
+  const TOKEN_KEY = "FEMR_TOKEN_";
 
-  const setLastCheckedTime = () => {
-    localStorage.setItem(LAST_CHECKED_TIME, Date.now());
-  };
-  const getLastCheckedTime = () => {
-    if (!localStorage.getItem(LAST_CHECKED_TIME)) return false;
-    return parseFloat(localStorage.getItem(LAST_CHECKED_TIME));
-  };
-  const clearLastCheckedTime = () => {
-    localStorage.removeItem(LAST_CHECKED_TIME);
-  };
   const clearExpiredIntervalId = () => {
     clearInterval(expiredIntervalId);
   };
   const getStorageTrackerId = () => {
-    return "token_tracker_"+trackerId;
+    return TOKEN_KEY+trackerId;
+  };
+  const getStorageTracker = () => {
+    const o = sessionStorage.getItem(getStorageTrackerId());
+    if (!o) return false;
+    return JSON.parse(o);
+  };
+  const setStorageTracker = (tokenData) => {
+    if (!tokenData) return;
+    if (!trackerId) setTrackerId(getUniqueId());
+    sessionStorage.setItem(getStorageTrackerId(), JSON.stringify(tokenData));
   };
   const clearStorageTracker = () => {
     const storageKeys = Object.keys(sessionStorage);
     if (!storageKeys.length) return;
     storageKeys.forEach(key => {
-      if (key.includes("token_tracker")) {
+      if (key.includes(TOKEN_KEY)) {
         sessionStorage.removeItem(key);
       }
     });
@@ -82,45 +83,42 @@ export default function TimeoutModal() {
   const clearTracker = () => {
     clearExpiredIntervalId();
     clearStorageTracker();
-    clearLastCheckedTime();
+    setTrackerId(null);
   };
   const checkSessionValidity = () => {
 
-    const lastCheckedTime = getLastCheckedTime();
-    const elapsedTime = lastCheckedTime ? Math.floor((Date.now() - lastCheckedTime) / 1000) : false;
-    if (elapsedTime && (elapsedTime - Math.floor(trackInterval / 1000)) > 1) {
-      // IF the last time that the validity of the current session was checked was more than the tracking interval, it could be an indication that:
-      // - computer has gone to sleep
-      // - user gone on another tab, or
-      // - user logged out in another tab, etc.
-      // THEREFORE clear previously existing tracker, just reload page here?
-      clearTracker();
-      reLoad();
+    const defaultInterval = Math.floor(trackInterval / 1000); //in seconds
+
+    /*
+     * when the expires in is less than the next track interval, the session is about to expire
+     */
+    if (expiresIn && expiresIn > 0 && expiresIn <= defaultInterval) {
+      openModal();
       return;
     }
 
-    const currentTime = Date.now() / 1000; //in seconds;
-    /*
-     * when the expires in is less than the next track interval, the session will have expired, so just logout user
-     */
-    if (expiresIn && expiresIn > 0 && expiresIn <= trackInterval / 1000) {
-      handleLogout();
-      return;
-    }
-    const trackerSessionObj = sessionStorage.getItem(getStorageTrackerId());
-    if (!trackerSessionObj) {
-      console.log("No session storage item for tracking token validity available");
-      reTry();
-      return;
-    }
     let tokenData = null;
     try {
-      tokenData = JSON.parse(trackerSessionObj);
+      tokenData = getStorageTracker();
     } catch(e) {
       console.log("Unable to parse token data");
       reTry();
       return;
     }
+    const currentTime = Date.now() / 1000; //in seconds;
+    const lastCheckedTime = tokenData[LAST_CHECKED_TIME] ? parseFloat(tokenData[LAST_CHECKED_TIME]) / 1000 : false; //in seconds
+    const elapsedTime = lastCheckedTime ? Math.floor(currentTime - lastCheckedTime) : false;
+    if (elapsedTime && (elapsedTime - defaultInterval) > 60) {
+      // IF the last time that the validity of the current session was checked was more than the tracking interval, it could be an indication that:
+      // - computer has gone to sleep
+      // - user gone on another tab, or
+      // - user logged out in another tab, etc.
+      // THEREFORE re-initialize a new tracking
+      clearTracker();
+      reTry();
+      return;
+    }
+
     const accessTokenExpiresIn = parseFloat(tokenData["accessTokenExpiryDateTime"]) - currentTime;
 
     if (accessTokenExpiresIn < 0) {
@@ -130,7 +128,8 @@ export default function TimeoutModal() {
     }
 
     //record check time
-    setLastCheckedTime();
+    tokenData[LAST_CHECKED_TIME] = Date.now();
+    setStorageTracker(tokenData);
 
     const refreshTokenExpiresIn = parseFloat(tokenData["refreshTokenExpiryDateTime"]) - currentTime;
     const refreshTokenOnVentilator = (!tokenData["valid"] && parseInt(refreshTokenExpiresIn) <= 0) || (refreshTokenExpiresIn < accessTokenExpiresIn);
@@ -169,8 +168,7 @@ export default function TimeoutModal() {
         else reLoad();
       }, 3000);
     }
-    cleanUpModal();
-    if (!open) handleOpen();
+    openModal();
   };
 
   const initTimeoutTracking = () => {
@@ -199,9 +197,9 @@ export default function TimeoutModal() {
         tokenData["accessTokenExpiryDateTime"] = accessTokenExpiresIn + currentTime; //in seconds
         //refresh token lifetime
         tokenData["refreshTokenExpiryDateTime"] = parseFloat(tokenData["refresh_expires_in"]) + currentTime; //in seconds
+        tokenData[LAST_CHECKED_TIME] = Date.now();
         //use unique id for each token tracking
-        setTrackerId(getUniqueId());
-        sessionStorage.setItem(getStorageTrackerId(), JSON.stringify(tokenData));
+        setStorageTracker(tokenData);
         //do an initial check
         checkSessionValidity();
         //check token validity based on token lifetime every set interval
@@ -237,6 +235,18 @@ export default function TimeoutModal() {
     setOpen(false);
   };
 
+  const cleanUpModal = () => {
+    let modalElement = document.querySelector(".timeout-modal");
+    if (modalElement) {
+      modalElement.parentNode.removeChild(modalElement);
+    }
+  };
+
+  const openModal = () => {
+    cleanUpModal();
+    if (!open) handleOpen();
+  }
+
   const reTry = () => {
     //try again?
     if (retryAttempts < 2) {
@@ -268,13 +278,6 @@ export default function TimeoutModal() {
   const getExpiresInDisplay = (expiresIn) => {
     if (!expiresIn) return "";
     return `${Math.floor(expiresIn)} seconds`;
-  };
-
-  const cleanUpModal = () => {
-    let modalElement = document.querySelector(".timeout-modal");
-    if (modalElement) {
-      modalElement.parentNode.removeChild(modalElement);
-    }
   };
 
   const body = (
