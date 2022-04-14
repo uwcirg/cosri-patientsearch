@@ -75,7 +75,22 @@ def validate_auth():
             "Please refresh your browser to enter your user name and password "
             "to log back in."
         )
-    return token
+
+    # Enforce role requirement if set in application config
+    required = current_app.config.get("REQUIRED_ROLES", [])
+    if not required:
+        return token
+
+    dict_token = jwt.decode(
+        token,
+        options={"verify_signature": False, "verify_aud": False},
+    )
+    user_has = dict_token.get('realm_access', {}).get('roles', [])
+    if set(required).intersection(set(user_has)):
+        return token
+
+    current_app.logger.warn(f"User's roles: {user_has}  don't include any from REQUIRED_ROLES: {required}")
+    raise Unauthorized("User lacks adequate 'role'; can't continue")
 
 
 def current_user_info(token):
