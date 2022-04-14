@@ -85,11 +85,13 @@ def validate_auth():
         token,
         options={"verify_signature": False, "verify_aud": False},
     )
-    user_has = dict_token.get('realm_access', {}).get('roles', [])
+    user_has = dict_token.get("realm_access", {}).get("roles", [])
     if set(required).intersection(set(user_has)):
         return token
 
-    current_app.logger.warn(f"User's roles: {user_has}  don't include any from REQUIRED_ROLES: {required}")
+    current_app.logger.warn(
+        f"User's roles: {user_has}  don't include any from REQUIRED_ROLES: {required}"
+    )
     raise Unauthorized("User lacks adequate 'role'; can't continue")
 
 
