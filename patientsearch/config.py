@@ -14,8 +14,9 @@ def load_json_config(potential_json_string):
         return json.loads(potential_json_string)
 
 
-
-ENABLE_INACTIVITY_TIMEOUT = os.getenv("ENABLE_INACTIVITY_TIMEOUT", "true").lower() == "true"
+ENABLE_INACTIVITY_TIMEOUT = (
+    os.getenv("ENABLE_INACTIVITY_TIMEOUT", "true").lower() == "true"
+)
 LANDING_INTRO = os.getenv("LANDING_INTRO", "")
 LANDING_BUTTON_TEXT = os.getenv("LANDING_BUTTON_TEXT", "")
 LANDING_BODY = os.getenv("LANDING_BODY", "")
@@ -49,7 +50,7 @@ LOG_LEVEL = os.environ.get("LOG_LEVEL", "DEBUG").upper()
 
 VERSION_STRING = os.getenv("VERSION_STRING")
 
-EXTERNAL_FHIR_API = os.getenv("EXTERNAL_FHIR_API")
+EXTERNAL_FHIR_API = os.getenv("EXTERNAL_FHIR_API", "")
 MAP_API = os.getenv("MAP_API")
 
 SOF_CLIENT_LAUNCH_URL = os.getenv("SOF_CLIENT_LAUNCH_URL")
