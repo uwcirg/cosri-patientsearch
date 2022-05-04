@@ -41,63 +41,54 @@ let expiredIntervalId = 0;
 let expiresIn = null;
 let refresh = false;
 let retryAttempts = 0;
+let trackerId = 0;
 
 export default function TimeoutModal() {
   const classes = useStyles(theme);
   //assigned identifier for each tracked session
-  const getUniqueId = () => Math.floor(Math.random() * Math.floor(Math.random() * Math.random() * Date.now()));
+  const getUniqueId = () => Math.floor(Math.random() + Math.floor(Math.random() + Math.random() + Date.now()));
   const [modalStyle] = React.useState(getModalStyle);
   const [open, setOpen] = React.useState(false);
   const [disabled, setDisabled] = React.useState(false);
-  const [trackerId, setTrackerId] = React.useState(null);
-  const trackInterval = 15000; //miliseconds
   const appSettings = getAppSettings();
-  const LAST_CHECKED_TIME = "FEMR_Session_Last_Checked_Time";
+  const LAST_CHECKED_TIME = "Last_Checked_Time";
   const TOKEN_KEY = "FEMR_TOKEN_";
+  const RELOAD_STORAGE_KEY=TOKEN_KEY+"RELOAD";
+  const LOGOUT_STORAGE_KEY=TOKEN_KEY+"LOGOUT";
+  const RELOAD_URL = "/clear_session";
+  const LOGOUT_URL = "/logout";
 
   const clearExpiredIntervalId = () => {
     clearInterval(expiredIntervalId);
   };
-  const getStorageTrackerId = () => {
-    return TOKEN_KEY+trackerId;
-  };
   const getStorageTracker = () => {
-    const o = sessionStorage.getItem(getStorageTrackerId());
+    const o = sessionStorage.getItem(trackerId);
     if (!o) return false;
     return JSON.parse(o);
   };
   const setStorageTracker = (tokenData) => {
     if (!tokenData) return;
-    if (!trackerId) setTrackerId(getUniqueId());
-    sessionStorage.setItem(getStorageTrackerId(), JSON.stringify(tokenData));
+    trackerId = TOKEN_KEY+tokenData.id;
+    sessionStorage.setItem(trackerId, JSON.stringify(tokenData));
   };
   const clearStorageTracker = () => {
-    const storageKeys = Object.keys(sessionStorage);
+    const storageKeys = [...Object.keys(sessionStorage), ...Object.keys(localStorage)];
     if (!storageKeys.length) return;
     storageKeys.forEach(key => {
       if (key.includes(TOKEN_KEY)) {
         sessionStorage.removeItem(key);
+        localStorage.removeItem(key);
       }
     });
   };
   const clearTracker = () => {
     clearExpiredIntervalId();
     clearStorageTracker();
-    setTrackerId(null);
+    trackerId = null;
   };
-  const checkSessionValidity = () => {
-
-    const defaultInterval = Math.floor(trackInterval / 1000); //in seconds
-
-    /*
-     * when the expires in is less than the next track interval, the session is about to expire
-     */
-    if (expiresIn && expiresIn > 0 && expiresIn <= defaultInterval) {
-      openModal();
-      return;
-    }
-
+  const checkTokenValidity = () => {
     let tokenData = null;
+
     try {
       tokenData = getStorageTracker();
     } catch(e) {
@@ -105,67 +96,65 @@ export default function TimeoutModal() {
       reTry();
       return;
     }
-    const currentTime = Date.now() / 1000; //in seconds;
-    const lastCheckedTime = tokenData[LAST_CHECKED_TIME] ? parseFloat(tokenData[LAST_CHECKED_TIME]) / 1000 : false; //in seconds
-    const elapsedTime = lastCheckedTime ? Math.floor(currentTime - lastCheckedTime) : false;
-    if (elapsedTime && (elapsedTime - defaultInterval) > 60) {
-      // IF the last time that the validity of the current session was checked was more than the tracking interval, it could be an indication that:
-      // - computer has gone to sleep
-      // - user gone on another tab, or
-      // - user logged out in another tab, etc.
-      // THEREFORE re-initialize a new tracking
-      clearTracker();
-      reTry();
-      return;
-    }
 
-    const accessTokenExpiresIn = parseFloat(tokenData["accessTokenExpiryDateTime"]) - currentTime;
+    if (!tokenData) return false;
 
-    if (accessTokenExpiresIn < 0) {
-      //in the past?
-      reTry();
-      return;
-    }
-
-    //record check time
-    tokenData[LAST_CHECKED_TIME] = Date.now();
-    setStorageTracker(tokenData);
-
-    const refreshTokenExpiresIn = parseFloat(tokenData["refreshTokenExpiryDateTime"]) - currentTime;
+    const accessTokenExpiresIn = parseFloat(tokenData["access_expires_in"]); //in seconds
+    const refreshTokenExpiresIn = parseFloat(tokenData["refresh_expires_in"]); //in seconds
     const refreshTokenOnVentilator = (!tokenData["valid"] && parseInt(refreshTokenExpiresIn) <= 0) || (refreshTokenExpiresIn < accessTokenExpiresIn);
-
-    //in seconds
-    //1. check if refresh token will expire before access token first
-    //2. check if access token will expire
-    expiresIn = refreshTokenOnVentilator
-      ? refreshTokenExpiresIn
-      : accessTokenExpiresIn;
-
+    //get token life time
+    expiresIn = refreshTokenOnVentilator ? refreshTokenExpiresIn : accessTokenExpiresIn; //in seconds
+  
     if (hasAppSettings() && appSettings["SYSTEM_TYPE"].toLowerCase() === "development") {
       console.log("Session will expire in? ", expiresIn);
     }
-    let tokenAboutToExpire =
-      Math.floor(expiresIn) >= 1 && Math.floor(expiresIn) <= 60;
-    //flag for whether to prompt the user to refresh session, i.e. request another access token
-    refresh =
-      tokenAboutToExpire && !refreshTokenOnVentilator ? true : false;
 
-    if (!tokenData["valid"] || expiresIn <= 1) {
-      if (refreshTokenOnVentilator) {
+    console.log("refresh token on ventilator ", refreshTokenOnVentilator)
+    if (refreshTokenOnVentilator) {
+      if (!tokenData["valid"] || refreshTokenExpiresIn <= 1) {
         handleLogout();
-      } else {
-        reLoad();
+        return;
       }
+      reLoad();
       return;
     }
-    if (!tokenAboutToExpire) {
+
+    let lastCheckedTime = tokenData[LAST_CHECKED_TIME] ? parseFloat(tokenData[LAST_CHECKED_TIME]): 0;
+    let elapsedTime = (Date.now() - lastCheckedTime) / 1000; //in seconds
+
+    // console.log("token data ", tokenData)
+    // console.log("Elapsed time? ", elapsedTime);
+
+    const timeRemaining = (expiresIn - elapsedTime);
+    //console.log("Remaining time ", timeRemaining);
+
+    if (timeRemaining < 0) { //in the past?
+      reTry();
+      return;
+    }
+
+    let tokenAboutToExpire = timeRemaining <= 60;
+    //flag for whether to prompt the user to refresh session, i.e. request another access token
+    refresh = tokenAboutToExpire? true : false;
+
+    const minuteBeforeExpire = 60;
+
+    if (!Math.floor(elapsedTime) || !tokenAboutToExpire) {
+      const nextWarningInterval = (timeRemaining - minuteBeforeExpire) > minuteBeforeExpire ?
+                                  Math.floor(timeRemaining - minuteBeforeExpire) :
+                                  timeRemaining / 3;
+      console.log("track interval? ", nextWarningInterval);
+      clearExpiredIntervalId();
+      expiredIntervalId = setInterval(
+        () => checkTokenValidity(),
+        nextWarningInterval * 1000
+      );
       return;
     }
     if (disabled) {
       //automatically refresh the session IF access token is about to expire AND refresh token has not expired yet
       setTimeout(() => {
-        if (refreshTokenOnVentilator) handleLogout();
-        else reLoad();
+        reLoad();
       }, 3000);
     }
     openModal();
@@ -173,9 +162,11 @@ export default function TimeoutModal() {
 
   const initTimeoutTracking = () => {
 
+    clearTracker();
     sendRequest("./validate_token").then(
       (response) => {
         if (!response) {
+          console.log("retry no response")
           reTry();
         }
         let tokenData = null;
@@ -187,26 +178,20 @@ export default function TimeoutModal() {
           return;
         }
         if (!tokenData || !Object.keys(tokenData).length) {
+          console.log("retry no token data")
           reTry();
           return;
         }
-        clearTracker();
-        const currentTime = Date.now() / 1000;
-        const accessTokenExpiresIn = parseFloat(tokenData["access_expires_in"]);
-        //access token lifetime
-        tokenData["accessTokenExpiryDateTime"] = accessTokenExpiresIn + currentTime; //in seconds
-        //refresh token lifetime
-        tokenData["refreshTokenExpiryDateTime"] = parseFloat(tokenData["refresh_expires_in"]) + currentTime; //in seconds
+
         tokenData[LAST_CHECKED_TIME] = Date.now();
+        tokenData["id"] = TOKEN_KEY+getUniqueId();
+
         //use unique id for each token tracking
         setStorageTracker(tokenData);
+
         //do an initial check
-        checkSessionValidity();
-        //check token validity based on token lifetime every set interval
-        expiredIntervalId = setInterval(
-          () => checkSessionValidity(),
-          trackInterval
-        );
+        checkTokenValidity();
+
       },
       //handle error
       (error) => {
@@ -237,8 +222,12 @@ export default function TimeoutModal() {
 
   const cleanUpModal = () => {
     let modalElement = document.querySelector(".timeout-modal");
-    if (modalElement) {
-      modalElement.parentNode.removeChild(modalElement);
+    if (modalElement && modalElement.parentNode) {
+      try {
+        modalElement.parentNode.removeChild(modalElement);
+      } catch(e) {
+        console.log("Error removing modal element ", e);
+      }
     }
   };
 
@@ -252,6 +241,7 @@ export default function TimeoutModal() {
     if (retryAttempts < 2) {
       clearTracker();
       initTimeoutTracking();
+      console.log("retry attempt ", retryAttempts)
       retryAttempts++;
       return;
     }
@@ -261,16 +251,18 @@ export default function TimeoutModal() {
 
   const reLoad = () => {
     handleClose();
+    localStorage.setItem(RELOAD_STORAGE_KEY, true);
     //To force-request a new Access Token (when one is about to expire, but still valid)
-    window.location = "/clear_session";
+    window.location =  RELOAD_URL;
   };
 
   const handleLogout = (userInitiated) => {
     clearTracker();
     sessionStorage.clear();
+    localStorage.setItem(LOGOUT_STORAGE_KEY, true);
     let param = userInitiated ? "user_initiated=true" : "timeout=true";
     setTimeout(() => {
-      window.location = `/logout?${param}`;
+      window.location = `${LOGOUT_URL}?${param}`;
     }, 0);
     return false;
   };
@@ -328,7 +320,9 @@ export default function TimeoutModal() {
   useEffect(() => {
     setDisabled(appSettings["ENABLE_INACTIVITY_TIMEOUT"]?false:true);
     clearTracker();
-    initTimeoutTracking();
+    if (Object.keys(appSettings).length) {
+      initTimeoutTracking();
+    }
   }, [appSettings]);
 
   return (
