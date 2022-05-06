@@ -25,12 +25,12 @@ const AlertMessage = () => {
         }
     }, [appSettings]);
     return <div>{ready && <div className="alert-container"><Alert message={message} elevation={0}></Alert></div>}</div>;
-}
+};
 const getMessage = () => {
     if (getUrlParameter("user_initiated")) return "You have been logged out as requested.";
     if (getUrlParameter("timeout")) return "Your session has expired. For security purposes, we recommend closing your browser window. You can always log back in.";
     return "You have been logged out.";
-}
+};
 // logout entry point
 render(
     <SettingContextProvider>
