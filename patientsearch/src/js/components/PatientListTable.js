@@ -248,7 +248,10 @@ export default function PatientListTable() {
   const setAppSettings = function (settings) {
     appSettings = settings;
   };
-  const getPatientPMPSearchURL = (data) => {
+  const needExternalAPILookup = () => {
+    return appSettings && appSettings["EXTERNAL_FHIR_API"];
+  }
+  const getPatientSearchURL = (data) => {
     if (data.id && data.identifier) return `/fhir/Patient/${data.id}`;
     const dataURL = "/external_search/Patient";
     const params = [
@@ -303,143 +306,78 @@ export default function PatientListTable() {
       window.location = "/home";
     }, 0);
   };
-  const handleSearch = function (event, rowData) {
-    if (!rowData) {
-      console.log("No valid data to perform patient search");
-      return false;
+  const handleLaunchWithLookUp = (rowData, url, urlParamData, noResultErrorMessage, fetchErrorMessage) => {
+    if (!url) {
+      console.log('Unable to proceed.  Patient search url not provided');
+      return;
     }
-    setOpenLoadingModal(true);
-    setErrorMessage("");
-    const urls = [getPatientPMPSearchURL(rowData), "./validate_token"];
-    Promise.allSettled([
-      fetch(urls[0], {
-        ...{
-          method: "PUT",
-          headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json"
-          },
-          body: rowData.resource ? JSON.stringify(rowData.resource) : null
+    noResultErrorMessage = noResultErrorMessage || 'No patient found with matching data';
+    fetchErrorMessage = fetchErrorMessage || 'System is unable to return patient data';
+    fetch(url, {
+      ...{
+        method: "PUT",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
         },
-        ...noCacheParam,
-      }),
-      fetch(urls[1]),
-    ])
-      .then(async ([searchResult, tokenResult]) => {
-        const searchResponse = searchResult.value;
-        const tokenResponse = tokenResult.value;
-
-        //dealing with unauthorized error, status code = 401
-        if (!searchResponse.ok || !tokenResponse.ok) {
-          if (parseInt(searchResponse.status) === 401 ||
-          parseInt(tokenResponse.status) === 401) {
-            //redirect to home
-            handleExpiredSession();
-            throw "Unauthorized";
-          }
-        }
-
-        //fetch returns a simple flag of ok to indicate whether whether an HTTP response’s status code is in the successful range or not
-        if (!searchResponse.ok) {
-          //check if error response is text/html first
-          let responseText =
-            typeof searchResponse.text !== "undefined"
-              ? await searchResponse.text()
-              : "";
-          if (!responseText) {
-            //check if error response is in JSON
-            responseText =
-              typeof searchResponse.json !== "undefined"
-                ? await searchResponse.json()
-                : "";
-          }
-          throw responseText ? responseText : searchResponse.statusText; //throw error so can be caught later
-        }
-        try {
-          return [await searchResponse.json(), await tokenResponse.json()];
-        } catch (e) {
-          console.log(
-            "Error processing patient search and validating token ",
-            e
-          );
-        }
-        return false;
-      })
-      .then((results) => {
-        if (!results || !results.length) {
-          setErrorMessage("Data processing error in [handleSearch]");
-          toTop();
-          setOpenLoadingModal(false);
-          return false;
-        }
-        if (
-          !results[1] ||
-          (results[1] &&
-            (!results[1].valid ||
-              parseInt(results[1].access_expires_in) <= 0 ||
-              parseInt(results[1].refresh_expires_in) <= 0))
-        ) {
-          //invalid token, force redirecting
-          console.log("Redirecting...");
+        body: urlParamData
+      },
+      ...noCacheParam,
+    }).then(searchResponse => {
+      //dealing with unauthorized error, status code = 401
+      if (!searchResponse.ok) {
+        if (parseInt(searchResponse.status) === 401) {
+          //redirect to home
           handleExpiredSession();
-          setOpenLoadingModal(true);
-          return false;
+          throw "Unauthorized";
         }
-        let response = results[0];
-        //response can be an array or just object now
-        if (results[0] && results[0].entry && results[0].entry[0])
-          response = results[0].entry[0];
-        if (!response) {
-          setErrorMessage(
-            "<div>The patient was not found in the PMP. This could be due to:</div><ul><li>No previous controlled substance medications dispensed</li><li>Incorrect spelling of name or incorrect date of birth.</li></ul><div>Please double check name spelling and date of birth.</div>"
-          );
-          toTop();
-          setOpenLoadingModal(false);
-          return false;
-        }
-        try {
-          addDataRow(response);
-        } catch (e) {
-          console.log("Error occurred adding row to table ", e);
-        }
-        setErrorMessage("");
-        let launchURL = "";
-        let launchID = response.id;
-        if (!launchID) {
-          setErrorMessage(
-            "<div>The patient was not found in the PMP. This could be due to:</div><ul><li>No previous controlled substance medications dispensed</li><li>Incorrect spelling of name or incorrect date of birth.</li></ul><div>Please double check name spelling and date of birth.</div>"
-          );
-          toTop();
-          setOpenLoadingModal(false);
-          return false;
-        }
-        try {
-          launchURL = rowData.url || getLaunchURL(launchID);
-        } catch (e) {
-          setErrorMessage(
-            "Unable to launch application. Invalid launch URL. Missing configurations."
-          );
-          toTop();
-          setOpenLoadingModal(false);
-          //log error to console
-          console.log(`Launch URL error: ${e}`);
-          return false;
-        }
-        if (!launchURL) {
-          setErrorMessage(
-            "Unable to launch application. Missing launch URL. Missing configurations."
-          );
-          toTop();
-          setOpenLoadingModal(false);
-          return false;
-        }
-        setTimeout(function () {
-          sessionStorage.clear();
-          window.location = launchURL;
-        }, 50);
-      })
-      .catch((e) => {
-        let returnedError = e;
+        throw searchResponse.statusText;
+      }
+      return searchResponse.json();
+    }).then(result => {
+      let response = result;
+      if (
+        result &&
+        result.entry &&
+        result.entry[0]) {
+          response = result.entry[0];
+      }
+      if (!response) {
+        setErrorMessage(noResultErrorMessage);
+        toTop();
+        setOpenLoadingModal(false);
+        return false;
+      }
+      //add new table row where applicable
+      try {
+        addDataRow(response);
+      } catch (e) {
+        console.log("Error occurred adding row to table ", e);
+      }
+      setErrorMessage("");
+      let launchURL = "";
+      let launchID = response.id;
+      if (!launchID) {
+        setErrorMessage(noResultErrorMessage);
+        toTop();
+        setOpenLoadingModal(false);
+        return false;
+      }
+      launchURL = rowData.url || getLaunchURL(launchID);
+      if (!launchURL) {
+        setErrorMessage(
+          "Unable to launch application. Missing launch URL. Missing configurations."
+        );
+        toTop();
+        setOpenLoadingModal(false);
+        return false;
+      }
+      setTimeout(function () {
+        sessionStorage.clear();
+        window.location = launchURL;
+      }, 50);
+    }).catch(e => {
+      let returnedError = e;
         try {
           returnedError = JSON.parse(e);
           returnedError = returnedError.message
@@ -448,14 +386,88 @@ export default function PatientListTable() {
         } catch (e) {
           console.log("error parsing error message ", e);
         }
-        setErrorMessage(
-          `<p>COSRI is unable to return PMP information. This may be due to PMP system being down or a problem with the COSRI connection to PMP.</p><p>Error returned from the system: ${returnedError}</p>`
-        );
+        setErrorMessage(fetchErrorMessage + `<p>Error returned from the system: ${returnedError}</p>`);
         //log error to console
         console.log(`Patient search error: ${e}`);
         toTop();
         setOpenLoadingModal(false);
-      });
+    });
+  };
+  const handleLaunchPatient = (rowData) => {
+    if (rowData.id) {
+      let existingLaunchURL = getLaunchURL(rowData.id);
+      //just launch APP
+      if (!existingLaunchURL) {
+        setErrorMessage("Unable to launch application. Missing launch URL. Missing configurations.");
+        toTop();
+        setOpenLoadingModal(false);
+        return false;
+      }
+      setTimeout(function () {
+        sessionStorage.clear();
+        window.location = existingLaunchURL;
+      }, 50);
+      return;
+    }
+    //external patient lookup, e.g. PDMP
+    if (needExternalAPILookup()) {
+      handleLaunchWithLookUp(
+        getPatientSearchURL(rowData),
+        rowData.resource ? JSON.stringify(rowData.resource) : null,
+        "<div>The patient was not found in the PMP. This could be due to:</div><ul><li>No previous controlled substance medications dispensed</li><li>Incorrect spelling of name or incorrect date of birth.</li></ul><div>Please double check name spelling and date of birth.</div>",
+        "<p>COSRI is unable to return PMP information. This may be due to PMP system being down or a problem with the COSRI connection to PMP.</p>"
+      );
+      return;
+    }
+    //patient needs to be added before proceeding
+    handleLaunchWithLookUp(
+      `fhir/Patient?given=${rowData.first_name.trim()}&family=${rowData.last_name.trim()}&birthdate=${rowData.dob}`,
+      JSON.stringify({
+        resourceType: "Patient",
+        name: [{
+          "family": rowData.last_name,
+          "given": [rowData.first_name]
+        }],
+        birthDate: rowData.dob
+      }),
+      "Unable to prceed. Patient wasn't added"
+    );
+  };
+  const handleSearch = function (event, rowData) {
+    if (!rowData) {
+      console.log("No valid data to perform patient search");
+      return false;
+    }
+    setOpenLoadingModal(true);
+    setErrorMessage("");
+
+    fetch("./validate_token").then(response => {
+      if (!response.ok) {
+        if (parseInt(tokenResponse.status) === 401) {
+          //redirect to home
+          handleExpiredSession();
+          throw "Unauthorized access";
+        }
+        throw response.statusText; 
+      }
+      return response.json();
+    }).then(tokenData => {
+      if (
+        !tokenData ||
+        (tokenData &&
+          (!tokenData.valid ||
+            parseInt(tokenData.access_expires_in) <= 0 ||
+            parseInt(tokenData.refresh_expires_in) <= 0))
+      ) {
+        //invalid token, force redirecting
+        console.log("Redirecting...");
+        handleExpiredSession();
+        setOpenLoadingModal(true);
+        return false;
+      }
+      //if all well, launch app
+      handleLaunchPatient(rowData);
+    }).catch(e => console.log("Token validation error ", e));
   };
   const formatData = (data) => {
     if (!data) return false;
@@ -554,6 +566,7 @@ export default function PatientListTable() {
 
   function inPDMP(rowData) {
     if (!rowData) return false;
+    if (!needExternalAPILookup()) return true; //no PDMP lookup needed
     return (
       rowData.identifier &&
       rowData.identifier.filter((item) => {
@@ -794,7 +807,7 @@ export default function PatientListTable() {
   return (
     <React.Fragment>
       <Container className={classes.container} id="patientList">
-        <h2>COSRI Patient Search</h2>
+        <h2>Patient Search</h2>
         <Error message={errorMessage} style={errorStyle} />
         <table className={classes.filterTable}>
           <tbody>
@@ -865,7 +878,7 @@ export default function PatientListTable() {
                     </span>
                   ),
                   onClick: (event, rowData) => handleSearch(event, rowData),
-                  tooltip: "Launch COSRI application for the user",
+                  tooltip: "Launch application for the user",
                 },
                 {
                   icon: () => (

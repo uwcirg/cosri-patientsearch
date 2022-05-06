@@ -77,7 +77,8 @@ export default function Info(props) {
      * retrieve setting information
      */
     setSiteID(getConfig(SITE_ID_STRING));
-    setTimeout(() => setLoading(false), 250);
+    if (appSettings)
+      setTimeout(() => setLoading(false), 250);
   }, [appSettings]);
   /* return config variable by key */
   function getConfig(key) {

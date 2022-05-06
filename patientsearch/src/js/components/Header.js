@@ -9,8 +9,8 @@ import HowToRegIcon from "@material-ui/icons/HowToReg";
 import Toolbar from "@material-ui/core/Toolbar";
 import Typography from "@material-ui/core/Typography";
 import SiteLogo from "./SiteLogo";
-import { sendRequest } from "./Utility";
-import logo from "../../assets/logo_horizontal.png";
+import { imageOK, sendRequest } from "./Utility";
+import { getAppSettings } from "../context/SettingContextProvider";
 
 const useStyles = makeStyles((theme) => ({
   toolbar: {
@@ -98,9 +98,40 @@ export default function Header() {
   const classes = useStyles();
   const [userInfo, setUserInfo] = React.useState();
   const [authorized, setAuthorized] = React.useState(false);
+  const [appTitle, setAppTitle] = React.useState("");
+  const [projectName, setProjectName] = React.useState("");
   const hasUserInfo = () => {
     return userInfo && (userInfo.name || userInfo.email);
   };
+  const appSettings = getAppSettings();
+
+  const getLogoURL = () => {
+    if (!projectName) return "";
+    return "/static/app/img/"+projectName+"_logo.png";
+  }
+
+  const handleImageLoaded = (e) => {
+    if (!e.target) {
+      return false;
+    }
+    let imageLoaded = imageOK(e.target);
+    if (!imageLoaded) {
+      e.target.classList.add("invisible");
+      return;
+    }
+    e.target.classList.remove("invisible");
+  }
+
+  const handleImageLoadError = (e) => {
+    if (!e.target) {
+      return false;
+    }
+    let imageLoaded = imageOK(e.target);
+    if (!imageLoaded) {
+      e.target.classList.add("invisible");
+      return;
+    }
+  }
 
   React.useEffect(() => {
     /*
@@ -126,12 +157,19 @@ export default function Header() {
     );
   }, []);
 
+  React.useEffect(() => {
+    if (appSettings && appSettings["APPLICATION_TITLE"]) {
+      setAppTitle(appSettings["APPLICATION_TITLE"]);
+      setProjectName(appSettings["PROJECT_NAME"]);
+    }
+  }, [appSettings]);
+
   const logoutURL = "/logout?user_initiated=true";
 
   return (
     <AppBar position="absolute" className={classes.appBar}>
       <Toolbar className={classes.topBar} disableGutters variant="dense">
-        <img src={logo} alt="Logo" className={classes.logo} />
+        <img src={getLogoURL()} alt="Logo" className={classes.logo} onLoad={handleImageLoaded} onError={handleImageLoadError}/>
         <SiteLogo />
         {authorized && (
           <Box className={classes.welcomeContainer}>
@@ -183,7 +221,7 @@ export default function Header() {
           className={classes.title}
           align="center"
         >
-          Clinical Opioid Summary with Rx Integration
+          {appTitle}
         </Typography>
       </Toolbar>
     </AppBar>

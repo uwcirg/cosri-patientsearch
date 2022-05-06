@@ -33,6 +33,9 @@ html {
 .muted {
   color: $color-muted;
 }
+.invisible {
+  visibility: hidden;
+}
 .ghost {
   display: none;
   z-index: -1;
