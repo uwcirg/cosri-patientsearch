@@ -13,7 +13,7 @@ from flask import (
 from flask.json import JSONEncoder
 import jwt
 import requests
-from werkzeug.exceptions import Unauthorized
+from werkzeug.exceptions import Unauthorized, Forbidden
 
 from patientsearch.audit import audit_entry, audit_HAPI_change
 from patientsearch.models import (
@@ -92,7 +92,7 @@ def validate_auth():
     current_app.logger.warn(
         f"User's roles: {user_has}  don't include any from REQUIRED_ROLES: {required}"
     )
-    raise Unauthorized("User lacks adequate 'role'; can't continue")
+    raise Forbidden("User lacks adequate 'role'; can't continue")
 
 
 def current_user_info(token):
