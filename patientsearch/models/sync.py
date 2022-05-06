@@ -117,6 +117,8 @@ def external_request(token, resource_type, params):
 
     if not resource_type:
         raise ValueError("Required `resource_type` not included")
+    if not current_app.config.get("EXTERNAL_FHIR_API"):
+        raise ValueError("config var EXTERNAL_FHIR_API not defined; can't continue")
 
     user = current_user_info(token)
     if "DEA" not in user:
