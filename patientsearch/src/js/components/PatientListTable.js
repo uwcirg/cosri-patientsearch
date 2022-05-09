@@ -193,6 +193,7 @@ export default function PatientListTable() {
   const CREATE_BUTTON_LABEL = "CREATE";
   const TOOLBAR_ACTION_BUTTON_ID = "toolbarGoButton";
   const MORE_MENU_KEY = "MORE_MENU";
+  const noCacheParam = { cache: "no-cache" };
   const menuItems = [
     {
       text: "Add Urine Tox Screen",
@@ -248,11 +249,33 @@ export default function PatientListTable() {
   const setAppSettings = function (settings) {
     appSettings = settings;
   };
+  const existsIndata = function (rowData) {
+    if (!data) return false;
+    if (!rowData) return false;
+    return (
+      data.filter((item) => {
+        return parseInt(item.id) === parseInt(rowData.id);
+      }).length > 0
+    );
+  };
+  const addDataRow = function (rowData) {
+    if (!rowData || !rowData.id) return false;
+    let newData = formatData(rowData);
+    if (newData && !existsIndata(newData[0])) {
+      setData([newData[0], ...data]);
+    }
+  };
+  const handleExpiredSession = function () {
+    sessionStorage.clear();
+    setTimeout(() => {
+      // /home is a protected endpoint, the backend will request a new Access Token from Keycloak if able, else prompt a user to log in again
+      window.location = "/home";
+    }, 0);
+  };
   const needExternalAPILookup = () => {
     return appSettings && appSettings["EXTERNAL_FHIR_API"];
   }
-  const getPatientSearchURL = (data) => {
-    if (data.id && data.identifier) return `/fhir/Patient/${data.id}`;
+  const getPatientExternalSearchURL = (data) => {
     const dataURL = "/external_search/Patient";
     const params = [
       `subject:Patient.name.given=${data.first_name}`,
@@ -281,38 +304,21 @@ export default function PatientListTable() {
     let launchParam = btoa(JSON.stringify({ b: patientId }));
     return `${baseURL}?launch=${launchParam}&iss=${iss}`;
   };
-  const noCacheParam = { cache: "no-cache" };
-
-  const existsIndata = function (rowData) {
-    if (!data) return false;
-    if (!rowData) return false;
-    return (
-      data.filter((item) => {
-        return parseInt(item.id) === parseInt(rowData.id);
-      }).length > 0
-    );
-  };
-  const addDataRow = function (rowData) {
-    if (!rowData || !rowData.id) return false;
-    let newData = formatData(rowData);
-    if (newData && !existsIndata(newData[0])) {
-      setData([newData[0], ...data]);
-    }
-  };
-  const handleExpiredSession = function () {
-    sessionStorage.clear();
-    setTimeout(() => {
-      // /home is a protected endpoint, the backend will request a new Access Token from Keycloak if able, else prompt a user to log in again
-      window.location = "/home";
-    }, 0);
-  };
+  const handleLaunchError = (message) => {
+    message = message || "Unable to launch application.";
+    setErrorMessage(message);
+    toTop();
+    setOpenLoadingModal(false);
+    console.log("Launch error ", message);
+    return false;
+  }
   const handleLaunchWithLookUp = (rowData, url, urlParamData, noResultErrorMessage, fetchErrorMessage) => {
     if (!url) {
-      console.log('Unable to proceed.  Patient search url not provided');
+      handleLaunchError("Unable to launch application.  Missing URL.");
       return;
     }
     noResultErrorMessage = noResultErrorMessage || 'No patient found with matching data';
-    fetchErrorMessage = fetchErrorMessage || 'System is unable to return patient data';
+    fetchErrorMessage = fetchErrorMessage || 'System is unable to return process data';
     fetch(url, {
       ...{
         method: "PUT",
@@ -343,9 +349,7 @@ export default function PatientListTable() {
           response = result.entry[0];
       }
       if (!response) {
-        setErrorMessage(noResultErrorMessage);
-        toTop();
-        setOpenLoadingModal(false);
+        handleLaunchError(noResultErrorMessage);
         return false;
       }
       //add new table row where applicable
@@ -358,18 +362,12 @@ export default function PatientListTable() {
       let launchURL = "";
       let launchID = response.id;
       if (!launchID) {
-        setErrorMessage(noResultErrorMessage);
-        toTop();
-        setOpenLoadingModal(false);
+        handleLaunchError(noResultErrorMessage);
         return false;
       }
       launchURL = rowData.url || getLaunchURL(launchID);
       if (!launchURL) {
-        setErrorMessage(
-          "Unable to launch application. Missing launch URL. Missing configurations."
-        );
-        toTop();
-        setOpenLoadingModal(false);
+        handleLaunchError("Unable to launch application. Missing launch URL. Missing configurations.");
         return false;
       }
       setTimeout(function () {
@@ -386,87 +384,89 @@ export default function PatientListTable() {
         } catch (e) {
           console.log("error parsing error message ", e);
         }
-        setErrorMessage(fetchErrorMessage + `<p>Error returned from the system: ${returnedError}</p>`);
+        handleLaunchError(fetchErrorMessage + `<p>Error returned from the system: ${returnedError}</p>`);
         //log error to console
         console.log(`Patient search error: ${e}`);
-        toTop();
-        setOpenLoadingModal(false);
     });
   };
-  const handleLaunchPatient = (rowData) => {
-    if (rowData.id) {
-      let existingLaunchURL = getLaunchURL(rowData.id);
-      //just launch APP
-      if (!existingLaunchURL) {
-        setErrorMessage("Unable to launch application. Missing launch URL. Missing configurations.");
-        toTop();
-        setOpenLoadingModal(false);
-        return false;
+  const validateToken = async () => {
+    const response = await fetch("./validate_token");
+    if (!response.ok) {
+      if (parseInt(tokenResponse.status) === 401) {
+        //redirect to home
+        handleExpiredSession();
+        throw "Unauthorized access";
       }
-      setTimeout(function () {
-        sessionStorage.clear();
-        window.location = existingLaunchURL;
-      }, 50);
-      return;
+      throw response.statusText;
     }
-    //external patient lookup, e.g. PDMP
-    if (needExternalAPILookup()) {
-      handleLaunchWithLookUp(
-        getPatientSearchURL(rowData),
-        rowData.resource ? JSON.stringify(rowData.resource) : null,
-        "<div>The patient was not found in the PMP. This could be due to:</div><ul><li>No previous controlled substance medications dispensed</li><li>Incorrect spelling of name or incorrect date of birth.</li></ul><div>Please double check name spelling and date of birth.</div>",
-        "<p>COSRI is unable to return PMP information. This may be due to PMP system being down or a problem with the COSRI connection to PMP.</p>"
-      );
-      return;
+    const tokenData = await response.json();
+    if (
+      !tokenData ||
+      (tokenData &&
+        (!tokenData.valid ||
+          parseInt(tokenData.access_expires_in) <= 0 ||
+          parseInt(tokenData.refresh_expires_in) <= 0))
+    ) {
+      return false;
     }
-    //patient needs to be added before proceeding
-    handleLaunchWithLookUp(
-      `fhir/Patient?given=${rowData.first_name.trim()}&family=${rowData.last_name.trim()}&birthdate=${rowData.dob}`,
-      JSON.stringify({
-        resourceType: "Patient",
-        name: [{
-          "family": rowData.last_name,
-          "given": [rowData.first_name]
-        }],
-        birthDate: rowData.dob
-      }),
-      "Unable to prceed. Patient wasn't added"
-    );
-  };
+    return true;
+
+  }
   const handleSearch = function (event, rowData) {
     if (!rowData) {
-      console.log("No valid data to perform patient search");
+      handleLaunchError("No patient data to proceed.");
       return false;
     }
     setOpenLoadingModal(true);
     setErrorMessage("");
-
-    fetch("./validate_token").then(response => {
-      if (!response.ok) {
-        if (parseInt(tokenResponse.status) === 401) {
-          //redirect to home
-          handleExpiredSession();
-          throw "Unauthorized access";
-        }
-        throw response.statusText; 
-      }
-      return response.json();
-    }).then(tokenData => {
-      if (
-        !tokenData ||
-        (tokenData &&
-          (!tokenData.valid ||
-            parseInt(tokenData.access_expires_in) <= 0 ||
-            parseInt(tokenData.refresh_expires_in) <= 0))
-      ) {
-        //invalid token, force redirecting
+    //check if session token still valid first
+    validateToken().then(isValidToken => {
+      if (!isValidToken) {
         console.log("Redirecting...");
         handleExpiredSession();
         setOpenLoadingModal(true);
         return false;
       }
-      //if all well, launch app
-      handleLaunchPatient(rowData);
+      //if all well, prepare to launch app
+      const allowToLaunch = needExternalAPILookup()? (rowData.id && rowData.identifier) : rowData.id;
+      if (allowToLaunch) {
+        let existingLaunchURL = getLaunchURL(rowData.id);
+        if (!existingLaunchURL) {
+          handleLaunchError("Unable to launch application. Missing launch URL. Missing configurations.");
+          return false;
+        }
+        //just launch APP
+        setTimeout(function () {
+          sessionStorage.clear();
+          window.location = existingLaunchURL;
+        }, 50);
+        return;
+      }
+      //external FHIR API patient lookup, e.g. PDMP
+      if (needExternalAPILookup()) {
+        handleLaunchWithLookUp(
+          rowData,
+          getPatientExternalSearchURL(rowData),
+          rowData.resource ? JSON.stringify(rowData.resource) : null,
+          "<div>The patient was not found in the PMP. This could be due to:</div><ul><li>No previous controlled substance medications dispensed</li><li>Incorrect spelling of name or incorrect date of birth.</li></ul><div>Please double check name spelling and date of birth.</div>",
+          "<p>COSRI is unable to return PMP information. This may be due to PMP system being down or a problem with the COSRI connection to PMP.</p>"
+        );
+        return;
+      }
+      //a new patient needs to be added where applicable before proceeding
+      handleLaunchWithLookUp(
+        rowData,
+        `/fhir/Patient?given=${rowData.first_name.trim()}&family=${rowData.last_name.trim()}&birthdate=${rowData.dob}`,
+        JSON.stringify({
+          resourceType: "Patient",
+          name: [{
+            "family": rowData.last_name,
+            "given": [rowData.first_name]
+          }],
+          birthDate: rowData.dob
+        }),
+        "Unable to proceed. Patient wasn't added"
+      );
     }).catch(e => console.log("Token validation error ", e));
   };
   const formatData = (data) => {
@@ -878,7 +878,7 @@ export default function PatientListTable() {
                     </span>
                   ),
                   onClick: (event, rowData) => handleSearch(event, rowData),
-                  tooltip: "Launch application for the user",
+                  tooltip: `Launch ${appSettings.PROJECT_NAME} application for the user`,
                 },
                 {
                   icon: () => (

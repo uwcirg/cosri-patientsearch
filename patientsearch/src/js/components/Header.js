@@ -212,7 +212,7 @@ export default function Header() {
           </Box>
         )}
       </Toolbar>
-      <Toolbar className={classes.toolbar} disableGutters variant="dense">
+      {appTitle && <Toolbar className={classes.toolbar} disableGutters variant="dense">
         <Typography
           component="h1"
           variant="h5"
@@ -223,7 +223,7 @@ export default function Header() {
         >
           {appTitle}
         </Typography>
-      </Toolbar>
+      </Toolbar>}
     </AppBar>
   );
 }

@@ -214,7 +214,7 @@ export default function FilterRow(props) {
                     aria-label="Clear date"
                     title="Clear date"
                   >
-                    <ClearIcon color="primary" fontSize="small" />
+                    <ClearIcon fontSize="small" />
                   </IconButton>
                 </InputAdornment>
               ),
