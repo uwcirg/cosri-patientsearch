@@ -81,4 +81,5 @@ OIDC_SCOPES = ["email", "openid", "roles"]
 UDS_LAB_TYPES = json.loads(os.getenv("UDS_LAB_TYPES", "[]"))
 APPLICATION_TITLE = os.getenv("APPLICATION_TITLE", "Clinical Opioid Summary with Rx Integration")
 PROJECT_NAME = os.getenv("PROJECT_NAME", "COSRI")
+LAUNCH_INFOS = json.loads(os.getenv("LAUNCH_INFOS", "[]"))
 

@@ -4,6 +4,10 @@ import MaterialTable from "material-table";
 import RefreshIcon from "@material-ui/icons/Refresh";
 import MoreHorizIcon from "@material-ui/icons/MoreHoriz";
 import CircularProgress from "@material-ui/core/CircularProgress";
+import Dialog from '@material-ui/core/Dialog';
+import DialogActions from '@material-ui/core/DialogActions';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogTitle from '@material-ui/core/DialogTitle';
 import Button from "@material-ui/core/Button";
 import Container from "@material-ui/core/Container";
 import Modal from "@material-ui/core/Modal";
@@ -22,7 +26,9 @@ import {
   getLocalDateTimeString,
   getSettings,
   getUrlParameter,
+  handleExpiredSession,
   isString,
+  validateToken
 } from "./Utility";
 
 const useStyles = makeStyles({
@@ -70,6 +76,9 @@ const useStyles = makeStyles({
     justifyContent: "center",
     flexWrap: "wrap",
   },
+  flexButton: {
+    marginRight: theme.spacing(1)
+  },
   modal: {
     display: "flex",
     alignItems: "center",
@@ -89,7 +98,7 @@ const useStyles = makeStyles({
     color: "#FFF",
     fontSize: "12px",
     borderRadius: "4px",
-    width: "120px",
+    minWidth: "72px",
     fontWeight: 600,
     textTransform: "uppercase",
     border: 0,
@@ -165,6 +174,7 @@ export default function PatientListTable() {
   const classes = useStyles();
   const [settingInitialized, setSettingInitialized] = React.useState(false);
   const [initialized, setInitialized] = React.useState(false);
+  const [launchInfos, setLaunchInfos] = React.useState(null);
   const [data, setData] = React.useState([]);
   const defaultFilters = {
     first_name: "",
@@ -181,6 +191,7 @@ export default function PatientListTable() {
   const [nextPageURL, setNextPageURL] = React.useState("");
   const [prevPageURL, setPrevPageURL] = React.useState("");
   const [openLoadingModal, setOpenLoadingModal] = React.useState(false);
+  const [openLaunchInfoModal, setOpenLaunchInfoModal] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState("");
   const [containNoPMPRow, setContainNoPMPRow] = React.useState(false);
   const [anchorEl, setAnchorEl] = React.useState(false);
@@ -265,13 +276,6 @@ export default function PatientListTable() {
       setData([newData[0], ...data]);
     }
   };
-  const handleExpiredSession = function () {
-    sessionStorage.clear();
-    setTimeout(() => {
-      // /home is a protected endpoint, the backend will request a new Access Token from Keycloak if able, else prompt a user to log in again
-      window.location = "/home";
-    }, 0);
-  };
   const needExternalAPILookup = () => {
     return appSettings && appSettings["EXTERNAL_FHIR_API"];
   }
@@ -290,20 +294,48 @@ export default function PatientListTable() {
   const getISS = function () {
     return appSettings["SOF_HOST_FHIR_URL"];
   };
-  const getLaunchURL = function (patientId) {
+  const getLaunchURL = function (patientId, launchParams) {
+    launchParams = launchParams || {};
     if (!patientId) {
       console.log("Missing information: patient Id");
       return "";
     }
-    let baseURL = getLaunchBaseURL();
-    let iss = getISS();
+    let baseURL = launchParams["SOF_CLIENT_LAUNCH_URL"] ? launchParams["SOF_CLIENT_LAUNCH_URL"] : getLaunchBaseURL();
+    let iss = launchParams["SOF_HOST_FHIR_URL"] ? launchParams["SOF_HOST_FHIR_URL"] : getISS();
     if (!baseURL || !iss) {
       console.log("Missing ISS launch base URL");
       return "";
     }
-    let launchParam = btoa(JSON.stringify({ b: patientId }));
-    return `${baseURL}?launch=${launchParam}&iss=${iss}`;
+    let params = btoa(JSON.stringify({ b: patientId }));
+    return `${baseURL}?launch=${params}&iss=${iss}`;
   };
+  const hasMultipleLaunchApps = () => {
+    return launchInfos && launchInfos.length > 1;
+  }
+  const launchAPP = (rowData, launchParams) => {
+
+    setCurrentRow(rowData);
+
+    console.log("has multiple launch apps ? ", hasMultipleLaunchApps())
+    console.log("launch params ", launchParams)
+
+    //handle multiple apps that can be launched
+    if (!launchParams && hasMultipleLaunchApps()) {
+      setOpenLaunchInfoModal(true);
+      setOpenLoadingModal(false);
+      return;
+    }
+
+    let launchURL = getLaunchURL(rowData.id, launchParams);
+    if (!launchURL) {
+      handleLaunchError("Unable to launch application. Missing launch URL. Missing configurations.");
+      return false;
+    }
+    setTimeout(function () {
+      sessionStorage.clear();
+      window.location = launchURL;
+    }, 50);
+  }
   const handleLaunchError = (message) => {
     message = message || "Unable to launch application.";
     setErrorMessage(message);
@@ -312,7 +344,7 @@ export default function PatientListTable() {
     console.log("Launch error ", message);
     return false;
   }
-  const handleLaunchWithLookUp = (rowData, url, urlParamData, noResultErrorMessage, fetchErrorMessage) => {
+  const handleLaunchWithLookUp = (rowData, url, urlParamData, noResultErrorMessage, fetchErrorMessage, launchParams) => {
     if (!url) {
       handleLaunchError("Unable to launch application.  Missing URL.");
       return;
@@ -359,21 +391,11 @@ export default function PatientListTable() {
         console.log("Error occurred adding row to table ", e);
       }
       setErrorMessage("");
-      let launchURL = "";
-      let launchID = response.id;
-      if (!launchID) {
+      if (!response.id) {
         handleLaunchError(noResultErrorMessage);
         return false;
       }
-      launchURL = rowData.url || getLaunchURL(launchID);
-      if (!launchURL) {
-        handleLaunchError("Unable to launch application. Missing launch URL. Missing configurations.");
-        return false;
-      }
-      setTimeout(function () {
-        sessionStorage.clear();
-        window.location = launchURL;
-      }, 50);
+      launchAPP(response, launchParams);
     }).catch(e => {
       let returnedError = e;
         try {
@@ -389,30 +411,7 @@ export default function PatientListTable() {
         console.log(`Patient search error: ${e}`);
     });
   };
-  const validateToken = async () => {
-    const response = await fetch("./validate_token");
-    if (!response.ok) {
-      if (parseInt(tokenResponse.status) === 401) {
-        //redirect to home
-        handleExpiredSession();
-        throw "Unauthorized access";
-      }
-      throw response.statusText;
-    }
-    const tokenData = await response.json();
-    if (
-      !tokenData ||
-      (tokenData &&
-        (!tokenData.valid ||
-          parseInt(tokenData.access_expires_in) <= 0 ||
-          parseInt(tokenData.refresh_expires_in) <= 0))
-    ) {
-      return false;
-    }
-    return true;
-
-  }
-  const handleSearch = function (event, rowData) {
+  const handleSearch = function (event, rowData, launchParams) {
     if (!rowData) {
       handleLaunchError("No patient data to proceed.");
       return false;
@@ -427,19 +426,13 @@ export default function PatientListTable() {
         setOpenLoadingModal(true);
         return false;
       }
+
+      //TODO if there are multiple apps to launch  AND no launch params given, do we present a dialog here?
+
       //if all well, prepare to launch app
       const allowToLaunch = needExternalAPILookup()? (rowData.id && rowData.identifier) : rowData.id;
       if (allowToLaunch) {
-        let existingLaunchURL = getLaunchURL(rowData.id);
-        if (!existingLaunchURL) {
-          handleLaunchError("Unable to launch application. Missing launch URL. Missing configurations.");
-          return false;
-        }
-        //just launch APP
-        setTimeout(function () {
-          sessionStorage.clear();
-          window.location = existingLaunchURL;
-        }, 50);
+        launchAPP(rowData, launchParams);
         return;
       }
       //external FHIR API patient lookup, e.g. PDMP
@@ -449,7 +442,8 @@ export default function PatientListTable() {
           getPatientExternalSearchURL(rowData),
           rowData.resource ? JSON.stringify(rowData.resource) : null,
           "<div>The patient was not found in the PMP. This could be due to:</div><ul><li>No previous controlled substance medications dispensed</li><li>Incorrect spelling of name or incorrect date of birth.</li></ul><div>Please double check name spelling and date of birth.</div>",
-          "<p>COSRI is unable to return PMP information. This may be due to PMP system being down or a problem with the COSRI connection to PMP.</p>"
+          "<p>COSRI is unable to return PMP information. This may be due to PMP system being down or a problem with the COSRI connection to PMP.</p>",
+          launchParams
         );
         return;
       }
@@ -465,7 +459,9 @@ export default function PatientListTable() {
           }],
           birthDate: rowData.dob
         }),
-        "Unable to proceed. Patient wasn't added"
+        "Unable to proceed. Patient wasn't added",
+        "",
+        launchParams
       );
     }).catch(e => console.log("Token validation error ", e));
   };
@@ -488,7 +484,7 @@ export default function PatientListTable() {
                 ? source.name[0]["family"]
                 : "",
             dob: source && source["birthDate"] ? source["birthDate"] : "",
-            url: getLaunchURL(patientId),
+            //url: getLaunchURL(patientId),
             identifier:
               source && source.identifier && source.identifier.length
                 ? source.identifier
@@ -801,6 +797,8 @@ export default function PatientListTable() {
       }
       setSettingInitialized(true);
       setAppSettings(data);
+      console.log("Launch INFO ? ", data["LAUNCH_INFO"])
+      setLaunchInfos(data["LAUNCH_INFOS"]);
     }, true); //no caching
   }, []); //retrieval of settings should occur prior to patient list being rendered/initialized
 
@@ -871,15 +869,29 @@ export default function PatientListTable() {
                 )
               }}
               actions={[
-                {
-                  icon: () => (
-                    <span className={classes.button}>
-                      {LAUNCH_BUTTON_LABEL}
-                    </span>
-                  ),
-                  onClick: (event, rowData) => handleSearch(event, rowData),
-                  tooltip: `Launch ${appSettings.PROJECT_NAME} application for the user`,
-                },
+                ...
+                  launchInfos && launchInfos.length ? 
+                  (launchInfos).map((item,index) => {
+                    return {
+                      icon: () => (
+                        <span className={classes.button} key={`actionButton_${index}`}>
+                          {item.label}
+                        </span>
+                      ),
+                      onClick: (event, rowData) => handleSearch(event, rowData, item),
+                      tooltip: `Launch ${item.id} application for the user`,
+                    };
+                  }) : 
+                  [{
+                    icon: () => (
+                      <span className={classes.button}>
+                        {LAUNCH_BUTTON_LABEL}
+                      </span>
+                    ),
+                    onClick: (event, rowData) => handleSearch(event, rowData),
+                    tooltip: `Launch ${appSettings.PROJECT_NAME} application for the user`,
+                  }]
+                ,
                 {
                   icon: () => (
                     <MoreHorizIcon
@@ -1037,6 +1049,22 @@ export default function PatientListTable() {
             </div>
           </div>
         </Modal>
+        <Dialog open={openLaunchInfoModal} onClose={() => setOpenLaunchInfoModal(false)} aria-labelledby="launch-info-dialog-title">
+          {currentRow && <DialogTitle id="launch-info-dialog-title">{`Launch Application for ${currentRow.last_name}, ${currentRow.first_name}`}</DialogTitle>}
+          <DialogContent>
+              <div className={classes.flex}>
+                { launchInfos && launchInfos.map((item, index) => {
+                  return <Button key={`launchButton_${index}`} color="primary" variant="contained" className={classes.flexButton} onClick={() => launchAPP(currentRow, item)}>{`Go to ${item.id}`}</Button>
+                })
+                }
+              </div>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setOpenLaunchInfoModal(false)} color="primary">
+              Close
+            </Button>
+          </DialogActions>
+        </Dialog>
         <Dropdown
           anchorEl={anchorEl}
           handleMenuClose={handleMenuClose}

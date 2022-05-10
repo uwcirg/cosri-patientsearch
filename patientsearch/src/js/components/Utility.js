@@ -280,3 +280,35 @@ export function padDateString(dateString) {
   let day = pad(arrDate[2]);
   return [year, month, day].join("-");
 }
+
+export  async function validateToken() {
+  const response = await fetch("./validate_token");
+  if (!response.ok) {
+    if (parseInt(tokenResponse.status) === 401) {
+      //redirect to home
+      handleExpiredSession();
+      throw "Unauthorized access";
+    }
+    throw response.statusText;
+  }
+  const tokenData = await response.json();
+  if (
+    !tokenData ||
+    (tokenData &&
+      (!tokenData.valid ||
+        parseInt(tokenData.access_expires_in) <= 0 ||
+        parseInt(tokenData.refresh_expires_in) <= 0))
+  ) {
+    return false;
+  }
+  return true;
+}
+
+export function handleExpiredSession() {
+  sessionStorage.clear();
+  setTimeout(() => {
+    // /home is a protected endpoint, the backend will request a new Access Token from Keycloak if able, else prompt a user to log in again
+    window.location = "/home";
+  }, 0);
+}
+

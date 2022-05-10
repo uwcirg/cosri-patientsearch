@@ -261,13 +261,13 @@ button.disabled:focus,
     position: relative;
     overflow: hidden;
   }
-  tr {
-    td {
-      button:not(:first-of-type):not(:last-of-type) {
-        order: 10
-      }
-    }
-  }
+  // tr {
+  //   td {
+  //     button:not(:first-of-type):not(:last-of-type) {
+  //       order: 10
+  //     }
+  //   }
+  // }
 }
 #patientListPagination {
   .MuiSelect-root {
