@@ -108,7 +108,7 @@ export default function Header() {
   const getLogoURL = () => {
     if (!projectName) return "";
     return "/static/app/img/"+projectName+"_logo.png";
-  }
+  };
 
   const handleImageLoaded = (e) => {
     if (!e.target) {
@@ -120,7 +120,7 @@ export default function Header() {
       return;
     }
     e.target.classList.remove("invisible");
-  }
+  };
 
   const handleImageLoadError = (e) => {
     if (!e.target) {
@@ -131,7 +131,7 @@ export default function Header() {
       e.target.classList.add("invisible");
       return;
     }
-  }
+  };
 
   React.useEffect(() => {
     /*

@@ -278,7 +278,7 @@ export default function PatientListTable() {
   };
   const needExternalAPILookup = () => {
     return appSettings && appSettings["EXTERNAL_FHIR_API"];
-  }
+  };
   const getPatientExternalSearchURL = (data) => {
     const dataURL = "/external_search/Patient";
     const params = [
@@ -312,13 +312,13 @@ export default function PatientListTable() {
   };
   const hasMultipleSoFClients = () => {
     return launchInfos && launchInfos.length > 1;
-  }
+  };
   const launchAPP = (rowData, launchParams) => {
 
     setCurrentRow(rowData);
 
-    console.log("has multiple launch apps ? ", hasMultipleSoFClients())
-    console.log("launch params ", launchParams)
+    console.log("has multiple launch apps ? ", hasMultipleSoFClients());
+    console.log("launch params ", launchParams);
 
     //handle multiple SoF clients that can be launched
     //open a dialog here?
@@ -337,7 +337,7 @@ export default function PatientListTable() {
       sessionStorage.clear();
       window.location = launchURL;
     }, 50);
-  }
+  };
   const handleLaunchError = (message) => {
     message = message || "Unable to launch application.";
     setErrorMessage(message);
@@ -345,7 +345,7 @@ export default function PatientListTable() {
     setOpenLoadingModal(false);
     console.log("Launch error ", message);
     return false;
-  }
+  };
   const handleLaunchWithLookUp = (url, method, bodyData, noResultErrorMessage, fetchErrorMessage, launchParams) => {
     if (!url) {
       handleLaunchError("Unable to launch application.  Missing URL.");
@@ -1055,8 +1055,8 @@ export default function PatientListTable() {
           <DialogContent>
               <div className={classes.flex}>
                 { launchInfos && launchInfos.map((item, index) => {
-                  return <Button key={`launchButton_${index}`} color="primary" variant="contained" className={classes.flexButton} onClick={() => launchAPP(currentRow, item)}>{`Go to ${item.id}`}</Button>
-                })
+                    return <Button key={`launchButton_${index}`} color="primary" variant="contained" className={classes.flexButton} onClick={() => launchAPP(currentRow, item)}>{`Go to ${item.id}`}</Button>
+                  })
                 }
               </div>
           </DialogContent>

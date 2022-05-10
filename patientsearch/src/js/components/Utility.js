@@ -284,7 +284,7 @@ export function padDateString(dateString) {
 export  async function validateToken() {
   const response = await fetch("./validate_token");
   if (!response.ok) {
-    if (parseInt(tokenResponse.status) === 401) {
+    if (parseInt(response.status) === 401) {
       //redirect to home
       handleExpiredSession();
       throw "Unauthorized access";
