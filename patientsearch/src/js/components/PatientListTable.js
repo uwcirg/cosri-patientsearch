@@ -296,31 +296,33 @@ export default function PatientListTable() {
   };
   const getLaunchURL = function (patientId, launchParams) {
     launchParams = launchParams || {};
+    const LAUNCH_URL = "SOF_CLIENT_LAUNCH_URL";
+    const HOST_URL = "SOF_HOST_FHIR_URL";
     if (!patientId) {
       console.log("Missing information: patient Id");
       return "";
     }
-    let baseURL = launchParams["SOF_CLIENT_LAUNCH_URL"] ? launchParams["SOF_CLIENT_LAUNCH_URL"] : getLaunchBaseURL();
-    let iss = launchParams["SOF_HOST_FHIR_URL"] ? launchParams["SOF_HOST_FHIR_URL"] : getISS();
+    let baseURL = launchParams[LAUNCH_URL] ? launchParams[LAUNCH_URL] : getLaunchBaseURL();
+    let iss = launchParams[HOST_URL] ? launchParams[HOST_URL] : getISS();
     if (!baseURL || !iss) {
       console.log("Missing ISS launch base URL");
       return "";
     }
-    let params = btoa(JSON.stringify({ b: patientId }));
-    return `${baseURL}?launch=${params}&iss=${iss}`;
+    return `${baseURL}?launch=${btoa(JSON.stringify({ b: patientId }))}&iss=${iss}`;
   };
-  const hasMultipleLaunchApps = () => {
+  const hasMultipleSoFClients = () => {
     return launchInfos && launchInfos.length > 1;
   }
   const launchAPP = (rowData, launchParams) => {
 
     setCurrentRow(rowData);
 
-    console.log("has multiple launch apps ? ", hasMultipleLaunchApps())
+    console.log("has multiple launch apps ? ", hasMultipleSoFClients())
     console.log("launch params ", launchParams)
 
-    //handle multiple apps that can be launched
-    if (!launchParams && hasMultipleLaunchApps()) {
+    //handle multiple SoF clients that can be launched
+    //open a dialog here?
+    if (!launchParams && hasMultipleSoFClients()) {
       setOpenLaunchInfoModal(true);
       setOpenLoadingModal(false);
       return;
@@ -344,7 +346,7 @@ export default function PatientListTable() {
     console.log("Launch error ", message);
     return false;
   }
-  const handleLaunchWithLookUp = (rowData, url, urlParamData, noResultErrorMessage, fetchErrorMessage, launchParams) => {
+  const handleLaunchWithLookUp = (url, method, bodyData, noResultErrorMessage, fetchErrorMessage, launchParams) => {
     if (!url) {
       handleLaunchError("Unable to launch application.  Missing URL.");
       return;
@@ -353,12 +355,12 @@ export default function PatientListTable() {
     fetchErrorMessage = fetchErrorMessage || 'System is unable to return process data';
     fetch(url, {
       ...{
-        method: "PUT",
+        method: method?method:"PUT",
         headers: {
           Accept: "application/json",
           "Content-Type": "application/json"
         },
-        body: urlParamData
+        body: bodyData
       },
       ...noCacheParam,
     }).then(searchResponse => {
@@ -427,8 +429,6 @@ export default function PatientListTable() {
         return false;
       }
 
-      //TODO if there are multiple apps to launch  AND no launch params given, do we present a dialog here?
-
       //if all well, prepare to launch app
       const allowToLaunch = needExternalAPILookup()? (rowData.id && rowData.identifier) : rowData.id;
       if (allowToLaunch) {
@@ -438,8 +438,8 @@ export default function PatientListTable() {
       //external FHIR API patient lookup, e.g. PDMP
       if (needExternalAPILookup()) {
         handleLaunchWithLookUp(
-          rowData,
           getPatientExternalSearchURL(rowData),
+          "PUT",
           rowData.resource ? JSON.stringify(rowData.resource) : null,
           "<div>The patient was not found in the PMP. This could be due to:</div><ul><li>No previous controlled substance medications dispensed</li><li>Incorrect spelling of name or incorrect date of birth.</li></ul><div>Please double check name spelling and date of birth.</div>",
           "<p>COSRI is unable to return PMP information. This may be due to PMP system being down or a problem with the COSRI connection to PMP.</p>",
@@ -447,10 +447,10 @@ export default function PatientListTable() {
         );
         return;
       }
-      //a new patient needs to be added where applicable before proceeding
+      //if a new patient, patient needs to be added before proceeding
       handleLaunchWithLookUp(
-        rowData,
         `/fhir/Patient?given=${rowData.first_name.trim()}&family=${rowData.last_name.trim()}&birthdate=${rowData.dob}`,
+        "PUT",
         JSON.stringify({
           resourceType: "Patient",
           name: [{
@@ -500,6 +500,20 @@ export default function PatientListTable() {
         })
       : data;
   };
+
+  function inPDMP(rowData) {
+    if (!rowData) return false;
+    if (!needExternalAPILookup()) return true; //no PDMP lookup needed
+    return (
+      rowData.identifier &&
+      rowData.identifier.filter((item) => {
+        return (
+          item.system === "https://github.com/uwcirg/script-fhir-facade" &&
+          item.value === "found"
+        );
+      }).length
+    );
+  }
 
   function setNoPMPFlag(data) {
     if (!data || !data.length) return false;
@@ -558,20 +572,6 @@ export default function PatientListTable() {
         return defaultFilters;
       }
     }, 200);
-  }
-
-  function inPDMP(rowData) {
-    if (!rowData) return false;
-    if (!needExternalAPILookup()) return true; //no PDMP lookup needed
-    return (
-      rowData.identifier &&
-      rowData.identifier.filter((item) => {
-        return (
-          item.system === "https://github.com/uwcirg/script-fhir-facade" &&
-          item.value === "found"
-        );
-      }).length
-    );
   }
 
   function patientListInitialized() {
@@ -797,8 +797,9 @@ export default function PatientListTable() {
       }
       setSettingInitialized(true);
       setAppSettings(data);
-      console.log("Launch INFO ? ", data["LAUNCH_INFO"])
-      setLaunchInfos(data["LAUNCH_INFOS"]);
+      if (data["LAUNCH_INFOS"]) {
+        setLaunchInfos(data["LAUNCH_INFOS"]);
+      }
     }, true); //no caching
   }, []); //retrieval of settings should occur prior to patient list being rendered/initialized
 
