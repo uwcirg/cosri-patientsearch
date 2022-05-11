@@ -1055,7 +1055,7 @@ export default function PatientListTable() {
           <DialogContent>
               <div className={classes.flex}>
                 { launchInfos && launchInfos.map((item, index) => {
-                    return <Button key={`launchButton_${index}`} color="primary" variant="contained" className={classes.flexButton} onClick={() => launchAPP(currentRow, item)}>{`Go to ${item.id}`}</Button>
+                    return <Button key={`launchButton_${index}`} color="primary" variant="contained" className={classes.flexButton} onClick={() => launchAPP(currentRow, item)}>{`Go to ${item.id}`}</Button>;
                   })
                 }
               </div>
