@@ -297,7 +297,6 @@ export default function PatientListTable() {
   const getLaunchURL = function (patientId, launchParams) {
     launchParams = launchParams || {};
     const LAUNCH_URL = "SOF_CLIENT_LAUNCH_URL";
-    const HOST_URL = "SOF_HOST_FHIR_URL";
     if (!patientId) {
       console.log("Missing information: patient Id");
       return "";
