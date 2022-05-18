@@ -303,7 +303,7 @@ export default function PatientListTable() {
       return "";
     }
     let baseURL = launchParams[LAUNCH_URL] ? launchParams[LAUNCH_URL] : getLaunchBaseURL();
-    let iss = launchParams[HOST_URL] ? launchParams[HOST_URL] : getISS();
+    let iss = getISS();
     if (!baseURL || !iss) {
       console.log("Missing ISS launch base URL");
       return "";
