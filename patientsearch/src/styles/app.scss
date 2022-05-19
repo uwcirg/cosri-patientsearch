@@ -75,6 +75,12 @@ html {
     border-width: 2px;
     margin-top: 16px;
   }
+  .alert-container {
+    margin-top: 24px;
+    .MuiAlert-message {
+      font-size: 16px;
+    }
+  }
 }
 @media (min-width: 699px) {
   .logout-container {
