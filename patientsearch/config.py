@@ -17,6 +17,10 @@ def load_json_config(potential_json_string):
 ENABLE_INACTIVITY_TIMEOUT = (
     os.getenv("ENABLE_INACTIVITY_TIMEOUT", "true").lower() == "true"
 )
+FORBIDDEN_TEXT = os.getenv(
+    "FORBIDDEN_TEXT",
+    "Your account is not authorized for access, please contact an administrator",
+)
 LANDING_INTRO = os.getenv("LANDING_INTRO", "")
 LANDING_BUTTON_TEXT = os.getenv("LANDING_BUTTON_TEXT", "")
 LANDING_BODY = os.getenv("LANDING_BODY", "")
@@ -78,6 +82,7 @@ else:
 OIDC_ID_TOKEN_COOKIE_SECURE = False
 OIDC_REQUIRE_VERIFIED_EMAIL = False
 OIDC_SCOPES = ["email", "openid", "roles"]
+REQUIRED_ROLES = json.loads(os.getenv("REQUIRED_ROLES", "[]"))
 UDS_LAB_TYPES = json.loads(os.getenv("UDS_LAB_TYPES", "[]"))
 APPLICATION_TITLE = os.getenv(
     "APPLICATION_TITLE", "Clinical Opioid Summary with Rx Integration"

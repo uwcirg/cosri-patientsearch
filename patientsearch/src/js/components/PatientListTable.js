@@ -574,6 +574,10 @@ export default function PatientListTable() {
       window.location = "/logout?unauthorized=true";
       return;
     }
+    if (e && e.status === 403) {
+      window.location = "/logout?forbidden=true";
+      return;
+    }
     setErrorMessage(
       isString(e)
         ? e
