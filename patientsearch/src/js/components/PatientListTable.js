@@ -199,7 +199,6 @@ export default function PatientListTable() {
   const [currentRow, setCurrentRow] = React.useState(null);
   const [actionLabel, setActionLabel] = React.useState(LAUNCH_BUTTON_LABEL);
   const [noDataText, setNoDataText] = React.useState("");
-  const [userRole, setUserRole] = React.useState("");
   const tableRef = React.useRef();
   const LAUNCH_BUTTON_LABEL = "VIEW";
   const CREATE_BUTTON_LABEL = "CREATE";
@@ -789,6 +788,7 @@ export default function PatientListTable() {
         return false;
       }
       const RESOURCE_ACCESS_KEY = "resource_access";
+      // set USER ROLE(s)
       if (token[RESOURCE_ACCESS_KEY]) {
         const resourceAccessKeys = Object.keys(token[RESOURCE_ACCESS_KEY]);
         resourceAccessKeys.forEach(key=>{
@@ -796,8 +796,6 @@ export default function PatientListTable() {
             resourceRoles = [...resourceRoles, ...token[RESOURCE_ACCESS_KEY][key].roles];
           }
         });
-        // set USER ROLE(s)
-        setUserRole(resourceRoles);
       }
 
       getSettings((data) => {
