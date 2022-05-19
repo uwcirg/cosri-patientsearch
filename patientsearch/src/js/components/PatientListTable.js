@@ -199,6 +199,7 @@ export default function PatientListTable() {
   const [currentRow, setCurrentRow] = React.useState(null);
   const [actionLabel, setActionLabel] = React.useState(LAUNCH_BUTTON_LABEL);
   const [noDataText, setNoDataText] = React.useState("");
+  const [userRole, setUserRole] = React.useState("");
   const tableRef = React.useRef();
   const LAUNCH_BUTTON_LABEL = "VIEW";
   const CREATE_BUTTON_LABEL = "CREATE";
@@ -787,6 +788,7 @@ export default function PatientListTable() {
     window.addEventListener("beforeunload", function () {
       setTimeout(() => setOpenLoadingModal(false), 50);
     });
+    //TODO set USER ROLE
     getSettings((data) => {
       if (data.error) {
         handleErrorCallback(data.error);
@@ -796,8 +798,13 @@ export default function PatientListTable() {
       }
       setSettingInitialized(true);
       setAppSettings(data);
-      if (data["LAUNCH_INFOS"]) {
-        setLaunchInfos(data["LAUNCH_INFOS"]);
+      if (data["SOF_CLIENTS"]) {
+        //CHECK client's role against client app's REQUIRED_ROLES
+        const clients = (data["SOF_CLIENTS"]).filter(item => {
+          if (!item["REQUIRED_ROLES"]) return true;
+          return item["REQUIRED_ROLES"].indexOf(userRole) !== -1;
+        });
+        setLaunchInfos(clients);
       }
     }, true); //no caching
   }, []); //retrieval of settings should occur prior to patient list being rendered/initialized
@@ -881,16 +888,7 @@ export default function PatientListTable() {
                       onClick: (event, rowData) => handleSearch(event, rowData, item),
                       tooltip: `Launch ${item.id} application for the user`,
                     };
-                  }) : 
-                  [{
-                    icon: () => (
-                      <span className={classes.button}>
-                        {LAUNCH_BUTTON_LABEL}
-                      </span>
-                    ),
-                    onClick: (event, rowData) => handleSearch(event, rowData),
-                    tooltip: `Launch ${appSettings.PROJECT_NAME} application for the user`,
-                  }]
+                  }) : []
                 ,
                 {
                   icon: () => (
