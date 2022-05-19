@@ -301,7 +301,7 @@ export  async function validateToken() {
   ) {
     return false;
   }
-  return true;
+  return tokenData;
 }
 
 export function handleExpiredSession() {

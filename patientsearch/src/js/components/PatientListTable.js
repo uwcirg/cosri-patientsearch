@@ -420,50 +420,41 @@ export default function PatientListTable() {
     }
     setOpenLoadingModal(true);
     setErrorMessage("");
-    //check if session token still valid first
-    validateToken().then(isValidToken => {
-      if (!isValidToken) {
-        console.log("Redirecting...");
-        handleExpiredSession();
-        setOpenLoadingModal(true);
-        return false;
-      }
-
-      //if all well, prepare to launch app
-      const allowToLaunch = needExternalAPILookup()? (rowData.id && rowData.identifier) : rowData.id;
-      if (allowToLaunch) {
-        launchAPP(rowData, launchParams);
-        return;
-      }
-      //external FHIR API patient lookup, e.g. PDMP
-      if (needExternalAPILookup()) {
-        handleLaunchWithLookUp(
-          getPatientExternalSearchURL(rowData),
-          "PUT",
-          rowData.resource ? JSON.stringify(rowData.resource) : null,
-          "<div>The patient was not found in the PMP. This could be due to:</div><ul><li>No previous controlled substance medications dispensed</li><li>Incorrect spelling of name or incorrect date of birth.</li></ul><div>Please double check name spelling and date of birth.</div>",
-          "<p>COSRI is unable to return PMP information. This may be due to PMP system being down or a problem with the COSRI connection to PMP.</p>",
-          launchParams
-        );
-        return;
-      }
-      //if a new patient, patient needs to be added before proceeding
+   
+    //if all well, prepare to launch app
+    const allowToLaunch = needExternalAPILookup()? (rowData.id && rowData.identifier) : rowData.id;
+    if (allowToLaunch) {
+      launchAPP(rowData, launchParams);
+      return;
+    }
+    //external FHIR API patient lookup, e.g. PDMP
+    if (needExternalAPILookup()) {
       handleLaunchWithLookUp(
-        `/fhir/Patient?given=${rowData.first_name.trim()}&family=${rowData.last_name.trim()}&birthdate=${rowData.dob}`,
+        getPatientExternalSearchURL(rowData),
         "PUT",
-        JSON.stringify({
-          resourceType: "Patient",
-          name: [{
-            "family": rowData.last_name,
-            "given": [rowData.first_name]
-          }],
-          birthDate: rowData.dob
-        }),
-        "Unable to proceed. Patient wasn't added",
-        "",
+        rowData.resource ? JSON.stringify(rowData.resource) : null,
+        "<div>The patient was not found in the PMP. This could be due to:</div><ul><li>No previous controlled substance medications dispensed</li><li>Incorrect spelling of name or incorrect date of birth.</li></ul><div>Please double check name spelling and date of birth.</div>",
+        "<p>COSRI is unable to return PMP information. This may be due to PMP system being down or a problem with the COSRI connection to PMP.</p>",
         launchParams
       );
-    }).catch(e => console.log("Token validation error ", e));
+      return;
+    }
+    //if a new patient, patient needs to be added before proceeding
+    handleLaunchWithLookUp(
+      `/fhir/Patient?given=${rowData.first_name.trim()}&family=${rowData.last_name.trim()}&birthdate=${rowData.dob}`,
+      "PUT",
+      JSON.stringify({
+        resourceType: "Patient",
+        name: [{
+          "family": rowData.last_name,
+          "given": [rowData.first_name]
+        }],
+        birthDate: rowData.dob
+      }),
+      "Unable to proceed. Patient wasn't added",
+      "",
+      launchParams
+    );
   };
   const formatData = (data) => {
     if (!data) return false;
@@ -788,25 +779,54 @@ export default function PatientListTable() {
     window.addEventListener("beforeunload", function () {
       setTimeout(() => setOpenLoadingModal(false), 50);
     });
-    //TODO set USER ROLE
-    getSettings((data) => {
-      if (data.error) {
-        handleErrorCallback(data.error);
-        setSettingInitialized(true);
-        setErrorMessage(`Error retrieving app setting: ${data.error}`);
-        return;
+    let resourceRoles = [];
+    //check if session token still valid first
+    validateToken().then(token => {
+      if (!token) {
+        console.log("Redirecting...");
+        handleExpiredSession();
+        setOpenLoadingModal(true);
+        return false;
       }
-      setSettingInitialized(true);
-      setAppSettings(data);
-      if (data["SOF_CLIENTS"]) {
-        //CHECK client's role against client app's REQUIRED_ROLES
+      const RESOURCE_ACCESS_KEY = "resource_access";
+      if (token[RESOURCE_ACCESS_KEY]) {
+        const resourceAccessKeys = Object.keys(token[RESOURCE_ACCESS_KEY]);
+        resourceAccessKeys.forEach(key=>{
+          if (token[RESOURCE_ACCESS_KEY][key].roles) {
+            resourceRoles = [...resourceRoles, ...token[RESOURCE_ACCESS_KEY][key].roles];
+          }
+        });
+        // set USER ROLE(s)
+        setUserRole(resourceRoles);
+      }
+
+      getSettings((data) => {
+        if (data.error) {
+          handleErrorCallback(data.error);
+          setSettingInitialized(true);
+          setErrorMessage(`Error retrieving app setting: ${data.error}`);
+          return;
+        }
+        setSettingInitialized(true);
+        setAppSettings(data);
+        if (!data["SOF_CLIENTS"]) {
+          return;
+        }
+        //CHECK user role against each SoF client app's REQUIRED_ROLES
         const clients = (data["SOF_CLIENTS"]).filter(item => {
-          if (!item["REQUIRED_ROLES"]) return true;
-          return item["REQUIRED_ROLES"].indexOf(userRole) !== -1;
+          const requiredRoles = item["REQUIRED_ROLES"];
+          if (!requiredRoles) return true;
+          if (Array.isArray(requiredRoles) && !Array.isArray(resourceRoles)) return requiredRoles.indexOf(resourceRoles) !== -1;
+          if (!Array.isArray(requiredRoles) && Array.isArray(resourceRoles)) return resourceRoles.filter(role => role === requiredRoles).length > 0;
+          if (Array.isArray(requiredRoles) && Array.isArray(resourceRoles)) return requiredRoles.filter(role => resourceRoles.indexOf(role) !== -1).length > 0;
+          return requiredRoles === resourceRoles;
         });
         setLaunchInfos(clients);
-      }
-    }, true); //no caching
+      }, true); //no caching
+    }).catch(e => {
+      console.log("token validation error ", e);
+      handleErrorCallback(e);
+    });
   }, []); //retrieval of settings should occur prior to patient list being rendered/initialized
 
   return (
