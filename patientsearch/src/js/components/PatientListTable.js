@@ -787,20 +787,23 @@ export default function PatientListTable() {
     validateToken().then(token => {
       if (!token) {
         console.log("Redirecting...");
-        handleExpiredSession();
+        window.location = "/logout?unauthorized=true";
         setOpenLoadingModal(true);
         return false;
       }
+      const ACCESS_TOKEN_KEY = "access_token";
       const RESOURCE_ACCESS_KEY = "resource_access";
       // set USER ROLE(s)
-      if (token[RESOURCE_ACCESS_KEY]) {
-        const resourceAccessKeys = Object.keys(token[RESOURCE_ACCESS_KEY]);
+      if (token[ACCESS_TOKEN_KEY] && token[ACCESS_TOKEN_KEY][RESOURCE_ACCESS_KEY]) {
+        const resourceAccess = token[ACCESS_TOKEN_KEY][RESOURCE_ACCESS_KEY];
+        const resourceAccessKeys = Object.keys(resourceAccess);
         resourceAccessKeys.forEach(key=>{
-          if (token[RESOURCE_ACCESS_KEY][key].roles) {
-            resourceRoles = [...resourceRoles, ...token[RESOURCE_ACCESS_KEY][key].roles];
+          if (resourceAccess[key].roles) {
+            resourceRoles = [...resourceRoles, ...resourceAccess[key].roles];
           }
         });
       }
+      //console.log("roles? ", resourceRoles);
 
       getSettings((data) => {
         if (data.error) {

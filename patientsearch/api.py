@@ -13,7 +13,7 @@ from flask import (
 from flask.json import JSONEncoder
 import jwt
 import requests
-from werkzeug.exceptions import Unauthorized, Forbidden
+from werkzeug.exceptions import Unauthorized
 
 from patientsearch.audit import audit_entry, audit_HAPI_change
 from patientsearch.models import (
@@ -75,24 +75,7 @@ def validate_auth():
             "Please refresh your browser to enter your user name and password "
             "to log back in."
         )
-
-    # Enforce role requirement if set in application config
-    required = current_app.config.get("REQUIRED_ROLES", [])
-    if not required:
-        return token
-
-    dict_token = jwt.decode(
-        token,
-        options={"verify_signature": False, "verify_aud": False},
-    )
-    user_has = dict_token.get("realm_access", {}).get("roles", [])
-    if set(required).intersection(set(user_has)):
-        return token
-
-    current_app.logger.warn(
-        f"User's roles: {user_has}  don't include any from REQUIRED_ROLES: {required}"
-    )
-    raise Forbidden("User lacks adequate 'role'; can't continue")
+    return token
 
 
 def current_user_info(token):
@@ -195,7 +178,7 @@ def validate_token():
         valid=True,
         access_expires_in=access_token["exp"] - now,
         refresh_expires_in=refresh_token["exp"] - now,
-        resource_access=access_token["resource_access"],
+        access_token=access_token,
     )
 
 
