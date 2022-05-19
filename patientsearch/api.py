@@ -178,7 +178,7 @@ def validate_token():
         valid=True,
         access_expires_in=access_token["exp"] - now,
         refresh_expires_in=refresh_token["exp"] - now,
-        resource_access=access_token["resource_access"]
+        resource_access=access_token["resource_access"],
     )
 
 
