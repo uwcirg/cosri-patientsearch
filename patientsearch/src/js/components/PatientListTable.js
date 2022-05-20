@@ -286,7 +286,7 @@ export default function PatientListTable() {
   const getAppSettingByKey = (key) => {
     if (!appSettings || (Object.keys(appSettings).length === 0)) return "";
     return appSettings[key];
-  }
+  };
   const needExternalAPILookup = () => {
     return getAppSettingByKey("EXTERNAL_FHIR_API");
   };
@@ -810,7 +810,7 @@ export default function PatientListTable() {
         }
         //CHECK user role against each SoF client app's REQUIRED_ROLES
         const clients = (data["SOF_CLIENTS"]).filter(item => {
-          const requiredRoles = item["REQUIRED_ROLES"];
+          const requiredRoles = item["required_roles"];
           if (!requiredRoles) return true;
           if (Array.isArray(requiredRoles) && !Array.isArray(resourceRoles)) return requiredRoles.indexOf(resourceRoles) !== -1;
           if (!Array.isArray(requiredRoles) && Array.isArray(resourceRoles)) return resourceRoles.filter(role => role === requiredRoles).length > 0;
