@@ -794,8 +794,7 @@ export default function PatientListTable() {
 
       // set USER ROLE(s)
       resourceRoles = getRolesFromToken(token);
-      console.log("roles? ", resourceRoles);
-
+  
       getSettings((data) => {
         if (data.error) {
           handleErrorCallback(data.error);
@@ -1093,4 +1092,3 @@ export default function PatientListTable() {
     </React.Fragment>
   );
 }
-
