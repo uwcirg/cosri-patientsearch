@@ -56,8 +56,6 @@ VERSION_STRING = os.getenv("VERSION_STRING")
 
 EXTERNAL_FHIR_API = os.getenv("EXTERNAL_FHIR_API", "")
 MAP_API = os.getenv("MAP_API")
-
-SOF_CLIENT_LAUNCH_URL = os.getenv("SOF_CLIENT_LAUNCH_URL")
 SOF_HOST_FHIR_URL = os.getenv("SOF_HOST_FHIR_URL")
 
 # build flask-oidc config from our own granular environment variables, if present

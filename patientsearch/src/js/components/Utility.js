@@ -304,6 +304,23 @@ export  async function validateToken() {
   return tokenData;
 }
 
+export function getRolesFromToken(token) {
+  token = token || {};
+  let roles = [];
+  const ACCESS_TOKEN_KEY = "access_token";
+  const RESOURCE_ACCESS_KEY = "resource_access";
+  if (token[ACCESS_TOKEN_KEY] && token[ACCESS_TOKEN_KEY][RESOURCE_ACCESS_KEY]) {
+    const resourceAccess = token[ACCESS_TOKEN_KEY][RESOURCE_ACCESS_KEY];
+    const resourceAccessKeys = Object.keys(resourceAccess);
+    resourceAccessKeys.forEach(key=>{
+      if (resourceAccess[key].roles) {
+        roles = [...roles, ...resourceAccess[key].roles];
+      }
+    });
+  }
+  return roles;
+}
+
 export function handleExpiredSession() {
   sessionStorage.clear();
   setTimeout(() => {

@@ -26,6 +26,7 @@ import {
   getLocalDateTimeString,
   getSettings,
   getUrlParameter,
+  getRolesFromToken,
   handleExpiredSession,
   isString,
   validateToken
@@ -165,6 +166,12 @@ const useStyles = makeStyles({
     right: theme.spacing(6),
     color: theme.palette.primary.main,
   },
+  diaglogTitle: {
+    backgroundColor:  theme.palette.primary.lightest
+  },
+  diaglogContent: {
+    marginTop: theme.spacing(3)
+  }
 });
 
 let appSettings = {};
@@ -174,7 +181,7 @@ export default function PatientListTable() {
   const classes = useStyles();
   const [settingInitialized, setSettingInitialized] = React.useState(false);
   const [initialized, setInitialized] = React.useState(false);
-  const [launchInfos, setLaunchInfos] = React.useState(null);
+  const [appClients, setAppClients] = React.useState(null);
   const [data, setData] = React.useState([]);
   const defaultFilters = {
     first_name: "",
@@ -276,8 +283,12 @@ export default function PatientListTable() {
       setData([newData[0], ...data]);
     }
   };
+  const getAppSettingByKey = (key) => {
+    if (!appSettings || (Object.keys(appSettings).length === 0)) return "";
+    return appSettings[key];
+  }
   const needExternalAPILookup = () => {
-    return appSettings && appSettings["EXTERNAL_FHIR_API"];
+    return getAppSettingByKey("EXTERNAL_FHIR_API");
   };
   const getPatientExternalSearchURL = (data) => {
     const dataURL = "/external_search/Patient";
@@ -288,21 +299,15 @@ export default function PatientListTable() {
     ];
     return `${dataURL}?${params.join("&")}`;
   };
-  const getLaunchBaseURL = function () {
-    return appSettings["SOF_CLIENT_LAUNCH_URL"];
-  };
-  const getISS = function () {
-    return appSettings["SOF_HOST_FHIR_URL"];
-  };
   const getLaunchURL = function (patientId, launchParams) {
     launchParams = launchParams || {};
-    const LAUNCH_URL = "SOF_CLIENT_LAUNCH_URL";
+    const LAUNCH_URL_KEY = "launch_url";
     if (!patientId) {
       console.log("Missing information: patient Id");
       return "";
     }
-    let baseURL = launchParams[LAUNCH_URL] ? launchParams[LAUNCH_URL] : getLaunchBaseURL();
-    let iss = getISS();
+    let baseURL = launchParams[LAUNCH_URL_KEY] ? launchParams[LAUNCH_URL_KEY] : "";
+    let iss = getAppSettingByKey("SOF_HOST_FHIR_URL");
     if (!baseURL || !iss) {
       console.log("Missing ISS launch base URL");
       return "";
@@ -310,7 +315,7 @@ export default function PatientListTable() {
     return `${baseURL}?launch=${btoa(JSON.stringify({ b: patientId }))}&iss=${iss}`;
   };
   const hasMultipleSoFClients = () => {
-    return launchInfos && launchInfos.length > 1;
+    return appClients && appClients.length > 1;
   };
   const launchAPP = (rowData, launchParams) => {
 
@@ -320,7 +325,7 @@ export default function PatientListTable() {
     console.log("launch params ", launchParams);
 
     //handle multiple SoF clients that can be launched
-    //open a dialog here?
+    //open a dialog here so user can select which one to launch?
     if (!launchParams && hasMultipleSoFClients()) {
       setOpenLaunchInfoModal(true);
       setOpenLoadingModal(false);
@@ -474,7 +479,6 @@ export default function PatientListTable() {
                 ? source.name[0]["family"]
                 : "",
             dob: source && source["birthDate"] ? source["birthDate"] : "",
-            //url: getLaunchURL(patientId),
             identifier:
               source && source.identifier && source.identifier.length
                 ? source.identifier
@@ -516,7 +520,6 @@ export default function PatientListTable() {
   }
 
   function containEmptyFilter(filters) {
-    if (!filters || !filters.length) return true;
     return getNonEmptyFilters(filters).length === 0;
   }
   function getNonEmptyFilters(filters) {
@@ -635,18 +638,15 @@ export default function PatientListTable() {
       );
     }, 200);
   };
-
-  const getMoreMenuSetting = () => {
-    return appSettings[MORE_MENU_KEY] ? appSettings[MORE_MENU_KEY] : [];
-  };
   const shouldHideMoreMenu = () => {
     return (
       Object.keys(appSettings).length &&
-      (!appSettings[MORE_MENU_KEY] || appSettings[MORE_MENU_KEY].length === 0)
+      (!appSettings[MORE_MENU_KEY] || (appSettings[MORE_MENU_KEY]).filter(item => (item && item !== "")).length === 0)
     );
   };
   const shouldShowMenuItem = (id) => {
-    let arrMenu = getMoreMenuSetting();
+    let arrMenu = getAppSettingByKey(MORE_MENU_KEY);
+    if (!Array.isArray(arrMenu)) return false;
     return (
       arrMenu.filter((item) => item.toLowerCase() === id.toLowerCase()).length >
       0
@@ -791,19 +791,10 @@ export default function PatientListTable() {
         setOpenLoadingModal(true);
         return false;
       }
-      const ACCESS_TOKEN_KEY = "access_token";
-      const RESOURCE_ACCESS_KEY = "resource_access";
+
       // set USER ROLE(s)
-      if (token[ACCESS_TOKEN_KEY] && token[ACCESS_TOKEN_KEY][RESOURCE_ACCESS_KEY]) {
-        const resourceAccess = token[ACCESS_TOKEN_KEY][RESOURCE_ACCESS_KEY];
-        const resourceAccessKeys = Object.keys(resourceAccess);
-        resourceAccessKeys.forEach(key=>{
-          if (resourceAccess[key].roles) {
-            resourceRoles = [...resourceRoles, ...resourceAccess[key].roles];
-          }
-        });
-      }
-      //console.log("roles? ", resourceRoles);
+      resourceRoles = getRolesFromToken(token);
+      console.log("roles? ", resourceRoles);
 
       getSettings((data) => {
         if (data.error) {
@@ -826,7 +817,7 @@ export default function PatientListTable() {
           if (Array.isArray(requiredRoles) && Array.isArray(resourceRoles)) return requiredRoles.filter(role => resourceRoles.indexOf(role) !== -1).length > 0;
           return requiredRoles === resourceRoles;
         });
-        setLaunchInfos(clients);
+        setAppClients(clients);
       }, true); //no caching
     }).catch(e => {
       console.log("token validation error ", e);
@@ -902,8 +893,8 @@ export default function PatientListTable() {
               }}
               actions={[
                 ...
-                  launchInfos && launchInfos.length ? 
-                  (launchInfos).map((item,index) => {
+                  appClients && appClients.length ? 
+                  (appClients).map((item,index) => {
                     return {
                       icon: () => (
                         <span className={classes.button} key={`actionButton_${index}`}>
@@ -917,15 +908,13 @@ export default function PatientListTable() {
                 ,
                 {
                   icon: () => (
-                    <MoreHorizIcon
+                    settingInitialized && !shouldHideMoreMenu() && <MoreHorizIcon
                       color="primary"
-                      className={`more-icon ${
-                        shouldHideMoreMenu() ? "ghost" : ""
-                      }`}
+                      className={`more-icon`}
                     ></MoreHorizIcon>
                   ),
                   onClick: (event, rowData) => handleMenuClick(event, rowData),
-                  tooltip: "More",
+                  tooltip: shouldHideMoreMenu()? "":"More",
                 },
               ]}
               options={{
@@ -1073,11 +1062,17 @@ export default function PatientListTable() {
           </div>
         </Modal>
         <Dialog open={openLaunchInfoModal} onClose={() => setOpenLaunchInfoModal(false)} aria-labelledby="launch-info-dialog-title">
-          {currentRow && <DialogTitle id="launch-info-dialog-title">{`Launch Application for ${currentRow.last_name}, ${currentRow.first_name}`}</DialogTitle>}
-          <DialogContent>
+          {currentRow && <DialogTitle
+          classes={{
+            root: classes.diaglogTitle
+          }}
+          id="launch-info-dialog-title">{`${currentRow.last_name}, ${currentRow.first_name}`}</DialogTitle>}
+          <DialogContent classes={{
+            root: classes.diaglogContent
+          }}>
               <div className={classes.flex}>
-                { launchInfos && launchInfos.map((item, index) => {
-                    return <Button key={`launchButton_${index}`} color="primary" variant="contained" className={classes.flexButton} onClick={() => launchAPP(currentRow, item)}>{`Go to ${item.id}`}</Button>;
+                { appClients && appClients.map((item, index) => {
+                    return <Button key={`launchButton_${index}`} color="primary" variant="contained" className={classes.flexButton} onClick={() => launchAPP(currentRow, item)}>{`Launch ${item.id}`}</Button>;
                   })
                 }
               </div>
@@ -1088,13 +1083,14 @@ export default function PatientListTable() {
             </Button>
           </DialogActions>
         </Dialog>
-        <Dropdown
+        {settingInitialized && <Dropdown
           anchorEl={anchorEl}
           handleMenuClose={handleMenuClose}
           handleMenuSelect={handleMenuSelect}
           menuItems={menuItems.filter((item) => shouldShowMenuItem(item.id))}
-        ></Dropdown>
+        ></Dropdown>}
       </Container>
     </React.Fragment>
   );
 }
+
