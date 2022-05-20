@@ -578,6 +578,7 @@ export default function PatientListTable() {
       return;
     }
     if (e && e.status === 403) {
+      setErrorMessage("Forbidden.");
       window.location = "/logout?forbidden=true";
       return;
     }
