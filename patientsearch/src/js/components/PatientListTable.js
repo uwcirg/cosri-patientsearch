@@ -267,6 +267,10 @@ export default function PatientListTable() {
   const setAppSettings = function (settings) {
     appSettings = settings;
   };
+  const getAppSettingByKey = (key) => {
+    if (!appSettings || (Object.keys(appSettings).length === 0)) return "";
+    return appSettings[key];
+  };
   const existsIndata = function (rowData) {
     if (!data) return false;
     if (!rowData) return false;
@@ -283,10 +287,6 @@ export default function PatientListTable() {
       setData([newData[0], ...data]);
     }
   };
-  const getAppSettingByKey = (key) => {
-    if (!appSettings || (Object.keys(appSettings).length === 0)) return "";
-    return appSettings[key];
-  };
   const needExternalAPILookup = () => {
     return getAppSettingByKey("EXTERNAL_FHIR_API");
   };
@@ -300,12 +300,12 @@ export default function PatientListTable() {
     return `${dataURL}?${params.join("&")}`;
   };
   const getLaunchURL = function (patientId, launchParams) {
-    launchParams = launchParams || {};
-    const LAUNCH_URL_KEY = "launch_url";
     if (!patientId) {
       console.log("Missing information: patient Id");
       return "";
     }
+    launchParams = launchParams || {};
+    const LAUNCH_URL_KEY = "launch_url";
     let baseURL = launchParams[LAUNCH_URL_KEY] ? launchParams[LAUNCH_URL_KEY] : "";
     let iss = getAppSettingByKey("SOF_HOST_FHIR_URL");
     if (!baseURL || !iss) {
@@ -320,9 +320,6 @@ export default function PatientListTable() {
   const launchAPP = (rowData, launchParams) => {
 
     setCurrentRow(rowData);
-
-    console.log("has multiple launch apps ? ", hasMultipleSoFClients());
-    console.log("launch params ", launchParams);
 
     //handle multiple SoF clients that can be launched
     //open a dialog here so user can select which one to launch?
@@ -370,12 +367,7 @@ export default function PatientListTable() {
     }).then(searchResponse => {
       //dealing with unauthorized error, status code = 401
       if (!searchResponse.ok) {
-        if (parseInt(searchResponse.status) === 401) {
-          //redirect to home
-          handleExpiredSession();
-          throw "Unauthorized";
-        }
-        throw searchResponse.statusText;
+        handleErrorCallback(searchResponse);
       }
       return searchResponse.json();
     }).then(result => {
@@ -427,7 +419,7 @@ export default function PatientListTable() {
    
     //if all well, prepare to launch app
     const allowToLaunch = needExternalAPILookup()? (rowData.id && rowData.identifier) : rowData.id;
-    if (allowToLaunch) {
+    if (allowToLaunch && launchParams) {
       launchAPP(rowData, launchParams);
       return;
     }
@@ -450,8 +442,8 @@ export default function PatientListTable() {
       JSON.stringify({
         resourceType: "Patient",
         name: [{
-          "family": rowData.last_name,
-          "given": [rowData.first_name]
+          "family": rowData.last_name.trim(),
+          "given": [rowData.first_name.trim()]
         }],
         birthDate: rowData.dob
       }),
@@ -496,21 +488,21 @@ export default function PatientListTable() {
   };
 
   function inPDMP(rowData) {
-    if (!rowData) return false;
     if (!needExternalAPILookup()) return true; //no PDMP lookup needed
+    if (!rowData) return false;
     return (
       rowData.identifier &&
       rowData.identifier.filter((item) => {
         return (
           item.system === "https://github.com/uwcirg/script-fhir-facade" &&
-          item.value === "found"
+          item.value
         );
       }).length
     );
   }
 
   function setNoPMPFlag(data) {
-    if (!data || !data.length) return false;
+    if (!data || !data.length || !needExternalAPILookup()) return false;
     let hasNoPMPRow =
       data.filter((rowData) => {
         return !inPDMP(rowData);
@@ -555,15 +547,13 @@ export default function PatientListTable() {
         }
         if (tableRef && tableRef.current) tableRef.current.onQueryChange();
         return filters;
-      } else {
-        if (clearAll) {
-          setCurrentFilters(defaultFilters);
-          resetPaging();
-          if (tableRef && tableRef.current) tableRef.current.onQueryChange();
-          return defaultFilters;
-        }
-        return defaultFilters;
       }
+      if (clearAll) {
+        setCurrentFilters(defaultFilters);
+        resetPaging();
+        if (tableRef && tableRef.current) tableRef.current.onQueryChange();
+      }
+      return defaultFilters;
     }, 200);
   }
 
@@ -810,7 +800,7 @@ export default function PatientListTable() {
         }
         //CHECK user role against each SoF client app's REQUIRED_ROLES
         const clients = (data["SOF_CLIENTS"]).filter(item => {
-          const requiredRoles = item["required_roles"];
+          const requiredRoles = item["required_roles"] || item["REQUIRED_ROLES"];
           if (!requiredRoles) return true;
           if (Array.isArray(requiredRoles) && !Array.isArray(resourceRoles)) return requiredRoles.indexOf(resourceRoles) !== -1;
           if (!Array.isArray(requiredRoles) && Array.isArray(resourceRoles)) return resourceRoles.filter(role => role === requiredRoles).length > 0;

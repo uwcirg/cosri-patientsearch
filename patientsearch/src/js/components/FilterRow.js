@@ -213,6 +213,7 @@ export default function FilterRow(props) {
                     style={{ order: 2, padding: 0 }}
                     aria-label="Clear date"
                     title="Clear date"
+                    tabIndex={-1}
                   >
                     <ClearIcon fontSize="small" />
                   </IconButton>
