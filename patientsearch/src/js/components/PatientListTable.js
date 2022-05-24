@@ -320,10 +320,10 @@ export default function PatientListTable() {
   const launchAPP = (rowData, launchParams) => {
 
     setCurrentRow(rowData);
-
+    
     //handle multiple SoF clients that can be launched
     //open a dialog here so user can select which one to launch?
-    if (!launchParams && hasMultipleSoFClients()) {
+    if (hasMultipleSoFClients()) {
       setOpenLaunchInfoModal(true);
       setOpenLoadingModal(false);
       return;
@@ -419,7 +419,7 @@ export default function PatientListTable() {
    
     //if all well, prepare to launch app
     const allowToLaunch = needExternalAPILookup()? (rowData.id && rowData.identifier) : rowData.id;
-    if (allowToLaunch && launchParams) {
+    if (allowToLaunch) {
       launchAPP(rowData, launchParams);
       return;
     }
@@ -940,7 +940,8 @@ export default function PatientListTable() {
               icons={tableIcons}
               onRowClick={(event, rowData) => {
                 event.stopPropagation();
-                handleSearch(event, rowData);
+                console.log("app clients? ", appClients.length)
+                handleSearch(event, rowData, (appClients && appClients.length==1)?appClients[0]:null);
               }}
               editable={{
                 onRowDelete: (oldData) =>
