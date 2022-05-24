@@ -27,7 +27,6 @@ import {
   getSettings,
   getUrlParameter,
   getRolesFromToken,
-  handleExpiredSession,
   isString,
   validateToken
 } from "./Utility";
@@ -320,7 +319,7 @@ export default function PatientListTable() {
   const launchAPP = (rowData, launchParams) => {
 
     setCurrentRow(rowData);
-    
+
     //handle multiple SoF clients that can be launched
     //open a dialog here so user can select which one to launch?
     if (hasMultipleSoFClients()) {
@@ -940,7 +939,6 @@ export default function PatientListTable() {
               icons={tableIcons}
               onRowClick={(event, rowData) => {
                 event.stopPropagation();
-                console.log("app clients? ", appClients.length)
                 handleSearch(event, rowData, (appClients && appClients.length==1)?appClients[0]:null);
               }}
               editable={{
