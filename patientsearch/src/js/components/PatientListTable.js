@@ -939,6 +939,7 @@ export default function PatientListTable() {
               icons={tableIcons}
               onRowClick={(event, rowData) => {
                 event.stopPropagation();
+                if (!appClients || !appClients.length) return;
                 handleSearch(event, rowData, (appClients && appClients.length==1)?appClients[0]:null);
               }}
               editable={{

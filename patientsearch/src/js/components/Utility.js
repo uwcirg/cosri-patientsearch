@@ -303,15 +303,12 @@ export function getRolesFromToken(token) {
   token = token || {};
   let roles = [];
   const ACCESS_TOKEN_KEY = "access_token";
-  const RESOURCE_ACCESS_KEY = "resource_access";
-  if (token[ACCESS_TOKEN_KEY] && token[ACCESS_TOKEN_KEY][RESOURCE_ACCESS_KEY]) {
-    const resourceAccess = token[ACCESS_TOKEN_KEY][RESOURCE_ACCESS_KEY];
-    const resourceAccessKeys = Object.keys(resourceAccess);
-    resourceAccessKeys.forEach(key=>{
-      if (resourceAccess[key].roles) {
-        roles = [...roles, ...resourceAccess[key].roles];
-      }
-    });
+  const REALM_ACCESS_KEY = "realm_access";
+  if (token[ACCESS_TOKEN_KEY] && token[ACCESS_TOKEN_KEY][REALM_ACCESS_KEY]) {
+    const realmAccessObj = token[ACCESS_TOKEN_KEY][REALM_ACCESS_KEY];
+    if (realmAccessObj["roles"]) {
+      roles = [...roles, ...realmAccessObj["roles"]];
+    }
   }
   return roles;
 }
