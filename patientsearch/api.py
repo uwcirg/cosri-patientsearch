@@ -252,9 +252,9 @@ def resource_bundle(resource_type):
         return jsonify_abort(status_code=400, message=str(error))
 
 
-@api_blueprint.route("/fhir/<string:resource_type>", methods=["POST"])
+@api_blueprint.route("/fhir/<string:resource_type>", methods=["POST", "PUT"])
 def post_resource(resource_type):
-    """Delegate request to POST given resource in post body to HAPI
+    """Delegate request to PUT/POST given resource in post body to HAPI
 
     NB not decorated with `@oidc.require_login` as that does an implicit
     redirect.  Client should watch for 401 and redirect appropriately.
@@ -274,7 +274,7 @@ def post_resource(resource_type):
                 f"{resource['resourceType']} != {resource_type}"
             )
 
-        method = "POST"
+        method = request.method
         audit_HAPI_change(
             user_info=current_user_info(token),
             method=method,
