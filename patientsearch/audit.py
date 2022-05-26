@@ -36,7 +36,7 @@ def audit_entry(message, level="info", extra=None):
 
 
 def audit_HAPI_change(
-    user_info, method, resource=None, resource_type=None, resource_id=None
+    user_info, method, params=None, resource=None, resource_type=None, resource_id=None
 ):
     rt = resource_type or resource and resource.get("resourceType")
     id = resource_id or resource and resource.get("_id", "")
@@ -48,4 +48,6 @@ def audit_HAPI_change(
     elif resource:
         extra["resource"] = resource
 
+    if params:
+        extra['params'] = params
     audit_entry(message=msg, extra=extra)
