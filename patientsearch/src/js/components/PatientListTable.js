@@ -311,7 +311,8 @@ export default function PatientListTable() {
       console.log("Missing ISS launch base URL");
       return "";
     }
-    return `${baseURL}?launch=${btoa(JSON.stringify({ b: patientId }))}&iss=${iss}`;
+    console.log("patient id ? ", patientId)
+    return `${baseURL}?patient=${patientId}&launch=${btoa(JSON.stringify({ a: 1, b: patientId }))}&iss=${encodeURIComponent(iss)}`;
   };
   const hasMultipleSoFClients = () => {
     return appClients && appClients.length > 1;
@@ -327,7 +328,7 @@ export default function PatientListTable() {
       setOpenLoadingModal(false);
       return;
     }
-
+    
     let launchURL = getLaunchURL(rowData.id, launchParams);
     if (!launchURL) {
       handleLaunchError("Unable to launch application. Missing launch URL. Missing configurations.");
