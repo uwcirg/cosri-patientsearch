@@ -314,6 +314,9 @@ export default function PatientListTable() {
     console.log("patient id ? ", patientId)
     return `${baseURL}?patient=${patientId}&launch=${btoa(JSON.stringify({ a: 1, b: patientId }))}&iss=${encodeURIComponent(iss)}`;
   };
+  const hasSoFClients = () => {
+    return appClients && appClients.length > 0;
+  }
   const hasMultipleSoFClients = () => {
     return appClients && appClients.length > 1;
   };
@@ -393,6 +396,7 @@ export default function PatientListTable() {
         handleLaunchError(noResultErrorMessage);
         return false;
       }
+      if (!hasSoFClients()) return;
       launchAPP(response, launchParams);
     }).catch(e => {
       let returnedError = e;
@@ -418,7 +422,7 @@ export default function PatientListTable() {
     setErrorMessage("");
    
     //if all well, prepare to launch app
-    const allowToLaunch = needExternalAPILookup()? (rowData.id && rowData.identifier) : rowData.id;
+    const allowToLaunch = !hasSoFClients() ? false : (needExternalAPILookup()? (rowData.id && rowData.identifier) : rowData.id);
     if (allowToLaunch) {
       launchAPP(rowData, launchParams);
       return;
@@ -536,6 +540,7 @@ export default function PatientListTable() {
   function onFiltersDidChange(filters, clearAll) {
     clearTimeout(filterIntervalId);
     filterIntervalId = setTimeout(function () {
+      setErrorMessage("");
       handleNoDataText(filters);
       handleActionLabel(filters);
       if (filters && filters.length) {
@@ -940,7 +945,7 @@ export default function PatientListTable() {
               icons={tableIcons}
               onRowClick={(event, rowData) => {
                 event.stopPropagation();
-                if (!appClients || !appClients.length) return;
+                if (!hasSoFClients()) return;
                 handleSearch(event, rowData, (appClients && appClients.length==1)?appClients[0]:null);
               }}
               editable={{
