@@ -49,5 +49,5 @@ def audit_HAPI_change(
         extra["resource"] = resource
 
     if params:
-        extra['params'] = params
+        extra["params"] = params
     audit_entry(message=msg, extra=extra)
