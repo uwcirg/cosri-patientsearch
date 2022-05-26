@@ -72,10 +72,12 @@ def HAPI_request(
             raise RuntimeError("EMR FHIR store inaccessible")
     elif VERB == "POST":
         resp = requests.post(
-            url, auth=BearerAuth(token), params=params, json=resource, timeout=30)
+            url, auth=BearerAuth(token), params=params, json=resource, timeout=30
+        )
     elif VERB == "PUT":
         resp = requests.put(
-            url, auth=BearerAuth(token), params=params, json=resource, timeout=30)
+            url, auth=BearerAuth(token), params=params, json=resource, timeout=30
+        )
     elif VERB == "DELETE":
         # Only enable deletion of resource by id
         if not resource_id:
@@ -232,7 +234,8 @@ def internal_patient_search(token, patient):
     """Look up given patient from "internal" HAPI store, returns bundle"""
     params = patient_as_search_params(patient)
     return HAPI_request(
-        token=token, method="GET", resource_type="Patient", params=params)
+        token=token, method="GET", resource_type="Patient", params=params
+    )
 
 
 def sync_patient(token, patient):
