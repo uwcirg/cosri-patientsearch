@@ -278,6 +278,7 @@ def post_resource(resource_type):
         audit_HAPI_change(
             user_info=current_user_info(token),
             method=method,
+            params=request.args,
             resource=resource,
             resource_type=resource_type,
         )
@@ -285,6 +286,7 @@ def post_resource(resource_type):
             HAPI_request(
                 token=token,
                 method=method,
+                params=request.args,
                 resource_type=resource_type,
                 resource=resource,
             )
