@@ -311,12 +311,11 @@ export default function PatientListTable() {
       console.log("Missing ISS launch base URL");
       return "";
     }
-    console.log("patient id ? ", patientId)
     return `${baseURL}?patient=${patientId}&launch=${btoa(JSON.stringify({ a: 1, b: patientId }))}&iss=${encodeURIComponent(iss)}`;
   };
   const hasSoFClients = () => {
     return appClients && appClients.length > 0;
-  }
+  };
   const hasMultipleSoFClients = () => {
     return appClients && appClients.length > 1;
   };
