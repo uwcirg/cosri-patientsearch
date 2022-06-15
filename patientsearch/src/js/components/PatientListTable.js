@@ -419,6 +419,8 @@ export default function PatientListTable() {
     }
     setOpenLoadingModal(true);
     setErrorMessage("");
+
+    launchParams = launchParams || (appClients && appClients.length==1)?appClients[0]:null;
    
     //if all well, prepare to launch app
     const allowToLaunch = !hasSoFClients() ? false : (needExternalAPILookup()? (rowData.id && rowData.identifier) : rowData.id);
