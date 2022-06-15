@@ -170,6 +170,9 @@ const useStyles = makeStyles({
   },
   diaglogContent: {
     marginTop: theme.spacing(3)
+  },
+  moreIcon: {
+    marginRight: theme.spacing(1)
   }
 });
 
@@ -325,9 +328,10 @@ export default function PatientListTable() {
 
     //handle multiple SoF clients that can be launched
     //open a dialog here so user can select which one to launch?
-    if (hasMultipleSoFClients()) {
+    if (!launchParams && hasMultipleSoFClients()) {
       setOpenLaunchInfoModal(true);
       setOpenLoadingModal(false);
+      handleRefresh();
       return;
     }
     
@@ -396,7 +400,7 @@ export default function PatientListTable() {
         return false;
       }
       if (!hasSoFClients()) return;
-      launchAPP(response, launchParams);
+      launchAPP(formatData(response)[0], launchParams);
     }).catch(e => {
       let returnedError = e;
         try {
@@ -420,7 +424,7 @@ export default function PatientListTable() {
     setOpenLoadingModal(true);
     setErrorMessage("");
 
-    launchParams = launchParams || (appClients && appClients.length==1)?appClients[0]:null;
+    launchParams = launchParams || (hasSoFClients() && appClients.length==1)?appClients[0]:null;
    
     //if all well, prepare to launch app
     const allowToLaunch = !hasSoFClients() ? false : (needExternalAPILookup()? (rowData.id && rowData.identifier) : rowData.id);
@@ -906,7 +910,7 @@ export default function PatientListTable() {
                   icon: () => (
                     settingInitialized && !shouldHideMoreMenu() && <MoreHorizIcon
                       color="primary"
-                      className={`more-icon`}
+                      className={classes.moreIcon}
                     ></MoreHorizIcon>
                   ),
                   onClick: (event, rowData) => handleMenuClick(event, rowData),
@@ -947,7 +951,7 @@ export default function PatientListTable() {
               onRowClick={(event, rowData) => {
                 event.stopPropagation();
                 if (!hasSoFClients()) return;
-                handleSearch(event, rowData, (appClients && appClients.length==1)?appClients[0]:null);
+                handleSearch(event, rowData);
               }}
               editable={{
                 onRowDelete: (oldData) =>
