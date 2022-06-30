@@ -21,7 +21,7 @@ export default function SettingContextProvider({children}) {
                 ])}>
                 <SettingContext.Consumer>{({appSettings}) => {
                     if (appSettings) return children;
-                    return "Retrieving application settiongs ...";
+                    return "Retrieving application settings ...";
                 }}</SettingContext.Consumer>
             </SettingContext.Provider>;
 }
