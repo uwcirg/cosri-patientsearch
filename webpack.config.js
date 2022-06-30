@@ -5,9 +5,11 @@ const OptimizeCssAssetsPlugin = require("optimize-css-assets-webpack-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const { CleanWebpackPlugin } = require("clean-webpack-plugin");
 const FileManagerPlugin = require("filemanager-webpack-plugin");
-const appTitle = "COSRI Patient Search";
+/* TODO - use PROJECT_NAME in appTitle */
+const appTitle = "DEM Patient Search";
 const templateFilePath = path.join(__dirname, "/patientsearch/src/index.html");
-const faviconFilePath = path.join(__dirname, "/patientsearch/src/assets/favicon.ico");
+/* TODO - use PROJECT_NAME in favicon filename */
+const faviconFilePath = path.join(__dirname, "/patientsearch/src/assets/DEM_favicon.ico");
 
 module.exports = function(_env, argv) {
   const isProduction = argv.mode === "production";
