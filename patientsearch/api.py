@@ -201,9 +201,10 @@ def validate_token():
 
 @api_blueprint.route("/favicon.ico")
 def favicon():
+    favicon = "_".join((current_app.config.get("PROJECT_NAME"), "favicon.ico"))
     return send_from_directory(
         current_app.config.get("STATIC_DIR") or current_app.static_folder,
-        "favicon.ico",
+        favicon,
         mimetype="image/vnd.microsoft.icon",
     )
 
