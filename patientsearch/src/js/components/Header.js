@@ -158,7 +158,6 @@ export default function Header() {
   }, []);
 
   React.useEffect(() => {
-    let done = false;
     if (appSettings) {
       if (appSettings["APPLICATION_TITLE"]) setAppTitle(appSettings["APPLICATION_TITLE"]);
       if (appSettings["PROJECT_NAME"]) {
@@ -167,9 +166,6 @@ export default function Header() {
         setFavicon(`/static/${appSettings["PROJECT_NAME"]}_favicon.ico`);
       }
     }
-    return () => {
-      done = true;
-    };
   }, [appSettings]);
 
   const logoutURL = "/logout?user_initiated=true";
