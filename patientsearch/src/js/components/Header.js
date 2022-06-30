@@ -169,7 +169,7 @@ export default function Header() {
     }
     return () => {
       done = true;
-    }
+    };
   }, [appSettings]);
 
   const logoutURL = "/logout?user_initiated=true";
