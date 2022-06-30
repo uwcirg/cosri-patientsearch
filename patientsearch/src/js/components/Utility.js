@@ -321,3 +321,15 @@ export function handleExpiredSession() {
   }, 0);
 }
 
+export function setDocumentTitle(title) {
+  if (!title) return;
+  document.title = title;
+}
+
+export function setFavicon(href) {
+  if (!href) return;
+  let faviconEl = document.querySelector("link[rel*='icon']");
+  if (!faviconEl) return;
+  faviconEl.href = href;
+}
+

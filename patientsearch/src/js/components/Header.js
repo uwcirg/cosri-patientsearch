@@ -9,7 +9,7 @@ import HowToRegIcon from "@material-ui/icons/HowToReg";
 import Toolbar from "@material-ui/core/Toolbar";
 import Typography from "@material-ui/core/Typography";
 import SiteLogo from "./SiteLogo";
-import { imageOK, sendRequest } from "./Utility";
+import { imageOK, sendRequest, setDocumentTitle, setFavicon } from "./Utility";
 import { getAppSettings } from "../context/SettingContextProvider";
 
 const useStyles = makeStyles((theme) => ({
@@ -158,10 +158,16 @@ export default function Header() {
   }, []);
 
   React.useEffect(() => {
-    if (appSettings && appSettings["APPLICATION_TITLE"]) {
-      setAppTitle(appSettings["APPLICATION_TITLE"]);
-      setProjectName(appSettings["PROJECT_NAME"]);
+    let done = false;
+    if (appSettings) {
+      if (appSettings["APPLICATION_TITLE"]) setAppTitle(appSettings["APPLICATION_TITLE"]);
+      if (appSettings["PROJECT_NAME"]) {
+        setProjectName(appSettings["PROJECT_NAME"]);
+        setDocumentTitle(`${appSettings["PROJECT_NAME"]} Patient Search`);
+        setFavicon(`/static/${appSettings["PROJECT_NAME"]}_favicon.ico`);
+      }
     }
+    return () => done = true;
   }, [appSettings]);
 
   const logoutURL = "/logout?user_initiated=true";

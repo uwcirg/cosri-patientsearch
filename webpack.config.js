@@ -5,11 +5,9 @@ const OptimizeCssAssetsPlugin = require("optimize-css-assets-webpack-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const { CleanWebpackPlugin } = require("clean-webpack-plugin");
 const FileManagerPlugin = require("filemanager-webpack-plugin");
-/* TODO - use PROJECT_NAME in appTitle */
-const appTitle = "DEM Patient Search";
+/* document title is being populated at runtime, this is just a placeholder */
+const appTitle = "Patient Search";
 const templateFilePath = path.join(__dirname, "/patientsearch/src/index.html");
-/* TODO - use PROJECT_NAME in favicon filename */
-const faviconFilePath = path.join(__dirname, "/patientsearch/src/assets/DEM_favicon.ico");
 
 module.exports = function(_env, argv) {
   const isProduction = argv.mode === "production";
@@ -89,21 +87,18 @@ module.exports = function(_env, argv) {
         title: appTitle,
         template: templateFilePath,
         filename: path.join(__dirname, `${templateDirectory}/index.html`),
-        favicon: faviconFilePath,
         chunks: ["index"]
       }),
       new HtmlWebpackPlugin({
         title: appTitle,
         template: templateFilePath,
         filename: path.join(__dirname, `${templateDirectory}/home.html`),
-        favicon: faviconFilePath,
         chunks: ["info"]
       }),
       new HtmlWebpackPlugin({
         title: appTitle,
         template: templateFilePath,
         filename: path.join(__dirname, `${templateDirectory}/logout.html`),
-        favicon: faviconFilePath,
         chunks: ["logout"]
       }),
       new webpack.ProvidePlugin({
