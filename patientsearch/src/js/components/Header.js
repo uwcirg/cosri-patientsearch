@@ -167,7 +167,9 @@ export default function Header() {
         setFavicon(`/static/${appSettings["PROJECT_NAME"]}_favicon.ico`);
       }
     }
-    return () => done = true;
+    return () => {
+      done = true;
+    }
   }, [appSettings]);
 
   const logoutURL = "/logout?user_initiated=true";
