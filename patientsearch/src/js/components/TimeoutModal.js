@@ -92,6 +92,7 @@ export default function TimeoutModal() {
               } else {
                 reLoad();
               }
+              clearExpiredIntervalId();
               return;
             }
             if (tokenAboutToExpire) {
@@ -116,6 +117,7 @@ export default function TimeoutModal() {
         console.log("Error returned ", error);
         if (error && error.status && error.status == 401) {
           console.log("Failed to retrieve token data: Unauthorized");
+          clearExpiredIntervalId();
           handleLogout();
           return;
         }
