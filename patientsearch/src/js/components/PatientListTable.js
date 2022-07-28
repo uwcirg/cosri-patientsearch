@@ -4,10 +4,10 @@ import MaterialTable from "material-table";
 import RefreshIcon from "@material-ui/icons/Refresh";
 import MoreHorizIcon from "@material-ui/icons/MoreHoriz";
 import CircularProgress from "@material-ui/core/CircularProgress";
-import Dialog from '@material-ui/core/Dialog';
-import DialogActions from '@material-ui/core/DialogActions';
-import DialogContent from '@material-ui/core/DialogContent';
-import DialogTitle from '@material-ui/core/DialogTitle';
+import Dialog from "@material-ui/core/Dialog";
+import DialogActions from "@material-ui/core/DialogActions";
+import DialogContent from "@material-ui/core/DialogContent";
+import DialogTitle from "@material-ui/core/DialogTitle";
 import Button from "@material-ui/core/Button";
 import Container from "@material-ui/core/Container";
 import Modal from "@material-ui/core/Modal";
@@ -19,7 +19,7 @@ import Error from "./Error";
 import FilterRow from "./FilterRow";
 import UrineScreen from "./UrineScreen";
 import Agreement from "./Agreement";
-import {tableIcons} from "../context/consts";
+import { tableIcons, columns, FieldNameMaps } from "../context/consts";
 import theme from "../context/theme";
 import {
   fetchData,
@@ -28,7 +28,7 @@ import {
   getUrlParameter,
   getRolesFromToken,
   isString,
-  validateToken
+  validateToken,
 } from "./Utility";
 
 const useStyles = makeStyles({
@@ -43,21 +43,21 @@ const useStyles = makeStyles({
     display: "table",
     width: "100%",
     height: "100%",
-    background: "rgb(255 255 255 / 70%)"
+    background: "rgb(255 255 255 / 70%)",
   },
   overlayElement: {
     display: "table-cell",
     width: "100%",
     height: "100%",
     verticalAlign: "middle",
-    textAlign: "center"
+    textAlign: "center",
   },
   filterTable: {
     marginBottom: theme.spacing(1),
     marginTop: theme.spacing(20),
     ["@media (min-width:639px)"]: {
-      marginTop: 0
-    }
+      marginTop: 0,
+    },
   },
   table: {
     minWidth: 320,
@@ -77,7 +77,7 @@ const useStyles = makeStyles({
     flexWrap: "wrap",
   },
   flexButton: {
-    marginRight: theme.spacing(1)
+    marginRight: theme.spacing(1),
   },
   modal: {
     display: "flex",
@@ -166,20 +166,22 @@ const useStyles = makeStyles({
     color: theme.palette.primary.main,
   },
   diaglogTitle: {
-    backgroundColor:  theme.palette.primary.lightest
+    backgroundColor: theme.palette.primary.lightest,
   },
   diaglogContent: {
-    marginTop: theme.spacing(3)
+    marginTop: theme.spacing(3),
   },
   moreIcon: {
-    marginRight: theme.spacing(1)
-  }
+    marginRight: theme.spacing(1),
+  },
 });
 
 let appSettings = {};
 let filterIntervalId = 0;
 
 export default function PatientListTable() {
+  const arrItemPlaceholder = [];
+  const arrAppUrls = [];
   const classes = useStyles();
   const [settingInitialized, setSettingInitialized] = React.useState(false);
   const [initialized, setInitialized] = React.useState(false);
@@ -226,42 +228,6 @@ export default function PatientListTable() {
       component: (rowData) => <Agreement rowData={rowData}></Agreement>,
     },
   ];
-  const FieldNameMaps = {
-    first_name: "given",
-    last_name: "family",
-    dob: "birthdate",
-    lastUpdated: "_lastUpdated",
-  };
-  const columns = [
-    //default sort by id in descending order
-    { field: "id", hidden: true, filtering: false },
-    {
-      title: "First Name",
-      field: "first_name",
-      filterPlaceholder: "First Name",
-      emptyValue: "--",
-    },
-    {
-      title: "Last Name",
-      field: "last_name",
-      filterPlaceholder: "Last Name",
-      emptyValue: "--",
-    },
-    {
-      title: "Birth Date",
-      field: "dob",
-      filterPlaceholder: "YYYY-MM-DD",
-      emptyValue: "--",
-    },
-    /* the field for last accessed is patient.meta.lastupdated? */
-    {
-      title: "Last Accessed",
-      field: "lastUpdated",
-      filtering: false,
-      align: "center",
-      defaultSort: "desc",
-    },
-  ];
   const errorStyle = { display: errorMessage ? "block" : "none" };
   const toTop = () => {
     window.scrollTo(0, 0);
@@ -270,7 +236,7 @@ export default function PatientListTable() {
     appSettings = settings;
   };
   const getAppSettingByKey = (key) => {
-    if (!appSettings || (Object.keys(appSettings).length === 0)) return "";
+    if (!appSettings || Object.keys(appSettings).length === 0) return "";
     return appSettings[key];
   };
   const existsIndata = function (rowData) {
@@ -308,13 +274,17 @@ export default function PatientListTable() {
     }
     launchParams = launchParams || {};
     const LAUNCH_URL_KEY = "launch_url";
-    let baseURL = launchParams[LAUNCH_URL_KEY] ? launchParams[LAUNCH_URL_KEY] : "";
+    let baseURL = launchParams[LAUNCH_URL_KEY]
+      ? launchParams[LAUNCH_URL_KEY]
+      : "";
     let iss = getAppSettingByKey("SOF_HOST_FHIR_URL");
     if (!baseURL || !iss) {
       console.log("Missing ISS launch base URL");
       return "";
     }
-    return `${baseURL}?patient=${patientId}&launch=${btoa(JSON.stringify({ a: 1, b: patientId }))}&iss=${encodeURIComponent(iss)}`;
+    return `${baseURL}?patient=${patientId}&launch=${btoa(
+      JSON.stringify({ a: 1, b: patientId })
+    )}&iss=${encodeURIComponent(iss)}`;
   };
   const hasSoFClients = () => {
     return appClients && appClients.length > 0;
@@ -322,8 +292,7 @@ export default function PatientListTable() {
   const hasMultipleSoFClients = () => {
     return appClients && appClients.length > 1;
   };
-  const launchAPP = (rowData, launchParams) => {
-
+  const handleLaunchApp = (rowData, launchParams) => {
     setCurrentRow(rowData);
 
     //handle multiple SoF clients that can be launched
@@ -334,10 +303,12 @@ export default function PatientListTable() {
       handleRefresh();
       return;
     }
-    
+
     let launchURL = getLaunchURL(rowData.id, launchParams);
     if (!launchURL) {
-      handleLaunchError("Unable to launch application. Missing launch URL. Missing configurations.");
+      handleLaunchError(
+        "Unable to launch application. Missing launch URL. Missing configurations."
+      );
       return false;
     }
     setTimeout(function () {
@@ -353,56 +324,65 @@ export default function PatientListTable() {
     console.log("Launch error ", message);
     return false;
   };
-  const handleLaunchWithLookUp = (url, method, bodyData, noResultErrorMessage, fetchErrorMessage, launchParams) => {
+  const handleLaunchWithLookUp = (
+    url,
+    method,
+    bodyData,
+    noResultErrorMessage,
+    fetchErrorMessage,
+    launchParams
+  ) => {
     if (!url) {
       handleLaunchError("Unable to launch application.  Missing URL.");
       return;
     }
-    noResultErrorMessage = noResultErrorMessage || 'No patient found with matching data';
-    fetchErrorMessage = fetchErrorMessage || 'System is unable to return process data';
+    noResultErrorMessage =
+      noResultErrorMessage || "No patient found with matching data";
+    fetchErrorMessage =
+      fetchErrorMessage || "System is unable to return process data";
     fetch(url, {
       ...{
-        method: method?method:"PUT",
+        method: method ? method : "PUT",
         headers: {
           Accept: "application/json",
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
-        body: bodyData
+        body: bodyData,
       },
       ...noCacheParam,
-    }).then(searchResponse => {
-      //dealing with unauthorized error, status code = 401
-      if (!searchResponse.ok) {
-        handleErrorCallback(searchResponse);
-      }
-      return searchResponse.json();
-    }).then(result => {
-      let response = result;
-      if (
-        result &&
-        result.entry &&
-        result.entry[0]) {
+    })
+      .then((searchResponse) => {
+        //dealing with unauthorized error, status code = 401
+        if (!searchResponse.ok) {
+          handleErrorCallback(searchResponse);
+        }
+        return searchResponse.json();
+      })
+      .then((result) => {
+        let response = result;
+        if (result && result.entry && result.entry[0]) {
           response = result.entry[0];
-      }
-      if (!response) {
-        handleLaunchError(noResultErrorMessage);
-        return false;
-      }
-      //add new table row where applicable
-      try {
-        addDataRow(response);
-      } catch (e) {
-        console.log("Error occurred adding row to table ", e);
-      }
-      setErrorMessage("");
-      if (!response.id) {
-        handleLaunchError(noResultErrorMessage);
-        return false;
-      }
-      if (!hasSoFClients()) return;
-      launchAPP(formatData(response)[0], launchParams);
-    }).catch(e => {
-      let returnedError = e;
+        }
+        if (!response) {
+          handleLaunchError(noResultErrorMessage);
+          return false;
+        }
+        //add new table row where applicable
+        try {
+          addDataRow(response);
+        } catch (e) {
+          console.log("Error occurred adding row to table ", e);
+        }
+        setErrorMessage("");
+        if (!response.id) {
+          handleLaunchError(noResultErrorMessage);
+          return false;
+        }
+        if (!hasSoFClients()) return;
+        handleLaunchApp(formatData(response)[0], launchParams);
+      })
+      .catch((e) => {
+        let returnedError = e;
         try {
           returnedError = JSON.parse(e);
           returnedError = returnedError.message
@@ -411,10 +391,13 @@ export default function PatientListTable() {
         } catch (e) {
           console.log("error parsing error message ", e);
         }
-        handleLaunchError(fetchErrorMessage + `<p>Error returned from the system: ${returnedError}</p>`);
+        handleLaunchError(
+          fetchErrorMessage +
+            `<p>Error returned from the system: ${returnedError}</p>`
+        );
         //log error to console
         console.log(`Patient search error: ${e}`);
-    });
+      });
   };
   const handleSearch = function (event, rowData, launchParams) {
     if (!rowData) {
@@ -423,13 +406,19 @@ export default function PatientListTable() {
     }
     setOpenLoadingModal(true);
     setErrorMessage("");
+    launchParams =
+      launchParams || (hasSoFClients() && appClients.length == 1)
+        ? appClients[0]
+        : null;
 
-    launchParams = launchParams || (hasSoFClients() && appClients.length==1)?appClients[0]:null;
-   
     //if all well, prepare to launch app
-    const allowToLaunch = !hasSoFClients() ? false : (needExternalAPILookup()? (rowData.id && rowData.identifier) : rowData.id);
+    const allowToLaunch = !hasSoFClients()
+      ? false
+      : needExternalAPILookup()
+      ? rowData.id && rowData.identifier
+      : rowData.id;
     if (allowToLaunch) {
-      launchAPP(rowData, launchParams);
+      handleLaunchApp(rowData, launchParams);
       return;
     }
     //external FHIR API patient lookup, e.g. PDMP
@@ -446,15 +435,19 @@ export default function PatientListTable() {
     }
     //if a new patient, patient needs to be added before proceeding
     handleLaunchWithLookUp(
-      `/fhir/Patient?given=${rowData.first_name.trim()}&family=${rowData.last_name.trim()}&birthdate=${rowData.dob}`,
+      `/fhir/Patient?given=${rowData.first_name.trim()}&family=${rowData.last_name.trim()}&birthdate=${
+        rowData.dob
+      }`,
       "PUT",
       JSON.stringify({
         resourceType: "Patient",
-        name: [{
-          "family": rowData.last_name.trim(),
-          "given": [rowData.first_name.trim()]
-        }],
-        birthDate: rowData.dob
+        name: [
+          {
+            family: rowData.last_name.trim(),
+            given: [rowData.first_name.trim()],
+          },
+        ],
+        birthDate: rowData.dob,
       }),
       "Unable to proceed. Patient wasn't added",
       "",
@@ -525,11 +518,15 @@ export default function PatientListTable() {
   }
   function getNonEmptyFilters(filters) {
     if (!filters) return [];
-    return filters.filter(item => item.value && item.value !== "");
+    return filters.filter((item) => item.value && item.value !== "");
   }
 
   function handleActionLabel(filters) {
-    setActionLabel(getNonEmptyFilters(filters).length === 3? CREATE_BUTTON_LABEL: LAUNCH_BUTTON_LABEL);
+    setActionLabel(
+      getNonEmptyFilters(filters).length === 3
+        ? CREATE_BUTTON_LABEL
+        : LAUNCH_BUTTON_LABEL
+    );
   }
   function handleNoDataText(filters) {
     let text = "";
@@ -568,7 +565,7 @@ export default function PatientListTable() {
   }
 
   function patientListInitialized() {
-    return initialized;
+    return initialized && hasSoFClients();
   }
 
   function handleErrorCallback(e) {
@@ -642,7 +639,9 @@ export default function PatientListTable() {
   const shouldHideMoreMenu = () => {
     return (
       Object.keys(appSettings).length &&
-      (!appSettings[MORE_MENU_KEY] || (appSettings[MORE_MENU_KEY]).filter(item => (item && item !== "")).length === 0)
+      (!appSettings[MORE_MENU_KEY] ||
+        appSettings[MORE_MENU_KEY].filter((item) => item && item !== "")
+          .length === 0)
     );
   };
   const shouldShowMenuItem = (id) => {
@@ -662,6 +661,7 @@ export default function PatientListTable() {
     }
     return null;
   };
+  let item_params;
   const getPatientList = (query) => {
     let sortField =
       query.orderBy && query.orderBy.field
@@ -785,44 +785,60 @@ export default function PatientListTable() {
     });
     let resourceRoles = [];
     //check if session token still valid first
-    validateToken().then(token => {
-      if (!token) {
-        console.log("Redirecting...");
-        window.location = "/logout?unauthorized=true";
-        setOpenLoadingModal(true);
-        return false;
-      }
+    validateToken()
+      .then((token) => {
+        if (!token) {
+          console.log("Redirecting...");
+          window.location = "/logout?unauthorized=true";
+          setOpenLoadingModal(true);
+          return false;
+        }
 
-      // set USER ROLE(s)
-      resourceRoles = getRolesFromToken(token);
-  
-      getSettings((data) => {
-        if (data.error) {
-          handleErrorCallback(data.error);
+        // set USER ROLE(s)
+        resourceRoles = getRolesFromToken(token);
+
+        getSettings((data) => {
+          if (data.error) {
+            handleErrorCallback(data.error);
+            setSettingInitialized(true);
+            setErrorMessage(`Error retrieving app setting: ${data.error}`);
+            return;
+          }
           setSettingInitialized(true);
-          setErrorMessage(`Error retrieving app setting: ${data.error}`);
-          return;
-        }
-        setSettingInitialized(true);
-        setAppSettings(data);
-        if (!data["SOF_CLIENTS"]) {
-          return;
-        }
-        //CHECK user role against each SoF client app's REQUIRED_ROLES
-        const clients = (data["SOF_CLIENTS"]).filter(item => {
-          const requiredRoles = item["required_roles"] || item["REQUIRED_ROLES"];
-          if (!requiredRoles) return true;
-          if (Array.isArray(requiredRoles) && !Array.isArray(resourceRoles)) return requiredRoles.indexOf(resourceRoles) !== -1;
-          if (!Array.isArray(requiredRoles) && Array.isArray(resourceRoles)) return resourceRoles.filter(role => role === requiredRoles).length > 0;
-          if (Array.isArray(requiredRoles) && Array.isArray(resourceRoles)) return requiredRoles.filter(role => resourceRoles.indexOf(role) !== -1).length > 0;
-          return requiredRoles === resourceRoles;
-        });
-        setAppClients(clients);
-      }, true); //no caching
-    }).catch(e => {
-      console.log("token validation error ", e);
-      handleErrorCallback(e);
-    });
+          setAppSettings(data);
+          if (!data["SOF_CLIENTS"]) {
+            return;
+          }
+          //CHECK user role against each SoF client app's REQUIRED_ROLES
+          const clients = data["SOF_CLIENTS"].filter((item) => {
+            const requiredRoles =
+              item["required_roles"] || item["REQUIRED_ROLES"];
+            if (!requiredRoles) return true;
+            if (Array.isArray(requiredRoles) && !Array.isArray(resourceRoles))
+              return requiredRoles.indexOf(resourceRoles) !== -1;
+            if (!Array.isArray(requiredRoles) && Array.isArray(resourceRoles))
+              return (
+                resourceRoles.filter((role) => role === requiredRoles).length >
+                0
+              );
+            if (Array.isArray(requiredRoles) && Array.isArray(resourceRoles))
+              return (
+                requiredRoles.filter(
+                  (role) => resourceRoles.indexOf(role) !== -1
+                ).length > 0
+              );
+            return requiredRoles === resourceRoles;
+          });
+          setAppClients(clients);
+        }, true); //no caching
+        return () => {
+          window.removeEventListener("beforeunload");
+        };
+      })
+      .catch((e) => {
+        console.log("token validation error ", e);
+        handleErrorCallback(e);
+      });
   }, []); //retrieval of settings should occur prior to patient list being rendered/initialized
 
   return (
@@ -840,7 +856,11 @@ export default function PatientListTable() {
             />
           </tbody>
         </table>
-        {settingInitialized && <div className={`${classes.table} main`} aria-label="patient list table">
+        {settingInitialized && (
+          <div
+            className={`${classes.table} main`}
+            aria-label="patient list table"
+          >
             <MaterialTable
               className={classes.table}
               columns={columns}
@@ -884,37 +904,48 @@ export default function PatientListTable() {
               //overlay
               components={{
                 OverlayLoading: () => (
-                    <div className={classes.overlayContainer}>
-                        <div className={classes.overlayElement}>
-                          <CircularProgress></CircularProgress>
-                        </div>
+                  <div className={classes.overlayContainer}>
+                    <div className={classes.overlayElement}>
+                      <CircularProgress></CircularProgress>
                     </div>
-                )
+                  </div>
+                ),
               }}
               actions={[
-                ...
-                  appClients && appClients.length ? 
-                  (appClients).map((item,index) => {
-                    return {
-                      icon: () => (
-                        <span className={classes.button} key={`actionButton_${index}`}>
-                          {item.label}
-                        </span>
-                      ),
-                      onClick: (event, rowData) => handleSearch(event, rowData, item),
-                      tooltip: `Launch ${item.id} application for the user`,
-                    };
-                  }) : []
-                ,
+                ...(appClients && appClients.length
+                  ? appClients.map((item, index) => {
+                      //const launchParams = JSON.parse(JSON.stringify(item));
+                      arrAppUrls[index] = JSON.parse(JSON.stringify(item));
+                      return {
+                        icon: () => (
+                          <span
+                            className={classes.button}
+                            key={`actionButton_${index}`}
+                          >
+                            {item.label}
+                          </span>
+                        ),
+                        onClick: (event, rowData) => {
+                          event.stopPropagation();
+                          if (needExternalAPILookup())
+                          handleSearch(event, rowData, arrAppUrls[index]);
+                          else handleLaunchApp(rowData, arrAppUrls[index]);
+                        },
+                        tooltip: `Launch ${item.id} application for the user`,
+                      };
+                    })
+                  : []),
                 {
-                  icon: () => (
-                    settingInitialized && !shouldHideMoreMenu() && <MoreHorizIcon
-                      color="primary"
-                      className={classes.moreIcon}
-                    ></MoreHorizIcon>
-                  ),
+                  icon: () =>
+                    settingInitialized &&
+                    !shouldHideMoreMenu() && (
+                      <MoreHorizIcon
+                        color="primary"
+                        className={classes.moreIcon}
+                      ></MoreHorizIcon>
+                    ),
                   onClick: (event, rowData) => handleMenuClick(event, rowData),
-                  tooltip: shouldHideMoreMenu()? "":"More",
+                  tooltip: shouldHideMoreMenu() ? "" : "More",
                 },
               ]}
               options={{
@@ -997,7 +1028,7 @@ export default function PatientListTable() {
               }}
             />
           </div>
-        }
+        )}
         <div className={classes.flexContainer}>
           {patientListInitialized() && containNoPMPRow && (
             <div className={classes.legend}>
@@ -1062,34 +1093,61 @@ export default function PatientListTable() {
             </div>
           </div>
         </Modal>
-        <Dialog open={openLaunchInfoModal} onClose={() => setOpenLaunchInfoModal(false)} aria-labelledby="launch-info-dialog-title">
-          {currentRow && <DialogTitle
-          classes={{
-            root: classes.diaglogTitle
-          }}
-          id="launch-info-dialog-title">{`${currentRow.last_name}, ${currentRow.first_name}`}</DialogTitle>}
-          <DialogContent classes={{
-            root: classes.diaglogContent
-          }}>
-              <div className={classes.flex}>
-                { appClients && appClients.map((item, index) => {
-                    return <Button key={`launchButton_${index}`} color="primary" variant="contained" className={classes.flexButton} onClick={() => launchAPP(currentRow, item)}>{`Launch ${item.id}`}</Button>;
-                  })
-                }
-              </div>
+        <Dialog
+          open={openLaunchInfoModal}
+          onClose={() => setOpenLaunchInfoModal(false)}
+          aria-labelledby="launch-info-dialog-title"
+        >
+          {currentRow && (
+            <DialogTitle
+              classes={{
+                root: classes.diaglogTitle,
+              }}
+              id="launch-info-dialog-title"
+            >{`${currentRow.last_name}, ${currentRow.first_name}`}</DialogTitle>
+          )}
+          <DialogContent
+            classes={{
+              root: classes.diaglogContent,
+            }}
+          >
+            <div className={classes.flex}>
+              {appClients &&
+                appClients.map((item, index) => {
+                  arrItemPlaceholder[index] = JSON.parse(JSON.stringify(item));
+                  return (
+                    <Button
+                      key={`launchButton_${index}`}
+                      color="primary"
+                      variant="contained"
+                      className={classes.flexButton}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleLaunchApp(currentRow, arrItemPlaceholder[index]);
+                      }
+                      }
+                    >{`Launch ${item.id}`}</Button>
+                  );
+                })}
+            </div>
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setOpenLaunchInfoModal(false)} color="primary">
+            <Button
+              onClick={() => setOpenLaunchInfoModal(false)}
+              color="primary"
+            >
               Close
             </Button>
           </DialogActions>
         </Dialog>
-        {settingInitialized && <Dropdown
-          anchorEl={anchorEl}
-          handleMenuClose={handleMenuClose}
-          handleMenuSelect={handleMenuSelect}
-          menuItems={menuItems.filter((item) => shouldShowMenuItem(item.id))}
-        ></Dropdown>}
+        {settingInitialized && (
+          <Dropdown
+            anchorEl={anchorEl}
+            handleMenuClose={handleMenuClose}
+            handleMenuSelect={handleMenuSelect}
+            menuItems={menuItems.filter((item) => shouldShowMenuItem(item.id))}
+          ></Dropdown>
+        )}
       </Container>
     </React.Fragment>
   );
