@@ -661,7 +661,6 @@ export default function PatientListTable() {
     }
     return null;
   };
-  let item_params;
   const getPatientList = (query) => {
     let sortField =
       query.orderBy && query.orderBy.field
