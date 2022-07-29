@@ -565,7 +565,7 @@ export default function PatientListTable() {
   }
 
   function patientListInitialized() {
-    return initialized && hasSoFClients();
+    return initialized;
   }
 
   function handleErrorCallback(e) {
@@ -714,6 +714,7 @@ export default function PatientListTable() {
             return;
           }
           setInitialized(true);
+          console.log("response ", response);
           console.log("row entry ", response.entry);
           let responseData = formatData(response.entry);
           console.log("responseData ", responseData);
