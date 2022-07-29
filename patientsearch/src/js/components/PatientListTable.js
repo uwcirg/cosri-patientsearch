@@ -714,7 +714,9 @@ export default function PatientListTable() {
             return;
           }
           setInitialized(true);
+          console.log("row entry ", response.entry);
           let responseData = formatData(response.entry);
+          console.log("responseData ", responseData);
           setData(responseData || []);
           setNoPMPFlag(responseData);
           let responsePageoffset = 0;
