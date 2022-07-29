@@ -40,39 +40,3 @@ export const tableIcons = {
   )),
 };
 
-export const columns = [
-  //default sort by id in descending order
-  { field: "id", hidden: true, filtering: false },
-  {
-    title: "First Name",
-    field: "first_name",
-    filterPlaceholder: "First Name",
-    emptyValue: "--",
-  },
-  {
-    title: "Last Name",
-    field: "last_name",
-    filterPlaceholder: "Last Name",
-    emptyValue: "--",
-  },
-  {
-    title: "Birth Date",
-    field: "dob",
-    filterPlaceholder: "YYYY-MM-DD",
-    emptyValue: "--",
-  },
-  /* the field for last accessed is patient.meta.lastupdated? */
-  {
-    title: "Last Accessed",
-    field: "lastUpdated",
-    filtering: false,
-    align: "center",
-    defaultSort: "desc",
-  },
-];
-export const FieldNameMaps = {
-  first_name: "given",
-  last_name: "family",
-  dob: "birthdate",
-  lastUpdated: "_lastUpdated",
-};
