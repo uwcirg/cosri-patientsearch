@@ -263,6 +263,13 @@ button.disabled:focus,
   .MuiInputLabel-formControl {
     font-size: $small-font-size;
   }
+  .main {
+    tr {
+      td:last-child {
+        min-width: 80px;
+      }
+    }
+  }
   table {
     position: relative;
     overflow: hidden;

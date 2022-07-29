@@ -37,7 +37,7 @@ const useStyles = makeStyles({
     marginRight: "auto",
     marginBottom: theme.spacing(2),
     marginTop: 148,
-    maxWidth: "1080px",
+    maxWidth: "1100px",
   },
   overlayContainer: {
     display: "table",
@@ -98,7 +98,6 @@ const useStyles = makeStyles({
     color: "#FFF",
     fontSize: "12px",
     borderRadius: "4px",
-    minWidth: "72px",
     fontWeight: 600,
     textTransform: "uppercase",
     border: 0,
@@ -1006,10 +1005,9 @@ export default function PatientListTable() {
                       : "#FFF",
                   }),
                   actionsCellStyle: {
-                    paddingLeft: theme.spacing(2),
-                    paddingRight: theme.spacing(2),
-                    minWidth: "25%",
-                    justifyContent: "center",
+                    paddingLeft: theme.spacing(1),
+                    paddingRight: theme.spacing(1),
+                    justifyContent: "center"
                   },
                   actionsColumnIndex: -1,
                 }}
