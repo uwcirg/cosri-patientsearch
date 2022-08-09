@@ -265,23 +265,20 @@ export default function PatientListTable() {
   const toTop = () => {
     window.scrollTo(0, 0);
   };
-  const setAppSettings = function (settings) {
-    appSettings = settings;
-  };
+  const setAppSettings = (settings) => (appSettings = settings);
   const getAppSettingByKey = (key) => {
     if (!appSettings || Object.keys(appSettings).length === 0) return "";
     return appSettings[key];
   };
-  const existsIndata = function (rowData) {
-    if (!data) return false;
-    if (!rowData) return false;
+  const existsIndata =  (rowData) => {
+    if (!data || !rowData) return false;
     return (
       data.filter((item) => {
         return parseInt(item.id) === parseInt(rowData.id);
       }).length > 0
     );
   };
-  const addDataRow = function (rowData) {
+  const addDataRow = (rowData) => {
     if (!rowData || !rowData.id) return false;
     let newData = formatData(rowData);
     if (newData && !existsIndata(newData[0])) {
@@ -300,7 +297,7 @@ export default function PatientListTable() {
     ];
     return `${dataURL}?${params.join("&")}`;
   };
-  const getLaunchURL = function (patientId, launchParams) {
+  const getLaunchURL = (patientId, launchParams) => {
     if (!patientId) {
       console.log("Missing information: patient Id");
       return "";
@@ -432,7 +429,7 @@ export default function PatientListTable() {
         console.log(`Patient search error: ${e}`);
       });
   };
-  const handleSearch = function (event, rowData, launchParams) {
+  const handleSearch = (event, rowData, launchParams) => {
     if (!rowData) {
       handleLaunchError("No patient data to proceed.");
       return false;
@@ -522,7 +519,7 @@ export default function PatientListTable() {
       : data;
   };
 
-  function inPDMP(rowData) {
+  const inPDMP = (rowData) => {
     if (!needExternalAPILookup()) return true; //no PDMP lookup needed
     if (!rowData) return false;
     return (
@@ -536,7 +533,7 @@ export default function PatientListTable() {
     );
   }
 
-  function setNoPMPFlag(data) {
+  const setNoPMPFlag = (data) => {
     if (!data || !data.length || !needExternalAPILookup()) return false;
     let hasNoPMPRow =
       data.filter((rowData) => {
@@ -546,22 +543,21 @@ export default function PatientListTable() {
     if (hasNoPMPRow) setContainNoPMPRow(true);
   }
 
-  function containEmptyFilter(filters) {
-    return getNonEmptyFilters(filters).length === 0;
-  }
-  function getNonEmptyFilters(filters) {
+  const containEmptyFilter = (filters) => getNonEmptyFilters(filters).length === 0;
+  
+  const getNonEmptyFilters = (filters) => {
     if (!filters) return [];
     return filters.filter((item) => item.value && item.value !== "");
   }
 
-  function handleActionLabel(filters) {
+  const handleActionLabel = (filters) => {
     setActionLabel(
       getNonEmptyFilters(filters).length === 3
         ? CREATE_BUTTON_LABEL
         : LAUNCH_BUTTON_LABEL
     );
   }
-  function handleNoDataText(filters) {
+  const handleNoDataText = (filters) => {
     let text = "";
     const nonEmptyFilters = getNonEmptyFilters(filters);
     if (nonEmptyFilters.length < 3) {
@@ -572,7 +568,7 @@ export default function PatientListTable() {
     setNoDataText(text);
   }
 
-  function onFiltersDidChange(filters, clearAll) {
+  const onFiltersDidChange = (filters, clearAll) => {
     clearTimeout(filterIntervalId);
     filterIntervalId = setTimeout(function () {
       setErrorMessage("");
@@ -597,11 +593,9 @@ export default function PatientListTable() {
     }, 200);
   }
 
-  function patientListInitialized() {
-    return initialized;
-  }
+  const patientListInitialized = () => initialized;
 
-  function handleErrorCallback(e) {
+  const handleErrorCallback = (e) => {
     if (e && e.status === 401) {
       setErrorMessage("Unauthorized.");
       window.location = "/logout?unauthorized=true";
