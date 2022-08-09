@@ -531,7 +531,7 @@ export default function PatientListTable() {
         );
       }).length
     );
-  }
+  };
 
   const setNoPMPFlag = (data) => {
     if (!data || !data.length || !needExternalAPILookup()) return false;
@@ -541,22 +541,19 @@ export default function PatientListTable() {
       }).length > 0;
     //legend will display if contain no pmp row flag is set
     if (hasNoPMPRow) setContainNoPMPRow(true);
-  }
-
+  };
   const containEmptyFilter = (filters) => getNonEmptyFilters(filters).length === 0;
-  
   const getNonEmptyFilters = (filters) => {
     if (!filters) return [];
     return filters.filter((item) => item.value && item.value !== "");
-  }
-
+  };
   const handleActionLabel = (filters) => {
     setActionLabel(
       getNonEmptyFilters(filters).length === 3
         ? CREATE_BUTTON_LABEL
         : LAUNCH_BUTTON_LABEL
     );
-  }
+  };
   const handleNoDataText = (filters) => {
     let text = "";
     const nonEmptyFilters = getNonEmptyFilters(filters);
@@ -566,8 +563,7 @@ export default function PatientListTable() {
       text = `Click on ${CREATE_BUTTON_LABEL} button to create new patient`;
     }
     setNoDataText(text);
-  }
-
+  };
   const onFiltersDidChange = (filters, clearAll) => {
     clearTimeout(filterIntervalId);
     filterIntervalId = setTimeout(function () {
@@ -591,10 +587,8 @@ export default function PatientListTable() {
       }
       return defaultFilters;
     }, 200);
-  }
-
+  };
   const patientListInitialized = () => initialized;
-
   const handleErrorCallback = (e) => {
     if (e && e.status === 401) {
       setErrorMessage("Unauthorized.");
@@ -613,14 +607,13 @@ export default function PatientListTable() {
         ? e.message
         : "Error occurred processing data"
     );
-  }
+  };
   const resetPaging = () => {
     setNextPageURL("");
     setPrevPageURL("");
     setPageNumber(0);
     setPageSize(pageSize);
   };
-
   const handleChangePage = (event, newPage) => {
     setPrevPageNumber(pageNumber);
     setPageNumber(newPage);
@@ -634,7 +627,6 @@ export default function PatientListTable() {
     setPageNumber(0);
     if (tableRef && tableRef.current) tableRef.current.onQueryChange();
   };
-
   const handleRefresh = () => {
     document.querySelector("#btnClear").click();
     setErrorMessage("");
