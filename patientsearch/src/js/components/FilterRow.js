@@ -141,7 +141,7 @@ export default function FilterRow(props) {
   };
   const handleKeyDown = (e) => {
     if (String(e.key).toLowerCase() === "enter") {
-      props.launchFunc(e, getFilterData());
+      props.launchFunc(getFilterData());
       return;
     }
     return false;

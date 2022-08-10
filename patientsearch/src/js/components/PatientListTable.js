@@ -27,6 +27,7 @@ import {
   getSettings,
   getUrlParameter,
   getRolesFromToken,
+  getClientsByRequiredRoles,
   isString,
   validateToken,
 } from "./Utility";
@@ -429,7 +430,7 @@ export default function PatientListTable() {
         console.log(`Patient search error: ${e}`);
       });
   };
-  const handleSearch = (event, rowData, launchParams) => {
+  const handleSearch = (rowData, launchParams) => {
     if (!rowData) {
       handleLaunchError("No patient data to proceed.");
       return false;
@@ -437,7 +438,7 @@ export default function PatientListTable() {
     setOpenLoadingModal(true);
     setErrorMessage("");
     launchParams =
-      launchParams || (hasSoFClients() && appClients.length == 1)
+      launchParams || (hasSoFClients() && appClients.length === 1)
         ? appClients[0]
         : null;
 
@@ -732,10 +733,10 @@ export default function PatientListTable() {
             resolve(defaults);
             return;
           }
-          setInitialized(true);
           let responseData = formatData(response.entry);
           setData(responseData || []);
           setNoPMPFlag(responseData);
+          setInitialized(true);
           let responsePageoffset = 0;
           let responseSelfLink = response.link
             ? response.link.filter((item) => {
@@ -799,64 +800,38 @@ export default function PatientListTable() {
   React.useEffect(() => {
     //when page unloads, remove loading indicator
     window.addEventListener("beforeunload", function () {
-      setTimeout(() => setOpenLoadingModal(false), 50);
+      setTimeout(() => setOpenLoadingModal(false), 250);
     });
-    let resourceRoles = [];
-    //check if session token still valid first
-    validateToken()
-      .then((token) => {
-        if (!token) {
-          console.log("Redirecting...");
-          window.location = "/logout?unauthorized=true";
-          setOpenLoadingModal(true);
-          return false;
+    validateToken().then((token) => {
+      if (!token) {
+        console.log("Redirecting...");
+        window.location = "/logout?unauthorized=true";
+        return false;
+      }
+      getSettings((data) => {
+        setSettingInitialized(true);
+        if (data.error) {
+          handleErrorCallback(data.error);
+          setErrorMessage(`Error retrieving app setting: ${data.error}`);
+          return;
         }
-
-        // set USER ROLE(s)
-        resourceRoles = getRolesFromToken(token);
-
-        getSettings((data) => {
-          if (data.error) {
-            handleErrorCallback(data.error);
-            setSettingInitialized(true);
-            setErrorMessage(`Error retrieving app setting: ${data.error}`);
-            return;
-          }
-          setSettingInitialized(true);
-          setAppSettings(data);
-          if (!data["SOF_CLIENTS"]) {
-            return;
-          }
-          //CHECK user role against each SoF client app's REQUIRED_ROLES
-          const clients = data["SOF_CLIENTS"].filter((item) => {
-            const requiredRoles =
-              item["required_roles"] || item["REQUIRED_ROLES"];
-            if (!requiredRoles) return true;
-            if (Array.isArray(requiredRoles) && !Array.isArray(resourceRoles))
-              return requiredRoles.indexOf(resourceRoles) !== -1;
-            if (!Array.isArray(requiredRoles) && Array.isArray(resourceRoles))
-              return (
-                resourceRoles.filter((role) => role === requiredRoles).length >
-                0
-              );
-            if (Array.isArray(requiredRoles) && Array.isArray(resourceRoles))
-              return (
-                requiredRoles.filter(
-                  (role) => resourceRoles.indexOf(role) !== -1
-                ).length > 0
-              );
-            return requiredRoles === resourceRoles;
-          });
-          setAppClients(clients);
-        }, true); //no caching
-        return () => {
-          window.removeEventListener("beforeunload");
-        };
-      })
-      .catch((e) => {
-        console.log("token validation error ", e);
-        handleErrorCallback(e);
-      });
+        if (!settingInitialized)
+        setAppSettings(data);
+        const clients = getClientsByRequiredRoles(
+          data["SOF_CLIENTS"],
+          getRolesFromToken(token)
+        );
+        if (!clients || !clients.length) {
+          setErrorMessage("No SoF client match the user role(s) found");
+        } else setAppClients(clients);
+      }, true); //no caching
+    }, e => {
+       console.log("token validation error ", e);
+       handleErrorCallback(e);
+    });
+    return () => {
+      window.removeEventListener("beforeunload");
+    };
   }, []); //retrieval of settings should occur prior to patient list being rendered/initialized
 
   return (
@@ -948,7 +923,7 @@ export default function PatientListTable() {
                           onClick: (event, rowData) => {
                             event.stopPropagation();
                             if (needExternalAPILookup())
-                              handleSearch(event, rowData, item);
+                              handleSearch(rowData, item);
                             else handleLaunchApp(rowData, item);
                           },
                           tooltip: `Launch ${item.id} application for the user`,
@@ -1001,7 +976,7 @@ export default function PatientListTable() {
                 onRowClick={(event, rowData) => {
                   event.stopPropagation();
                   if (!hasSoFClients()) return;
-                  handleSearch(event, rowData);
+                  handleSearch(rowData);
                 }}
                 editable={{
                   onRowDelete: (oldData) =>

@@ -313,6 +313,27 @@ export function getRolesFromToken(token) {
   return roles;
 }
 
+export function getClientsByRequiredRoles(sofClients, currentRoles) {
+  if (!sofClients) {
+    return;
+  }
+  //CHECK user role(s) against each SoF client app's REQUIRED_ROLES
+  return sofClients.filter((item) => {
+    const requiredRoles = item["required_roles"] || item["REQUIRED_ROLES"];
+    if (!requiredRoles) return true;
+    if (Array.isArray(requiredRoles) && !Array.isArray(currentRoles))
+      return requiredRoles.indexOf(currentRoles) !== -1;
+    if (!Array.isArray(requiredRoles) && Array.isArray(currentRoles))
+      return currentRoles.filter((role) => role === currentRoles).length > 0;
+    if (Array.isArray(requiredRoles) && Array.isArray(currentRoles))
+      return (
+        requiredRoles.filter((role) => currentRoles.indexOf(role) !== -1)
+          .length > 0
+      );
+    return requiredRoles === currentRoles;
+  });
+}
+
 export function handleExpiredSession() {
   sessionStorage.clear();
   setTimeout(() => {
