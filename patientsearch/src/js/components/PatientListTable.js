@@ -190,15 +190,27 @@ export default function PatientListTable() {
     last_name: "",
     dob: "",
   };
+  const defaultPagination = {
+    pageSize: 20,
+    pageNumber: 0,
+    prevPageNumber: 0,
+    disablePrevButton: true,
+    disableNextButton: true,
+    totalCount: 0,
+    nextPageURL: "",
+    prevPageURL: "",
+  };
+  const paginationReducer = (state, action) => {
+    if (action === "reset") {
+      return defaultPagination;
+    }
+    return {
+      ...state,
+      ...action.payload,
+    };
+  };
+  const [pagination, dispatch] = React.useReducer(paginationReducer, defaultPagination);
   const [currentFilters, setCurrentFilters] = React.useState(defaultFilters);
-  const [pageSize, setPageSize] = React.useState(20);
-  const [pageNumber, setPageNumber] = React.useState(0);
-  const [prevPageNumber, setPrevPageNumber] = React.useState(0);
-  const [disablePrevButton, setDisablePrevButton] = React.useState(true);
-  const [disableNextButton, setDisableNextButton] = React.useState(true);
-  const [totalCount, setTotalCount] = React.useState(0);
-  const [nextPageURL, setNextPageURL] = React.useState("");
-  const [prevPageURL, setPrevPageURL] = React.useState("");
   const [openLoadingModal, setOpenLoadingModal] = React.useState(false);
   const [openLaunchInfoModal, setOpenLaunchInfoModal] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState("");
@@ -289,14 +301,17 @@ export default function PatientListTable() {
   const needExternalAPILookup = () => {
     return getAppSettingByKey("EXTERNAL_FHIR_API");
   };
-  const getPatientExternalSearchURL = (data) => {
-    const dataURL = "/external_search/Patient";
-    const params = [
-      `subject:Patient.name.given=${data.first_name}`,
-      `subject:Patient.name.family=${data.last_name}`,
-      `subject:Patient.birthdate=eq${data.dob}`,
-    ];
-    return `${dataURL}?${params.join("&")}`;
+  const getPatientSearchURL = (data) => {
+    if (needExternalAPILookup()) {
+      const dataURL = "/external_search/Patient";
+      const params = [
+        `subject:Patient.name.given=${data.first_name}`,
+        `subject:Patient.name.family=${data.last_name}`,
+        `subject:Patient.birthdate=eq${data.dob}`,
+      ];
+      return `${dataURL}?${params.join("&")}`;
+    }
+    return `/fhir/Patient?given=${String(data.first_name).trim()}&family=${String(data.last_name).trim()}&birthdate=${data.dob}`;
   };
   const getLaunchURL = (patientId, launchParams) => {
     if (!patientId) {
@@ -304,11 +319,8 @@ export default function PatientListTable() {
       return "";
     }
     launchParams = launchParams || {};
-    const LAUNCH_URL_KEY = "launch_url";
-    let baseURL = launchParams[LAUNCH_URL_KEY]
-      ? launchParams[LAUNCH_URL_KEY]
-      : "";
-    let iss = getAppSettingByKey("SOF_HOST_FHIR_URL");
+    const baseURL = launchParams["launch_url"];
+    const iss = getAppSettingByKey("SOF_HOST_FHIR_URL");
     if (!baseURL || !iss) {
       console.log("Missing ISS launch base URL");
       return "";
@@ -350,85 +362,9 @@ export default function PatientListTable() {
   const handleLaunchError = (message) => {
     message = message || "Unable to launch application.";
     setErrorMessage(message);
-    toTop();
     setOpenLoadingModal(false);
-    console.log("Launch error ", message);
+    toTop();
     return false;
-  };
-  const handleLaunchWithLookUp = (
-    url,
-    method,
-    bodyData,
-    noResultErrorMessage,
-    fetchErrorMessage,
-    launchParams
-  ) => {
-    if (!url) {
-      handleLaunchError("Unable to launch application.  Missing URL.");
-      return;
-    }
-    noResultErrorMessage =
-      noResultErrorMessage || "No patient found with matching data";
-    fetchErrorMessage =
-      fetchErrorMessage || "System is unable to return process data";
-    fetch(url, {
-      ...{
-        method: method ? method : "PUT",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-        body: bodyData,
-      },
-      ...noCacheParam,
-    })
-      .then((searchResponse) => {
-        //dealing with unauthorized error, status code = 401
-        if (!searchResponse.ok) {
-          handleErrorCallback(searchResponse);
-        }
-        return searchResponse.json();
-      })
-      .then((result) => {
-        let response = result;
-        if (result && result.entry && result.entry[0]) {
-          response = result.entry[0];
-        }
-        if (!response) {
-          handleLaunchError(noResultErrorMessage);
-          return false;
-        }
-        //add new table row where applicable
-        try {
-          addDataRow(response);
-        } catch (e) {
-          console.log("Error occurred adding row to table ", e);
-        }
-        setErrorMessage("");
-        if (!response.id) {
-          handleLaunchError(noResultErrorMessage);
-          return false;
-        }
-        if (!hasSoFClients()) return;
-        handleLaunchApp(formatData(response)[0], launchParams);
-      })
-      .catch((e) => {
-        let returnedError = e;
-        try {
-          returnedError = JSON.parse(e);
-          returnedError = returnedError.message
-            ? returnedError.message
-            : returnedError;
-        } catch (e) {
-          console.log("error parsing error message ", e);
-        }
-        handleLaunchError(
-          fetchErrorMessage +
-            `<p>Error returned from the system: ${returnedError}</p>`
-        );
-        //log error to console
-        console.log(`Patient search error: ${e}`);
-      });
   };
   const handleSearch = (rowData, launchParams) => {
     if (!rowData) {
@@ -443,47 +379,81 @@ export default function PatientListTable() {
         : null;
 
     //if all well, prepare to launch app
-    const allowToLaunch = !hasSoFClients()
+    const allowToLaunch = launchParams && (!hasSoFClients()
       ? false
       : needExternalAPILookup()
       ? rowData.id && rowData.identifier
-      : rowData.id;
+      : rowData.id);
     if (allowToLaunch) {
       handleLaunchApp(rowData, launchParams);
       return;
     }
-    //external FHIR API patient lookup, e.g. PDMP
-    if (needExternalAPILookup()) {
-      handleLaunchWithLookUp(
-        getPatientExternalSearchURL(rowData),
-        "PUT",
-        rowData.resource ? JSON.stringify(rowData.resource) : null,
-        "<div>The patient was not found in the PMP. This could be due to:</div><ul><li>No previous controlled substance medications dispensed</li><li>Incorrect spelling of name or incorrect date of birth.</li></ul><div>Please double check name spelling and date of birth.</div>",
-        "<p>COSRI is unable to return PMP information. This may be due to PMP system being down or a problem with the COSRI connection to PMP.</p>",
-        launchParams
+    const searchBody = rowData.resource
+      ? JSON.stringify(rowData.resource)
+      : JSON.stringify({
+          resourceType: "Patient",
+          name: [
+            {
+              family: rowData.last_name.trim(),
+              given: [rowData.first_name.trim()],
+            },
+          ],
+          birthDate: rowData.dob,
+        });
+    const noResultErrorMessage = needExternalAPILookup()? "<div>The patient was not found in the PMP. This could be due to:</div><ul><li>No previous controlled substance medications dispensed</li><li>Incorrect spelling of name or incorrect date of birth.</li></ul><div>Please double check name spelling and date of birth.</div>": "No matched patient found";
+    const fetchErrorMessage = needExternalAPILookup()?  "<p>COSRI is unable to return PMP information. This may be due to PMP system being down or a problem with the COSRI connection to PMP.</p>": "Server error when looking up patient";
+    fetch(getPatientSearchURL(rowData), {
+      ...{
+        method: "PUT",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: searchBody,
+      },
+      ...noCacheParam,
+    })
+    .then((searchResponse) => {
+      //dealing with unauthorized error, status code = 401
+      if (!searchResponse.ok) {
+        handleErrorCallback(searchResponse);
+      }
+      return searchResponse.json();
+    })
+    .then((result) => {
+      let response = result;
+      if (result && result.entry && result.entry[0]) {
+        response = result.entry[0];
+      }
+      if (!response || !response.id) {
+        handleLaunchError(noResultErrorMessage);
+        return false;
+      }
+      //add new table row where applicable
+      try {
+        addDataRow(response);
+      } catch (e) {
+        console.log("Error occurred adding row to table ", e);
+      }
+      handleLaunchApp(formatData(response)[0], launchParams);
+    })
+    .catch((e) => {
+      let returnedError = e;
+      try {
+        returnedError = JSON.parse(e);
+        returnedError = returnedError.message
+          ? returnedError.message
+          : returnedError;
+      } catch (e) {
+        console.log("error parsing error message ", e);
+      }
+      handleLaunchError(
+        fetchErrorMessage +
+          `<p>Error returned from the system: ${returnedError}</p>`
       );
-      return;
-    }
-    //if a new patient, patient needs to be added before proceeding
-    handleLaunchWithLookUp(
-      `/fhir/Patient?given=${rowData.first_name.trim()}&family=${rowData.last_name.trim()}&birthdate=${
-        rowData.dob
-      }`,
-      "PUT",
-      JSON.stringify({
-        resourceType: "Patient",
-        name: [
-          {
-            family: rowData.last_name.trim(),
-            given: [rowData.first_name.trim()],
-          },
-        ],
-        birthDate: rowData.dob,
-      }),
-      "Unable to proceed. Patient wasn't added",
-      "",
-      launchParams
-    );
+      //log error to console
+      console.log(`Patient search error: ${e}`);
+    });
   };
   const formatData = (data) => {
     if (!data) return false;
@@ -533,7 +503,6 @@ export default function PatientListTable() {
       }).length
     );
   };
-
   const setNoPMPFlag = (data) => {
     if (!data || !data.length || !needExternalAPILookup()) return false;
     let hasNoPMPRow =
@@ -610,22 +579,27 @@ export default function PatientListTable() {
     );
   };
   const resetPaging = () => {
-    setNextPageURL("");
-    setPrevPageURL("");
-    setPageNumber(0);
-    setPageSize(pageSize);
+    dispatch({type: "reset"});
   };
   const handleChangePage = (event, newPage) => {
-    setPrevPageNumber(pageNumber);
-    setPageNumber(newPage);
+    dispatch({
+      payload: {
+        prevPageNumber: pageNumber,
+        pageNumber: newPage
+      }
+    });
     if (tableRef && tableRef.current) tableRef.current.onQueryChange();
   };
 
   const handleChangeRowsPerPage = (event) => {
-    setPageSize(parseInt(event.target.value, 10));
-    setNextPageURL("");
-    setPrevPageURL("");
-    setPageNumber(0);
+    dispatch({
+      payload: {
+        pageSize: parseInt(event.target.value, 10),
+        nextPageURL: "",
+        prevPageURL: "",
+        pageNumber: 0
+      }
+    });
     if (tableRef && tableRef.current) tableRef.current.onQueryChange();
   };
   const handleRefresh = () => {
@@ -707,11 +681,17 @@ export default function PatientListTable() {
       resetPaging();
       setInitialized(true);
     };
-    let apiURL = `/fhir/Patient?_include=Patient:link&_total=accurate&_count=${pageSize}`;
-    if (pageNumber > prevPageNumber && nextPageURL) {
-      apiURL = nextPageURL;
-    } else if (pageNumber < prevPageNumber && prevPageURL) {
-      apiURL = prevPageURL;
+    let apiURL = `/fhir/Patient?_include=Patient:link&_total=accurate&_count=${pagination.pageSize}`;
+    if (
+      pagination.pageNumber > pagination.prevPageNumber &&
+      pagination.nextPageURL
+    ) {
+      apiURL = pagination.nextPageURL;
+    } else if (
+      pagination.pageNumber < pagination.prevPageNumber &&
+      pagination.prevPageURL
+    ) {
+      apiURL = pagination.prevPageURL;
     }
     if (searchString && apiURL.indexOf("contains") === -1)
       apiURL += `&${searchString}`;
@@ -736,7 +716,6 @@ export default function PatientListTable() {
           let responseData = formatData(response.entry);
           setData(responseData || []);
           setNoPMPFlag(responseData);
-          setInitialized(true);
           let responsePageoffset = 0;
           let responseSelfLink = response.link
             ? response.link.filter((item) => {
@@ -761,7 +740,7 @@ export default function PatientListTable() {
             );
           }
           let currentPage = responsePageoffset
-            ? responsePageoffset / pageSize
+            ? responsePageoffset / pagination.pageSize
             : 0;
           let hasNextLink = responseNextLink && responseNextLink.length;
           let hasPrevLink = responsePrevLink && responsePrevLink.length;
@@ -771,11 +750,16 @@ export default function PatientListTable() {
             : hasSelfLink
             ? responseSelfLink[0].url
             : "";
-          setNextPageURL(newNextURL);
-          setPrevPageURL(newPrevURL);
-          setDisableNextButton(!hasNextLink);
-          setDisablePrevButton(pageNumber === 0);
-          setTotalCount(response.total);
+          dispatch({
+            payload: {
+              nextPageURL: newNextURL,
+              prevPageURL: newPrevURL,
+              disableNextButton: !hasNextLink,
+              disablePrevButton: pagination.pageNumber === 0,
+              totalCount: response.total
+            }
+          });
+          setTimeout(() => setInitialized(true), 250);
           resolve({
             data: responseData,
             page: currentPage,
@@ -849,231 +833,222 @@ export default function PatientListTable() {
             />
           </tbody>
         </table>
-        {settingInitialized &&
-          hasSoFClients() && (
-            <div
-              className={`${classes.table} main`}
-              aria-label="patient list table"
-            >
-              <MaterialTable
-                className={classes.table}
-                columns={columns}
-                data={
-                  //any change in query will invoke this function
-                  (query) => getPatientList(query)
-                }
-                tableRef={tableRef}
-                hideSortIcon={false}
-                detailPanel={[
-                  {
-                    render: (rowData) => {
-                      return (
-                        <div className={classes.detailPanelWrapper}>
-                          <Paper
-                            elevation={1}
-                            variant="outlined"
-                            className={classes.detailPanelContainer}
+        {settingInitialized && hasSoFClients() && (
+          <div
+            className={`${classes.table} main`}
+            aria-label="patient list table"
+          >
+            <MaterialTable
+              className={classes.table}
+              columns={columns}
+              data={
+                //any change in query will invoke this function
+                (query) => getPatientList(query)
+              }
+              tableRef={tableRef}
+              hideSortIcon={false}
+              detailPanel={[
+                {
+                  render: (rowData) => {
+                    return (
+                      <div className={classes.detailPanelWrapper}>
+                        <Paper
+                          elevation={1}
+                          variant="outlined"
+                          className={classes.detailPanelContainer}
+                        >
+                          {getSelectedItemComponent(selectedMenuItem, rowData)}
+                          <Button
+                            onClick={() => {
+                              tableRef.current.onToggleDetailPanel(
+                                [rowData.tableData.id],
+                                tableRef.current.props.detailPanel[0].render
+                              );
+                              handleMenuClose();
+                            }}
+                            className={classes.detailPanelCloseButton}
+                            size="small"
                           >
-                            {getSelectedItemComponent(
-                              selectedMenuItem,
-                              rowData
-                            )}
-                            <Button
-                              onClick={() => {
-                                tableRef.current.onToggleDetailPanel(
-                                  [rowData.tableData.id],
-                                  tableRef.current.props.detailPanel[0].render
-                                );
-                                handleMenuClose();
-                              }}
-                              className={classes.detailPanelCloseButton}
-                              size="small"
-                            >
-                              Close X
-                            </Button>
-                          </Paper>
-                        </div>
-                      );
-                    },
-                    isFreeAction: false,
+                            Close X
+                          </Button>
+                        </Paper>
+                      </div>
+                    );
                   },
-                ]}
-                //overlay
-                components={{
-                  OverlayLoading: () => (
-                    <div className={classes.overlayContainer}>
-                      <div className={classes.overlayElement}>
-                        <CircularProgress></CircularProgress>
+                  isFreeAction: false,
+                },
+              ]}
+              //overlay
+              components={{
+                OverlayLoading: () => (
+                  <div className={classes.overlayContainer}>
+                    <div className={classes.overlayElement}>
+                      <CircularProgress></CircularProgress>
+                    </div>
+                  </div>
+                ),
+              }}
+              actions={[
+                ...(appClients && appClients.length
+                  ? appClients.map((item, index) => {
+                      return {
+                        icon: () => (
+                          <span
+                            className={classes.button}
+                            key={`actionButton_${index}`}
+                          >
+                            {item.label}
+                          </span>
+                        ),
+                        onClick: (event, rowData) => {
+                          event.stopPropagation();
+                          if (needExternalAPILookup())
+                            handleSearch(rowData, item);
+                          else handleLaunchApp(rowData, item);
+                        },
+                        tooltip: `Launch ${item.id} application for the user`,
+                      };
+                    })
+                  : []),
+                {
+                  icon: () =>
+                    !shouldHideMoreMenu() && (
+                      <MoreHorizIcon
+                        color="primary"
+                        className={classes.moreIcon}
+                      ></MoreHorizIcon>
+                    ),
+                  onClick: (event, rowData) => handleMenuClick(event, rowData),
+                  tooltip: shouldHideMoreMenu() ? "" : "More",
+                },
+              ]}
+              options={{
+                paginationTypestepped: "stepped",
+                showFirstLastPageButtons: false,
+                paging: false,
+                padding: "dense",
+                emptyRowsWhenPaging: false,
+                debounceInterval: 300,
+                detailPanelColumnAlignment: "right",
+                toolbar: false,
+                filtering: false,
+                sorting: true,
+                search: false,
+                showTitle: false,
+                headerStyle: {
+                  backgroundColor: theme.palette.primary.lightest,
+                  padding: theme.spacing(1, 2, 1),
+                },
+                rowStyle: (rowData) => ({
+                  backgroundColor: !inPDMP(rowData)
+                    ? theme.palette.primary.disabled
+                    : "#FFF",
+                }),
+                actionsCellStyle: {
+                  paddingLeft: theme.spacing(1),
+                  paddingRight: theme.spacing(1),
+                  justifyContent: "center",
+                },
+                actionsColumnIndex: -1,
+              }}
+              icons={tableIcons}
+              onRowClick={(event, rowData) => {
+                event.stopPropagation();
+                if (!hasSoFClients()) return;
+                handleSearch(rowData);
+              }}
+              editable={{
+                onRowDelete: (oldData) =>
+                  fetchData("/fhir/Patient/" + oldData.id, {
+                    method: "DELETE",
+                  })
+                    .then(() => {
+                      setTimeout(() => {
+                        const dataDelete = [...data];
+                        const index = oldData.tableData.id;
+                        dataDelete.splice(index, 1);
+                        setData([...dataDelete]);
+                        setErrorMessage("");
+                      }, 500);
+                    })
+                    .catch(() => {
+                      setErrorMessage(
+                        "Unable to remove patient from the list."
+                      );
+                    }),
+              }}
+              localization={{
+                header: {
+                  actions: "",
+                },
+                pagination: {
+                  labelRowsSelect: "rows",
+                },
+                body: {
+                  deleteTooltip: "Remove from the list",
+                  editRow: {
+                    deleteText:
+                      "Are you sure you want to remove this patient from the list? (You can add them back later by searching for them)",
+                    saveTooltip: "OK",
+                  },
+                  emptyDataSourceMessage: (
+                    <div id="emptyDataContainer" className={classes.flex}>
+                      <div className={classes.warning}>
+                        <div>No matching patient found.</div>
+                        <div>{noDataText}</div>
                       </div>
                     </div>
                   ),
-                }}
-                actions={[
-                  ...(appClients && appClients.length
-                    ? appClients.map((item, index) => {
-                        return {
-                          icon: () => (
-                            <span
-                              className={classes.button}
-                              key={`actionButton_${index}`}
-                            >
-                              {item.label}
-                            </span>
-                          ),
-                          onClick: (event, rowData) => {
-                            event.stopPropagation();
-                            if (needExternalAPILookup())
-                              handleSearch(rowData, item);
-                            else handleLaunchApp(rowData, item);
-                          },
-                          tooltip: `Launch ${item.id} application for the user`,
-                        };
-                      })
-                    : []),
-                  {
-                    icon: () =>
-                      !shouldHideMoreMenu() && (
-                        <MoreHorizIcon
-                          color="primary"
-                          className={classes.moreIcon}
-                        ></MoreHorizIcon>
-                      ),
-                    onClick: (event, rowData) =>
-                      handleMenuClick(event, rowData),
-                    tooltip: shouldHideMoreMenu() ? "" : "More",
-                  },
-                ]}
-                options={{
-                  paginationTypestepped: "stepped",
-                  showFirstLastPageButtons: false,
-                  paging: false,
-                  padding: "dense",
-                  emptyRowsWhenPaging: false,
-                  debounceInterval: 300,
-                  detailPanelColumnAlignment: "right",
-                  toolbar: false,
-                  filtering: false,
-                  sorting: true,
-                  search: false,
-                  showTitle: false,
-                  headerStyle: {
-                    backgroundColor: theme.palette.primary.lightest,
-                    padding: theme.spacing(1, 2, 1),
-                  },
-                  rowStyle: (rowData) => ({
-                    backgroundColor: !inPDMP(rowData)
-                      ? theme.palette.primary.disabled
-                      : "#FFF",
-                  }),
-                  actionsCellStyle: {
-                    paddingLeft: theme.spacing(1),
-                    paddingRight: theme.spacing(1),
-                    justifyContent: "center"
-                  },
-                  actionsColumnIndex: -1,
-                }}
-                icons={tableIcons}
-                onRowClick={(event, rowData) => {
-                  event.stopPropagation();
-                  if (!hasSoFClients()) return;
-                  handleSearch(rowData);
-                }}
-                editable={{
-                  onRowDelete: (oldData) =>
-                    fetchData("/fhir/Patient/" + oldData.id, {
-                      method: "DELETE",
-                    })
-                      .then(() => {
-                        setTimeout(() => {
-                          const dataDelete = [...data];
-                          const index = oldData.tableData.id;
-                          dataDelete.splice(index, 1);
-                          setData([...dataDelete]);
-                          setErrorMessage("");
-                        }, 500);
-                      })
-                      .catch(() => {
-                        setErrorMessage(
-                          "Unable to remove patient from the list."
-                        );
-                      }),
-                }}
-                localization={{
-                  header: {
-                    actions: "",
-                  },
-                  pagination: {
-                    labelRowsSelect: "rows",
-                  },
-                  body: {
-                    deleteTooltip: "Remove from the list",
-                    editRow: {
-                      deleteText:
-                        "Are you sure you want to remove this patient from the list? (You can add them back later by searching for them)",
-                      saveTooltip: "OK",
-                    },
-                    emptyDataSourceMessage: (
-                      <div id="emptyDataContainer" className={classes.flex}>
-                        <div className={classes.warning}>
-                          <div>No matching patient found.</div>
-                          <div>{noDataText}</div>
-                        </div>
-                      </div>
-                    ),
-                  },
-                }}
-              />
-            </div>
-          )}
-        <div className={classes.flexContainer}>
-          {patientListInitialized() && containNoPMPRow && (
+                },
+              }}
+            />
+          </div>
+        )}
+        {patientListInitialized() && <div className={classes.flexContainer}>
+          {containNoPMPRow && (
             <div className={classes.legend}>
               <span className={classes.legendIcon}></span> Not in PMP
             </div>
           )}
-          {patientListInitialized() && !containNoPMPRow && (
+          {!containNoPMPRow && (
             <div className={classes.spacer}></div>
           )}
-          <div>
-            {patientListInitialized() && (
-              <div className={`${totalCount === 0 ? "ghost" : ""}`}>
-                <div className={classes.refreshButtonContainer}>
-                  <Tooltip title="Refresh the list">
-                    <Button
-                      variant="contained"
-                      size="small"
-                      startIcon={<RefreshIcon />}
-                      onClick={handleRefresh}
-                    >
-                      Refresh
-                    </Button>
-                  </Tooltip>
-                </div>
-                <TablePagination
-                  id="patientListPagination"
-                  className={classes.pagination}
-                  rowsPerPageOptions={[10, 20, 50]}
-                  onPageChange={handleChangePage}
-                  page={pageNumber}
-                  rowsPerPage={pageSize}
-                  onRowsPerPageChange={handleChangeRowsPerPage}
-                  count={totalCount}
+          <div className={`${pagination.totalCount === 0 ? "ghost" : ""}`}>
+            <div className={classes.refreshButtonContainer}>
+              <Tooltip title="Refresh the list">
+                <Button
+                  variant="contained"
                   size="small"
-                  component="div"
-                  nextIconButtonProps={{
-                    disabled: disableNextButton,
-                    color: "primary",
-                  }}
-                  backIconButtonProps={{
-                    disabled: disablePrevButton,
-                    color: "primary",
-                  }}
-                  SelectProps={{ variant: "outlined" }}
-                />
-              </div>
-            )}
+                  startIcon={<RefreshIcon />}
+                  onClick={handleRefresh}
+                >
+                  Refresh
+                </Button>
+              </Tooltip>
+            </div>
+            <TablePagination
+              id="patientListPagination"
+              className={classes.pagination}
+              rowsPerPageOptions={[10, 20, 50]}
+              onPageChange={handleChangePage}
+              page={pagination.pageNumber}
+              rowsPerPage={pagination.pageSize}
+              onRowsPerPageChange={handleChangeRowsPerPage}
+              count={pagination.totalCount}
+              size="small"
+              component="div"
+              nextIconButtonProps={{
+                disabled: pagination.disableNextButton,
+                color: "primary",
+              }}
+              backIconButtonProps={{
+                disabled: pagination.disablePrevButton,
+                color: "primary",
+              }}
+              SelectProps={{ variant: "outlined" }}
+            />
           </div>
-        </div>
+        </div>}
         <Modal
           open={openLoadingModal}
           aria-labelledby="loading-modal"

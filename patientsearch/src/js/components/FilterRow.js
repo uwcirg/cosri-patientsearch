@@ -286,7 +286,7 @@ export default function FilterRow(props) {
           color="primary"
           size="small"
           variant="contained"
-          onClick={(e) => props.launchFunc(e, getFilterData())}
+          onClick={(e) => props.launchFunc(getFilterData())}
         >
           {getLaunchButtonLabel()}
         </Button>
