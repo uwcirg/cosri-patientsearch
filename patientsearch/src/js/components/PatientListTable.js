@@ -584,7 +584,7 @@ export default function PatientListTable() {
   const handleChangePage = (event, newPage) => {
     dispatch({
       payload: {
-        prevPageNumber: pageNumber,
+        prevPageNumber: pagination.pageNumber,
         pageNumber: newPage
       }
     });
