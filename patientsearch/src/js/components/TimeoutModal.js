@@ -229,6 +229,7 @@ export default function TimeoutModal() {
     clearExpiredIntervalId();
     setDisabled(appSettings["ENABLE_INACTIVITY_TIMEOUT"]?false:true);
     initTimeoutTracking();
+    return () => clearExpiredIntervalId();
   }, [appSettings]);
 
   return (
