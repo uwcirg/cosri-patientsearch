@@ -111,8 +111,8 @@ export default function FilterRow(props) {
     };
   };
   const clearDate = () => {
-    setDate(null);
     setDateInput("");
+    setDate(null);
     props.onFiltersDidChange([
       {
         field: "first_name",
@@ -146,6 +146,11 @@ export default function FilterRow(props) {
     }
     return false;
   };
+  React.useEffect(() => {
+    if (props.refresh) {
+      clearFields();
+    }
+  }, [props.refresh]);
   return (
     <tr className={classes.row} key="filterRow">
       <td className={classes.cell}>
@@ -312,5 +317,6 @@ FilterRow.propTypes = {
   onFiltersDidChange: PropTypes.func.isRequired,
   launchButtonLabel: PropTypes.string,
   launchFunc: PropTypes.func,
-  launchButtonId: PropTypes.string
+  launchButtonId: PropTypes.string,
+  refresh: PropTypes.bool
 };

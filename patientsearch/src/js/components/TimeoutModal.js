@@ -125,8 +125,7 @@ export default function TimeoutModal() {
           "Failed to retrieve token data",
           error && error.status ? "status " + error.status : ""
         );
-        //attempt retry if error
-        reTry();
+        clearExpiredIntervalId();
       }
     );
   };

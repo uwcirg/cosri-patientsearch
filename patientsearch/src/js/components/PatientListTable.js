@@ -220,6 +220,7 @@ export default function PatientListTable() {
   const [currentRow, setCurrentRow] = React.useState(null);
   const [actionLabel, setActionLabel] = React.useState(LAUNCH_BUTTON_LABEL);
   const [noDataText, setNoDataText] = React.useState("");
+  const [refresh, setRefresh] = React.useState(false);
   const tableRef = React.useRef();
   const LAUNCH_BUTTON_LABEL = "VIEW";
   const CREATE_BUTTON_LABEL = "CREATE";
@@ -336,6 +337,7 @@ export default function PatientListTable() {
     return appClients && appClients.length > 1;
   };
   const handleLaunchApp = (rowData, launchParams) => {
+    
     setCurrentRow(rowData);
 
     //handle multiple SoF clients that can be launched
@@ -360,8 +362,7 @@ export default function PatientListTable() {
     }, 50);
   };
   const handleLaunchError = (message) => {
-    message = message || "Unable to launch application.";
-    setErrorMessage(message);
+    setErrorMessage(message || "Unable to launch application.");
     setOpenLoadingModal(false);
     toTop();
     return false;
@@ -438,21 +439,9 @@ export default function PatientListTable() {
       handleLaunchApp(formatData(response)[0], launchParams);
     })
     .catch((e) => {
-      let returnedError = e;
-      try {
-        returnedError = JSON.parse(e);
-        returnedError = returnedError.message
-          ? returnedError.message
-          : returnedError;
-      } catch (e) {
-        console.log("error parsing error message ", e);
-      }
-      handleLaunchError(
-        fetchErrorMessage +
-          `<p>Error returned from the system: ${returnedError}</p>`
-      );
       //log error to console
       console.log(`Patient search error: ${e}`);
+      handleLaunchError(fetchErrorMessage + `<p>See console for detail.</p>`);
     });
   };
   const formatData = (data) => {
@@ -558,7 +547,6 @@ export default function PatientListTable() {
       return defaultFilters;
     }, 200);
   };
-  const patientListInitialized = () => initialized;
   const handleErrorCallback = (e) => {
     if (e && e.status === 401) {
       setErrorMessage("Unauthorized.");
@@ -603,8 +591,9 @@ export default function PatientListTable() {
     if (tableRef && tableRef.current) tableRef.current.onQueryChange();
   };
   const handleRefresh = () => {
-    document.querySelector("#btnClear").click();
+    setRefresh(true);
     setErrorMessage("");
+    onFiltersDidChange(null, true);
   };
   const handleMenuClick = (event, rowData) => {
     event.stopPropagation();
@@ -793,21 +782,21 @@ export default function PatientListTable() {
         return false;
       }
       getSettings((data) => {
-        setSettingInitialized(true);
         if (data.error) {
-          handleErrorCallback(data.error);
-          setErrorMessage(`Error retrieving app setting: ${data.error}`);
+          handleErrorCallback(`Error retrieving app setting: ${data.error}`);
           return;
         }
-        if (!settingInitialized)
         setAppSettings(data);
+        setSettingInitialized(true);
         const clients = getClientsByRequiredRoles(
           data["SOF_CLIENTS"],
           getRolesFromToken(token)
         );
         if (!clients || !clients.length) {
           setErrorMessage("No SoF client match the user role(s) found");
-        } else setAppClients(clients);
+        } else {
+          setAppClients(clients);
+        }
       }, true); //no caching
     }, e => {
        console.log("token validation error ", e);
@@ -830,6 +819,7 @@ export default function PatientListTable() {
               launchFunc={handleSearch}
               launchButtonLabel={actionLabel}
               launchButtonId={TOOLBAR_ACTION_BUTTON_ID}
+              refresh={refresh}
             />
           </tbody>
         </table>
@@ -1004,51 +994,51 @@ export default function PatientListTable() {
             />
           </div>
         )}
-        {patientListInitialized() && <div className={classes.flexContainer}>
-          {containNoPMPRow && (
-            <div className={classes.legend}>
-              <span className={classes.legendIcon}></span> Not in PMP
+        {initialized && (
+          <div className={classes.flexContainer}>
+            {containNoPMPRow && (
+              <div className={classes.legend}>
+                <span className={classes.legendIcon}></span> Not in PMP
+              </div>
+            )}
+            {!containNoPMPRow && <div className={classes.spacer}></div>}
+            <div className={`${pagination.totalCount === 0 ? "ghost" : ""}`}>
+              <div className={classes.refreshButtonContainer}>
+                <Tooltip title="Refresh the list">
+                  <Button
+                    variant="contained"
+                    size="small"
+                    startIcon={<RefreshIcon />}
+                    onClick={handleRefresh}
+                  >
+                    Refresh
+                  </Button>
+                </Tooltip>
+              </div>
+              <TablePagination
+                id="patientListPagination"
+                className={classes.pagination}
+                rowsPerPageOptions={[10, 20, 50]}
+                onPageChange={handleChangePage}
+                page={pagination.pageNumber}
+                rowsPerPage={pagination.pageSize}
+                onRowsPerPageChange={handleChangeRowsPerPage}
+                count={pagination.totalCount}
+                size="small"
+                component="div"
+                nextIconButtonProps={{
+                  disabled: pagination.disableNextButton,
+                  color: "primary",
+                }}
+                backIconButtonProps={{
+                  disabled: pagination.disablePrevButton,
+                  color: "primary",
+                }}
+                SelectProps={{ variant: "outlined" }}
+              />
             </div>
-          )}
-          {!containNoPMPRow && (
-            <div className={classes.spacer}></div>
-          )}
-          <div className={`${pagination.totalCount === 0 ? "ghost" : ""}`}>
-            <div className={classes.refreshButtonContainer}>
-              <Tooltip title="Refresh the list">
-                <Button
-                  variant="contained"
-                  size="small"
-                  startIcon={<RefreshIcon />}
-                  onClick={handleRefresh}
-                >
-                  Refresh
-                </Button>
-              </Tooltip>
-            </div>
-            <TablePagination
-              id="patientListPagination"
-              className={classes.pagination}
-              rowsPerPageOptions={[10, 20, 50]}
-              onPageChange={handleChangePage}
-              page={pagination.pageNumber}
-              rowsPerPage={pagination.pageSize}
-              onRowsPerPageChange={handleChangeRowsPerPage}
-              count={pagination.totalCount}
-              size="small"
-              component="div"
-              nextIconButtonProps={{
-                disabled: pagination.disableNextButton,
-                color: "primary",
-              }}
-              backIconButtonProps={{
-                disabled: pagination.disablePrevButton,
-                color: "primary",
-              }}
-              SelectProps={{ variant: "outlined" }}
-            />
           </div>
-        </div>}
+        )}
         <Modal
           open={openLoadingModal}
           aria-labelledby="loading-modal"
@@ -1074,7 +1064,6 @@ export default function PatientListTable() {
               classes={{
                 root: classes.diaglogTitle,
               }}
-              id="launch-info-dialog-title"
             >{`${currentRow.last_name}, ${currentRow.first_name}`}</DialogTitle>
           )}
           <DialogContent
