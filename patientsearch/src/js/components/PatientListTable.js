@@ -748,6 +748,7 @@ export default function PatientListTable() {
               totalCount: response.total
             }
           });
+          setRefresh(false);
           setTimeout(() => setInitialized(true), 250);
           resolve({
             data: responseData,
