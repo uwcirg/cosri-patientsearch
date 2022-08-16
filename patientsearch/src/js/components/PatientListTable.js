@@ -300,6 +300,7 @@ export default function PatientListTable() {
     //open a dialog here so user can select which one to launch?
     if (!launchParams && hasMultipleSoFClients()) {
       setCurrentRow(rowData);
+      setOpenLoadingModal(false);
       setOpenLaunchInfoModal(true);
       return;
     }
@@ -328,11 +329,9 @@ export default function PatientListTable() {
       handleLaunchError("No patient data to proceed.");
       return false;
     }
-    launchParams =
-      launchParams || (hasSoFClients() && appClients.length === 1)
-        ? appClients[0]
-        : null;
-
+    if (!launchParams) {
+      launchParams = (hasSoFClients() && appClients.length === 1) ? appClients[0]: null;
+    }
     //if all well, prepare to launch app
     const allowToLaunch = (rowData.id && hasMultipleSoFClients()) || (
       launchParams && (
@@ -392,7 +391,6 @@ export default function PatientListTable() {
       } catch (e) {
         console.log("Error occurred adding row to table ", e);
       }
-      setOpenLoadingModal(false);
       handleRefresh();
       handleLaunchApp(formatData(response)[0], launchParams);
     })
@@ -438,7 +436,6 @@ export default function PatientListTable() {
   };
 
   const inPDMP = (rowData) => {
-    if (!needExternalAPILookup()) return true; //no PDMP lookup needed
     if (!rowData) return false;
     return (
       rowData.identifier &&
@@ -451,7 +448,7 @@ export default function PatientListTable() {
     );
   };
   const setNoPMPFlag = (data) => {
-    if (!data || !data.length || !needExternalAPILookup()) return false;
+    if (!data || !data.length) return false;
     let hasNoPMPRow =
       data.filter((rowData) => {
         return !inPDMP(rowData);
@@ -481,28 +478,23 @@ export default function PatientListTable() {
     }
     setNoDataText(text);
   };
-  const onFiltersDidChange = (filters, clearAll) => {
+  const onFiltersDidChange = (filters) => {
     clearTimeout(filterIntervalId);
     filterIntervalId = setTimeout(function () {
       setErrorMessage("");
       handleNoDataText(filters);
       handleActionLabel(filters);
-      if (filters && filters.length) {
-        setCurrentFilters(filters);
-        resetPaging();
-        if (containEmptyFilter(filters)) {
-          handleRefresh();
-          return filters;
-        }
-        if (tableRef && tableRef.current) tableRef.current.onQueryChange();
+      if (!filters || !filters.length) {
+        return defaultFilters;
+      }
+      if (containEmptyFilter(filters)) {
+        handleRefresh();
         return filters;
       }
-      if (clearAll) {
-        setCurrentFilters(defaultFilters);
-        resetPaging();
-        if (tableRef && tableRef.current) tableRef.current.onQueryChange();
-      }
-      return defaultFilters;
+      setCurrentFilters(filters);
+      resetPaging();
+      if (tableRef && tableRef.current) tableRef.current.onQueryChange();
+      return filters;
     }, 200);
   };
   const handleErrorCallback = (e) => {
@@ -550,7 +542,9 @@ export default function PatientListTable() {
   };
   const handleRefresh = () => {
     setRefresh(true);
-    onFiltersDidChange(null, true);
+    setCurrentFilters(defaultFilters);
+    resetPaging();
+    if (tableRef && tableRef.current) tableRef.current.onQueryChange();
   };
   const handleMenuClick = (event, rowData) => {
     event.stopPropagation();
@@ -661,7 +655,7 @@ export default function PatientListTable() {
           }
           let responseData = formatData(response.entry);
           setData(responseData || []);
-          setNoPMPFlag(responseData);
+          if (needExternalAPILookup()) setNoPMPFlag(responseData);
           let responsePageoffset = 0;
           let responseSelfLink = response.link
             ? response.link.filter((item) => {
@@ -829,21 +823,21 @@ export default function PatientListTable() {
               }}
               actions={[
                 ...(appClients && appClients.length
-                  ? appClients.map((item, index) => {
+                  ? appClients.map((client, index) => {
                       return {
                         icon: () => (
                           <span
                             className={classes.button}
                             key={`actionButton_${index}`}
                           >
-                            {item.label}
+                            {client.label}
                           </span>
                         ),
                         onClick: (event, rowData) => {
                           event.stopPropagation();
-                          handleSearch(rowData, item);
+                          handleSearch(rowData, client);
                         },
-                        tooltip: `Launch ${item.id} application for the user`,
+                        tooltip: `Launch ${client.id} application for the user`,
                       };
                     })
                   : []),
@@ -877,7 +871,7 @@ export default function PatientListTable() {
                   padding: theme.spacing(1, 2, 1),
                 },
                 rowStyle: (rowData) => ({
-                  backgroundColor: !inPDMP(rowData)
+                  backgroundColor: needExternalAPILookup() && !inPDMP(rowData)
                     ? theme.palette.primary.disabled
                     : "#FFF",
                 }),

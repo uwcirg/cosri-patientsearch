@@ -17,7 +17,7 @@ const useStyles = makeStyles({
     top: "40%",
     border: `1px solid ${theme.palette.primary.main}`,
     margin: "auto",
-    padding: theme.spacing(1),
+    padding: theme.spacing(2),
     fontSize: "1.1rem"
   },
   loadingText: {
