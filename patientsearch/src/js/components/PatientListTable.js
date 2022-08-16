@@ -4,19 +4,17 @@ import MaterialTable from "material-table";
 import RefreshIcon from "@material-ui/icons/Refresh";
 import MoreHorizIcon from "@material-ui/icons/MoreHoriz";
 import CircularProgress from "@material-ui/core/CircularProgress";
-import Dialog from "@material-ui/core/Dialog";
-import DialogActions from "@material-ui/core/DialogActions";
-import DialogContent from "@material-ui/core/DialogContent";
-import DialogTitle from "@material-ui/core/DialogTitle";
 import Button from "@material-ui/core/Button";
 import Container from "@material-ui/core/Container";
-import Modal from "@material-ui/core/Modal";
-import Paper from "@material-ui/core/Paper";
 import TablePagination from "@material-ui/core/TablePagination";
 import Tooltip from "@material-ui/core/Tooltip";
+import DetailPanel from "./DetailPanel";
+import DialogBox from "./DialogBox";
 import Dropdown from "./Dropdown";
 import Error from "./Error";
 import FilterRow from "./FilterRow";
+import LoadingModal from "./LoadingModal";
+import OverlayElement from "./OverlayElement";
 import UrineScreen from "./UrineScreen";
 import Agreement from "./Agreement";
 import { tableIcons } from "../context/consts";
@@ -39,19 +37,6 @@ const useStyles = makeStyles({
     marginBottom: theme.spacing(2),
     marginTop: 148,
     maxWidth: "1100px",
-  },
-  overlayContainer: {
-    display: "table",
-    width: "100%",
-    height: "100%",
-    background: "rgb(255 255 255 / 70%)",
-  },
-  overlayElement: {
-    display: "table-cell",
-    width: "100%",
-    height: "100%",
-    verticalAlign: "middle",
-    textAlign: "center",
   },
   filterTable: {
     marginBottom: theme.spacing(1),
@@ -150,38 +135,16 @@ const useStyles = makeStyles({
     minWidth: "20px",
     minHeight: "20px",
   },
-  detailPanelWrapper: {
-    backgroundColor: "#dde7e6",
-    padding: theme.spacing(0.25),
-  },
-  detailPanelContainer: {
-    position: "relative",
-    minHeight: theme.spacing(8),
-    backgroundColor: "#fbfbfb",
-  },
-  detailPanelCloseButton: {
-    position: "absolute",
-    top: theme.spacing(1.5),
-    right: theme.spacing(6),
-    color: theme.palette.primary.main,
-  },
-  diaglogTitle: {
-    backgroundColor: theme.palette.primary.lightest,
-  },
-  diaglogContent: {
-    marginTop: theme.spacing(3),
-  },
   moreIcon: {
     marginRight: theme.spacing(1),
   },
 });
 
-let appSettings = {};
 let filterIntervalId = 0;
 
 export default function PatientListTable() {
   const classes = useStyles();
-  const [settingInitialized, setSettingInitialized] = React.useState(false);
+  const [appSettings, setAppSettings] = React.useState(null);
   const [initialized, setInitialized] = React.useState(false);
   const [appClients, setAppClients] = React.useState(null);
   const [data, setData] = React.useState([]);
@@ -279,7 +242,6 @@ export default function PatientListTable() {
   const toTop = () => {
     window.scrollTo(0, 0);
   };
-  const setAppSettings = (settings) => (appSettings = settings);
   const getAppSettingByKey = (key) => {
     if (!appSettings || Object.keys(appSettings).length === 0) return "";
     return appSettings[key];
@@ -338,14 +300,11 @@ export default function PatientListTable() {
   };
   const handleLaunchApp = (rowData, launchParams) => {
     
-    setCurrentRow(rowData);
-
     //handle multiple SoF clients that can be launched
     //open a dialog here so user can select which one to launch?
     if (!launchParams && hasMultipleSoFClients()) {
+      setCurrentRow(rowData);
       setOpenLaunchInfoModal(true);
-      setOpenLoadingModal(false);
-      handleRefresh();
       return;
     }
 
@@ -356,6 +315,7 @@ export default function PatientListTable() {
       );
       return false;
     }
+    setOpenLoadingModal(true);
     setTimeout(function () {
       sessionStorage.clear();
       window.location = launchURL;
@@ -372,19 +332,18 @@ export default function PatientListTable() {
       handleLaunchError("No patient data to proceed.");
       return false;
     }
-    setOpenLoadingModal(true);
-    setErrorMessage("");
     launchParams =
       launchParams || (hasSoFClients() && appClients.length === 1)
         ? appClients[0]
         : null;
 
     //if all well, prepare to launch app
-    const allowToLaunch = launchParams && (!hasSoFClients()
-      ? false
-      : needExternalAPILookup()
+    const allowToLaunch = (rowData.id && hasMultipleSoFClients()) || (
+      launchParams && (
+      needExternalAPILookup()
       ? rowData.id && rowData.identifier
-      : rowData.id);
+      : rowData.id));
+
     if (allowToLaunch) {
       handleLaunchApp(rowData, launchParams);
       return;
@@ -403,6 +362,7 @@ export default function PatientListTable() {
         });
     const noResultErrorMessage = needExternalAPILookup()? "<div>The patient was not found in the PMP. This could be due to:</div><ul><li>No previous controlled substance medications dispensed</li><li>Incorrect spelling of name or incorrect date of birth.</li></ul><div>Please double check name spelling and date of birth.</div>": "No matched patient found";
     const fetchErrorMessage = needExternalAPILookup()?  "<p>COSRI is unable to return PMP information. This may be due to PMP system being down or a problem with the COSRI connection to PMP.</p>": "Server error when looking up patient";
+    setOpenLoadingModal(true);
     fetch(getPatientSearchURL(rowData), {
       ...{
         method: "PUT",
@@ -436,6 +396,8 @@ export default function PatientListTable() {
       } catch (e) {
         console.log("Error occurred adding row to table ", e);
       }
+      setOpenLoadingModal(false);
+      handleRefresh();
       handleLaunchApp(formatData(response)[0], launchParams);
     })
     .catch((e) => {
@@ -592,7 +554,6 @@ export default function PatientListTable() {
   };
   const handleRefresh = () => {
     setRefresh(true);
-    setErrorMessage("");
     onFiltersDidChange(null, true);
   };
   const handleMenuClick = (event, rowData) => {
@@ -779,7 +740,7 @@ export default function PatientListTable() {
     validateToken().then((token) => {
       if (!token) {
         console.log("Redirecting...");
-        window.location = "/logout?unauthorized=true";
+        window.location = "/clear_session";
         return false;
       }
       getSettings((data) => {
@@ -788,7 +749,6 @@ export default function PatientListTable() {
           return;
         }
         setAppSettings(data);
-        setSettingInitialized(true);
         const clients = getClientsByRequiredRoles(
           data["SOF_CLIENTS"],
           getRolesFromToken(token)
@@ -824,7 +784,7 @@ export default function PatientListTable() {
             />
           </tbody>
         </table>
-        {settingInitialized && hasSoFClients() && (
+        {appSettings && hasSoFClients() && (
           <div
             className={`${classes.table} main`}
             aria-label="patient list table"
@@ -842,28 +802,22 @@ export default function PatientListTable() {
                 {
                   render: (rowData) => {
                     return (
-                      <div className={classes.detailPanelWrapper}>
-                        <Paper
-                          elevation={1}
-                          variant="outlined"
-                          className={classes.detailPanelContainer}
+                      <DetailPanel>
+                        {getSelectedItemComponent(selectedMenuItem, rowData)}
+                        <Button
+                          onClick={() => {
+                            tableRef.current.onToggleDetailPanel(
+                              [rowData.tableData.id],
+                              tableRef.current.props.detailPanel[0].render
+                            );
+                            handleMenuClose();
+                          }}
+                          className={classes.detailPanelCloseButton}
+                          size="small"
                         >
-                          {getSelectedItemComponent(selectedMenuItem, rowData)}
-                          <Button
-                            onClick={() => {
-                              tableRef.current.onToggleDetailPanel(
-                                [rowData.tableData.id],
-                                tableRef.current.props.detailPanel[0].render
-                              );
-                              handleMenuClose();
-                            }}
-                            className={classes.detailPanelCloseButton}
-                            size="small"
-                          >
-                            Close X
-                          </Button>
-                        </Paper>
-                      </div>
+                          Close X
+                        </Button>
+                      </DetailPanel>
                     );
                   },
                   isFreeAction: false,
@@ -872,11 +826,9 @@ export default function PatientListTable() {
               //overlay
               components={{
                 OverlayLoading: () => (
-                  <div className={classes.overlayContainer}>
-                    <div className={classes.overlayElement}>
-                      <CircularProgress></CircularProgress>
-                    </div>
-                  </div>
+                  <OverlayElement>
+                    <CircularProgress></CircularProgress>
+                  </OverlayElement>
                 ),
               }}
               actions={[
@@ -893,9 +845,7 @@ export default function PatientListTable() {
                         ),
                         onClick: (event, rowData) => {
                           event.stopPropagation();
-                          if (needExternalAPILookup())
-                            handleSearch(rowData, item);
-                          else handleLaunchApp(rowData, item);
+                          handleSearch(rowData, item);
                         },
                         tooltip: `Launch ${item.id} application for the user`,
                       };
@@ -1040,38 +990,16 @@ export default function PatientListTable() {
             </div>
           </div>
         )}
-        <Modal
-          open={openLoadingModal}
-          aria-labelledby="loading-modal"
-          aria-describedby="loading-modal"
-          disableAutoFocus
-          disableEnforceFocus
-          className={classes.modal}
-        >
-          <div className={classes.paper}>
-            <div className={classes.flex}>
-              <span className={classes.loadingText}>Loading ...</span>{" "}
-              <CircularProgress color="primary" />
-            </div>
-          </div>
-        </Modal>
-        <Dialog
+        <LoadingModal open={openLoadingModal}></LoadingModal>
+        <DialogBox
           open={openLaunchInfoModal}
           onClose={() => setOpenLaunchInfoModal(false)}
-          aria-labelledby="launch-info-dialog-title"
-        >
-          {currentRow && (
-            <DialogTitle
-              classes={{
-                root: classes.diaglogTitle,
-              }}
-            >{`${currentRow.last_name}, ${currentRow.first_name}`}</DialogTitle>
-          )}
-          <DialogContent
-            classes={{
-              root: classes.diaglogContent,
-            }}
-          >
+          title={
+            currentRow
+              ? `${currentRow.last_name}, ${currentRow.first_name}`
+              : ""
+          }
+          body={
             <div className={classes.flex}>
               {hasSoFClients() &&
                 appClients.map((item, index) => {
@@ -1089,17 +1017,9 @@ export default function PatientListTable() {
                   );
                 })}
             </div>
-          </DialogContent>
-          <DialogActions>
-            <Button
-              onClick={() => setOpenLaunchInfoModal(false)}
-              color="primary"
-            >
-              Close
-            </Button>
-          </DialogActions>
-        </Dialog>
-        {settingInitialized && (
+          }
+        ></DialogBox>
+        {appSettings && (
           <Dropdown
             anchorEl={anchorEl}
             handleMenuClose={handleMenuClose}
