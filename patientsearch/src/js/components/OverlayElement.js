@@ -1,3 +1,4 @@
+import PropTypes from "prop-types";
 import { makeStyles } from "@material-ui/core/styles";
 
 const useStyles = makeStyles({
@@ -17,12 +18,14 @@ const useStyles = makeStyles({
 });
 
 export default function OverlayElement(props) {
-    const classes = useStyles();
-    return (
-      <div className={classes.overlayContainer}>
-        <div className={classes.overlayElement}>
-            {props.children}
-        </div>
-      </div>
-    );
+  const classes = useStyles();
+  return (
+    <div className={classes.overlayContainer}>
+      <div className={classes.overlayElement}>{props.children}</div>
+    </div>
+  );
 }
+
+OverlayElement.propTypes = {
+    children: PropTypes.oneOfType([PropTypes.element, PropTypes.array])
+};

@@ -23,9 +23,8 @@ export default function DialogBox(props) {
     const handleClose = () => {
         setOpen(false);
         if (props.onClose) props.onClose();
-    }
+    };
     React.useEffect(() => {
-        console.log("OPEN DIALOG? ", props.open)
         setOpen(props.open);
     }, [props.open]);
     return (

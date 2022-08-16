@@ -49,6 +49,12 @@ const useStyles = makeStyles({
     minWidth: 320,
     maxWidth: "100%",
   },
+  detailPanelCloseButton: {
+    position: "absolute",
+    top: theme.spacing(1.5),
+    right: theme.spacing(6),
+    color: theme.palette.primary.main,
+  },
   paper: {
     backgroundColor: theme.palette.background.paper,
     boxShadow: theme.shadows[5],
@@ -64,16 +70,6 @@ const useStyles = makeStyles({
   },
   flexButton: {
     marginRight: theme.spacing(1),
-  },
-  modal: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    border: 0,
-  },
-  loadingText: {
-    marginRight: theme.spacing(1.5),
-    fontSize: "18px",
   },
   label: {
     marginRight: theme.spacing(1.5),
