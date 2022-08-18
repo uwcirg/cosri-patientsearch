@@ -116,10 +116,10 @@ export default function Header() {
     }
     let imageLoaded = imageOK(e.target);
     if (!imageLoaded) {
-      e.target.classList.add("invisible");
+      e.target.classList.add("ghost");
       return;
     }
-    e.target.classList.remove("invisible");
+    e.target.classList.remove("ghost");
   };
 
   const handleImageLoadError = (e) => {
@@ -128,7 +128,7 @@ export default function Header() {
     }
     let imageLoaded = imageOK(e.target);
     if (!imageLoaded) {
-      e.target.classList.add("invisible");
+      e.target.classList.add("ghost");
       return;
     }
   };
