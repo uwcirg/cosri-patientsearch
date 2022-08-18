@@ -161,7 +161,11 @@ export default function PatientListTable() {
   };
   const paginationReducer = (state, action) => {
     if (action === "reset") {
-      return defaultPagination;
+      return {
+        pageNumber: 0,
+        nextPageURL: "",
+        prevPageURL: "",
+      };
     }
     return {
       ...state,

@@ -131,7 +131,7 @@ export default function FilterRow(props) {
   const handleClear = () => {
     clearFields();
     props.onFiltersDidChange(null);
-  }
+  };
   const clearFields = () => {
     setFirstName("");
     setLastName("");
