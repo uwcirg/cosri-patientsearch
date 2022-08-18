@@ -382,6 +382,7 @@ export default function PatientListTable() {
       }
       if (!response || !response.id) {
         handleLaunchError(noResultErrorMessage);
+        handleRefresh();
         return false;
       }
       //add new table row where applicable
@@ -397,6 +398,7 @@ export default function PatientListTable() {
       //log error to console
       console.log(`Patient search error: ${e}`);
       handleLaunchError(fetchErrorMessage + `<p>See console for detail.</p>`);
+      handleRefresh();
     });
   };
   const formatData = (data) => {
