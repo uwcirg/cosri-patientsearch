@@ -944,7 +944,6 @@ export default function PatientListTable() {
                     size="small"
                     startIcon={<RefreshIcon />}
                     onClick={() => {
-                      handleRefresh();
                       document.querySelector("#btnClear").click();
                     }}
                   >
