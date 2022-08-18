@@ -484,10 +484,7 @@ export default function PatientListTable() {
       setErrorMessage("");
       handleNoDataText(filters);
       handleActionLabel(filters);
-      if (!filters || !filters.length) {
-        return defaultFilters;
-      }
-      if (containEmptyFilter(filters)) {
+      if (!filters || !filters.length || containEmptyFilter(filters)) {
         handleRefresh();
         return filters;
       }
@@ -959,7 +956,7 @@ export default function PatientListTable() {
               <TablePagination
                 id="patientListPagination"
                 className={classes.pagination}
-                rowsPerPageOptions={[10, 20, 50]}
+                rowsPerPageOptions={[5, 10, 20, 50]}
                 onPageChange={handleChangePage}
                 page={pagination.pageNumber}
                 rowsPerPage={pagination.pageSize}
