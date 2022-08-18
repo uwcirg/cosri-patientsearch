@@ -128,11 +128,14 @@ export default function FilterRow(props) {
       },
     ]);
   };
+  const handleClear = () => {
+    clearFields();
+    props.onFiltersDidChange(null);
+  }
   const clearFields = () => {
     setFirstName("");
     setLastName("");
     clearDate();
-    props.onFiltersDidChange(null, true);
   };
   const getLaunchButtonLabel = () => {
     return props.launchButtonLabel
@@ -146,11 +149,6 @@ export default function FilterRow(props) {
     }
     return false;
   };
-  React.useEffect(() => {
-    if (props.refresh) {
-      clearFields();
-    }
-  }, [props.refresh]);
   return (
     <tr className={classes.row} key="filterRow">
       <td className={classes.cell}>
@@ -240,7 +238,6 @@ export default function FilterRow(props) {
               if (!event || !isValid(event)) {
                 if (event && String(dateInput).replace(/[-_]/g, "").length >= 8)
                   setDate(event);
-                // props.onFilterChanged(3, null, "dob");
                 props.onFiltersDidChange([
                   {
                     field: "first_name",
@@ -258,7 +255,6 @@ export default function FilterRow(props) {
                 return;
               }
               setDate(event);
-              //   props.onFilterChanged(3, dateString, "dob");
               props.onFiltersDidChange([
                 {
                   field: "first_name",
@@ -299,7 +295,7 @@ export default function FilterRow(props) {
           <Button
             variant="contained"
             size="small"
-            onClick={clearFields}
+            onClick={handleClear}
             className={
               !hasFilter() ? `${classes.button} disabled` : classes.button
             }
@@ -318,5 +314,4 @@ FilterRow.propTypes = {
   launchButtonLabel: PropTypes.string,
   launchFunc: PropTypes.func,
   launchButtonId: PropTypes.string,
-  refresh: PropTypes.bool
 };

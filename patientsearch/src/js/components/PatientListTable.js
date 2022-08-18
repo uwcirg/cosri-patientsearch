@@ -179,7 +179,6 @@ export default function PatientListTable() {
   const [currentRow, setCurrentRow] = React.useState(null);
   const [actionLabel, setActionLabel] = React.useState(LAUNCH_BUTTON_LABEL);
   const [noDataText, setNoDataText] = React.useState("");
-  const [refresh, setRefresh] = React.useState(false);
   const tableRef = React.useRef();
   const LAUNCH_BUTTON_LABEL = "VIEW";
   const CREATE_BUTTON_LABEL = "CREATE";
@@ -538,7 +537,6 @@ export default function PatientListTable() {
     if (tableRef && tableRef.current) tableRef.current.onQueryChange();
   };
   const handleRefresh = () => {
-    setRefresh(true);
     setCurrentFilters(defaultFilters);
     resetPaging();
     if (tableRef && tableRef.current) tableRef.current.onQueryChange();
@@ -696,7 +694,6 @@ export default function PatientListTable() {
               totalCount: response.total
             }
           });
-          setRefresh(false);
           setTimeout(() => setInitialized(true), 250);
           resolve({
             data: responseData,
@@ -767,7 +764,6 @@ export default function PatientListTable() {
               launchFunc={handleSearch}
               launchButtonLabel={actionLabel}
               launchButtonId={TOOLBAR_ACTION_BUTTON_ID}
-              refresh={refresh}
             />
           </tbody>
         </table>
@@ -947,7 +943,10 @@ export default function PatientListTable() {
                     variant="contained"
                     size="small"
                     startIcon={<RefreshIcon />}
-                    onClick={handleRefresh}
+                    onClick={() => {
+                      handleRefresh();
+                      document.querySelector("#btnClear").click();
+                    }}
                   >
                     Refresh
                   </Button>
