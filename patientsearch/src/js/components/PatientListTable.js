@@ -735,11 +735,13 @@ export default function PatientListTable() {
     });
   };
 
+  const handlePageUnload = () => {
+    setTimeout(() => setOpenLoadingModal(false), 250);
+  };
+
   React.useEffect(() => {
     //when page unloads, remove loading indicator
-    window.addEventListener("beforeunload", function () {
-      setTimeout(() => setOpenLoadingModal(false), 250);
-    });
+    window.addEventListener("beforeunload", handlePageUnload);
     validateToken().then((token) => {
       if (!token) {
         console.log("Redirecting...");
@@ -767,7 +769,7 @@ export default function PatientListTable() {
        handleErrorCallback(e);
     });
     return () => {
-      window.removeEventListener("beforeunload");
+      window.removeEventListener("beforeunload", handlePageUnload);
     };
   }, []); //retrieval of settings should occur prior to patient list being rendered/initialized
 

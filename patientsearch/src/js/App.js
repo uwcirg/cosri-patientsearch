@@ -32,18 +32,18 @@ export default class App extends Component {
       </div>;
     }
     return (
-      <SettingContextProvider>
-        <React.Fragment>
-          <ThemeProvider theme={theme}>
-            <CssBaseline />
-              <SystemBanner />
-              <Header />
-              <PatientListTable />
-              <TimeoutModal />
-              <Version />
-          </ThemeProvider>
-        </React.Fragment>
-      </SettingContextProvider>
+      <React.Fragment>
+        <ThemeProvider theme={theme}>
+          <CssBaseline />
+          <SettingContextProvider>
+            <SystemBanner />
+            <Header />
+            <PatientListTable />
+            <TimeoutModal />
+            <Version />
+          </SettingContextProvider>
+        </ThemeProvider>
+      </React.Fragment>
     );
   }
 }

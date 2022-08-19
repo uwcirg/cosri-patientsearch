@@ -80,10 +80,13 @@ export default function Info(props) {
     if (appSettings)
       setTimeout(() => setLoading(false), 250);
   }, [appSettings]);
+  function hasSettings() {
+    return appSettings && Object.keys(appSettings).length > 0;
+  }
   /* return config variable by key */
   function getConfig(key) {
     if (props.appSettings) return props.appSettings[key];
-    if (!Object.keys(appSettings)) return "";
+    if (!hasSettings()) return "";
     return appSettings[key];
   }
   function handleImageLoaded(e) {
@@ -139,54 +142,53 @@ export default function Info(props) {
           ></CircularProgress>
         </div>
       )}
-      {!loading &&
-        appSettings && (
-          <div className={classes.container}>
-            {/* intro text, e.g. HTML block 1 */}
-            <div className={classes.introText}>
+      {!loading && hasSettings() && (
+        <div className={classes.container}>
+          {/* intro text, e.g. HTML block 1 */}
+          <div className={classes.introText}>
+            <div
+              dangerouslySetInnerHTML={{
+                __html: DOMPurify.sanitize(getIntroText()),
+              }}
+            ></div>
+          </div>
+          {/* logo image */}
+          {siteID && (
+            <img
+              src={"/static/" + siteID + "/img/logo.png"}
+              onLoad={handleImageLoaded}
+              onError={handleImageLoadError}
+            ></img>
+          )}
+          {/* button */}
+          <Button
+            color="primary"
+            href="/home"
+            align="center"
+            variant="outlined"
+            size="large"
+            className={classes.button}
+          >
+            {getButtonText()}
+          </Button>
+          {/* body text, e.g. HTML block 2 */}
+          <div className={classes.bodyText}>
+            <Typography
+              component="h4"
+              variant="h5"
+              color="inherit"
+              align="center"
+              className={classes.title}
+            >
               <div
                 dangerouslySetInnerHTML={{
-                  __html: DOMPurify.sanitize(getIntroText()),
+                  __html: DOMPurify.sanitize(getBodyText()),
                 }}
               ></div>
-            </div>
-            {/* logo image */}
-            {siteID && (
-              <img
-                src={"/static/" + siteID + "/img/logo.png"}
-                onLoad={handleImageLoaded}
-                onError={handleImageLoadError}
-              ></img>
-            )}
-            {/* button */}
-            <Button
-              color="primary"
-              href="/home"
-              align="center"
-              variant="outlined"
-              size="large"
-              className={classes.button}
-            >
-              {getButtonText()}
-            </Button>
-            {/* body text, e.g. HTML block 2 */}
-            <div className={classes.bodyText}>
-              <Typography
-                component="h4"
-                variant="h5"
-                color="inherit"
-                align="center"
-                className={classes.title}
-              >
-                <div
-                  dangerouslySetInnerHTML={{
-                    __html: DOMPurify.sanitize(getBodyText()),
-                  }}
-                ></div>
-              </Typography>
-            </div>
+            </Typography>
           </div>
-        )}
+        </div>
+      )}
     </div>
   );
 }
