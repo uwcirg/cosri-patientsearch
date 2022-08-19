@@ -254,8 +254,9 @@ export default function PatientListTable() {
   const toTop = () => {
     window.scrollTo(0, 0);
   };
+  const hasAppSettings = () => appSettings && Object.keys(appSettings).length > 0;
   const getAppSettingByKey = (key) => {
-    if (!appSettings || Object.keys(appSettings).length === 0) return "";
+    if (!hasAppSettings()) return "";
     return appSettings[key];
   };
   const existsIndata = (rowData) => {
@@ -585,8 +586,8 @@ export default function PatientListTable() {
     }, 200);
   };
   const shouldHideMoreMenu = () => {
+    if (!hasAppSettings()) return true;
     return (
-      Object.keys(appSettings).length &&
       (!appSettings[MORE_MENU_KEY] ||
         appSettings[MORE_MENU_KEY].filter((item) => item && item !== "")
           .length === 0)
