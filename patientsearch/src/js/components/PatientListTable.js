@@ -160,8 +160,9 @@ export default function PatientListTable() {
     prevPageURL: "",
   };
   const paginationReducer = (state, action) => {
-    if (action === "reset") {
+    if (action.type === "reset") {
       return {
+        ...state,
         pageNumber: 0,
         nextPageURL: "",
         prevPageURL: "",
@@ -697,8 +698,8 @@ export default function PatientListTable() {
               prevPageURL: newPrevURL,
               disableNextButton: !hasNextLink,
               disablePrevButton: pagination.pageNumber === 0,
-              totalCount: response.total
-            }
+              totalCount: response.total,
+            },
           });
           setTimeout(() => setInitialized(true), 250);
           resolve({
