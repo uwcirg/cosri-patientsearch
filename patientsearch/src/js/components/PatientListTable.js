@@ -17,12 +17,12 @@ import LoadingModal from "./LoadingModal";
 import OverlayElement from "./OverlayElement";
 import UrineScreen from "./UrineScreen";
 import Agreement from "./Agreement";
+import { getAppSettings } from "../context/SettingContextProvider";
 import { tableIcons } from "../context/consts";
 import theme from "../context/theme";
 import {
   fetchData,
   getLocalDateTimeString,
-  getSettings,
   getUrlParameter,
   getRolesFromToken,
   getClientsByRequiredRoles,
@@ -140,7 +140,7 @@ let filterIntervalId = 0;
 
 export default function PatientListTable() {
   const classes = useStyles();
-  const [appSettings, setAppSettings] = React.useState(null);
+  const appSettings = getAppSettings();
   const [initialized, setInitialized] = React.useState(false);
   const [appClients, setAppClients] = React.useState(null);
   const [data, setData] = React.useState([]);
@@ -742,36 +742,34 @@ export default function PatientListTable() {
   React.useEffect(() => {
     //when page unloads, remove loading indicator
     window.addEventListener("beforeunload", handlePageUnload);
-    validateToken().then((token) => {
-      if (!token) {
-        console.log("Redirecting...");
-        window.location = "/clear_session";
-        return false;
+    validateToken().then(
+      (token) => {
+        if (!token) {
+          console.log("Redirecting...");
+          window.location = "/clear_session";
+          return false;
+        }
+        if (appSettings) {
+          const clients = getClientsByRequiredRoles(
+            appSettings["SOF_CLIENTS"],
+            getRolesFromToken(token)
+          );
+          if (!clients || !clients.length) {
+            setErrorMessage("No SoF client match the user role(s) found");
+          } else {
+            setAppClients(clients);
+          }
+        }
+      },
+      (e) => {
+        console.log("token validation error ", e);
+        handleErrorCallback(e);
       }
-      getSettings((data) => {
-        if (data.error) {
-          handleErrorCallback(`Error retrieving app setting: ${data.error}`);
-          return;
-        }
-        setAppSettings(data);
-        const clients = getClientsByRequiredRoles(
-          data["SOF_CLIENTS"],
-          getRolesFromToken(token)
-        );
-        if (!clients || !clients.length) {
-          setErrorMessage("No SoF client match the user role(s) found");
-        } else {
-          setAppClients(clients);
-        }
-      }, true); //no caching
-    }, e => {
-       console.log("token validation error ", e);
-       handleErrorCallback(e);
-    });
+    );
     return () => {
       window.removeEventListener("beforeunload", handlePageUnload);
     };
-  }, []); //retrieval of settings should occur prior to patient list being rendered/initialized
+  }, [appSettings]); //retrieval of settings should occur prior to patient list being rendered/initialized
 
   return (
     <React.Fragment>

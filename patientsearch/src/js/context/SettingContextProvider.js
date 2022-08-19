@@ -35,7 +35,7 @@ export default function SettingContextProvider({children}) {
             </SettingContext.Provider>;
 }
 SettingContextProvider.propTypes = {
-    children: PropTypes.element.isRequired
+    children: PropTypes.oneOfType([PropTypes.array, PropTypes.element])
 };
 /*
  * helper function to access application setting context
