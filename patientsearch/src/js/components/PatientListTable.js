@@ -737,7 +737,7 @@ export default function PatientListTable() {
   };
 
   const handlePageUnload = () => {
-    setTimeout(() => setOpenLoadingModal(false), 250);
+    setTimeout(() => setOpenLoadingModal(false), 500);
   };
 
   React.useEffect(() => {
