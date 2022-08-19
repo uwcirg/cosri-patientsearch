@@ -160,6 +160,18 @@ export default function PatientListTable() {
     prevPageURL: "",
   };
   const paginationReducer = (state, action) => {
+    if (action.type === "empty") {
+      return {
+        ...state,
+        pageNumber: 0,
+        prevPageNumber: 0,
+        disablePrevButton: true,
+        disableNextButton: true,
+        totalCount: 0,
+        nextPageURL: "",
+        prevPageURL: "",
+      };
+    }
     if (action.type === "reset") {
       return {
         ...state,
@@ -246,7 +258,7 @@ export default function PatientListTable() {
     if (!appSettings || Object.keys(appSettings).length === 0) return "";
     return appSettings[key];
   };
-  const existsIndata =  (rowData) => {
+  const existsIndata = (rowData) => {
     if (!data || !rowData) return false;
     return (
       data.filter((item) => {
@@ -620,7 +632,7 @@ export default function PatientListTable() {
       totalCount: 0,
     };
     const resetAll = () => {
-      resetPaging();
+      dispatch({type: "empty"});
       setInitialized(true);
     };
     let apiURL = `/fhir/Patient?_include=Patient:link&_total=accurate&_count=${pagination.pageSize}`;
@@ -717,7 +729,7 @@ export default function PatientListTable() {
               error && error.status ? "Error status " + error.status : error
             }`
           );
-          resetAll();
+          setInitialized(true);
           resolve(defaults);
         });
     });
@@ -871,9 +883,10 @@ export default function PatientListTable() {
                   padding: theme.spacing(1, 2, 1),
                 },
                 rowStyle: (rowData) => ({
-                  backgroundColor: needExternalAPILookup() && !inPDMP(rowData)
-                    ? theme.palette.primary.disabled
-                    : "#FFF",
+                  backgroundColor:
+                    needExternalAPILookup() && !inPDMP(rowData)
+                      ? theme.palette.primary.disabled
+                      : "#FFF",
                 }),
                 actionsCellStyle: {
                   paddingLeft: theme.spacing(1),
@@ -943,7 +956,7 @@ export default function PatientListTable() {
               </div>
             )}
             {!containNoPMPRow && <div className={classes.spacer}></div>}
-            <div className={`${pagination.totalCount === 0 ? "ghost" : ""}`}>
+            <div>
               <div className={classes.refreshButtonContainer}>
                 <Tooltip title="Refresh the list">
                   <Button
@@ -951,7 +964,7 @@ export default function PatientListTable() {
                     size="small"
                     startIcon={<RefreshIcon />}
                     onClick={() => {
-                      document.querySelector("#btnClear").click();
+                      location.reload();
                     }}
                   >
                     Refresh
@@ -960,7 +973,7 @@ export default function PatientListTable() {
               </div>
               <TablePagination
                 id="patientListPagination"
-                className={classes.pagination}
+                className={`${pagination.totalCount === 0 ? "ghost" : classes.pagination}`}
                 rowsPerPageOptions={[5, 10, 20, 50]}
                 onPageChange={handleChangePage}
                 page={pagination.pageNumber}

@@ -139,45 +139,54 @@ export default function Info(props) {
           ></CircularProgress>
         </div>
       )}
-      {!loading && (
-        <div className={classes.container}>
-          {/* intro text, e.g. HTML block 1 */}
-          <div className={classes.introText}>
-            <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(getIntroText()) }}></div>
-          </div>
-          {/* logo image */}
-          {siteID && (
-            <img
-              src={"/static/" + siteID + "/img/logo.png"}
-              onLoad={handleImageLoaded}
-              onError={handleImageLoadError}
-            ></img>
-          )}
-          {/* button */}
-          <Button
-            color="primary"
-            href="/home"
-            align="center"
-            variant="outlined"
-            size="large"
-            className={classes.button}
-          >
-            {getButtonText()}
-          </Button>
-          {/* body text, e.g. HTML block 2 */}
-          <div className={classes.bodyText}>
-            <Typography
-              component="h4"
-              variant="h5"
-              color="inherit"
+      {!loading &&
+        appSettings && (
+          <div className={classes.container}>
+            {/* intro text, e.g. HTML block 1 */}
+            <div className={classes.introText}>
+              <div
+                dangerouslySetInnerHTML={{
+                  __html: DOMPurify.sanitize(getIntroText()),
+                }}
+              ></div>
+            </div>
+            {/* logo image */}
+            {siteID && (
+              <img
+                src={"/static/" + siteID + "/img/logo.png"}
+                onLoad={handleImageLoaded}
+                onError={handleImageLoadError}
+              ></img>
+            )}
+            {/* button */}
+            <Button
+              color="primary"
+              href="/home"
               align="center"
-              className={classes.title}
+              variant="outlined"
+              size="large"
+              className={classes.button}
             >
-              <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(getBodyText()) }}></div>
-            </Typography>
+              {getButtonText()}
+            </Button>
+            {/* body text, e.g. HTML block 2 */}
+            <div className={classes.bodyText}>
+              <Typography
+                component="h4"
+                variant="h5"
+                color="inherit"
+                align="center"
+                className={classes.title}
+              >
+                <div
+                  dangerouslySetInnerHTML={{
+                    __html: DOMPurify.sanitize(getBodyText()),
+                  }}
+                ></div>
+              </Typography>
+            </div>
           </div>
-        </div>
-      )}
+        )}
     </div>
   );
 }
