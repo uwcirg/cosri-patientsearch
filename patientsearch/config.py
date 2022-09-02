@@ -16,6 +16,7 @@ def load_json_config(potential_json_string):
 APPLICATION_TITLE = os.getenv(
     "APPLICATION_TITLE", "Clinical Opioid Summary with Rx Integration"
 )
+
 if os.getenv("DASHBOARD_COLUMNS"):
     DASHBOARD_COLUMNS = json.loads(os.getenv("DASHBOARD_COLUMNS"))
 else:
@@ -109,7 +110,3 @@ OIDC_SCOPES = ["email", "openid", "roles"]
 PROJECT_NAME = os.getenv("PROJECT_NAME", "COSRI")
 REQUIRED_ROLES = json.loads(os.getenv("REQUIRED_ROLES", "[]"))
 UDS_LAB_TYPES = json.loads(os.getenv("UDS_LAB_TYPES", "[]"))
-
-
-
-
