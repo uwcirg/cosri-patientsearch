@@ -13,7 +13,30 @@ def load_json_config(potential_json_string):
     elif potential_json_string:
         return json.loads(potential_json_string)
 
-
+APPLICATION_TITLE = os.getenv(
+    "APPLICATION_TITLE", "Clinical Opioid Summary with Rx Integration"
+)
+if os.getenv("DASHBOARD_COLUMNS"):
+    DASHBOARD_COLUMNS = json.loads(os.getenv("DASHBOARD_COLUMNS"))
+else:
+    DASHBOARD_COLUMNS = [{
+      'label': 'First Name',
+      'expr': '$.name[0].given[0]',
+    },
+    {
+      'label': 'Last Name',
+      'expr': '$.name[0].family',
+    },
+    {
+      'label': 'Birth Date',
+      'expr': '$.birthDate',
+    },
+    {
+      'label': 'Last Accessed',
+      'defaultSort': 'desc',
+      'expr': '$.meta.lastUpdated',
+      'dataType': 'date',
+    }]
 ENABLE_INACTIVITY_TIMEOUT = (
     os.getenv("ENABLE_INACTIVITY_TIMEOUT", "true").lower() == "true"
 )
@@ -56,7 +79,7 @@ VERSION_STRING = os.getenv("VERSION_STRING")
 
 EXTERNAL_FHIR_API = os.getenv("EXTERNAL_FHIR_API", "")
 MAP_API = os.getenv("MAP_API")
-SOF_HOST_FHIR_URL = os.getenv("SOF_HOST_FHIR_URL")
+SOF_CLIENTS = json.loads(os.getenv("SOF_CLIENTS", "[]"))
 
 # build flask-oidc config from our own granular environment variables, if present
 if os.getenv("OIDC_CLIENT_ID"):
@@ -80,10 +103,10 @@ else:
 OIDC_ID_TOKEN_COOKIE_SECURE = False
 OIDC_REQUIRE_VERIFIED_EMAIL = False
 OIDC_SCOPES = ["email", "openid", "roles"]
+PROJECT_NAME = os.getenv("PROJECT_NAME", "COSRI")
 REQUIRED_ROLES = json.loads(os.getenv("REQUIRED_ROLES", "[]"))
 UDS_LAB_TYPES = json.loads(os.getenv("UDS_LAB_TYPES", "[]"))
-APPLICATION_TITLE = os.getenv(
-    "APPLICATION_TITLE", "Clinical Opioid Summary with Rx Integration"
-)
-PROJECT_NAME = os.getenv("PROJECT_NAME", "COSRI")
-SOF_CLIENTS = json.loads(os.getenv("SOF_CLIENTS", "[]"))
+
+
+
+

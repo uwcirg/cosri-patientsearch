@@ -70,7 +70,7 @@ export default function FilterRow(props) {
         value: lastName,
       },
       {
-        field: "dob",
+        field: "birth_date",
         value: isValid(new Date(dateInput)) ? dateInput : "",
       },
     ]);
@@ -88,7 +88,7 @@ export default function FilterRow(props) {
         value: firstName,
       },
       {
-        field: "dob",
+        field: "birth_date",
         value: isValid(new Date(dateInput)) ? dateInput : "",
       },
     ]);
@@ -107,7 +107,7 @@ export default function FilterRow(props) {
     return {
       first_name: firstName,
       last_name: lastName,
-      dob: dateInput,
+      birth_date: dateInput,
     };
   };
   const clearDate = () => {
@@ -123,7 +123,7 @@ export default function FilterRow(props) {
         value: lastName,
       },
       {
-        field: "dob",
+        field: "birth_date",
         value: null,
       },
     ]);
@@ -248,7 +248,7 @@ export default function FilterRow(props) {
                     value: lastName,
                   },
                   {
-                    field: "dob",
+                    field: "birth_date",
                     value: null,
                   },
                 ]);
@@ -265,7 +265,7 @@ export default function FilterRow(props) {
                   value: lastName,
                 },
                 {
-                  field: "dob",
+                  field: "birth_date",
                   value: dateString,
                 },
               ]);

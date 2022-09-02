@@ -1,6 +1,8 @@
 import React from "react";
 import { makeStyles } from "@material-ui/core/styles";
-import MaterialTable from "material-table";
+import jsonpath from "jsonpath";
+import DOMPurify from "dompurify";
+import MaterialTable from "@material-table/core";
 import RefreshIcon from "@material-ui/icons/Refresh";
 import MoreHorizIcon from "@material-ui/icons/MoreHoriz";
 import CircularProgress from "@material-ui/core/CircularProgress";
@@ -217,38 +219,22 @@ export default function PatientListTable() {
   const FieldNameMaps = {
     first_name: "given",
     last_name: "family",
-    dob: "birthdate",
-    lastUpdated: "_lastUpdated",
+    birth_date: "birthdate",
+    last_accessed: "_lastUpdated",
   };
-  const columns = [
-    //default sort by id in descending order
-    { field: "id", hidden: true, filtering: false },
+  const default_columns = [
     {
-      title: "First Name",
-      field: "first_name",
-      filterPlaceholder: "First Name",
-      emptyValue: "--",
+      label: "First Name",
+      expr: "$.name[0].given[0]",
     },
     {
-      title: "Last Name",
-      field: "last_name",
-      filterPlaceholder: "Last Name",
-      emptyValue: "--",
+      label: "Last Name",
+      expr: "$.name[0].family",
     },
     {
-      title: "Birth Date",
-      field: "dob",
-      filterPlaceholder: "YYYY-MM-DD",
-      emptyValue: "--",
-    },
-    /* the field for last accessed is patient.meta.lastupdated? */
-    {
-      title: "Last Accessed",
-      field: "lastUpdated",
-      filtering: false,
-      align: "center",
-      defaultSort: "desc",
-    },
+      label: "Birth Date",
+      expr: "$.birthDate",
+    }
   ];
   const errorStyle = { display: errorMessage ? "block" : "none" };
   const toTop = () => {
@@ -258,6 +244,23 @@ export default function PatientListTable() {
   const getAppSettingByKey = (key) => {
     if (!hasAppSettings()) return "";
     return appSettings[key];
+  };
+  const getColumns = () => {
+    const configColumns = getAppSettingByKey("DASHBOARD_COLUMNS");
+    let cols = configColumns ? configColumns : default_columns;
+    const hasIdField = cols.filter(col => col.field === "id").length > 0;
+    //columns must include an id field, add if not present
+    if (!hasIdField) cols.push({
+      label: "id",
+      hidden: true,
+      expr: "$.id",
+    });
+    return cols.map((column) => {
+      column.title = column.label;
+      column.field = column.label.toLowerCase().replace(/\s/g, "_");
+      column.emptyValue = "--";
+      return column;
+    });
   };
   const existsIndata = (rowData) => {
     if (!data || !rowData) return false;
@@ -283,11 +286,11 @@ export default function PatientListTable() {
       const params = [
         `subject:Patient.name.given=${data.first_name}`,
         `subject:Patient.name.family=${data.last_name}`,
-        `subject:Patient.birthdate=eq${data.dob}`,
+        `subject:Patient.birthdate=eq${data.birth_date}`,
       ];
       return `${dataURL}?${params.join("&")}`;
     }
-    return `/fhir/Patient?given=${String(data.first_name).trim()}&family=${String(data.last_name).trim()}&birthdate=${data.dob}`;
+    return `/fhir/Patient?given=${String(data.first_name).trim()}&family=${String(data.last_name).trim()}&birthdate=${data.birth_date}`;
   };
   const getLaunchURL = (patientId, launchParams) => {
     if (!patientId) {
@@ -370,7 +373,7 @@ export default function PatientListTable() {
               given: [rowData.first_name.trim()],
             },
           ],
-          birthDate: rowData.dob,
+          birthDate: rowData.birth_date,
         });
     const noResultErrorMessage = needExternalAPILookup()? "<div>The patient was not found in the PMP. This could be due to:</div><ul><li>No previous controlled substance medications dispensed</li><li>Incorrect spelling of name or incorrect date of birth.</li></ul><div>Please double check name spelling and date of birth.</div>": "No matched patient found";
     const fetchErrorMessage = needExternalAPILookup()?  "<p>COSRI is unable to return PMP information. This may be due to PMP system being down or a problem with the COSRI connection to PMP.</p>": "Server error when looking up patient";
@@ -426,30 +429,21 @@ export default function PatientListTable() {
     }
     return data && Array.isArray(data)
       ? data.map((item) => {
-          let source = item.resource ? item.resource : item;
-          let patientId = source && source["id"] ? source["id"] : "";
-          return {
-            first_name:
-              source && source.name && source.name[0]
-                ? source.name[0]["given"][0]
-                : "",
-            last_name:
-              source && source.name && source.name[0]
-                ? source.name[0]["family"]
-                : "",
-            dob: source && source["birthDate"] ? source["birthDate"] : "",
-            identifier:
-              source && source.identifier && source.identifier.length
-                ? source.identifier
-                : null,
-            lastUpdated:
-              source && source.meta && source.meta.lastUpdated
-                ? getLocalDateTimeString(source.meta.lastUpdated)
-                : "",
-            gender: source && source["gender"] ? source["gender"] : "",
+          const source = item.resource ? item.resource : item;
+          const cols = getColumns();
+          let rowData = {
+            id: jsonpath.value(source, "$.id"),
             resource: source,
-            id: patientId,
+            identifier: jsonpath.value(source, "$.identifier") || [],
           };
+          cols.forEach(col => {
+            let value = jsonpath.value(source, col.expr) || null;
+            if (col.dataType === "date") {
+              value = getLocalDateTimeString(value);
+            }
+            rowData[col.field] = value;
+          });
+          return rowData;
         })
       : data;
   };
@@ -488,12 +482,12 @@ export default function PatientListTable() {
     );
   };
   const handleNoDataText = (filters) => {
-    let text = "";
+    let text = "No matching record found.<br/>";
     const nonEmptyFilters = getNonEmptyFilters(filters);
     if (nonEmptyFilters.length < 3) {
-      text = "Try entering all First name, Last name and Birth Date.";
+      text += "Try entering all First name, Last name and Birth Date.";
     } else if (nonEmptyFilters.length === 3) {
-      text = `Click on ${CREATE_BUTTON_LABEL} button to create new patient`;
+      text += `Click on ${CREATE_BUTTON_LABEL} button to create new patient`;
     }
     setNoDataText(text);
   };
@@ -579,10 +573,7 @@ export default function PatientListTable() {
     }
     setTimeout(function () {
       currentRow.tableData.showDetailPanel = true;
-      tableRef.current.onToggleDetailPanel(
-        [currentRow.tableData.id],
-        tableRef.current.props.detailPanel[0].render
-      );
+      handleToggleDetailPanel(currentRow);
     }, 200);
   };
   const shouldHideMoreMenu = () => {
@@ -610,6 +601,16 @@ export default function PatientListTable() {
     }
     return null;
   };
+  const handleToggleDetailPanel = (rowData) => {
+    tableRef.current.onToggleDetailPanel(
+      [
+        tableRef.current.dataManager.sortedData.findIndex(
+          (item) => item.id === rowData.id
+        ),
+      ],
+      tableRef.current.props.detailPanel[0].render
+    );
+  }
   const getPatientList = (query) => {
     let sortField =
       query.orderBy && query.orderBy.field
@@ -794,7 +795,7 @@ export default function PatientListTable() {
           >
             <MaterialTable
               className={classes.table}
-              columns={columns}
+              columns={getColumns()}
               data={
                 //any change in query will invoke this function
                 (query) => getPatientList(query)
@@ -803,16 +804,16 @@ export default function PatientListTable() {
               hideSortIcon={false}
               detailPanel={[
                 {
-                  render: (rowData) => {
+                  render: (data) => {
                     return (
                       <DetailPanel>
-                        {getSelectedItemComponent(selectedMenuItem, rowData)}
+                        {getSelectedItemComponent(
+                          selectedMenuItem,
+                          data.rowData
+                        )}
                         <Button
                           onClick={() => {
-                            tableRef.current.onToggleDetailPanel(
-                              [rowData.tableData.id],
-                              tableRef.current.props.detailPanel[0].render
-                            );
+                            handleToggleDetailPanel(data.rowData);
                             handleMenuClose();
                           }}
                           className={classes.detailPanelCloseButton}
@@ -910,7 +911,10 @@ export default function PatientListTable() {
                     .then(() => {
                       setTimeout(() => {
                         const dataDelete = [...data];
-                        const index = oldData.tableData.id;
+                        const target = dataDelete.find(
+                          (el) => el.id === oldData.id
+                        );
+                        const index = dataDelete.indexOf(target);
                         dataDelete.splice(index, 1);
                         setData([...dataDelete]);
                         setErrorMessage("");
@@ -937,11 +941,13 @@ export default function PatientListTable() {
                     saveTooltip: "OK",
                   },
                   emptyDataSourceMessage: (
-                    <div id="emptyDataContainer" className={classes.flex}>
-                      <div className={classes.warning}>
-                        <div>No matching patient found.</div>
-                        <div>{noDataText}</div>
-                      </div>
+                    <div
+                      id="emptyDataContainer"
+                      className={`${classes.flex} ${classes.warning}`}
+                      dangerouslySetInnerHTML={{
+                        __html: DOMPurify.sanitize(noDataText),
+                      }}
+                    >
                     </div>
                   ),
                 },
@@ -974,7 +980,9 @@ export default function PatientListTable() {
               </div>
               <TablePagination
                 id="patientListPagination"
-                className={`${pagination.totalCount === 0 ? "ghost" : classes.pagination}`}
+                className={`${
+                  pagination.totalCount === 0 ? "ghost" : classes.pagination
+                }`}
                 rowsPerPageOptions={[5, 10, 20, 50]}
                 onPageChange={handleChangePage}
                 page={pagination.pageNumber}
