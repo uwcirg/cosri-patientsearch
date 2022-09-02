@@ -21,31 +21,28 @@ APPLICATION_TITLE = os.getenv(
 if os.getenv("DASHBOARD_COLUMNS"):
     DASHBOARD_COLUMNS = json.loads(os.getenv("DASHBOARD_COLUMNS"))
 else:
-    DASHBOARD_COLUMNS = [
-        {
-            'label': 'First Name',
-            'expr': '$.name[0].given[0]',
+    DASHBOARD_COLUMNS = [{
+            "label": "First Name",
+            "expr": "$.name[0].given[0]",
         },
         {
-            'label': 'Last Name',
-            'expr': '$.name[0].family',
+            "label": "Last Name",
+            "expr": "$.name[0].family",
         },
         {
-            'label': 'Birth Date',
-            'expr': '$.birthDate',
+            "label": "Birth Date",
+            "expr": "$.birthDate",
         },
         {
-            'label': 'Last Accessed',
-            'defaultSort': 'desc',
-            'expr': '$.meta.lastUpdated',
-            'dataType': 'date',
-        }
-    ]
+            "label": "Last Accessed",
+            "defaultSort": "desc",
+            "expr": "$.meta.lastUpdated",
+            "dataType": "date",
+        }]
 
 ENABLE_INACTIVITY_TIMEOUT = (
     os.getenv("ENABLE_INACTIVITY_TIMEOUT", "true").lower() == "true"
 )
-
 FORBIDDEN_TEXT = os.getenv(
     "FORBIDDEN_TEXT",
     "Your account is not authorized for access, please contact an administrator",
