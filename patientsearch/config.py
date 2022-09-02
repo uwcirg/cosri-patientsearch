@@ -19,24 +19,26 @@ APPLICATION_TITLE = os.getenv(
 if os.getenv("DASHBOARD_COLUMNS"):
     DASHBOARD_COLUMNS = json.loads(os.getenv("DASHBOARD_COLUMNS"))
 else:
-    DASHBOARD_COLUMNS = [{
-      'label': 'First Name',
-      'expr': '$.name[0].given[0]',
-    },
-    {
-      'label': 'Last Name',
-      'expr': '$.name[0].family',
-    },
-    {
-      'label': 'Birth Date',
-      'expr': '$.birthDate',
-    },
-    {
-      'label': 'Last Accessed',
-      'defaultSort': 'desc',
-      'expr': '$.meta.lastUpdated',
-      'dataType': 'date',
-    }]
+    DASHBOARD_COLUMNS = [
+        {
+            'label': 'First Name',
+            'expr': '$.name[0].given[0]',
+        },
+        {
+            'label': 'Last Name',
+            'expr': '$.name[0].family',
+        },
+        {
+            'label': 'Birth Date',
+            'expr': '$.birthDate',
+        },
+        {
+            'label': 'Last Accessed',
+            'defaultSort': 'desc',
+            'expr': '$.meta.lastUpdated',
+            'dataType': 'date',
+        }
+    ]
 ENABLE_INACTIVITY_TIMEOUT = (
     os.getenv("ENABLE_INACTIVITY_TIMEOUT", "true").lower() == "true"
 )
@@ -79,6 +81,7 @@ VERSION_STRING = os.getenv("VERSION_STRING")
 
 EXTERNAL_FHIR_API = os.getenv("EXTERNAL_FHIR_API", "")
 MAP_API = os.getenv("MAP_API")
+SOF_HOST_FHIR_URL = os.getenv("SOF_HOST_FHIR_URL")
 SOF_CLIENTS = json.loads(os.getenv("SOF_CLIENTS", "[]"))
 
 # build flask-oidc config from our own granular environment variables, if present

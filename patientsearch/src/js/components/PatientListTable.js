@@ -610,7 +610,7 @@ export default function PatientListTable() {
       ],
       tableRef.current.props.detailPanel[0].render
     );
-  }
+  };
   const getPatientList = (query) => {
     let sortField =
       query.orderBy && query.orderBy.field
