@@ -149,7 +149,7 @@ export default function PatientListTable() {
   const defaultFilters = {
     first_name: "",
     last_name: "",
-    dob: "",
+    birth_date: "",
   };
   const defaultPagination = {
     pageSize: 20,

@@ -13,10 +13,10 @@ def load_json_config(potential_json_string):
     elif potential_json_string:
         return json.loads(potential_json_string)
 
+
 APPLICATION_TITLE = os.getenv(
     "APPLICATION_TITLE", "Clinical Opioid Summary with Rx Integration"
 )
-
 
 if os.getenv("DASHBOARD_COLUMNS"):
     DASHBOARD_COLUMNS = json.loads(os.getenv("DASHBOARD_COLUMNS"))
