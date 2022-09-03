@@ -21,7 +21,8 @@ APPLICATION_TITLE = os.getenv(
 if os.getenv("DASHBOARD_COLUMNS"):
     DASHBOARD_COLUMNS = json.loads(os.getenv("DASHBOARD_COLUMNS"))
 else:
-    DASHBOARD_COLUMNS = [{
+    DASHBOARD_COLUMNS = [
+        {
             "label": "First Name",
             "expr": "$.name[0].given[0]",
         },
@@ -38,7 +39,8 @@ else:
             "defaultSort": "desc",
             "expr": "$.meta.lastUpdated",
             "dataType": "date",
-        }]
+        },
+    ]
 
 ENABLE_INACTIVITY_TIMEOUT = (
     os.getenv("ENABLE_INACTIVITY_TIMEOUT", "true").lower() == "true"
