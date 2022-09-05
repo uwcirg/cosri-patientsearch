@@ -356,7 +356,7 @@ export default function PatientListTable() {
     const allowToLaunch = (rowData.id && hasMultipleSoFClients()) || (
       launchParams && (
       needExternalAPILookup()
-      ? rowData.id && rowData.identifier
+      ? inPDMP(rowData)
       : rowData.id));
 
     if (allowToLaunch) {
