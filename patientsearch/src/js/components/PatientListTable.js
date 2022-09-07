@@ -344,6 +344,10 @@ export default function PatientListTable() {
     toTop();
     return false;
   };
+  const onLaunchDialogClose = () => {
+    setOpenLaunchInfoModal(false);
+    handleRefresh();
+  };
   const handleSearch = (rowData, launchParams) => {
     if (!rowData) {
       handleLaunchError("No patient data to proceed.");
@@ -947,8 +951,7 @@ export default function PatientListTable() {
                       dangerouslySetInnerHTML={{
                         __html: DOMPurify.sanitize(noDataText),
                       }}
-                    >
-                    </div>
+                    ></div>
                   ),
                 },
               }}
@@ -1007,7 +1010,7 @@ export default function PatientListTable() {
         <LoadingModal open={openLoadingModal}></LoadingModal>
         <DialogBox
           open={openLaunchInfoModal}
-          onClose={() => setOpenLaunchInfoModal(false)}
+          onClose={() => onLaunchDialogClose()}
           title={
             currentRow
               ? `${currentRow.last_name}, ${currentRow.first_name}`
