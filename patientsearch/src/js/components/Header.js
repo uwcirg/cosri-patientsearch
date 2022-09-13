@@ -107,7 +107,7 @@ export default function Header() {
 
   const getLogoURL = () => {
     if (!projectName) return "";
-    return "/static/app/img/"+projectName+"_logo.png";
+    return `/static/app/img/${projectName}_logo.png`;
   };
 
   const handleImageLoaded = (e) => {
