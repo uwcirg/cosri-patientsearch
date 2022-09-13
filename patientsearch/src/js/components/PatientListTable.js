@@ -423,7 +423,6 @@ export default function PatientListTable() {
       //log error to console
       console.log(`Patient search error: ${e}`);
       handleLaunchError(fetchErrorMessage + `<p>See console for detail.</p>`);
-      handleRefresh();
     });
   };
   const formatData = (data) => {
