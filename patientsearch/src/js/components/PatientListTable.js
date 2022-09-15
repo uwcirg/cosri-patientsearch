@@ -187,7 +187,10 @@ export default function PatientListTable() {
       ...action.payload,
     };
   };
-  const [pagination, dispatch] = React.useReducer(paginationReducer, defaultPagination);
+  const [pagination, dispatch] = React.useReducer(
+    paginationReducer,
+    defaultPagination
+  );
   const [currentFilters, setCurrentFilters] = React.useState(defaultFilters);
   const [openLoadingModal, setOpenLoadingModal] = React.useState(false);
   const [openLaunchInfoModal, setOpenLaunchInfoModal] = React.useState(false);
@@ -234,13 +237,14 @@ export default function PatientListTable() {
     {
       label: "Birth Date",
       expr: "$.birthDate",
-    }
+    },
   ];
   const errorStyle = { display: errorMessage ? "block" : "none" };
   const toTop = () => {
     window.scrollTo(0, 0);
   };
-  const hasAppSettings = () => appSettings && Object.keys(appSettings).length > 0;
+  const hasAppSettings = () =>
+    appSettings && Object.keys(appSettings).length > 0;
   const getAppSettingByKey = (key) => {
     if (!hasAppSettings()) return "";
     return appSettings[key];
@@ -248,13 +252,14 @@ export default function PatientListTable() {
   const getColumns = () => {
     const configColumns = getAppSettingByKey("DASHBOARD_COLUMNS");
     let cols = configColumns ? configColumns : default_columns;
-    const hasIdField = cols.filter(col => col.field === "id").length > 0;
+    const hasIdField = cols.filter((col) => col.field === "id").length > 0;
     //columns must include an id field, add if not present
-    if (!hasIdField) cols.push({
-      label: "id",
-      hidden: true,
-      expr: "$.id",
-    });
+    if (!hasIdField)
+      cols.push({
+        label: "id",
+        hidden: true,
+        expr: "$.id",
+      });
     return cols.map((column) => {
       column.title = column.label;
       column.field = column.label.toLowerCase().replace(/\s/g, "_");
@@ -290,7 +295,11 @@ export default function PatientListTable() {
       ];
       return `${dataURL}?${params.join("&")}`;
     }
-    return `/fhir/Patient?given=${String(data.first_name).trim()}&family=${String(data.last_name).trim()}&birthdate=${data.birth_date}`;
+    return `/fhir/Patient?given=${String(
+      data.first_name
+    ).trim()}&family=${String(data.last_name).trim()}&birthdate=${
+      data.birth_date
+    }`;
   };
   const getLaunchURL = (patientId, launchParams) => {
     if (!patientId) {
@@ -315,7 +324,6 @@ export default function PatientListTable() {
     return appClients && appClients.length > 1;
   };
   const handleLaunchApp = (rowData, launchParams) => {
-    
     //handle multiple SoF clients that can be launched
     //open a dialog here so user can select which one to launch?
     if (!launchParams && hasMultipleSoFClients()) {
@@ -354,14 +362,14 @@ export default function PatientListTable() {
       return false;
     }
     if (!launchParams) {
-      launchParams = (hasSoFClients() && appClients.length === 1) ? appClients[0]: null;
+      launchParams =
+        hasSoFClients() && appClients.length === 1 ? appClients[0] : null;
     }
     //if all well, prepare to launch app
-    const allowToLaunch = (rowData.id && hasMultipleSoFClients()) || (
-      launchParams && (
-      needExternalAPILookup()
-      ? inPDMP(rowData)
-      : rowData.id));
+    const allowToLaunch =
+      (rowData.id && hasMultipleSoFClients()) ||
+      (launchParams &&
+        (needExternalAPILookup() ? inPDMP(rowData) : rowData.id));
 
     if (allowToLaunch) {
       handleLaunchApp(rowData, launchParams);
@@ -379,51 +387,52 @@ export default function PatientListTable() {
           ],
           birthDate: rowData.birth_date,
         });
-    const noResultErrorMessage = needExternalAPILookup()? "<div>The patient was not found in the PMP. This could be due to:</div><ul><li>No previous controlled substance medications dispensed</li><li>Incorrect spelling of name or incorrect date of birth.</li></ul><div>Please double check name spelling and date of birth.</div>": "No matched patient found";
-    const fetchErrorMessage = needExternalAPILookup()?  "<p>COSRI is unable to return PMP information. This may be due to PMP system being down or a problem with the COSRI connection to PMP.</p>": "Server error when looking up patient";
+    const noResultErrorMessage = needExternalAPILookup()
+      ? "<div>The patient was not found in the PMP. This could be due to:</div><ul><li>No previous controlled substance medications dispensed</li><li>Incorrect spelling of name or incorrect date of birth.</li></ul><div>Please double check name spelling and date of birth.</div>"
+      : "No matched patient found";
+    const fetchErrorMessage = needExternalAPILookup()
+      ? "<p>COSRI is unable to return PMP information. This may be due to PMP system being down or a problem with the COSRI connection to PMP.</p>"
+      : "Server error when looking up patient";
     setOpenLoadingModal(true);
-    fetch(getPatientSearchURL(rowData), {
-      ...{
-        method: "PUT",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
+    fetchData(
+      getPatientSearchURL(rowData),
+      {
+        ...{
+          method: "PUT",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+          body: searchBody,
         },
-        body: searchBody,
+        ...noCacheParam,
       },
-      ...noCacheParam,
-    })
-    .then((searchResponse) => {
-      //dealing with unauthorized error, status code = 401
-      if (!searchResponse.ok) {
-        handleErrorCallback(searchResponse);
-      }
-      return searchResponse.json();
-    })
-    .then((result) => {
-      let response = result;
-      if (result && result.entry && result.entry[0]) {
-        response = result.entry[0];
-      }
-      if (!response || !response.id) {
-        handleLaunchError(noResultErrorMessage);
+      (e) => handleErrorCallback(e)
+    )
+      .then((result) => {
+        let response = result;
+        if (result && result.entry && result.entry[0]) {
+          response = result.entry[0];
+        }
+        if (!response || !response.id) {
+          handleLaunchError(noResultErrorMessage);
+          handleRefresh();
+          return false;
+        }
+        //add new table row where applicable
+        try {
+          addDataRow(response);
+        } catch (e) {
+          console.log("Error occurred adding row to table ", e);
+        }
         handleRefresh();
-        return false;
-      }
-      //add new table row where applicable
-      try {
-        addDataRow(response);
-      } catch (e) {
-        console.log("Error occurred adding row to table ", e);
-      }
-      handleRefresh();
-      handleLaunchApp(formatData(response)[0], launchParams);
-    })
-    .catch((e) => {
-      //log error to console
-      console.log(`Patient search error: ${e}`);
-      handleLaunchError(fetchErrorMessage + `<p>See console for detail.</p>`);
-    });
+        handleLaunchApp(formatData(response)[0], launchParams);
+      })
+      .catch((e) => {
+        //log error to console
+        console.log(`Patient search error: ${e}`);
+        handleLaunchError(fetchErrorMessage + `<p>See console for detail.</p>`);
+      });
   };
   const formatData = (data) => {
     if (!data) return false;
@@ -439,7 +448,7 @@ export default function PatientListTable() {
             resource: source,
             identifier: jsonpath.value(source, "$.identifier") || [],
           };
-          cols.forEach(col => {
+          cols.forEach((col) => {
             let value = jsonpath.value(source, col.expr) || null;
             if (col.dataType === "date") {
               value = getLocalDateTimeString(value);
@@ -472,7 +481,8 @@ export default function PatientListTable() {
     //legend will display if contain no pmp row flag is set
     if (hasNoPMPRow) setContainNoPMPRow(true);
   };
-  const containEmptyFilter = (filters) => getNonEmptyFilters(filters).length === 0;
+  const containEmptyFilter = (filters) =>
+    getNonEmptyFilters(filters).length === 0;
   const getNonEmptyFilters = (filters) => {
     if (!filters) return [];
     return filters.filter((item) => item.value && item.value !== "");
@@ -530,14 +540,14 @@ export default function PatientListTable() {
     );
   };
   const resetPaging = () => {
-    dispatch({type: "reset"});
+    dispatch({ type: "reset" });
   };
   const handleChangePage = (event, newPage) => {
     dispatch({
       payload: {
         prevPageNumber: pagination.pageNumber,
-        pageNumber: newPage
-      }
+        pageNumber: newPage,
+      },
     });
     if (tableRef && tableRef.current) tableRef.current.onQueryChange();
   };
@@ -548,8 +558,8 @@ export default function PatientListTable() {
         pageSize: parseInt(event.target.value, 10),
         nextPageURL: "",
         prevPageURL: "",
-        pageNumber: 0
-      }
+        pageNumber: 0,
+      },
     });
     if (tableRef && tableRef.current) tableRef.current.onQueryChange();
   };
@@ -582,9 +592,9 @@ export default function PatientListTable() {
   const shouldHideMoreMenu = () => {
     if (!hasAppSettings()) return true;
     return (
-      (!appSettings[MORE_MENU_KEY] ||
-        appSettings[MORE_MENU_KEY].filter((item) => item && item !== "")
-          .length === 0)
+      !appSettings[MORE_MENU_KEY] ||
+      appSettings[MORE_MENU_KEY].filter((item) => item && item !== "")
+        .length === 0
     );
   };
   const shouldShowMenuItem = (id) => {
@@ -637,7 +647,7 @@ export default function PatientListTable() {
       totalCount: 0,
     };
     const resetAll = () => {
-      dispatch({type: "empty"});
+      dispatch({ type: "empty" });
       setInitialized(true);
     };
     let apiURL = `/fhir/Patient?_include=Patient:link&_total=accurate&_count=${pagination.pageSize}`;
