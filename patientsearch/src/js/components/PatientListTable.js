@@ -19,7 +19,7 @@ import LoadingModal from "./LoadingModal";
 import OverlayElement from "./OverlayElement";
 import UrineScreen from "./UrineScreen";
 import Agreement from "./Agreement";
-import { getAppSettings } from "../context/SettingContextProvider";
+import { useSettingContext } from "../context/SettingContextProvider";
 import { tableIcons } from "../context/consts";
 import theme from "../context/theme";
 import {
@@ -142,7 +142,7 @@ let filterIntervalId = 0;
 
 export default function PatientListTable() {
   const classes = useStyles();
-  const appSettings = getAppSettings();
+  const appSettings = useSettingContext().appSettings;
   const [initialized, setInitialized] = React.useState(false);
   const [appClients, setAppClients] = React.useState(null);
   const [data, setData] = React.useState([]);

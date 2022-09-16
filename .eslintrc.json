@@ -41,13 +41,14 @@
     },
     "plugins": [
         "react",
-        "compat"
+        "react-hooks"
     ],
     "rules": {
         "semi": "error",
-        "compat/compat": "warn",
         "react/react-in-jsx-scope": "off",
         "react/display-name": "off",
-        "no-useless-escape": "off"
+        "no-useless-escape": "off",
+        "react-hooks/rules-of-hooks": "error",
+        "react-hooks/exhaustive-deps": "warn"
     }
 }

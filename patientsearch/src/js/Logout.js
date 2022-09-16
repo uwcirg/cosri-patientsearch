@@ -8,24 +8,23 @@ import Alert from "./components/Alert";
 import Header from "./components/Header";
 import {getUrlParameter} from "./components/Utility";
 import SettingContextProvider from "./context/SettingContextProvider";
-import { getAppSettings } from "./context/SettingContextProvider";
+import { useSettingContext } from "./context/SettingContextProvider";
 import theme from "./context/theme";
 import "../styles/app.scss";
 
 // Error message, e.g. forbidden error
 const AlertMessage = () => {
+    const appSettings = useSettingContext().appSettings;
     if (!getUrlParameter("forbidden")) return ""; // look for forbidden message for now, can be others as well
-    const appSettings = getAppSettings();
-    const [message, setMessage] = React.useState("");
-    const [ready, setReady] = React.useState(false);
-    React.useEffect(() => {
-        if (appSettings && appSettings["FORBIDDEN_TEXT"]) {
-            setMessage(appSettings["FORBIDDEN_TEXT"]);
-            setReady(true);
-        }
-    }, [appSettings]);
-    return <div>{ready && <div className="alert-container"><Alert message={message} elevation={0}></Alert></div>}</div>;
+    const message = appSettings && appSettings["FORBIDDEN_TEXT"] ? appSettings["FORBIDDEN_TEXT"]: "";
+    if (message) return (
+      <div className="alert-container">
+        <Alert message={message} elevation={0}></Alert>
+      </div>
+    );
+    return "";
 };
+
 const getMessage = () => {
     if (getUrlParameter("user_initiated")) return "You have been logged out as requested.";
     if (getUrlParameter("timeout")) return "Your session has expired. For security purposes, we recommend closing your browser window. You can always log back in.";

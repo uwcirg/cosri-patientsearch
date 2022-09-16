@@ -2,7 +2,7 @@ import React from "react";
 import PropTypes from "prop-types";
 import { makeStyles } from "@material-ui/core/styles";
 import theme from "../context/theme";
-import { getAppSettings } from "../context/SettingContextProvider";
+import { useSettingContext } from "../context/SettingContextProvider";
 
 const useStyles = makeStyles({
   container: {
@@ -22,7 +22,10 @@ const useStyles = makeStyles({
 export default function Version(props) {
   const classes = useStyles();
   const VERSION_STRING = "VERSION_STRING";
-  const appSettings = props.appSettings ? props.appSettings : getAppSettings(); //provide default if none provided
+  const settingsCtx = useSettingContext();
+  const appSettings = props.appSettings
+    ? props.appSettings
+    : settingsCtx.appSettings; //provide default if none provided
   const getVersionLink = () => {
     let version = getVersionString();
     if (!version) return "";

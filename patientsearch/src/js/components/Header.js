@@ -10,7 +10,7 @@ import Toolbar from "@material-ui/core/Toolbar";
 import Typography from "@material-ui/core/Typography";
 import SiteLogo from "./SiteLogo";
 import { imageOK, sendRequest, setDocumentTitle, setFavicon } from "./Utility";
-import { getAppSettings } from "../context/SettingContextProvider";
+import { useSettingContext } from "../context/SettingContextProvider";
 
 const useStyles = makeStyles((theme) => ({
   toolbar: {
@@ -103,7 +103,7 @@ export default function Header() {
   const hasUserInfo = () => {
     return userInfo && (userInfo.name || userInfo.email);
   };
-  const appSettings = getAppSettings();
+  const appSettings = useSettingContext().appSettings;
 
   const getLogoURL = () => {
     if (!projectName) return "";

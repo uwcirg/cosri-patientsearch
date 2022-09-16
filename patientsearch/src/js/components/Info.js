@@ -6,7 +6,7 @@ import Button from "@material-ui/core/Button";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import Typography from "@material-ui/core/Typography";
 import { imageOK } from "./Utility";
-import { getAppSettings } from "../context/SettingContextProvider";
+import { useSettingContext } from "../context/SettingContextProvider";
 import theme from "../context/theme";
 
 const useStyles = makeStyles({
@@ -66,29 +66,26 @@ const useStyles = makeStyles({
 
 export default function Info(props) {
   const classes = useStyles();
-  const [loading, setLoading] = React.useState(true);
-  const [siteID, setSiteID] = React.useState("");
-  const appSettings = props.appSettings ? props.appSettings : getAppSettings(); //provide default if none provided
+  const settingsCtx = useSettingContext();
+  const appSettings = props.appSettings
+    ? props.appSettings
+    : settingsCtx.appSettings; //provide default if none provided
   const SYSTEM_TYPE_STRING = "SYSTEM_TYPE";
   const SITE_ID_STRING = "SITE_ID";
+  const [loading, setLoading] = React.useState(true);
+  const siteID = getConfig(SITE_ID_STRING);
 
-  React.useEffect(() => {
-    /*
-     * retrieve setting information
-     */
-    setSiteID(getConfig(SITE_ID_STRING));
-    if (appSettings)
-      setTimeout(() => setLoading(false), 250);
-  }, [appSettings]);
   function hasSettings() {
     return appSettings && Object.keys(appSettings).length > 0;
   }
+
   /* return config variable by key */
-  function getConfig(key) {
+  function getConfig (key) {
     if (props.appSettings) return props.appSettings[key];
     if (!hasSettings()) return "";
     return appSettings[key];
   }
+
   function handleImageLoaded(e) {
     if (!e.target) {
       return false;
@@ -131,6 +128,11 @@ export default function Info(props) {
       return `This is a ${getConfig(SYSTEM_TYPE_STRING)} system.  Not for clinical use.`;
     return "This system is only for use by clinical staff.";
   }
+
+  React.useEffect(() => {
+    setTimeout(() => setLoading(false), 250);
+  }, []);
+
   return (
     <div className={classes.wrapper}>
       {loading && (

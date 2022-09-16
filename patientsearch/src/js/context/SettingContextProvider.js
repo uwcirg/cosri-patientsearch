@@ -3,7 +3,7 @@ import PropTypes from "prop-types";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import Typography from "@material-ui/core/Typography";
 import {getSettings} from "../components/Utility";
-const SettingContext = React.createContext();
+const SettingContext = React.createContext({});
 /*
  * context provider component that allows application settings to be accessible to its children component(s)
  */
@@ -44,22 +44,6 @@ export function useSettingContext() {
     const context = useContext(SettingContext);
     if (context === undefined) {
         throw new Error("Context must be used within a Provider");
-      }
-    return context;
-}
-
-/*
- * helper function to access application setting object
- */
-export function getAppSettings() {
-    let appSettings = null;
-    let appCtx = null;
-    try {
-        appCtx = useSettingContext();
-        appSettings = appCtx ? appCtx.appSettings : null;
-    } catch(e) {
-        console.log("Error retrieving context ", e);
-        return appSettings;
     }
-    return appSettings;
+    return context;
 }

@@ -137,7 +137,8 @@ export default function Agreement(props) {
   const [showHistory, setShowHistory] = React.useState(false);
   const [error, setError] = React.useState("");
   const [snackOpen, setSnackOpen] = React.useState(false);
-  const rowData = props.rowData ? props.rowData : {};
+  const {rowData} = props;
+  const getPatientId = React.useCallback(() => rowData?rowData.id: "", [rowData]);
   const clearDate = () => {
     setDate(null);
     setDateInput("");
@@ -165,21 +166,22 @@ export default function Agreement(props) {
     const resourceId = params.id || "";
     const contractDate = params.date || dateInput;
     return {
-      "id": resourceId,
-      "type": {
-        "coding": [
+      id: resourceId,
+      type: {
+        coding: [
           {
-            "system": params.system ? params.system : LOINC_SYSTEM_URL,
-            "code": params.code ? params.code: CONTRACT_CODE,
-            "display": "Controlled substance agreement",
+            system: params.system ? params.system : LOINC_SYSTEM_URL,
+            code: params.code ? params.code : CONTRACT_CODE,
+            display: "Controlled substance agreement",
           },
         ],
       },
-      "subject": {
-        "reference": "Patient/"+(params.patientId ? params.patientId : rowData.id)
+      subject: {
+        reference:
+          "Patient/" + (params.patientId ? params.patientId : getPatientId()),
       },
-      "resourceType": "DocumentReference",
-      "date": padDateString(contractDate)
+      resourceType: "DocumentReference",
+      date: padDateString(contractDate),
     };
 
   };
@@ -267,9 +269,9 @@ export default function Agreement(props) {
   const hasHistory = () => {
     return history && history.length > 0;
   };
-  const getHistory = (callback) => {
+  const getHistory = React.useCallback((callback) => {
     callback = callback || function() {};
-    if (!rowData || !rowData.id) {
+    if (!rowData) {
       setHistoryInitialized(true);
       callback();
       return [];
@@ -332,23 +334,23 @@ export default function Agreement(props) {
       }
     );
     return "";
-  };
-  const createHistoryData = (data) => {
+  }, [rowData, createHistoryData]);
+  const createHistoryData = React.useCallback((data) => {
     if (!data) return [];
     return data.map((item,index) => {
         const resource = item.resource;
         if (!resource) return {};
         let date = getShortDateFromISODateString(resource.date);
         return {
-            id: resource.id,
-            date: date,
-            index: index,
-            patientId: rowData.id,
-            system: LOINC_SYSTEM_URL,
-            code: CONTRACT_CODE
+          id: resource.id,
+          date: date,
+          index: index,
+          patientId: getPatientId(),
+          system: LOINC_SYSTEM_URL,
+          code: CONTRACT_CODE,
         };
     });
-  };
+  }, [getPatientId]);
   const displayHistory = () => {
     if (!hasHistory()) return "";
     return (
@@ -409,7 +411,7 @@ export default function Agreement(props) {
   ];
   React.useEffect(() => {
     getHistory();
-  }, []);
+  }, [getHistory]);
   return (
     <div className={classes.container}>
       <div className={classes.contentContainer}>
