@@ -1,16 +1,10 @@
 import "core-js/stable";
 import "regenerator-runtime/runtime";
 import React, { Component } from "react";
-import CssBaseline from "@material-ui/core/CssBaseline";
-import { ThemeProvider } from "@material-ui/styles";
-import Header from "./components/Header";
+import Layout from "./components/Layout";
 import PatientListTable from "./components/PatientListTable";
 import TimeoutModal from "./components/TimeoutModal.js";
-import SystemBanner from "./components/SystemBanner";
 import Version from "./components/Version";
-import SettingContextProvider from "./context/SettingContextProvider";
-import theme from "./context/theme";
-import "../styles/app.scss";
 
 export default class App extends Component {
   constructor(props) {
@@ -32,18 +26,11 @@ export default class App extends Component {
       </div>;
     }
     return (
-      <React.Fragment>
-        <ThemeProvider theme={theme}>
-          <CssBaseline />
-          <SettingContextProvider>
-            <SystemBanner />
-            <Header />
-            <PatientListTable />
-            <TimeoutModal />
-            <Version />
-          </SettingContextProvider>
-        </ThemeProvider>
-      </React.Fragment>
+      <Layout>
+        <PatientListTable />
+        <TimeoutModal />
+        <Version />
+      </Layout>
     );
   }
 }
