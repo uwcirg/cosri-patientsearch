@@ -304,27 +304,23 @@ export default function UrineScreen(props) {
           if (urineScreenData.length) {
             const formattedData = createHistoryData(urineScreenData);
             setHistory(formattedData);
-            const resourceType = formattedData[0].type;
-            const resourceDate = formattedData[0].date;
             lastEntryDispatch({
               type: "update",
               data: {
                 id: formattedData[0].id,
-                date: resourceDate,
-                type: resourceType,
+                date: formattedData[0].date,
+                type: formattedData[0].type,
               },
             });
             editDispatch({
               type: "reset"
             });
           } else clearHistory();
-          setTimeout(() => {
-            editDispatch({
-              key: "mode",
-              value: false
-            });
-            setHistoryInitialized(true);
-          }, 300);
+          editDispatch({
+            key: "mode",
+            value: false,
+          });
+          setHistoryInitialized(true);
           callback();
         },
         (error) => {
@@ -595,7 +591,7 @@ export default function UrineScreen(props) {
       types[item.code] = item.text;
     });
     setSelectTypeLookup(types);
-    setTimeout(() => setUrineScreenTypesInitialized(true), 150);
+    setUrineScreenTypesInitialized(true);
   };
   const hasUrineScreenTypes = () => {
     return !onlyOneUrineScreenType() && !noUrineScreenTypes();

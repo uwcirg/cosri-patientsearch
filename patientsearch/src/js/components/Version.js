@@ -54,9 +54,6 @@ export default function Version(props) {
     if (!Object.keys(appSettings)) return "";
     return appSettings[VERSION_STRING];
   }
-  React.useEffect(() => {
-    //wait for application settings
-  }, [appSettings]);
   return (
     <div className={props.className ? props.className : classes.container}>
       {getVersionString() && <div>Version Number: {getVersionLink()}</div>}
