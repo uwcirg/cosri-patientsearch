@@ -127,8 +127,25 @@ export default function Agreement(props) {
   const [date, setDate] = React.useState(null);
   const [editDate, setEditDate] = React.useState(null);
   const [editMode, setEditMode] = React.useState(false);
-  const [lastEntryId, setLastEntryId] = React.useState(null);
-  const [lastAgreementDate, setLastAgreementDate] = React.useState("");
+  const lastEntryReducer = (state, action) => {
+    if (action.type == "reset") {
+      return {
+        id: null,
+        date: ""
+      };
+    }
+    if (action.type === "update") {
+      return {
+        ...state,
+        ...action.data,
+      };
+    }
+    return state;
+  };
+  const [lastEntry, lastEntryDispatch] = React.useReducer(lastEntryReducer, {
+    id: null,
+    date: "",
+  });
   const [dateInput, setDateInput] = React.useState(null);
   const [addInProgress, setAddInProgress] = React.useState(false);
   const [updateInProgress, setUpdateInProgress] = React.useState(false);
@@ -149,8 +166,7 @@ export default function Agreement(props) {
   };
   const clearHistory = () => {
     setHistory([]);
-    setLastAgreementDate("");
-    setLastEntryId(null);
+    lastEntryDispatch({type: "reset"});
   };
   const resetEdits = () => {
     setEditDate("");
@@ -214,7 +230,7 @@ export default function Agreement(props) {
     })
       .then(() => {
         setSnackOpen(true);
-        setTimeout(() => getHistory(callback), 50);
+        setTimeout(() => getHistory(callback), 150);
       })
       .catch((e) => {
         console.log("error submtting request ", e);
@@ -242,24 +258,24 @@ export default function Agreement(props) {
   const handleEditSave = (params) => {
     params = params || {};
     if (!Object.keys(params).length) params = {
-      id: lastEntryId,
+      id: lastEntry.id,
       date: editDate
     };
     setUpdateInProgress(true);
     handleUpdate({...params, ...{
         method:"PUT"
-    }}, () => setTimeout(setUpdateInProgress(false), 350));
+    }}, () => setTimeout(setUpdateInProgress(false), 250));
   };
   const handleDelete = (params) => {
     params = params || {};
     if (!Object.keys(params).length) params = {
-        id: lastEntryId,
+        id: lastEntry.id,
         date: editDate
     };
     setUpdateInProgress(true);
     handleUpdate({...params, ...{
         method:"DELETE"
-    }}, () => setTimeout(setUpdateInProgress(false), 350));
+    }}, () => setTimeout(setUpdateInProgress(false), 250));
   };
   const handleSubmissionError = () => {
     setError("Data submission failed. Unable to process your request.");
@@ -294,10 +310,8 @@ export default function Agreement(props) {
         if (!data || !data.entry || !data.entry.length) {
           clearHistory();
           callback();
-          setTimeout(() => {
-            setEditMode(false);
-            setHistoryInitialized(true);
-          }, 300);
+          setEditMode(false);
+          setHistoryInitialized(true);
           return;
         }
         let agreementData = data.entry.filter((item) => {
@@ -318,13 +332,16 @@ export default function Agreement(props) {
           const formattedData = createHistoryData(agreementData);
           resetEdits();
           setHistory(formattedData);
-          setLastEntryId(formattedData[0].id);
-          setLastAgreementDate(formattedData[0].date);
+          lastEntryDispatch({
+            type: "update",
+            data: {
+              id: formattedData[0].id,
+              date: formattedData[0].date,
+            }
+          });
         } else clearHistory();
-        setTimeout(() => {
-          setEditMode(false);
-          setHistoryInitialized(true);
-        }, 300);
+        setEditMode(false);
+        setHistoryInitialized(true);
         callback();
       },
       (error) => {
@@ -355,14 +372,14 @@ export default function Agreement(props) {
     if (!hasHistory()) return "";
     return (
       "Last controlled substance agreement signed on <b>" +
-      lastAgreementDate +
+      lastEntry.date +
       "</b>"
     );
   };
   const displayEditHistory = () => {
     if (!hasHistory()) return null;
     return (
-      <div style={{display: "inline-block"}}>Last controlled substance agreement signed on <FormattedInput defaultValue={lastAgreementDate}
+      <div style={{display: "inline-block"}}>Last controlled substance agreement signed on <FormattedInput defaultValue={lastEntry.date}
       helperText="(YYYY-MM-DD)"
       inputClass={{input: classes.editInput}}
       handleChange={(e) => handleEditChange(e)}
@@ -371,7 +388,7 @@ export default function Agreement(props) {
     );
   };
   const handleEnableEditMode = () => {
-    setEditDate(lastAgreementDate);
+    setEditDate(lastEntry.date);
     setError("");
     setEditMode(true);
   };
@@ -427,12 +444,18 @@ export default function Agreement(props) {
         <h3>{`Controlled Substance Agreement for ${rowData.first_name} ${rowData.last_name}`}</h3>
         {/* add new agreement UI */}
         <Paper className={classes.addContainer} elevation={1}>
-          <Typography variant="caption" display="block" className={classes.addTitle}>
-              Add New
+          <Typography
+            variant="caption"
+            display="block"
+            className={classes.addTitle}
+          >
+            Add New
           </Typography>
           <MuiPickersUtilsProvider utils={DateFnsUtils}>
             {/* order date field */}
-            <InputLabel className={classes.dateLabel}>Agreement Date</InputLabel>
+            <InputLabel className={classes.dateLabel}>
+              Agreement Date
+            </InputLabel>
             <KeyboardDatePicker
               autoOk={true}
               variant="dialog"
@@ -469,7 +492,10 @@ export default function Agreement(props) {
               onChange={(event, dateString) => {
                 setDateInput(dateString);
                 if (!event || !isValid(event)) {
-                  if (event && String(dateInput).replace(/[-_]/g, "").length >= 8)
+                  if (
+                    event &&
+                    String(dateInput).replace(/[-_]/g, "").length >= 8
+                  )
                     setDate(event);
                   return;
                 }
@@ -500,12 +526,24 @@ export default function Agreement(props) {
         </Paper>
         {/* history UI */}
         <Paper className={classes.historyContainer} elevation={1}>
-          {!historyInitialized && <div className={classes.progressContainer}>
-            <CircularProgress color="primary" size={32} className={classes.progressIcon} />
-          </div>}
-          {updateInProgress && <div className={classes.progressContainer}>
-            <CircularProgress color="primary" size={32} className={classes.progressIcon}/>
-          </div>}
+          {!historyInitialized && (
+            <div className={classes.progressContainer}>
+              <CircularProgress
+                color="primary"
+                size={32}
+                className={classes.progressIcon}
+              />
+            </div>
+          )}
+          {updateInProgress && (
+            <div className={classes.progressContainer}>
+              <CircularProgress
+                color="primary"
+                size={32}
+                className={classes.progressIcon}
+              />
+            </div>
+          )}
           <Typography
             variant="caption"
             display="block"
@@ -514,73 +552,119 @@ export default function Agreement(props) {
           >
             Latest Controlled Substance Agreement
           </Typography>
-          {historyInitialized && hasHistory() && <div>
-            {!editMode && <span dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(displayHistory()) }}></span>}
-            {editMode && displayEditHistory()}
-            <EditButtonGroup
-              onEnableEditMode={handleEnableEditMode}
-              onDisableEditMode={handleDisableEditMode}
-              isUpdateDisabled={!isValidEditDate()}
-              handleEditSave={() => handleEditSave()}
-              handleDelete={() => handleDelete()}
-              entryDescription={`Controlled substance agreement signed on <b>${lastAgreementDate}</b>`}
-            ></EditButtonGroup>
-          </div>}
-          {!isAdult(rowData.dob) && !hasHistory() && <div>No previously recorded controlled substance agreement</div>}
+          {historyInitialized && hasHistory() && (
+            <div>
+              {!editMode && (
+                <span
+                  dangerouslySetInnerHTML={{
+                    __html: DOMPurify.sanitize(displayHistory()),
+                  }}
+                ></span>
+              )}
+              {editMode && displayEditHistory()}
+              <EditButtonGroup
+                onEnableEditMode={handleEnableEditMode}
+                onDisableEditMode={handleDisableEditMode}
+                isUpdateDisabled={!isValidEditDate()}
+                handleEditSave={() => handleEditSave()}
+                handleDelete={() => handleDelete()}
+                entryDescription={`Controlled substance agreement signed on <b>${lastEntry.date}</b>`}
+              ></EditButtonGroup>
+            </div>
+          )}
+          {!isAdult(rowData.dob) && !hasHistory() && (
+            <div>No previously recorded controlled substance agreement</div>
+          )}
           {/* alerts */}
           {isAdult(rowData.dob) && (
             <OverdueAlert
-              date={lastAgreementDate}
+              date={lastEntry.date}
               type="controlled substance agreement"
               overdueMessage="It has been more than 12 months since the patient has signed a controlled substance agreement."
             ></OverdueAlert>
           )}
-          </Paper>
-          { hasHistory() && historyInitialized && <Paper className={classes.historyContainer} elevation={1}>
+        </Paper>
+        {historyInitialized && hasHistory() && (
+          <Paper className={classes.historyContainer} elevation={1}>
             <div className={classes.totalEntriesContainer}>
-              <Typography variant="caption" display="block" className={classes.historyTitle}>
-                  History
+              <Typography
+                variant="caption"
+                display="block"
+                className={classes.historyTitle}
+              >
+                History
               </Typography>
               <div>
-                <span><b>{history.length}</b> record(s)</span>
-                {!showHistory && <Button
+                <span>
+                  <b>{history.length}</b> record(s)
+                </span>
+                {!showHistory && (
+                  <Button
                     arial-label="expand"
                     color="primary"
                     onClick={() => setShowHistory(true)}
-                    endIcon={<ExpandMoreIcon className={classes.endIcon}></ExpandMoreIcon>}
+                    endIcon={
+                      <ExpandMoreIcon
+                        className={classes.endIcon}
+                      ></ExpandMoreIcon>
+                    }
                     size="small"
-                    className={classes.expandIcon}>View</Button>}
-                {showHistory && <Button
+                    className={classes.expandIcon}
+                  >
+                    View
+                  </Button>
+                )}
+                {showHistory && (
+                  <Button
                     arial-label="collapse"
                     color="primary"
                     onClick={() => setShowHistory(false)}
-                    endIcon={<ExpandLessIcon className={classes.endIcon}></ExpandLessIcon>}
+                    endIcon={
+                      <ExpandLessIcon
+                        className={classes.endIcon}
+                      ></ExpandLessIcon>
+                    }
                     size="small"
-                    className={classes.expandIcon}>Hide</Button>}
+                    className={classes.expandIcon}
+                  >
+                    Hide
+                  </Button>
+                )}
               </div>
             </div>
             <div className={classes.tableContainer}>
-              {showHistory && <div className="history-table"><HistoryTable
-                  data={history}
-                  columns={columns}
-                  APIURL="/fhir/DocumentReference/"
-                  submitDataFormatter={submitDataFormatter}
-                  onRowUpdate={() => getHistory()}
-                  onRowDelete={() => getHistory()}
-                  options= {
-                    {
+              {showHistory && (
+                <div className="history-table">
+                  <HistoryTable
+                    data={history}
+                    columns={columns}
+                    APIURL="/fhir/DocumentReference/"
+                    submitDataFormatter={submitDataFormatter}
+                    onRowUpdate={() => getHistory()}
+                    onRowDelete={() => getHistory()}
+                    options={{
                       actionsCellStyle: {
                         width: "80%",
-                        textAlign: "left"
-                      }
-                    }
-                  }
-              ></HistoryTable></div>}
+                        textAlign: "left",
+                      },
+                    }}
+                  ></HistoryTable>
+                </div>
+              )}
             </div>
-        </Paper>}
+          </Paper>
+        )}
         {/* submission feedback UI */}
-        <Snackbar open={snackOpen} autoHideDuration={3000} onClose={handleSnackClose}>
-          <Alert onClose={handleSnackClose} severity="success" message="Request processed successfully."></Alert>
+        <Snackbar
+          open={snackOpen}
+          autoHideDuration={3000}
+          onClose={handleSnackClose}
+        >
+          <Alert
+            onClose={handleSnackClose}
+            severity="success"
+            message="Request processed successfully."
+          ></Alert>
         </Snackbar>
         <div className={classes.errorContainer}>
           {error && <Error message={error}></Error>}

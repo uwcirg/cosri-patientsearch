@@ -1,7 +1,6 @@
 import React, { useContext, useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import CircularProgress from "@material-ui/core/CircularProgress";
-import Typography from "@material-ui/core/Typography";
 import {getSettings} from "../components/Utility";
 const SettingContext = React.createContext({});
 /*
@@ -25,10 +24,7 @@ export default function SettingContextProvider({children}) {
                     if (appSettings) return children;
                     return (
                       <div style={{ display: "flex", gap: "16px 16px", padding: "24px" }}>
-                        <Typography component="h4">
-                          Retrieving application settings ...
-                        </Typography>
-                        <CircularProgress color="primary"></CircularProgress>
+                        Loading... <CircularProgress color="primary"></CircularProgress>
                       </div>
                     );
                 }}</SettingContext.Consumer>
