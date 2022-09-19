@@ -149,6 +149,7 @@ const useStyles = makeStyles({
 
 export default function UrineScreen(props) {
   const appCtx = useSettingContext();
+  const appSettingsRef = React.useRef(appCtx.appSettings);
   const classes = useStyles();
   const lastEntryReducer = (state, action) => {
     if (action.type == "reset") {
@@ -307,10 +308,9 @@ export default function UrineScreen(props) {
                 type: formattedData[0].type,
               },
             });
-            editDispatch({
-              type: "reset",
-            });
-          } else clearHistory();
+          } else {
+            clearHistory();
+          }
           editDispatch({
             key: "mode",
             value: false,
@@ -442,8 +442,8 @@ export default function UrineScreen(props) {
     if (!Object.keys(params).length)
       params = {
         id: lastEntry.id,
-        date: editEntry.date,
-        type: editEntry.type,
+        date: editEntry.date ? editEntry.date : lastEntry.date,
+        type: editEntry.type ? editEntry.type : lastEntry.type,
       };
     setUpdateInProgress(true);
     handleUpdate(
@@ -526,13 +526,12 @@ export default function UrineScreen(props) {
       return history[0].text + " ordered on <b>" + lastEntry.date + "</b>";
     return "Ordered on <b>" + lastEntry.date + "</b>";
   };
-  const displayEditHistoryByRow = (index, selectType, selectDate) => {
+  const displayEditHistoryByRow = (index) => {
     if (!hasHistory()) return null;
     if (!index) index = 0;
-    selectType = selectType || history[index].type;
-    selectDate =
-      selectDate || getShortDateFromISODateString(history[index].date);
-    const orderText = history[index].text ? history[index].text : "";
+    const selectType = history[index].type;
+    const selectDate = history[index].date;
+    const orderText = history[index].text || "";
     return (
       <React.Fragment>
         {onlyOneUrineScreenType() ? (
@@ -540,7 +539,7 @@ export default function UrineScreen(props) {
         ) : (
           <FormControl>
             <Select
-              defaultValue={""}
+              defaultValue={selectType}
               onChange={handleEditTypeChange}
               className={classes.selectBox}
               IconComponent={() => (
@@ -557,7 +556,7 @@ export default function UrineScreen(props) {
         <div style={{ display: "inline-block" }}>
           {" "}
           <FormattedInput
-            defaultValue={""}
+            defaultValue={selectDate}
             helperText="(YYYY-MM-DD)"
             disableFocus={!onlyOneUrineScreenType()}
             handleChange={(e) => handleEditDateChange(e)}
@@ -633,7 +632,8 @@ export default function UrineScreen(props) {
   };
   const initUrineScreenTypes = React.useCallback(() => {
     if (urineScreenTypesInitialized) return;
-    const appSettings = appCtx.appSettings;
+    //const appSettings = appCtx.appSettings;
+    const appSettings = appSettingsRef.current;
     const settingUrineScreenTypes =
       appSettings && appSettings["UDS_LAB_TYPES"]
         ? appSettings["UDS_LAB_TYPES"]
@@ -647,12 +647,7 @@ export default function UrineScreen(props) {
       }
     }
     setUrineScreenTypesInitialized(true);
-  }, [urineScreenTypesInitialized, type, appCtx.appSettings]);
-  React.useEffect(() => {
-    if (urineScreenTypesInitialized) {
-      getHistory();
-    } else initUrineScreenTypes();
-  }, [initUrineScreenTypes, urineScreenTypesInitialized, getHistory]);
+  }, [urineScreenTypesInitialized, type]);
   const handleSnackClose = (event, reason) => {
     event.stopPropagation();
     if (reason === "clickaway") {
@@ -660,6 +655,12 @@ export default function UrineScreen(props) {
     }
     setSnackOpen(false);
   };
+  React.useEffect(() => {
+    if (urineScreenTypesInitialized) {
+      getHistory();
+    } else initUrineScreenTypes();
+  }, [initUrineScreenTypes, urineScreenTypesInitialized, getHistory]);
+  
   return (
     <div className={classes.container}>
       <h3>{`Urine Drug Toxicology Screen for ${rowData.first_name} ${rowData.last_name}`}</h3>

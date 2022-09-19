@@ -281,7 +281,7 @@ export default function Agreement(props) {
     if (!Object.keys(params).length)
       params = {
         id: lastEntry.id,
-        date: editDate,
+        date: editDate ? editDate : lastEntry.date,
       };
     setUpdateInProgress(true);
     handleUpdate(
