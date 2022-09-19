@@ -155,13 +155,13 @@ export default function UrineScreen(props) {
       return {
         id: null,
         date: "",
-        type: ""
+        type: "",
       };
     }
     if (action.type === "update") {
       return {
         ...state,
-        ...action.data
+        ...action.data,
       };
     }
     return state;
@@ -169,13 +169,13 @@ export default function UrineScreen(props) {
   const [lastEntry, lastEntryDispatch] = React.useReducer(lastEntryReducer, {
     id: null,
     date: "",
-    type: ""
+    type: "",
   });
   const [type, setType] = React.useState("");
   const [date, setDate] = React.useState(null);
   const [urineScreenTypes, setUrineScreenTypes] = React.useState([]);
-  const [selectTypeLookup, setSelectTypeLookup] = React.useState({});
-  const [urineScreenTypesInitialized, setUrineScreenTypesInitialized] = React.useState(false);
+  const [urineScreenTypesInitialized, setUrineScreenTypesInitialized] =
+    React.useState(false);
   const [dateInput, setDateInput] = React.useState(null);
   const [history, setHistory] = React.useState([]);
   const [addInProgress, setAddInProgress] = React.useState(false);
@@ -183,36 +183,33 @@ export default function UrineScreen(props) {
   const [error, setError] = React.useState("");
   const [snackOpen, setSnackOpen] = React.useState(false);
   const [historyInitialized, setHistoryInitialized] = React.useState(false);
-  const [showHistory, setShowHistory] = React.useState(false);
+  const [expandHistory, setExpandHistory] = React.useState(false);
+  const defaultValues = {
+    mode: false,
+    type: "",
+    date: "",
+  };
   const editReducer = (state, action) => {
     if (action.key) {
       return {
         ...state,
-        [action.key]: action.value
+        [action.key]: action.value,
       };
     }
     if (action.type === "update") {
       return {
         ...state,
-        ...action.data
+        ...action.data,
       };
     }
     if (action.type === "reset") {
-      return {
-        mode: false,
-        type: "",
-        date: ""
-      };
+      return defaultValues;
     }
     return state;
   };
-  const [editEntry, editDispatch] = React.useReducer(editReducer, {
-    mode: false,
-    type: "",
-    date: ""
-  });
+  const [editEntry, editDispatch] = React.useReducer(editReducer, defaultValues);
   const URINE_SCREEN_TYPE_LABEL = "Urine Drug Screen Name";
-  const {rowData} = props;
+  const { rowData } = props;
   const getPatientId = React.useCallback(() => {
     if (rowData) return rowData.id;
     return null;
@@ -224,7 +221,7 @@ export default function UrineScreen(props) {
   const clearHistory = () => {
     setHistory([]);
     lastEntryDispatch({
-      type: "reset"
+      type: "reset",
     });
   };
   const clearFields = () => {
@@ -273,13 +270,11 @@ export default function UrineScreen(props) {
           }
           if (!data || !data.entry || !data.entry.length) {
             clearHistory();
-            setTimeout(() => {
-              editDispatch({
-                key: "mode",
-                value: false
-              });
-              setHistoryInitialized(true);
-            }, 300);
+            editDispatch({
+              key: "mode",
+              value: false,
+            });
+            setHistoryInitialized(true);
             callback();
             return;
           }
@@ -295,13 +290,13 @@ export default function UrineScreen(props) {
               return false;
             return availableCodes.indexOf(resource.code.coding[0].code) !== -1;
           });
-          urineScreenData = urineScreenData.sort(function (a, b) {
-            return dateTimeCompare(
-              a.resource.authoredOn,
-              b.resource.authoredOn
-            );
-          });
           if (urineScreenData.length) {
+            urineScreenData = urineScreenData.sort(function (a, b) {
+              return dateTimeCompare(
+                a.resource.authoredOn,
+                b.resource.authoredOn
+              );
+            });
             const formattedData = createHistoryData(urineScreenData);
             setHistory(formattedData);
             lastEntryDispatch({
@@ -313,7 +308,7 @@ export default function UrineScreen(props) {
               },
             });
             editDispatch({
-              type: "reset"
+              type: "reset",
             });
           } else clearHistory();
           editDispatch({
@@ -471,13 +466,13 @@ export default function UrineScreen(props) {
       data: {
         type: lastEntry.type,
         date: lastEntry.date,
-        mode: true
-      }
+        mode: true,
+      },
     });
     setError("");
   };
   const handleDisableEditMode = () => {
-    editDispatch({type: "reset"});
+    editDispatch({ type: "reset" });
     setError("");
   };
   const isValidEditType = () => {
@@ -495,7 +490,8 @@ export default function UrineScreen(props) {
   const handleEditDateChange = (event) => {
     editDispatch({
       key: "date",
-      value: event.target.value});
+      value: event.target.value,
+    });
   };
   const hasHistory = () => {
     return history && history.length > 0;
@@ -524,7 +520,7 @@ export default function UrineScreen(props) {
     },
     [getPatientId]
   );
-  const displayHistory = () => {
+  const displayMostRecentEntry = () => {
     if (!hasHistory()) return "";
     if (history[0].text)
       return history[0].text + " ordered on <b>" + lastEntry.date + "</b>";
@@ -544,7 +540,7 @@ export default function UrineScreen(props) {
         ) : (
           <FormControl>
             <Select
-              defaultValue={selectType}
+              defaultValue={""}
               onChange={handleEditTypeChange}
               className={classes.selectBox}
               IconComponent={() => (
@@ -581,18 +577,7 @@ export default function UrineScreen(props) {
   const onlyOneUrineScreenType = React.useCallback(() => {
     return urineScreenTypes.length === 1;
   }, [urineScreenTypes]);
-  const initUrineScreenTypes = () => {
-    const appSettings = appCtx.appSettings;
-    if (appSettings && appSettings["UDS_LAB_TYPES"]) {
-      setUrineScreenTypes(appSettings["UDS_LAB_TYPES"]);
-    }
-    let types = {};
-    appSettings["UDS_LAB_TYPES"].forEach((item) => {
-      types[item.code] = item.text;
-    });
-    setSelectTypeLookup(types);
-    setUrineScreenTypesInitialized(true);
-  };
+
   const hasUrineScreenTypes = () => {
     return !onlyOneUrineScreenType() && !noUrineScreenTypes();
   };
@@ -608,7 +593,7 @@ export default function UrineScreen(props) {
       );
     });
   };
-  const getColumns  = () => [
+  const getColumns = () => [
     {
       field: "id",
       hidden: true,
@@ -620,7 +605,7 @@ export default function UrineScreen(props) {
       cellStyle: {
         padding: "4px 24px 4px 16px",
       },
-      lookup: selectTypeLookup,
+      lookup: getSelectLookupTypes(),
       editable: !onlyOneUrineScreenType() ? "always" : "never",
     },
     {
@@ -638,17 +623,36 @@ export default function UrineScreen(props) {
       ),
     },
   ];
+  const getSelectLookupTypes = () => {
+    if (!urineScreenTypes) return;
+    let types = {};
+    urineScreenTypes.forEach((item) => {
+      types[item.code] = item.text;
+    });
+    return types;
+  };
+  const initUrineScreenTypes = React.useCallback(() => {
+    if (urineScreenTypesInitialized) return;
+    const appSettings = appCtx.appSettings;
+    const settingUrineScreenTypes =
+      appSettings && appSettings["UDS_LAB_TYPES"]
+        ? appSettings["UDS_LAB_TYPES"]
+        : null;
+    if (settingUrineScreenTypes) {
+      setUrineScreenTypes(settingUrineScreenTypes);
+      if (settingUrineScreenTypes.length === 1) {
+        if (!type)
+          //set urine screen type if only one available
+          setType(settingUrineScreenTypes[0].code);
+      }
+    }
+    setUrineScreenTypesInitialized(true);
+  }, [urineScreenTypesInitialized, type, appCtx.appSettings]);
   React.useEffect(() => {
     if (urineScreenTypesInitialized) {
-      if (onlyOneUrineScreenType()) {
-        //set urine screen type if only one available
-        setType(urineScreenTypes[0].code);
-      }
       getHistory();
     } else initUrineScreenTypes();
-  }, [
-    urineScreenTypesInitialized
-  ]);
+  }, [initUrineScreenTypes, urineScreenTypesInitialized, getHistory]);
   const handleSnackClose = (event, reason) => {
     if (reason === "clickaway") {
       return;
@@ -784,28 +788,30 @@ export default function UrineScreen(props) {
               </div>
             )}
           </div>
-          <div className={classes.buttonsContainer}>
-            <Button
-              variant="contained"
-              color="primary"
-              className={classes.addButton}
-              disabled={!hasValues()}
-              onClick={() => handleAdd()}
-            >
-              Add
-            </Button>
-            <Button
-              variant="outlined"
-              onClick={clearFields}
-              disabled={!hasValues()}
-            >
-              Clear
-            </Button>
-          </div>
+          {!noUrineScreenTypes() && (
+            <div className={classes.buttonsContainer}>
+              <Button
+                variant="contained"
+                color="primary"
+                className={classes.addButton}
+                disabled={!hasValues()}
+                onClick={() => handleAdd()}
+              >
+                Add
+              </Button>
+              <Button
+                variant="outlined"
+                onClick={clearFields}
+                disabled={!hasValues()}
+              >
+                Clear
+              </Button>
+            </div>
+          )}
         </Paper>
         {/* history */}
         <Paper className={classes.historyContainer} elevation={1}>
-          {!historyInitialized && (
+          {(!historyInitialized || updateInProgress) && (
             <div className={classes.progressContainer}>
               <CircularProgress
                 color="primary"
@@ -814,115 +820,114 @@ export default function UrineScreen(props) {
               />
             </div>
           )}
-          {updateInProgress && (
-            <div className={classes.progressContainer}>
-              <CircularProgress
-                className={classes.progressIcon}
-                color="primary"
-                size={28}
-              />
-            </div>
-          )}
-          <Typography
-            variant="caption"
-            display="block"
-            className={classes.historyTitle}
-          >
-            Last Urine Drug Screen
-          </Typography>
-          {historyInitialized && hasHistory() && (
-            <div>
-              {!editEntry.mode && (
-                <span
-                  dangerouslySetInnerHTML={{
-                    __html: DOMPurify.sanitize(displayHistory()),
-                  }}
-                ></span>
+          {historyInitialized && (
+            <React.Fragment>
+              <Typography
+                variant="caption"
+                display="block"
+                className={classes.historyTitle}
+              >
+                Last Urine Drug Screen
+              </Typography>
+              {!hasHistory() && (
+                <div>No previously recorded urine drug screen</div>
               )}
-              {editEntry.mode && displayEditHistoryByRow(0)}
-              <EditButtonGroup
-                onEnableEditMode={handleEnableEditMode}
-                onDisableEditMode={handleDisableEditMode}
-                isUpdateDisabled={!hasValidEditEntry()}
-                handleEditSave={() => handleEditSave()}
-                handleDelete={() => handleDelete()}
-                entryDescription={displayHistory()}
-              ></EditButtonGroup>
-            </div>
-          )}
-          {!isAdult(rowData.dob) && !hasHistory() && (
-            <div>No previously recorded urine drug screen</div>
-          )}
-          {/* alerts */}
-          {isAdult(rowData.dob) && (
-            <OverdueAlert
-              date={lastEntry.date}
-              type="urine drug screen"
-            ></OverdueAlert>
+              {/* most recent entry */}
+              {hasHistory() && (
+                <React.Fragment>
+                  <div>
+                    {!editEntry.mode && (
+                      <span
+                        dangerouslySetInnerHTML={{
+                          __html: DOMPurify.sanitize(displayMostRecentEntry()),
+                        }}
+                      ></span>
+                    )}
+                    {editEntry.mode && displayEditHistoryByRow(0)}
+                    <EditButtonGroup
+                      onEnableEditMode={handleEnableEditMode}
+                      onDisableEditMode={handleDisableEditMode}
+                      isUpdateDisabled={!hasValidEditEntry()}
+                      handleEditSave={() => handleEditSave()}
+                      handleDelete={() => handleDelete()}
+                      entryDescription={displayMostRecentEntry()}
+                    ></EditButtonGroup>
+                  </div>
+                  {/* alerts */}
+                  {isAdult(rowData.dob) && (
+                    <OverdueAlert
+                      date={lastEntry.date}
+                      type="urine drug screen"
+                    ></OverdueAlert>
+                  )}
+                </React.Fragment>
+              )}
+              {/* history table */}
+              {hasHistory() && (
+                <Paper className={classes.historyContainer} elevation={1}>
+                  <Typography
+                    variant="caption"
+                    display="block"
+                    className={classes.historyTitle}
+                  >
+                    History
+                  </Typography>
+                  <div className={classes.totalEntriesContainer}>
+                    <span>
+                      <b>{history.length}</b> record(s)
+                    </span>
+                    {!expandHistory && (
+                      <Button
+                        arial-label="expand"
+                        color="primary"
+                        onClick={() => setExpandHistory(true)}
+                        endIcon={
+                          <ExpandMoreIcon
+                            className={classes.endIcon}
+                          ></ExpandMoreIcon>
+                        }
+                        size="small"
+                        className={classes.expandIcon}
+                      >
+                        View
+                      </Button>
+                    )}
+                    {expandHistory && (
+                      <Button
+                        arial-label="collapse"
+                        color="primary"
+                        onClick={() => setExpandHistory(false)}
+                        endIcon={
+                          <ExpandLessIcon
+                            className={classes.endIcon}
+                          ></ExpandLessIcon>
+                        }
+                        size="small"
+                        className={classes.expandIcon}
+                      >
+                        Hide
+                      </Button>
+                    )}
+                  </div>
+                  <div className={classes.tableContainer}>
+                    {expandHistory && (
+                      <div className="history-table">
+                        <HistoryTable
+                          data={history}
+                          columns={getColumns()}
+                          APIURL="/fhir/ServiceRequest/"
+                          submitDataFormatter={submitDataFormatter}
+                          onRowUpdate={() => getHistory()}
+                          onRowDelete={() => getHistory()}
+                        ></HistoryTable>
+                      </div>
+                    )}
+                  </div>
+                </Paper>
+              )}
+            </React.Fragment>
           )}
         </Paper>
-        {hasHistory() && historyInitialized && (
-          <Paper className={classes.historyContainer} elevation={1}>
-            <Typography
-              variant="caption"
-              display="block"
-              className={classes.historyTitle}
-            >
-              History
-            </Typography>
-            <div className={classes.totalEntriesContainer}>
-              <span>
-                <b>{history.length}</b> record(s)
-              </span>
-              {!showHistory && (
-                <Button
-                  arial-label="expand"
-                  color="primary"
-                  onClick={() => setShowHistory(true)}
-                  endIcon={
-                    <ExpandMoreIcon
-                      className={classes.endIcon}
-                    ></ExpandMoreIcon>
-                  }
-                  size="small"
-                  className={classes.expandIcon}
-                >
-                  View
-                </Button>
-              )}
-              {showHistory && (
-                <Button
-                  arial-label="collapse"
-                  color="primary"
-                  onClick={() => setShowHistory(false)}
-                  endIcon={
-                    <ExpandLessIcon
-                      className={classes.endIcon}
-                    ></ExpandLessIcon>
-                  }
-                  size="small"
-                  className={classes.expandIcon}
-                >
-                  Hide
-                </Button>
-              )}
-            </div>
-            <div className={classes.tableContainer}>
-              {showHistory && (
-                <div className="history-table">
-                  <HistoryTable
-                    data={history}
-                    columns={getColumns()}
-                    APIURL="/fhir/ServiceRequest/"
-                    submitDataFormatter={submitDataFormatter}
-                    onRowUpdate={() => getHistory()}
-                    onRowDelete={() => getHistory()}
-                  ></HistoryTable>
-                </div>
-              )}
-            </div>
-          </Paper>
-        )}
         {/* feedback snack popup */}
         <Snackbar
           open={snackOpen}
