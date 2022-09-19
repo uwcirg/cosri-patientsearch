@@ -557,7 +557,7 @@ export default function UrineScreen(props) {
         <div style={{ display: "inline-block" }}>
           {" "}
           <FormattedInput
-            defaultValue={selectDate}
+            defaultValue={""}
             helperText="(YYYY-MM-DD)"
             disableFocus={!onlyOneUrineScreenType()}
             handleChange={(e) => handleEditDateChange(e)}
@@ -654,6 +654,7 @@ export default function UrineScreen(props) {
     } else initUrineScreenTypes();
   }, [initUrineScreenTypes, urineScreenTypesInitialized, getHistory]);
   const handleSnackClose = (event, reason) => {
+    event.stopPropagation();
     if (reason === "clickaway") {
       return;
     }
