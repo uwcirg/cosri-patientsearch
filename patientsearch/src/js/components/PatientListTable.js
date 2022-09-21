@@ -38,7 +38,6 @@ const useStyles = makeStyles({
     marginRight: "auto",
     marginBottom: theme.spacing(2),
     marginTop: 148,
-    maxWidth: "1100px",
   },
   filterTable: {
     marginBottom: theme.spacing(1),
@@ -801,7 +800,7 @@ export default function PatientListTable() {
             />
           </tbody>
         </table>
-        {appSettings && hasSoFClients() && (
+        {hasSoFClients() && (
           <div
             className={`${classes.table} main`}
             aria-label="patient list table"
@@ -1045,14 +1044,12 @@ export default function PatientListTable() {
             </div>
           }
         ></DialogBox>
-        {appSettings && (
-          <Dropdown
-            anchorEl={anchorEl}
-            handleMenuClose={handleMenuClose}
-            handleMenuSelect={handleMenuSelect}
-            menuItems={menuItems.filter((item) => shouldShowMenuItem(item.id))}
-          ></Dropdown>
-        )}
+        <Dropdown
+          anchorEl={anchorEl}
+          handleMenuClose={handleMenuClose}
+          handleMenuSelect={handleMenuSelect}
+          menuItems={menuItems.filter((item) => shouldShowMenuItem(item.id))}
+        ></Dropdown>
       </Container>
     </React.Fragment>
   );
