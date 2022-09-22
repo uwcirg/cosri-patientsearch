@@ -31,9 +31,6 @@ export default function SystemBanner(props) {
     let systemType = getSystemType();
     return systemType && String(systemType.toLowerCase()) !== "production";
   }
-  React.useEffect(() => {
-    //wait for application settings
-  }, [appSettings]);
   return (
     /* display system type for non-production instances */
     <div className={classes.container}>

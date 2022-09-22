@@ -142,7 +142,6 @@ let filterIntervalId = 0;
 export default function PatientListTable() {
   const classes = useStyles();
   const appSettings = useSettingContext().appSettings;
-  const [initialized, setInitialized] = React.useState(false);
   const [appClients, setAppClients] = React.useState(null);
   const [data, setData] = React.useState([]);
   const defaultFilters = {
@@ -186,7 +185,7 @@ export default function PatientListTable() {
       ...action.payload,
     };
   };
-  const [pagination, dispatch] = React.useReducer(
+  const [pagination, paginationDispatch] = React.useReducer(
     paginationReducer,
     defaultPagination
   );
@@ -539,10 +538,10 @@ export default function PatientListTable() {
     );
   };
   const resetPaging = () => {
-    dispatch({ type: "reset" });
+    paginationDispatch({ type: "reset" });
   };
   const handleChangePage = (event, newPage) => {
-    dispatch({
+    paginationDispatch({
       payload: {
         prevPageNumber: pagination.pageNumber,
         pageNumber: newPage,
@@ -552,7 +551,7 @@ export default function PatientListTable() {
   };
 
   const handleChangeRowsPerPage = (event) => {
-    dispatch({
+    paginationDispatch({
       payload: {
         pageSize: parseInt(event.target.value, 10),
         nextPageURL: "",
@@ -645,10 +644,6 @@ export default function PatientListTable() {
       page: 0,
       totalCount: 0,
     };
-    const resetAll = () => {
-      dispatch({ type: "empty" });
-      setInitialized(true);
-    };
     let apiURL = `/fhir/Patient?_include=Patient:link&_total=accurate&_count=${pagination.pageSize}`;
     if (
       pagination.pageNumber > pagination.prevPageNumber &&
@@ -671,13 +666,13 @@ export default function PatientListTable() {
      */
     return new Promise((resolve) => {
       fetchData(apiURL, noCacheParam, function (e) {
-        resetAll();
+        paginationDispatch({ type: "empty" });
         handleErrorCallback(e);
         resolve(defaults);
       })
         .then((response) => {
           if (!response || !response.entry || !response.entry.length) {
-            resetAll();
+            paginationDispatch({ type: "empty" });
             resolve(defaults);
             return;
           }
@@ -718,7 +713,7 @@ export default function PatientListTable() {
             : hasSelfLink
             ? responseSelfLink[0].url
             : "";
-          dispatch({
+          paginationDispatch({
             payload: {
               nextPageURL: newNextURL,
               prevPageURL: newPrevURL,
@@ -727,7 +722,6 @@ export default function PatientListTable() {
               totalCount: response.total,
             },
           });
-          setTimeout(() => setInitialized(true), 250);
           resolve({
             data: responseData,
             page: currentPage,
@@ -743,7 +737,6 @@ export default function PatientListTable() {
               error && error.status ? "Error status " + error.status : error
             }`
           );
-          setInitialized(true);
           resolve(defaults);
         });
     });
@@ -786,271 +779,259 @@ export default function PatientListTable() {
   }, [appSettings]); //retrieval of settings should occur prior to patient list being rendered/initialized
 
   return (
-    <React.Fragment>
-      <Container className={classes.container} id="patientList">
-        <h2>Patient Search</h2>
-        <Error message={errorMessage} style={errorStyle} />
-        <table className={classes.filterTable}>
-          <tbody>
-            <FilterRow
-              onFiltersDidChange={onFiltersDidChange}
-              launchFunc={handleSearch}
-              launchButtonLabel={actionLabel}
-              launchButtonId={TOOLBAR_ACTION_BUTTON_ID}
-            />
-          </tbody>
-        </table>
-        {hasSoFClients() && (
-          <div
-            className={`${classes.table} main`}
-            aria-label="patient list table"
-          >
-            <MaterialTable
-              className={classes.table}
-              columns={getColumns()}
-              data={
-                //any change in query will invoke this function
-                (query) => getPatientList(query)
-              }
-              tableRef={tableRef}
-              hideSortIcon={false}
-              detailPanel={[
-                {
-                  render: (data) => {
-                    return (
-                      <DetailPanel>
-                        {getSelectedItemComponent(
-                          selectedMenuItem,
-                          data.rowData
-                        )}
-                        <Button
-                          onClick={() => {
-                            handleToggleDetailPanel(data.rowData);
-                            handleMenuClose();
-                          }}
-                          className={classes.detailPanelCloseButton}
-                          size="small"
-                        >
-                          Close X
-                        </Button>
-                      </DetailPanel>
-                    );
-                  },
-                  isFreeAction: false,
-                },
-              ]}
-              //overlay
-              components={{
-                OverlayLoading: () => (
-                  <OverlayElement>
-                    <CircularProgress></CircularProgress>
-                  </OverlayElement>
-                ),
-              }}
-              actions={[
-                ...(appClients && appClients.length
-                  ? appClients.map((client, index) => {
-                      return {
-                        icon: () => (
-                          <span
-                            className={classes.button}
-                            key={`actionButton_${index}`}
-                          >
-                            {client.label}
-                          </span>
-                        ),
-                        onClick: (event, rowData) => {
-                          event.stopPropagation();
-                          handleSearch(rowData, client);
-                        },
-                        tooltip: `Launch ${client.id} application for the user`,
-                      };
-                    })
-                  : []),
-                {
-                  icon: () =>
-                    !shouldHideMoreMenu() && (
-                      <MoreHorizIcon
-                        color="primary"
-                        className={classes.moreIcon}
-                      ></MoreHorizIcon>
-                    ),
-                  onClick: (event, rowData) => handleMenuClick(event, rowData),
-                  tooltip: shouldHideMoreMenu() ? "" : "More",
-                },
-              ]}
-              options={{
-                paginationTypestepped: "stepped",
-                showFirstLastPageButtons: false,
-                paging: false,
-                padding: "dense",
-                emptyRowsWhenPaging: false,
-                debounceInterval: 300,
-                detailPanelColumnAlignment: "right",
-                toolbar: false,
-                filtering: false,
-                sorting: true,
-                search: false,
-                showTitle: false,
-                headerStyle: {
-                  backgroundColor: theme.palette.primary.lightest,
-                  padding: theme.spacing(1, 2, 1),
-                },
-                rowStyle: (rowData) => ({
-                  backgroundColor:
-                    needExternalAPILookup() && !inPDMP(rowData)
-                      ? theme.palette.primary.disabled
-                      : "#FFF",
-                }),
-                actionsCellStyle: {
-                  paddingLeft: theme.spacing(1),
-                  paddingRight: theme.spacing(1),
-                  justifyContent: "center",
-                },
-                actionsColumnIndex: -1,
-              }}
-              icons={tableIcons}
-              onRowClick={(event, rowData) => {
-                event.stopPropagation();
-                if (!hasSoFClients()) return;
-                handleSearch(rowData);
-              }}
-              editable={{
-                onRowDelete: (oldData) =>
-                  fetchData("/fhir/Patient/" + oldData.id, {
-                    method: "DELETE",
-                  })
-                    .then(() => {
-                      setTimeout(() => {
-                        const dataDelete = [...data];
-                        const target = dataDelete.find(
-                          (el) => el.id === oldData.id
-                        );
-                        const index = dataDelete.indexOf(target);
-                        dataDelete.splice(index, 1);
-                        setData([...dataDelete]);
-                        setErrorMessage("");
-                      }, 500);
-                    })
-                    .catch(() => {
-                      setErrorMessage(
-                        "Unable to remove patient from the list."
-                      );
-                    }),
-              }}
-              localization={{
-                header: {
-                  actions: "",
-                },
-                pagination: {
-                  labelRowsSelect: "rows",
-                },
-                body: {
-                  deleteTooltip: "Remove from the list",
-                  editRow: {
-                    deleteText:
-                      "Are you sure you want to remove this patient from the list? (You can add them back later by searching for them)",
-                    saveTooltip: "OK",
-                  },
-                  emptyDataSourceMessage: (
-                    <div
-                      id="emptyDataContainer"
-                      className={`${classes.flex} ${classes.warning}`}
-                      dangerouslySetInnerHTML={{
-                        __html: DOMPurify.sanitize(noDataText),
-                      }}
-                    ></div>
-                  ),
-                },
-              }}
-            />
-          </div>
-        )}
-        {initialized && (
-          <div className={classes.flexContainer}>
-            {containNoPMPRow && (
-              <div className={classes.legend}>
-                <span className={classes.legendIcon}></span> Not in PMP
-              </div>
-            )}
-            {!containNoPMPRow && <div className={classes.spacer}></div>}
-            <div>
-              <div className={classes.refreshButtonContainer}>
-                <Tooltip title="Refresh the list">
-                  <Button
-                    variant="contained"
-                    size="small"
-                    startIcon={<RefreshIcon />}
-                    onClick={() => {
-                      location.reload();
-                    }}
-                  >
-                    Refresh
-                  </Button>
-                </Tooltip>
-              </div>
-              <TablePagination
-                id="patientListPagination"
-                className={`${
-                  pagination.totalCount === 0 ? "ghost" : classes.pagination
-                }`}
-                rowsPerPageOptions={[5, 10, 20, 50]}
-                onPageChange={handleChangePage}
-                page={pagination.pageNumber}
-                rowsPerPage={pagination.pageSize}
-                onRowsPerPageChange={handleChangeRowsPerPage}
-                count={pagination.totalCount}
-                size="small"
-                component="div"
-                nextIconButtonProps={{
-                  disabled: pagination.disableNextButton,
-                  color: "primary",
-                }}
-                backIconButtonProps={{
-                  disabled: pagination.disablePrevButton,
-                  color: "primary",
-                }}
-                SelectProps={{ variant: "outlined" }}
-              />
-            </div>
-          </div>
-        )}
-        <LoadingModal open={openLoadingModal}></LoadingModal>
-        <DialogBox
-          open={openLaunchInfoModal}
-          onClose={() => onLaunchDialogClose()}
-          title={
-            currentRow
-              ? `${currentRow.last_name}, ${currentRow.first_name}`
-              : ""
+    <Container className={classes.container} id="patientList">
+      <h2>Patient Search</h2>
+      <Error message={errorMessage} style={errorStyle} />
+      {/* patient search row */}
+      <table className={classes.filterTable}>
+        <tbody>
+          <FilterRow
+            onFiltersDidChange={onFiltersDidChange}
+            launchFunc={handleSearch}
+            launchButtonLabel={actionLabel}
+            launchButtonId={TOOLBAR_ACTION_BUTTON_ID}
+          />
+        </tbody>
+      </table>
+      {/* patient list table */}
+      <div className={`${classes.table} main`} aria-label="patient list table">
+        <MaterialTable
+          className={classes.table}
+          columns={getColumns()}
+          data={
+            //any change in query will invoke this function
+            (query) => getPatientList(query)
           }
-          body={
-            <div className={classes.flex}>
-              {hasSoFClients() &&
-                appClients.map((item, index) => {
-                  return (
+          tableRef={tableRef}
+          hideSortIcon={false}
+          detailPanel={[
+            {
+              render: (data) => {
+                return (
+                  <DetailPanel>
+                    {getSelectedItemComponent(selectedMenuItem, data.rowData)}
                     <Button
-                      key={`launchButton_${index}`}
-                      color="primary"
-                      variant="contained"
-                      className={classes.flexButton}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleLaunchApp(currentRow, item);
+                      onClick={() => {
+                        handleToggleDetailPanel(data.rowData);
+                        handleMenuClose();
                       }}
-                    >{`Launch ${item.id}`}</Button>
-                  );
-                })}
-            </div>
-          }
-        ></DialogBox>
-        <Dropdown
-          anchorEl={anchorEl}
-          handleMenuClose={handleMenuClose}
-          handleMenuSelect={handleMenuSelect}
-          menuItems={menuItems.filter((item) => shouldShowMenuItem(item.id))}
-        ></Dropdown>
-      </Container>
-    </React.Fragment>
+                      className={classes.detailPanelCloseButton}
+                      size="small"
+                    >
+                      Close X
+                    </Button>
+                  </DetailPanel>
+                );
+              },
+              isFreeAction: false,
+            },
+          ]}
+          //overlay
+          components={{
+            OverlayLoading: () => (
+              <OverlayElement>
+                <CircularProgress></CircularProgress>
+              </OverlayElement>
+            ),
+          }}
+          actions={[
+            ...(appClients && appClients.length
+              ? appClients.map((client, index) => {
+                  return {
+                    icon: () => (
+                      <span
+                        className={classes.button}
+                        key={`actionButton_${index}`}
+                      >
+                        {client.label}
+                      </span>
+                    ),
+                    onClick: (event, rowData) => {
+                      event.stopPropagation();
+                      handleSearch(rowData, client);
+                    },
+                    tooltip: `Launch ${client.id} application for the user`,
+                  };
+                })
+              : []),
+            {
+              icon: () =>
+                !shouldHideMoreMenu() && (
+                  <MoreHorizIcon
+                    color="primary"
+                    className={classes.moreIcon}
+                  ></MoreHorizIcon>
+                ),
+              onClick: (event, rowData) => handleMenuClick(event, rowData),
+              tooltip: shouldHideMoreMenu() ? "" : "More",
+            },
+          ]}
+          options={{
+            paginationTypestepped: "stepped",
+            showFirstLastPageButtons: false,
+            paging: false,
+            padding: "dense",
+            emptyRowsWhenPaging: false,
+            debounceInterval: 300,
+            detailPanelColumnAlignment: "right",
+            toolbar: false,
+            filtering: false,
+            sorting: true,
+            search: false,
+            showTitle: false,
+            headerStyle: {
+              backgroundColor: theme.palette.primary.lightest,
+              padding: theme.spacing(1, 2, 1),
+            },
+            rowStyle: (rowData) => ({
+              backgroundColor:
+                needExternalAPILookup() && !inPDMP(rowData)
+                  ? theme.palette.primary.disabled
+                  : "#FFF",
+            }),
+            actionsCellStyle: {
+              paddingLeft: theme.spacing(1),
+              paddingRight: theme.spacing(1),
+              justifyContent: "center",
+            },
+            actionsColumnIndex: -1,
+          }}
+          icons={tableIcons}
+          onRowClick={(event, rowData) => {
+            event.stopPropagation();
+            if (!hasSoFClients()) return;
+            handleSearch(rowData);
+          }}
+          editable={{
+            onRowDelete: (oldData) =>
+              fetchData("/fhir/Patient/" + oldData.id, {
+                method: "DELETE",
+              })
+                .then(() => {
+                  setTimeout(() => {
+                    const dataDelete = [...data];
+                    const target = dataDelete.find(
+                      (el) => el.id === oldData.id
+                    );
+                    const index = dataDelete.indexOf(target);
+                    dataDelete.splice(index, 1);
+                    setData([...dataDelete]);
+                    setErrorMessage("");
+                  }, 500);
+                })
+                .catch(() => {
+                  setErrorMessage("Unable to remove patient from the list.");
+                }),
+          }}
+          localization={{
+            header: {
+              actions: "",
+            },
+            pagination: {
+              labelRowsSelect: "rows",
+            },
+            body: {
+              deleteTooltip: "Remove from the list",
+              editRow: {
+                deleteText:
+                  "Are you sure you want to remove this patient from the list? (You can add them back later by searching for them)",
+                saveTooltip: "OK",
+              },
+              emptyDataSourceMessage: (
+                <div
+                  id="emptyDataContainer"
+                  className={`${classes.flex} ${classes.warning}`}
+                  dangerouslySetInnerHTML={{
+                    __html: DOMPurify.sanitize(noDataText),
+                  }}
+                ></div>
+              ),
+            },
+          }}
+        />
+      </div>
+      <div className={classes.flexContainer}>
+        {containNoPMPRow && (
+          <div className={classes.legend}>
+            <span className={classes.legendIcon}></span> Not in PMP
+          </div>
+        )}
+        {!containNoPMPRow && <div className={classes.spacer}></div>}
+        <div>
+          <div className={classes.refreshButtonContainer}>
+            <Tooltip title="Refresh the list">
+              <Button
+                variant="contained"
+                size="small"
+                startIcon={<RefreshIcon />}
+                onClick={() => {
+                  location.reload();
+                }}
+              >
+                Refresh
+              </Button>
+            </Tooltip>
+          </div>
+          {data.length > 0 && (
+            <TablePagination
+              id="patientListPagination"
+              className={`${
+                pagination.totalCount === 0 ? "ghost" : classes.pagination
+              }`}
+              rowsPerPageOptions={[5, 10, 20, 50]}
+              onPageChange={handleChangePage}
+              page={pagination.pageNumber}
+              rowsPerPage={pagination.pageSize}
+              onRowsPerPageChange={handleChangeRowsPerPage}
+              count={pagination.totalCount}
+              size="small"
+              component="div"
+              nextIconButtonProps={{
+                disabled: pagination.disableNextButton,
+                color: "primary",
+              }}
+              backIconButtonProps={{
+                disabled: pagination.disablePrevButton,
+                color: "primary",
+              }}
+              SelectProps={{ variant: "outlined" }}
+            />
+          )}
+        </div>
+      </div>
+      <LoadingModal open={openLoadingModal}></LoadingModal>
+      <DialogBox
+        open={openLaunchInfoModal}
+        onClose={() => onLaunchDialogClose()}
+        title={
+          currentRow ? `${currentRow.last_name}, ${currentRow.first_name}` : ""
+        }
+        body={
+          <div className={classes.flex}>
+            {hasSoFClients() &&
+              appClients.map((item, index) => {
+                return (
+                  <Button
+                    key={`launchButton_${index}`}
+                    color="primary"
+                    variant="contained"
+                    className={classes.flexButton}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleLaunchApp(currentRow, item);
+                    }}
+                  >{`Launch ${item.id}`}</Button>
+                );
+              })}
+          </div>
+        }
+      ></DialogBox>
+      <Dropdown
+        anchorEl={anchorEl}
+        handleMenuClose={handleMenuClose}
+        handleMenuSelect={handleMenuSelect}
+        menuItems={menuItems.filter((item) => shouldShowMenuItem(item.id))}
+      ></Dropdown>
+    </Container>
   );
 }

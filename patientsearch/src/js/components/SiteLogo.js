@@ -20,9 +20,6 @@ export default function SiteLogo(props) {
     ? props.appSettings
     : settingsCtx.appSettings; //provide default if none provided
   const SITE_ID_STRING = "SITE_ID";
-  React.useEffect(() => {
-    //wait for application settings
-  }, [appSettings]);
   function getSiteId() {
     if (props.siteID) return props.siteID;
     if (!Object.keys(appSettings)) return "";

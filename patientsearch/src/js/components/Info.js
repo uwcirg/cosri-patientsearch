@@ -81,7 +81,6 @@ export default function Info(props) {
 
   /* return config variable by key */
   function getConfig (key) {
-    if (props.appSettings) return props.appSettings[key];
     if (!hasSettings()) return "";
     return appSettings[key];
   }
