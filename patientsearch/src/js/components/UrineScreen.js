@@ -151,6 +151,12 @@ export default function UrineScreen(props) {
   const appCtx = useSettingContext();
   const appSettingsRef = React.useRef(appCtx.appSettings);
   const classes = useStyles();
+  const urineScreenTypes = (() => {
+    const appSettings = appSettingsRef.current;
+    return appSettings && appSettings["UDS_LAB_TYPES"]
+      ? appSettings["UDS_LAB_TYPES"]
+      : null;
+  })();
   const lastEntryReducer = (state, action) => {
     if (action.type == "reset") {
       return {
@@ -172,11 +178,12 @@ export default function UrineScreen(props) {
     date: "",
     type: "",
   });
-  const [type, setType] = React.useState("");
+  const [type, setType] = React.useState(
+    urineScreenTypes && urineScreenTypes.length === 1
+      ? urineScreenTypes[0].code
+      : ""
+  );
   const [date, setDate] = React.useState(null);
-  const [urineScreenTypes, setUrineScreenTypes] = React.useState([]);
-  const [urineScreenTypesInitialized, setUrineScreenTypesInitialized] =
-    React.useState(false);
   const [dateInput, setDateInput] = React.useState(null);
   const [history, setHistory] = React.useState([]);
   const [addInProgress, setAddInProgress] = React.useState(false);
@@ -208,7 +215,10 @@ export default function UrineScreen(props) {
     }
     return state;
   };
-  const [editEntry, editDispatch] = React.useReducer(editReducer, defaultValues);
+  const [editEntry, editDispatch] = React.useReducer(
+    editReducer,
+    defaultValues
+  );
   const URINE_SCREEN_TYPE_LABEL = "Urine Drug Screen Name";
   const { rowData } = props;
   const getPatientId = React.useCallback(() => {
@@ -630,37 +640,17 @@ export default function UrineScreen(props) {
     });
     return types;
   };
-  const initUrineScreenTypes = React.useCallback(() => {
-    if (urineScreenTypesInitialized) return;
-    //const appSettings = appCtx.appSettings;
-    const appSettings = appSettingsRef.current;
-    const settingUrineScreenTypes =
-      appSettings && appSettings["UDS_LAB_TYPES"]
-        ? appSettings["UDS_LAB_TYPES"]
-        : null;
-    if (settingUrineScreenTypes) {
-      setUrineScreenTypes(settingUrineScreenTypes);
-      if (settingUrineScreenTypes.length === 1) {
-        if (!type)
-          //set urine screen type if only one available
-          setType(settingUrineScreenTypes[0].code);
-      }
-    }
-    setUrineScreenTypesInitialized(true);
-  }, [urineScreenTypesInitialized, type]);
   const handleSnackClose = (event, reason) => {
-    event.stopPropagation();
+    if (event) event.stopPropagation();
     if (reason === "clickaway") {
       return;
     }
     setSnackOpen(false);
   };
   React.useEffect(() => {
-    if (urineScreenTypesInitialized) {
-      getHistory();
-    } else initUrineScreenTypes();
-  }, [initUrineScreenTypes, urineScreenTypesInitialized, getHistory]);
-  
+    getHistory();
+  }, [getHistory]);
+
   return (
     <div className={classes.container}>
       <h3>{`Urine Drug Toxicology Screen for ${rowData.first_name} ${rowData.last_name}`}</h3>
@@ -739,56 +729,45 @@ export default function UrineScreen(props) {
           </div>
           {/* urine screen type selector */}
           <div className={classes.typeContainer}>
-            {!urineScreenTypesInitialized && (
-              <div className={classes.progressContainer}>
-                <CircularProgress
-                  className={classes.progressIcon}
-                  color="primary"
-                  size={28}
-                />
-              </div>
-            )}
-            {urineScreenTypesInitialized && (
-              <div>
-                {onlyOneUrineScreenType() && (
-                  <div className={classes.textDisplay}>
-                    <InputLabel className={classes.readonlyLabel}>
-                      {URINE_SCREEN_TYPE_LABEL}
-                    </InputLabel>
-                    <Typography variant="subtitle2">
-                      {getOneUrineScreenDisplayText()}
-                    </Typography>
-                  </div>
-                )}
-                {hasUrineScreenTypes() && (
-                  <FormControl
-                    className={classes.selectFormControl}
-                    variant="standard"
+            <div>
+              {onlyOneUrineScreenType() && (
+                <div className={classes.textDisplay}>
+                  <InputLabel className={classes.readonlyLabel}>
+                    {URINE_SCREEN_TYPE_LABEL}
+                  </InputLabel>
+                  <Typography variant="subtitle2">
+                    {getOneUrineScreenDisplayText()}
+                  </Typography>
+                </div>
+              )}
+              {hasUrineScreenTypes() && (
+                <FormControl
+                  className={classes.selectFormControl}
+                  variant="standard"
+                >
+                  <InputLabel className={classes.label}>
+                    {URINE_SCREEN_TYPE_LABEL}
+                  </InputLabel>
+                  <Select
+                    value={type}
+                    onChange={handleTypeChange}
+                    className={classes.selectBox}
+                    IconComponent={() => (
+                      <ArrowDropDownIcon color="primary"></ArrowDropDownIcon>
+                    )}
                   >
-                    <InputLabel className={classes.label}>
-                      {URINE_SCREEN_TYPE_LABEL}
-                    </InputLabel>
-                    <Select
-                      value={type}
-                      onChange={handleTypeChange}
-                      className={classes.selectBox}
-                      IconComponent={() => (
-                        <ArrowDropDownIcon color="primary"></ArrowDropDownIcon>
-                      )}
-                    >
-                      {getUrineScreenTypeSelectList()}
-                    </Select>
-                  </FormControl>
-                )}
-                {noUrineScreenTypes() && (
-                  <div className={classes.errorContainer}>
-                    <Error
-                      message={"No urine drug screen type list is loaded."}
-                    ></Error>
-                  </div>
-                )}
-              </div>
-            )}
+                    {getUrineScreenTypeSelectList()}
+                  </Select>
+                </FormControl>
+              )}
+              {noUrineScreenTypes() && (
+                <div className={classes.errorContainer}>
+                  <Error
+                    message={"No urine drug screen type list is loaded."}
+                  ></Error>
+                </div>
+              )}
+            </div>
           </div>
           {!noUrineScreenTypes() && (
             <div className={classes.buttonsContainer}>
@@ -950,7 +929,6 @@ export default function UrineScreen(props) {
     </div>
   );
 }
-
 UrineScreen.propTypes = {
   rowData: PropTypes.object.isRequired,
 };
