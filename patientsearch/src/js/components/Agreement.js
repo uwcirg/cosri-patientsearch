@@ -391,7 +391,7 @@ export default function Agreement(props) {
     },
     [getPatientId]
   );
-  const displayHistory = () => {
+  const displayMostRecent = () => {
     if (!hasHistory()) return "";
     return (
       "Last controlled substance agreement signed on <b>" +
@@ -434,6 +434,7 @@ export default function Agreement(props) {
     return isValid(dateObj) && !(dateObj > today);
   };
   const handleSnackClose = (event, reason) => {
+    if (event) event.stopPropation();
     if (reason === "clickaway") {
       return;
     }
@@ -588,7 +589,7 @@ export default function Agreement(props) {
                     {!editMode && (
                       <span
                         dangerouslySetInnerHTML={{
-                          __html: DOMPurify.sanitize(displayHistory()),
+                          __html: DOMPurify.sanitize(displayMostRecent()),
                         }}
                       ></span>
                     )}
@@ -615,7 +616,7 @@ export default function Agreement(props) {
             </React.Fragment>
           )}
         </Paper>
-        {historyInitialized && hasHistory() && (
+        {hasHistory() && (
           <Paper className={classes.historyContainer} elevation={1}>
             <div className={classes.totalEntriesContainer}>
               <Typography

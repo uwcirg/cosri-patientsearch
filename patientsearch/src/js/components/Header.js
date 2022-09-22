@@ -157,9 +157,10 @@ export default function Header() {
     );
   }, []);
 
-  React.useEffect(() => {
+  React.useLayoutEffect(() => {
     if (appSettings) {
-      if (appSettings["APPLICATION_TITLE"]) setAppTitle(appSettings["APPLICATION_TITLE"]);
+      if (appSettings["APPLICATION_TITLE"])
+        setAppTitle(appSettings["APPLICATION_TITLE"]);
       if (appSettings["PROJECT_NAME"]) {
         setProjectName(appSettings["PROJECT_NAME"]);
         setDocumentTitle(`${appSettings["PROJECT_NAME"]} Patient Search`);
