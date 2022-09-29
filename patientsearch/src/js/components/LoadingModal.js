@@ -3,7 +3,7 @@ import PropTypes from "prop-types";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import Modal from "@material-ui/core/Modal";
 import { makeStyles } from "@material-ui/core/styles";
-import theme from "../context/theme";
+import theme from "../themes/theme";
 
 const useStyles = makeStyles({
   flex: {

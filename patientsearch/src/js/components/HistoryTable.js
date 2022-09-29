@@ -6,8 +6,8 @@ import TablePagination from "@material-ui/core/TablePagination";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import Error from "./Error";
 import {fetchData} from "./Utility";
-import theme from "../context/theme";
-import {tableIcons} from "../context/consts";
+import theme from "../themes/theme";
+import {tableIcons} from "../constants/consts";
 
 
 const useStyles = makeStyles((theme) => ({

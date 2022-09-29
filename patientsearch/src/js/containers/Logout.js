@@ -2,11 +2,11 @@ import React from "react";
 import { render } from "react-dom";
 import Button from "@material-ui/core/Button";
 import Typography from "@material-ui/core/Typography";
-import Layout from "./components/Layout";
-import Alert from "./components/Alert";
-import { getUrlParameter } from "./components/Utility";
-import { useSettingContext } from "./context/SettingContextProvider";
-import "../styles/app.scss";
+import Layout from "../layout/Layout";
+import Alert from "../components/Alert";
+import { getUrlParameter } from "../components/Utility";
+import { useSettingContext } from "../context/SettingContextProvider";
+import "../../styles/app.scss";
 
 // Error message, e.g. forbidden error
 const AlertMessage = () => {

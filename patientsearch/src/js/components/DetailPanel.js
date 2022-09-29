@@ -1,7 +1,7 @@
 import PropTypes from "prop-types";
 import Paper from "@material-ui/core/Paper";
 import { makeStyles } from "@material-ui/core/styles";
-import theme from "../context/theme";
+import theme from "../themes/theme";
 
 const useStyles = makeStyles({
   detailPanelWrapper: {

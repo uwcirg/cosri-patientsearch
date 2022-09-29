@@ -20,8 +20,8 @@ import OverlayElement from "./OverlayElement";
 import UrineScreen from "./UrineScreen";
 import Agreement from "./Agreement";
 import { useSettingContext } from "../context/SettingContextProvider";
-import { tableIcons } from "../context/consts";
-import theme from "../context/theme";
+import { tableIcons } from "../constants/consts";
+import theme from "../themes/theme";
 import {
   fetchData,
   getLocalDateTimeString,
@@ -265,6 +265,7 @@ export default function PatientListTable() {
       return column;
     });
   };
+  const columns = getColumns();
   const existsIndata = (rowData) => {
     if (!data || !rowData) return false;
     return (
@@ -440,7 +441,7 @@ export default function PatientListTable() {
     return data && Array.isArray(data)
       ? data.map((item) => {
           const source = item.resource ? item.resource : item;
-          const cols = getColumns();
+          const cols = columns;
           let rowData = {
             id: jsonpath.value(source, "$.id"),
             resource: source,
@@ -797,7 +798,7 @@ export default function PatientListTable() {
       <div className={`${classes.table} main`} aria-label="patient list table">
         <MaterialTable
           className={classes.table}
-          columns={getColumns()}
+          columns={columns}
           data={
             //any change in query will invoke this function
             (query) => getPatientList(query)

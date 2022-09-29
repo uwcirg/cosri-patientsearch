@@ -39,7 +39,7 @@ import {
   sendRequest,
 } from "./Utility";
 import { useSettingContext } from "../context/SettingContextProvider";
-import theme from "../context/theme";
+import theme from "../themes/theme";
 
 const useStyles = makeStyles({
   container: {

@@ -1,7 +1,7 @@
 import React from "react";
 import PropTypes from "prop-types";
 import { makeStyles } from "@material-ui/core/styles";
-import theme from "../context/theme";
+import theme from "../themes/theme";
 import { useSettingContext } from "../context/SettingContextProvider";
 
 const useStyles = makeStyles({

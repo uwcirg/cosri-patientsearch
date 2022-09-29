@@ -14,7 +14,7 @@ import {
   MuiPickersUtilsProvider,
   KeyboardDatePicker,
 } from "@material-ui/pickers";
-import theme from "../context/theme";
+import theme from "../themes/theme";
 
 const useStyles = makeStyles({
   row: {

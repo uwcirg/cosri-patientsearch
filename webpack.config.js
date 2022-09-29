@@ -21,9 +21,9 @@ module.exports = function(_env, argv) {
 
   return {
     entry:  {
-      "index" : ["whatwg-fetch", path.join(__dirname, "/patientsearch/src/js/Entry.js")],
-      "info": ["whatwg-fetch", path.join(__dirname, "/patientsearch/src/js/Landing.js")],
-      "logout": ["whatwg-fetch", path.join(__dirname, "/patientsearch/src/js/Logout.js")]
+      "index" : ["whatwg-fetch", path.join(__dirname, "/patientsearch/src/js/containers/Entry.js")],
+      "info": ["whatwg-fetch", path.join(__dirname, "/patientsearch/src/js/containers/Landing.js")],
+      "logout": ["whatwg-fetch", path.join(__dirname, "/patientsearch/src/js/containers/Logout.js")]
     },
     watchOptions: {
       aggregateTimeout: 300,

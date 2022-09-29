@@ -1,10 +1,10 @@
 import "core-js/stable";
 import "regenerator-runtime/runtime";
 import React, { Component } from "react";
-import Layout from "./components/Layout";
-import PatientListTable from "./components/PatientListTable";
-import TimeoutModal from "./components/TimeoutModal.js";
-import Version from "./components/Version";
+import Layout from "../layout/Layout";
+import PatientListTable from "../components/PatientListTable";
+import TimeoutModal from "../components/TimeoutModal.js";
+import Version from "../components/Version";
 
 export default class App extends Component {
   constructor(props) {

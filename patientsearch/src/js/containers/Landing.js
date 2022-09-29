@@ -1,8 +1,8 @@
 import React from "react";
 import { render } from "react-dom";
-import Layout from "./components/Layout";
-import Info from "./components/Info";
-import Version from "./components/Version";
+import Layout from "../layout/Layout";
+import Info from "../components/Info";
+import Version from "../components/Version";
 
 // entry point for pre-authenticated access
 render(

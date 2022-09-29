@@ -33,7 +33,7 @@ import {
   isAdult,
   padDateString,
 } from "./Utility";
-import theme from "../context/theme";
+import theme from "../themes/theme";
 const LOINC_SYSTEM_URL = "https://loinc.org";
 const CONTRACT_CODE = "94136-9";
 const useStyles = makeStyles({
@@ -434,7 +434,6 @@ export default function Agreement(props) {
     return isValid(dateObj) && !(dateObj > today);
   };
   const handleSnackClose = (event, reason) => {
-    if (event) event.stopPropation();
     if (reason === "clickaway") {
       return;
     }
