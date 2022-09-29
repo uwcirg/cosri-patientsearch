@@ -4,7 +4,7 @@ import Button from "@material-ui/core/Button";
 import Typography from "@material-ui/core/Typography";
 import Layout from "../layout/Layout";
 import Alert from "../components/Alert";
-import { getUrlParameter } from "../components/Utility";
+import { getUrlParameter } from "../helpers/utility";
 import { useSettingContext } from "../context/SettingContextProvider";
 import "../../styles/app.scss";
 

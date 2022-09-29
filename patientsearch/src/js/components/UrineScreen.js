@@ -37,7 +37,7 @@ import {
   isAdult,
   padDateString,
   sendRequest,
-} from "./Utility";
+} from "../helpers/utility";
 import { useSettingContext } from "../context/SettingContextProvider";
 import theme from "../themes/theme";
 

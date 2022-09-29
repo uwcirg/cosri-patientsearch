@@ -9,7 +9,7 @@ import HowToRegIcon from "@material-ui/icons/HowToReg";
 import Toolbar from "@material-ui/core/Toolbar";
 import Typography from "@material-ui/core/Typography";
 import SiteLogo from "./SiteLogo";
-import { imageOK, sendRequest, setDocumentTitle, setFavicon } from "./Utility";
+import { imageOK, sendRequest, setDocumentTitle, setFavicon } from "../helpers/utility";
 import { useSettingContext } from "../context/SettingContextProvider";
 
 const useStyles = makeStyles((theme) => ({

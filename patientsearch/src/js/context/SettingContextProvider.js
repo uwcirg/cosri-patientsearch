@@ -1,7 +1,7 @@
 import React, { useContext, useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import CircularProgress from "@material-ui/core/CircularProgress";
-import {getSettings} from "../components/Utility";
+import {getSettings} from "../helpers/utility";
 const SettingContext = React.createContext({});
 /*
  * context provider component that allows application settings to be accessible to its children component(s)

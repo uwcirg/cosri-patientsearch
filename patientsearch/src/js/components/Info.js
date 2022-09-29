@@ -5,7 +5,7 @@ import { makeStyles } from "@material-ui/core/styles";
 import Button from "@material-ui/core/Button";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import Typography from "@material-ui/core/Typography";
-import { imageOK } from "./Utility";
+import { imageOK } from "../helpers/utility";
 import { useSettingContext } from "../context/SettingContextProvider";
 import theme from "../themes/theme";
 

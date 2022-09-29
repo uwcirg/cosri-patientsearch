@@ -32,7 +32,7 @@ import {
   getShortDateFromISODateString,
   isAdult,
   padDateString,
-} from "./Utility";
+} from "../helpers/utility";
 import theme from "../themes/theme";
 const LOINC_SYSTEM_URL = "https://loinc.org";
 const CONTRACT_CODE = "94136-9";

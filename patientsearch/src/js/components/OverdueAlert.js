@@ -10,7 +10,7 @@ import {
   getShortDateFromISODateString,
   isInMonthPeriod,
   isDateInPast,
-} from "./Utility";
+} from "../helpers/utility";
 
 const useStyles = makeStyles({
   alertIcon: {

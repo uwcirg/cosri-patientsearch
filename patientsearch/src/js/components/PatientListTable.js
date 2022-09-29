@@ -30,7 +30,7 @@ import {
   getClientsByRequiredRoles,
   isString,
   validateToken,
-} from "./Utility";
+} from "../helpers/utility";
 
 const useStyles = makeStyles({
   container: {

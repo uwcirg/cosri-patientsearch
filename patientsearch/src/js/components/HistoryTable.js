@@ -5,7 +5,7 @@ import MaterialTable from "@material-table/core";
 import TablePagination from "@material-ui/core/TablePagination";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import Error from "./Error";
-import {fetchData} from "./Utility";
+import {fetchData} from "../helpers/utility";
 import theme from "../themes/theme";
 import {tableIcons} from "../constants/consts";
 

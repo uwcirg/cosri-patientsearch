@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import Button from "@material-ui/core/Button";
 import Modal from "@material-ui/core/Modal";
-import { sendRequest } from "./Utility";
+import { sendRequest } from "../helpers/utility";
 import theme from "../themes/theme";
 import { useSettingContext } from "../context/SettingContextProvider";
 
