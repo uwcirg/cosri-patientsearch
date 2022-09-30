@@ -844,7 +844,7 @@ export default function PatientListTable() {
                     ),
                     onClick: (event, rowData) => {
                       event.stopPropagation();
-                      handleLaunchApp(rowData, client)
+                      handleLaunchApp(rowData, client);
                     },
                     tooltip: `Launch ${client.id} application for the user`,
                   };
