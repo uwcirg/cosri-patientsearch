@@ -18,30 +18,6 @@ APPLICATION_TITLE = os.getenv(
     "APPLICATION_TITLE", "Clinical Opioid Summary with Rx Integration"
 )
 
-if os.getenv("DASHBOARD_COLUMNS"):
-    DASHBOARD_COLUMNS = json.loads(os.getenv("DASHBOARD_COLUMNS"))
-else:
-    DASHBOARD_COLUMNS = [
-        {
-            "label": "First Name",
-            "expr": "$.name[0].given[0]",
-        },
-        {
-            "label": "Last Name",
-            "expr": "$.name[0].family",
-        },
-        {
-            "label": "Birth Date",
-            "expr": "$.birthDate",
-        },
-        {
-            "label": "Last Accessed",
-            "defaultSort": "desc",
-            "expr": "$.meta.lastUpdated",
-            "dataType": "date",
-        },
-    ]
-
 ENABLE_INACTIVITY_TIMEOUT = (
     os.getenv("ENABLE_INACTIVITY_TIMEOUT", "true").lower() == "true"
 )
