@@ -323,8 +323,14 @@ export default function PatientListTable() {
     return appClients && appClients.length > 1;
   };
   const handleLaunchApp = (rowData, launchParams) => {
-    //handle multiple SoF clients that can be launched
-    //open a dialog here so user can select which one to launch?
+
+    if (!launchParams) {
+      // if only one SoF client, use its launch params
+      launchParams =
+        hasSoFClients() && appClients.length === 1 ? appClients[0] : null;
+    }
+    // if no launch params specifieid, need to handle multiple SoF clients that can be launched
+    // open a dialog here so user can select which one to launch?
     if (!launchParams && hasMultipleSoFClients()) {
       setCurrentRow(rowData);
       setOpenLoadingModal(false);
@@ -355,25 +361,12 @@ export default function PatientListTable() {
     setOpenLaunchInfoModal(false);
     handleRefresh();
   };
-  const handleSearch = (rowData, launchParams) => {
+  const handleSearch = (rowData) => {
     if (!rowData) {
       handleLaunchError("No patient data to proceed.");
       return false;
     }
-    if (!launchParams) {
-      launchParams =
-        hasSoFClients() && appClients.length === 1 ? appClients[0] : null;
-    }
-    //if all well, prepare to launch app
-    const allowToLaunch =
-      (rowData.id && hasMultipleSoFClients()) ||
-      (launchParams &&
-        (needExternalAPILookup() ? inPDMP(rowData) : rowData.id));
-
-    if (allowToLaunch) {
-      handleLaunchApp(rowData, launchParams);
-      return;
-    }
+    // search parameters
     const searchBody = rowData.resource
       ? JSON.stringify(rowData.resource)
       : JSON.stringify({
@@ -386,9 +379,11 @@ export default function PatientListTable() {
           ],
           birthDate: rowData.birth_date,
         });
+    // error message when no result returned
     const noResultErrorMessage = needExternalAPILookup()
       ? "<div>The patient was not found in the PMP. This could be due to:</div><ul><li>No previous controlled substance medications dispensed</li><li>Incorrect spelling of name or incorrect date of birth.</li></ul><div>Please double check name spelling and date of birth.</div>"
       : "No matched patient found";
+    // error message for API error
     const fetchErrorMessage = needExternalAPILookup()
       ? "<p>COSRI is unable to return PMP information. This may be due to PMP system being down or a problem with the COSRI connection to PMP.</p>"
       : "Server error when looking up patient";
@@ -425,7 +420,7 @@ export default function PatientListTable() {
           console.log("Error occurred adding row to table ", e);
         }
         handleRefresh();
-        handleLaunchApp(formatData(response)[0], launchParams);
+        handleLaunchApp(formatData(response)[0]);
       })
       .catch((e) => {
         //log error to console
@@ -849,7 +844,7 @@ export default function PatientListTable() {
                     ),
                     onClick: (event, rowData) => {
                       event.stopPropagation();
-                      handleSearch(rowData, client);
+                      handleLaunchApp(rowData, client)
                     },
                     tooltip: `Launch ${client.id} application for the user`,
                   };
@@ -901,7 +896,7 @@ export default function PatientListTable() {
           onRowClick={(event, rowData) => {
             event.stopPropagation();
             if (!hasSoFClients()) return;
-            handleSearch(rowData);
+            handleLaunchApp(rowData);
           }}
           editable={{
             onRowDelete: (oldData) =>
@@ -1010,7 +1005,7 @@ export default function PatientListTable() {
         body={
           <div className={classes.flex}>
             {hasSoFClients() &&
-              appClients.map((item, index) => {
+              appClients.map((appClient, index) => {
                 return (
                   <Button
                     key={`launchButton_${index}`}
@@ -1019,9 +1014,9 @@ export default function PatientListTable() {
                     className={classes.flexButton}
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleLaunchApp(currentRow, item);
+                      handleLaunchApp(currentRow, appClient);
                     }}
-                  >{`Launch ${item.id}`}</Button>
+                  >{`Launch ${appClient.id}`}</Button>
                 );
               })}
           </div>
