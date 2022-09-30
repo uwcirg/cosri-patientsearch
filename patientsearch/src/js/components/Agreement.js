@@ -603,7 +603,7 @@ export default function Agreement(props) {
                     ></EditButtonGroup>
                   </div>
                   {/* alerts */}
-                  {isAdult(rowData.dob) && (
+                  {isAdult(rowData.birth_date) && (
                     <OverdueAlert
                       date={lastEntry.date}
                       type="controlled substance agreement"

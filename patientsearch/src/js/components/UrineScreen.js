@@ -145,6 +145,9 @@ const useStyles = makeStyles({
   tableContainer: {
     position: "relative",
   },
+  overDueContainer: {
+    marginBottom: theme.spacing(2)
+  }
 });
 
 export default function UrineScreen(props) {
@@ -835,11 +838,13 @@ export default function UrineScreen(props) {
                     ></EditButtonGroup>
                   </div>
                   {/* alerts */}
-                  {isAdult(rowData.dob) && (
-                    <OverdueAlert
-                      date={lastEntry.date}
-                      type="urine drug screen"
-                    ></OverdueAlert>
+                  {isAdult(rowData.birth_date) && (
+                    <div className={classes.overDueContainer}>
+                      <OverdueAlert
+                        date={lastEntry.date}
+                        type="urine drug screen"
+                      ></OverdueAlert>
+                    </div>
                   )}
                 </React.Fragment>
               )}
