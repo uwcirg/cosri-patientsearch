@@ -202,7 +202,6 @@ export default function PatientListTable() {
   const tableRef = React.useRef();
   const LAUNCH_BUTTON_LABEL = "VIEW";
   const CREATE_BUTTON_LABEL = "CREATE";
-  const TOOLBAR_ACTION_BUTTON_ID = "toolbarGoButton";
   const MORE_MENU_KEY = "MORE_MENU";
   const noCacheParam = { cache: "no-cache" };
   const menuItems = [
@@ -346,10 +345,8 @@ export default function PatientListTable() {
       return false;
     }
     setOpenLoadingModal(true);
-    setTimeout(function () {
-      sessionStorage.clear();
-      window.location = launchURL;
-    }, 50);
+    sessionStorage.clear();
+    window.location = launchURL;
   };
   const handleLaunchError = (message) => {
     setErrorMessage(message || "Unable to launch application.");
@@ -785,7 +782,6 @@ export default function PatientListTable() {
             onFiltersDidChange={onFiltersDidChange}
             launchFunc={handleSearch}
             launchButtonLabel={actionLabel}
-            launchButtonId={TOOLBAR_ACTION_BUTTON_ID}
           />
         </tbody>
       </table>

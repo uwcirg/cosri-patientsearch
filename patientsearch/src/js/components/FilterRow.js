@@ -278,7 +278,6 @@ export default function FilterRow(props) {
       <td className={classes.toolbarCell}>
         {/* toolbar go button */}
         <Button
-          id={props.launchButtonId}
           className={
             !hasCompleteFilters()
               ? `${classes.button} disabled`
@@ -313,5 +312,4 @@ FilterRow.propTypes = {
   onFiltersDidChange: PropTypes.func.isRequired,
   launchButtonLabel: PropTypes.string,
   launchFunc: PropTypes.func,
-  launchButtonId: PropTypes.string,
 };
