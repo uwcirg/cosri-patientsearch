@@ -14,7 +14,7 @@ import {
   MuiPickersUtilsProvider,
   KeyboardDatePicker,
 } from "@material-ui/pickers";
-import theme from "../context/theme";
+import theme from "../themes/theme";
 
 const useStyles = makeStyles({
   row: {
@@ -45,7 +45,7 @@ const useStyles = makeStyles({
     paddingRight: theme.spacing(1),
   },
   empty: {
-    width: "20%",
+    width: "24px",
     backgroundColor: "#f7f7f7",
   },
 });
@@ -70,7 +70,7 @@ export default function FilterRow(props) {
         value: lastName,
       },
       {
-        field: "dob",
+        field: "birth_date",
         value: isValid(new Date(dateInput)) ? dateInput : "",
       },
     ]);
@@ -88,7 +88,7 @@ export default function FilterRow(props) {
         value: firstName,
       },
       {
-        field: "dob",
+        field: "birth_date",
         value: isValid(new Date(dateInput)) ? dateInput : "",
       },
     ]);
@@ -107,12 +107,12 @@ export default function FilterRow(props) {
     return {
       first_name: firstName,
       last_name: lastName,
-      dob: dateInput,
+      birth_date: dateInput,
     };
   };
   const clearDate = () => {
-    setDate(null);
     setDateInput("");
+    setDate(null);
     props.onFiltersDidChange([
       {
         field: "first_name",
@@ -123,16 +123,19 @@ export default function FilterRow(props) {
         value: lastName,
       },
       {
-        field: "dob",
+        field: "birth_date",
         value: null,
       },
     ]);
+  };
+  const handleClear = () => {
+    clearFields();
+    props.onFiltersDidChange(null);
   };
   const clearFields = () => {
     setFirstName("");
     setLastName("");
     clearDate();
-    props.onFiltersDidChange(null, true);
   };
   const getLaunchButtonLabel = () => {
     return props.launchButtonLabel
@@ -141,7 +144,7 @@ export default function FilterRow(props) {
   };
   const handleKeyDown = (e) => {
     if (String(e.key).toLowerCase() === "enter") {
-      props.launchFunc(e, getFilterData());
+      props.launchFunc(getFilterData());
       return;
     }
     return false;
@@ -213,8 +216,9 @@ export default function FilterRow(props) {
                     style={{ order: 2, padding: 0 }}
                     aria-label="Clear date"
                     title="Clear date"
+                    tabIndex={-1}
                   >
-                    <ClearIcon color="primary" fontSize="small" />
+                    <ClearIcon fontSize="small" />
                   </IconButton>
                 </InputAdornment>
               ),
@@ -234,7 +238,6 @@ export default function FilterRow(props) {
               if (!event || !isValid(event)) {
                 if (event && String(dateInput).replace(/[-_]/g, "").length >= 8)
                   setDate(event);
-                // props.onFilterChanged(3, null, "dob");
                 props.onFiltersDidChange([
                   {
                     field: "first_name",
@@ -245,14 +248,13 @@ export default function FilterRow(props) {
                     value: lastName,
                   },
                   {
-                    field: "dob",
+                    field: "birth_date",
                     value: null,
                   },
                 ]);
                 return;
               }
               setDate(event);
-              //   props.onFilterChanged(3, dateString, "dob");
               props.onFiltersDidChange([
                 {
                   field: "first_name",
@@ -263,7 +265,7 @@ export default function FilterRow(props) {
                   value: lastName,
                 },
                 {
-                  field: "dob",
+                  field: "birth_date",
                   value: dateString,
                 },
               ]);
@@ -276,7 +278,6 @@ export default function FilterRow(props) {
       <td className={classes.toolbarCell}>
         {/* toolbar go button */}
         <Button
-          id={props.launchButtonId}
           className={
             !hasCompleteFilters()
               ? `${classes.button} disabled`
@@ -285,7 +286,7 @@ export default function FilterRow(props) {
           color="primary"
           size="small"
           variant="contained"
-          onClick={(e) => props.launchFunc(e, getFilterData())}
+          onClick={() => props.launchFunc(getFilterData())}
         >
           {getLaunchButtonLabel()}
         </Button>
@@ -293,7 +294,7 @@ export default function FilterRow(props) {
           <Button
             variant="contained"
             size="small"
-            onClick={clearFields}
+            onClick={handleClear}
             className={
               !hasFilter() ? `${classes.button} disabled` : classes.button
             }
@@ -311,5 +312,4 @@ FilterRow.propTypes = {
   onFiltersDidChange: PropTypes.func.isRequired,
   launchButtonLabel: PropTypes.string,
   launchFunc: PropTypes.func,
-  launchButtonId: PropTypes.string
 };

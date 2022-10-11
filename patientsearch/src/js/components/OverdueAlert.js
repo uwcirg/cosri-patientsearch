@@ -3,14 +3,14 @@ import PropTypes from "prop-types";
 import { makeStyles } from "@material-ui/core/styles";
 import AssignmentLateIcon from "@material-ui/icons/AssignmentLate";
 import Typography from "@material-ui/core/Typography";
-import theme from "../context/theme";
+import theme from "../themes/theme";
 import {
   addYearsToDate,
   getLocalDateTimeString,
   getShortDateFromISODateString,
   isInMonthPeriod,
   isDateInPast,
-} from "./Utility";
+} from "../helpers/utility";
 
 const useStyles = makeStyles({
   alertIcon: {

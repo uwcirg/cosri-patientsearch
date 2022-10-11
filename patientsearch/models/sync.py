@@ -71,9 +71,13 @@ def HAPI_request(
             current_app.logger.exception(error)
             raise RuntimeError("EMR FHIR store inaccessible")
     elif VERB == "POST":
-        resp = requests.post(url, auth=BearerAuth(token), json=resource, timeout=30)
+        resp = requests.post(
+            url, auth=BearerAuth(token), params=params, json=resource, timeout=30
+        )
     elif VERB == "PUT":
-        resp = requests.put(url, auth=BearerAuth(token), json=resource, timeout=30)
+        resp = requests.put(
+            url, auth=BearerAuth(token), params=params, json=resource, timeout=30
+        )
     elif VERB == "DELETE":
         # Only enable deletion of resource by id
         if not resource_id:
@@ -193,24 +197,28 @@ def _merge_patient(src_patient, internal_patient, token):
         return internal_patient
     else:
         internal_patient["identifier"] = src_patient["identifier"]
+        params = patient_as_search_params(internal_patient)
         return HAPI_request(
             token=token,
             method="PUT",
+            params=params,
             resource_type="Patient",
             resource=internal_patient,
             resource_id=internal_patient["id"],
         )
 
 
-def internal_patient_search(token, patient):
-    """Look up given patient from "internal" HAPI store, returns bundle"""
+def patient_as_search_params(patient):
+    """Generate HAPI search params from patient resource"""
 
     # Use same parameters sent to external src looking for existing Patient
-    # Note FHIR uses list for 'given', common parameter use defines just one
+    # Note FHIR uses list for 'name' and 'given', common parameter use defines just one
     search_map = (
         ("name.family", "family", ""),
+        ("name[0].family", "family", ""),
         ("name.given", "given", ""),
         ("name.given[0]", "given", ""),
+        ("name[0].given[0]", "given", ""),
         ("birthDate", "birthdate", "eq"),
     )
     search_params = {}
@@ -219,9 +227,14 @@ def internal_patient_search(token, patient):
         match = json_search(path, patient)
         if match and isinstance(match, str):
             search_params[queryterm] = compstr + match
+    return search_params
 
+
+def internal_patient_search(token, patient):
+    """Look up given patient from "internal" HAPI store, returns bundle"""
+    params = patient_as_search_params(patient)
     return HAPI_request(
-        token=token, method="GET", resource_type="Patient", params=search_params
+        token=token, method="GET", resource_type="Patient", params=params
     )
 
 

@@ -1,13 +1,13 @@
 import PropTypes from 'prop-types';
 import React from "react";
 import { makeStyles } from "@material-ui/core/styles";
-import MaterialTable from "material-table";
+import MaterialTable from "@material-table/core";
 import TablePagination from "@material-ui/core/TablePagination";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import Error from "./Error";
-import {fetchData} from "./Utility";
-import theme from "../context/theme";
-import {tableIcons} from "../context/consts";
+import {fetchData} from "../helpers/utility";
+import theme from "../themes/theme";
+import {tableIcons} from "../constants/consts";
 
 
 const useStyles = makeStyles((theme) => ({
@@ -155,14 +155,22 @@ export default function HistoryTable(props) {
                           props.submitDataFormatter ? props.submitDataFormatter(newData) : newData
                         )
                     }).then(() => {
-                          const dataUpdate = [...data];
-                          const index = oldData.tableData.id;
-                          dataUpdate[index] = newData;
-                          setData([...dataUpdate]);
-                          if (props.onRowUpdate) setTimeout(() => props.onRowUpdate(), 250);
-                    }).catch(() => {
+                      const dataUpdate = [...data];
+                      // In dataUpdate, find target
+                      const target = dataUpdate.find(
+                        (el) => el.id === oldData.id
+                      );
+                      const index = dataUpdate.indexOf(target);
+                      dataUpdate[index] = newData;
+                      setData([...dataUpdate]);
+                      if (props.onRowUpdate)
+                        setTimeout(
+                          () => props.onRowUpdate(),
+                          350
+                        );
+                    }).catch((e) => {
                       setErrorMessage(
-                        "Unable to update patient from the list."
+                        "Unable to update patient from the list." + e
                       );
                     });
                   },
@@ -170,15 +178,18 @@ export default function HistoryTable(props) {
                   fetchData(props.APIURL + oldData.id, { method: "DELETE" })
                         .then(() => {
                             const dataDelete = [...data];
-                            const index = oldData.tableData.id;
+                            const target = dataDelete.find(
+                              (el) => el.id === oldData.id
+                            );
+                            const index = dataDelete.indexOf(target);
                             dataDelete.splice(index, 1);
                             setData([...dataDelete]);
                             setErrorMessage("");
-                            if (props.onRowDelete) setTimeout(() => props.onRowDelete(), 250);
+                            if (props.onRowDelete) setTimeout(() => props.onRowDelete(), 350);
                         })
-                        .catch(() => {
+                        .catch((e) => {
                           setErrorMessage(
-                            "Unable to remove patient from the list."
+                            "Unable to remove patient from the list. " + e
                           );
                         }),
           }}

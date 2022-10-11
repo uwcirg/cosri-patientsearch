@@ -1,9 +1,9 @@
 import React from "react";
 import PropTypes from "prop-types";
 import { makeStyles } from "@material-ui/core/styles";
-import { imageOK } from "./Utility";
-import { getAppSettings } from "../context/SettingContextProvider";
-import theme from "../context/theme";
+import { imageOK } from "../helpers/utility";
+import { useSettingContext } from "../context/SettingContextProvider";
+import theme from "../themes/theme";
 
 const useStyles = makeStyles({
   container: {
@@ -15,11 +15,11 @@ const useStyles = makeStyles({
 
 export default function SiteLogo(props) {
   const classes = useStyles();
-  const appSettings = props.appSettings ? props.appSettings : getAppSettings(); //provide default if none provided
+  const settingsCtx = useSettingContext();
+  const appSettings = props.appSettings
+    ? props.appSettings
+    : settingsCtx.appSettings; //provide default if none provided
   const SITE_ID_STRING = "SITE_ID";
-  React.useEffect(() => {
-    //wait for application settings
-  }, [appSettings]);
   function getSiteId() {
     if (props.siteID) return props.siteID;
     if (!Object.keys(appSettings)) return "";

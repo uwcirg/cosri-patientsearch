@@ -33,6 +33,9 @@ html {
 .muted {
   color: $color-muted;
 }
+.invisible {
+  visibility: hidden;
+}
 .ghost {
   display: none;
   z-index: -1;
@@ -260,16 +263,16 @@ button.disabled:focus,
   .MuiInputLabel-formControl {
     font-size: $small-font-size;
   }
+  .main {
+    tr {
+      td:last-child {
+        min-width: 96px;
+      }
+    }
+  }
   table {
     position: relative;
     overflow: hidden;
-  }
-  tr {
-    td {
-      button:not(:first-of-type):not(:last-of-type) {
-        order: 10
-      }
-    }
   }
 }
 #patientListPagination {

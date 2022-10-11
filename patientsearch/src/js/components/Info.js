@@ -5,9 +5,9 @@ import { makeStyles } from "@material-ui/core/styles";
 import Button from "@material-ui/core/Button";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import Typography from "@material-ui/core/Typography";
-import { imageOK } from "./Utility";
-import { getAppSettings } from "../context/SettingContextProvider";
-import theme from "../context/theme";
+import { imageOK } from "../helpers/utility";
+import { useSettingContext } from "../context/SettingContextProvider";
+import theme from "../themes/theme";
 
 const useStyles = makeStyles({
   wrapper: {
@@ -66,25 +66,25 @@ const useStyles = makeStyles({
 
 export default function Info(props) {
   const classes = useStyles();
-  const [loading, setLoading] = React.useState(true);
-  const [siteID, setSiteID] = React.useState("");
-  const appSettings = props.appSettings ? props.appSettings : getAppSettings(); //provide default if none provided
+  const settingsCtx = useSettingContext();
+  const appSettings = props.appSettings
+    ? props.appSettings
+    : settingsCtx.appSettings; //provide default if none provided
   const SYSTEM_TYPE_STRING = "SYSTEM_TYPE";
   const SITE_ID_STRING = "SITE_ID";
+  const [loading, setLoading] = React.useState(true);
+  const siteID = getConfig(SITE_ID_STRING);
 
-  React.useEffect(() => {
-    /*
-     * retrieve setting information
-     */
-    setSiteID(getConfig(SITE_ID_STRING));
-    setTimeout(() => setLoading(false), 250);
-  }, [appSettings]);
+  function hasSettings() {
+    return appSettings && Object.keys(appSettings).length > 0;
+  }
+
   /* return config variable by key */
-  function getConfig(key) {
-    if (props.appSettings) return props.appSettings[key];
-    if (!Object.keys(appSettings)) return "";
+  function getConfig (key) {
+    if (!hasSettings()) return "";
     return appSettings[key];
   }
+
   function handleImageLoaded(e) {
     if (!e.target) {
       return false;
@@ -127,6 +127,11 @@ export default function Info(props) {
       return `This is a ${getConfig(SYSTEM_TYPE_STRING)} system.  Not for clinical use.`;
     return "This system is only for use by clinical staff.";
   }
+
+  React.useEffect(() => {
+    setTimeout(() => setLoading(false), 250);
+  }, []);
+
   return (
     <div className={classes.wrapper}>
       {loading && (
@@ -138,11 +143,15 @@ export default function Info(props) {
           ></CircularProgress>
         </div>
       )}
-      {!loading && (
+      {!loading && hasSettings() && (
         <div className={classes.container}>
           {/* intro text, e.g. HTML block 1 */}
           <div className={classes.introText}>
-            <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(getIntroText()) }}></div>
+            <div
+              dangerouslySetInnerHTML={{
+                __html: DOMPurify.sanitize(getIntroText()),
+              }}
+            ></div>
           </div>
           {/* logo image */}
           {siteID && (
@@ -172,7 +181,11 @@ export default function Info(props) {
               align="center"
               className={classes.title}
             >
-              <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(getBodyText()) }}></div>
+              <div
+                dangerouslySetInnerHTML={{
+                  __html: DOMPurify.sanitize(getBodyText()),
+                }}
+              ></div>
             </Typography>
           </div>
         </div>

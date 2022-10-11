@@ -9,8 +9,8 @@ import HowToRegIcon from "@material-ui/icons/HowToReg";
 import Toolbar from "@material-ui/core/Toolbar";
 import Typography from "@material-ui/core/Typography";
 import SiteLogo from "./SiteLogo";
-import { sendRequest } from "./Utility";
-import logo from "../../assets/logo_horizontal.png";
+import { imageOK, sendRequest, setDocumentTitle, setFavicon } from "../helpers/utility";
+import { useSettingContext } from "../context/SettingContextProvider";
 
 const useStyles = makeStyles((theme) => ({
   toolbar: {
@@ -98,8 +98,39 @@ export default function Header() {
   const classes = useStyles();
   const [userInfo, setUserInfo] = React.useState();
   const [authorized, setAuthorized] = React.useState(false);
+  const [appTitle, setAppTitle] = React.useState("");
+  const [projectName, setProjectName] = React.useState("");
   const hasUserInfo = () => {
     return userInfo && (userInfo.name || userInfo.email);
+  };
+  const appSettings = useSettingContext().appSettings;
+
+  const getLogoURL = () => {
+    if (!projectName) return "";
+    return `/static/app/img/${projectName}_logo.png`;
+  };
+
+  const handleImageLoaded = (e) => {
+    if (!e.target) {
+      return false;
+    }
+    let imageLoaded = imageOK(e.target);
+    if (!imageLoaded) {
+      e.target.classList.add("ghost");
+      return;
+    }
+    e.target.classList.remove("ghost");
+  };
+
+  const handleImageLoadError = (e) => {
+    if (!e.target) {
+      return false;
+    }
+    let imageLoaded = imageOK(e.target);
+    if (!imageLoaded) {
+      e.target.classList.add("ghost");
+      return;
+    }
   };
 
   React.useEffect(() => {
@@ -126,12 +157,24 @@ export default function Header() {
     );
   }, []);
 
+  React.useLayoutEffect(() => {
+    if (appSettings) {
+      if (appSettings["APPLICATION_TITLE"])
+        setAppTitle(appSettings["APPLICATION_TITLE"]);
+      if (appSettings["PROJECT_NAME"]) {
+        setProjectName(appSettings["PROJECT_NAME"]);
+        setDocumentTitle(`${appSettings["PROJECT_NAME"]} Patient Search`);
+        setFavicon(`/static/${appSettings["PROJECT_NAME"]}_favicon.ico`);
+      }
+    }
+  }, [appSettings]);
+
   const logoutURL = "/logout?user_initiated=true";
 
   return (
     <AppBar position="absolute" className={classes.appBar}>
       <Toolbar className={classes.topBar} disableGutters variant="dense">
-        <img src={logo} alt="Logo" className={classes.logo} />
+        <img src={getLogoURL()} alt="Logo" className={classes.logo} onLoad={handleImageLoaded} onError={handleImageLoadError}/>
         <SiteLogo />
         {authorized && (
           <Box className={classes.welcomeContainer}>
@@ -174,7 +217,7 @@ export default function Header() {
           </Box>
         )}
       </Toolbar>
-      <Toolbar className={classes.toolbar} disableGutters variant="dense">
+      {appTitle && <Toolbar className={classes.toolbar} disableGutters variant="dense">
         <Typography
           component="h1"
           variant="h5"
@@ -183,9 +226,9 @@ export default function Header() {
           className={classes.title}
           align="center"
         >
-          Clinical Opioid Summary with Rx Integration
+          {appTitle}
         </Typography>
-      </Toolbar>
+      </Toolbar>}
     </AppBar>
   );
 }

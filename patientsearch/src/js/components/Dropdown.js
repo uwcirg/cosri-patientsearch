@@ -1,6 +1,5 @@
 import React from "react";
 import PropTypes from "prop-types";
-import theme from "../context/theme";
 import { makeStyles, styled } from "@material-ui/core/styles";
 import AddCircleOutlineIcon from "@material-ui/icons/AddCircleOutline";
 import Button from "@material-ui/core/Button";
@@ -8,6 +7,7 @@ import ListItemIcon from "@material-ui/core/ListItemIcon";
 import Menu from "@material-ui/core/Menu";
 import MenuItem from "@material-ui/core/MenuItem";
 import Typography from "@material-ui/core/Typography";
+import theme from "../themes/theme";
 
 const useStyles = makeStyles({
   menu: {

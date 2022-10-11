@@ -5,9 +5,9 @@ const OptimizeCssAssetsPlugin = require("optimize-css-assets-webpack-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const { CleanWebpackPlugin } = require("clean-webpack-plugin");
 const FileManagerPlugin = require("filemanager-webpack-plugin");
-const appTitle = "COSRI Patient Search";
+/* document title is being populated at runtime, this is just a placeholder */
+const appTitle = "Patient Search";
 const templateFilePath = path.join(__dirname, "/patientsearch/src/index.html");
-const faviconFilePath = path.join(__dirname, "/patientsearch/src/assets/favicon.ico");
 
 module.exports = function(_env, argv) {
   const isProduction = argv.mode === "production";
@@ -21,9 +21,9 @@ module.exports = function(_env, argv) {
 
   return {
     entry:  {
-      "index" : ["whatwg-fetch", path.join(__dirname, "/patientsearch/src/js/Entry.js")],
-      "info": ["whatwg-fetch", path.join(__dirname, "/patientsearch/src/js/Landing.js")],
-      "logout": ["whatwg-fetch", path.join(__dirname, "/patientsearch/src/js/Logout.js")]
+      "index" : ["whatwg-fetch", path.join(__dirname, "/patientsearch/src/js/containers/Entry.js")],
+      "info": ["whatwg-fetch", path.join(__dirname, "/patientsearch/src/js/containers/Landing.js")],
+      "logout": ["whatwg-fetch", path.join(__dirname, "/patientsearch/src/js/containers/Logout.js")]
     },
     watchOptions: {
       aggregateTimeout: 300,
@@ -87,21 +87,18 @@ module.exports = function(_env, argv) {
         title: appTitle,
         template: templateFilePath,
         filename: path.join(__dirname, `${templateDirectory}/index.html`),
-        favicon: faviconFilePath,
         chunks: ["index"]
       }),
       new HtmlWebpackPlugin({
         title: appTitle,
         template: templateFilePath,
         filename: path.join(__dirname, `${templateDirectory}/home.html`),
-        favicon: faviconFilePath,
         chunks: ["info"]
       }),
       new HtmlWebpackPlugin({
         title: appTitle,
         template: templateFilePath,
         filename: path.join(__dirname, `${templateDirectory}/logout.html`),
-        favicon: faviconFilePath,
         chunks: ["logout"]
       }),
       new webpack.ProvidePlugin({

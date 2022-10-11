@@ -1,8 +1,8 @@
 import React from "react";
 import PropTypes from "prop-types";
 import { makeStyles } from "@material-ui/core/styles";
-import theme from "../context/theme";
-import { getAppSettings } from "../context/SettingContextProvider";
+import theme from "../themes/theme";
+import { useSettingContext } from "../context/SettingContextProvider";
 
 const useStyles = makeStyles({
   container: {
@@ -18,7 +18,10 @@ const useStyles = makeStyles({
 export default function SystemBanner(props) {
   const classes = useStyles();
   const SYSTEM_TYPE_STRING = "SYSTEM_TYPE";
-  const appSettings = props.appSettings ? props.appSettings : getAppSettings(); //provide default if none provided
+  const settingsCtx = useSettingContext();
+  const appSettings = props.appSettings
+    ? props.appSettings
+    : settingsCtx.appSettings; //provide default if none provided
   function getSystemType() {
     if (props.systemType) return props.systemType;
     if (!Object.keys(appSettings)) return "";
@@ -28,9 +31,6 @@ export default function SystemBanner(props) {
     let systemType = getSystemType();
     return systemType && String(systemType.toLowerCase()) !== "production";
   }
-  React.useEffect(() => {
-    //wait for application settings
-  }, [appSettings]);
   return (
     /* display system type for non-production instances */
     <div className={classes.container}>

@@ -280,3 +280,77 @@ export function padDateString(dateString) {
   let day = pad(arrDate[2]);
   return [year, month, day].join("-");
 }
+
+export  async function validateToken() {
+  const response = await fetch("./validate_token");
+  if (!response.ok) {
+    throw response;
+  }
+  const tokenData = await response.json();
+  if (
+    !tokenData ||
+    (tokenData &&
+      (!tokenData.valid ||
+        parseInt(tokenData.access_expires_in) <= 0 ||
+        parseInt(tokenData.refresh_expires_in) <= 0))
+  ) {
+    return false;
+  }
+  return tokenData;
+}
+
+export function getRolesFromToken(token) {
+  token = token || {};
+  let roles = [];
+  const ACCESS_TOKEN_KEY = "access_token";
+  const REALM_ACCESS_KEY = "realm_access";
+  if (token[ACCESS_TOKEN_KEY] && token[ACCESS_TOKEN_KEY][REALM_ACCESS_KEY]) {
+    const realmAccessObj = token[ACCESS_TOKEN_KEY][REALM_ACCESS_KEY];
+    if (realmAccessObj["roles"]) {
+      roles = [...roles, ...realmAccessObj["roles"]];
+    }
+  }
+  return roles;
+}
+
+export function getClientsByRequiredRoles(sofClients, currentRoles) {
+  if (!sofClients) {
+    return;
+  }
+  //CHECK user role(s) against each SoF client app's REQUIRED_ROLES
+  return sofClients.filter((item) => {
+    const requiredRoles = item["required_roles"] || item["REQUIRED_ROLES"];
+    if (!requiredRoles) return true;
+    if (Array.isArray(requiredRoles) && !Array.isArray(currentRoles))
+      return requiredRoles.indexOf(currentRoles) !== -1;
+    if (!Array.isArray(requiredRoles) && Array.isArray(currentRoles))
+      return currentRoles.filter((role) => role === currentRoles).length > 0;
+    if (Array.isArray(requiredRoles) && Array.isArray(currentRoles))
+      return (
+        requiredRoles.filter((role) => currentRoles.indexOf(role) !== -1)
+          .length > 0
+      );
+    return requiredRoles === currentRoles;
+  });
+}
+
+export function handleExpiredSession() {
+  sessionStorage.clear();
+  setTimeout(() => {
+    // /home is a protected endpoint, the backend will request a new Access Token from Keycloak if able, else prompt a user to log in again
+    window.location = "/home";
+  }, 0);
+}
+
+export function setDocumentTitle(title) {
+  if (!title) return;
+  document.title = title;
+}
+
+export function setFavicon(href) {
+  if (!href) return;
+  let faviconEl = document.querySelector("link[rel*='icon']");
+  if (!faviconEl) return;
+  faviconEl.href = href;
+}
+

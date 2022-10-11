@@ -195,14 +195,16 @@ def validate_token():
         valid=True,
         access_expires_in=access_token["exp"] - now,
         refresh_expires_in=refresh_token["exp"] - now,
+        access_token=access_token,
     )
 
 
 @api_blueprint.route("/favicon.ico")
 def favicon():
+    favicon = "_".join((current_app.config.get("PROJECT_NAME"), "favicon.ico"))
     return send_from_directory(
         current_app.config.get("STATIC_DIR") or current_app.static_folder,
-        "favicon.ico",
+        favicon,
         mimetype="image/vnd.microsoft.icon",
     )
 
@@ -251,9 +253,9 @@ def resource_bundle(resource_type):
         return jsonify_abort(status_code=400, message=str(error))
 
 
-@api_blueprint.route("/fhir/<string:resource_type>", methods=["POST"])
+@api_blueprint.route("/fhir/<string:resource_type>", methods=["POST", "PUT"])
 def post_resource(resource_type):
-    """Delegate request to POST given resource in post body to HAPI
+    """Delegate request to PUT/POST given resource in post body to HAPI
 
     NB not decorated with `@oidc.require_login` as that does an implicit
     redirect.  Client should watch for 401 and redirect appropriately.
@@ -273,10 +275,11 @@ def post_resource(resource_type):
                 f"{resource['resourceType']} != {resource_type}"
             )
 
-        method = "POST"
+        method = request.method
         audit_HAPI_change(
             user_info=current_user_info(token),
             method=method,
+            params=request.args,
             resource=resource,
             resource_type=resource_type,
         )
@@ -284,6 +287,7 @@ def post_resource(resource_type):
             HAPI_request(
                 token=token,
                 method=method,
+                params=request.args,
                 resource_type=resource_type,
                 resource=resource,
             )
