@@ -172,7 +172,9 @@ module.exports = function(_env, argv) {
             warnings: false,
           },
         }),
-        new CssMinimizerPlugin(),
+        new CssMinimizerPlugin({
+          exclude: /[\\/]node_modules[\\/]/,
+        }),
       ],
       splitChunks: {
         chunks: "all",
