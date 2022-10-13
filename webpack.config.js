@@ -60,8 +60,11 @@ module.exports = function(_env, argv) {
       rules: [
         //parse css files
         {
-          test: /\.css$/,
+          test: /\.s?css$/,
           use: [
+            {
+              loader: MiniCssExtractPlugin.loader,
+            },
             {
               loader: "style-loader",
             },
