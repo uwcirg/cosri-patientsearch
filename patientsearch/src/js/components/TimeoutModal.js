@@ -34,12 +34,13 @@ const useStyles = makeStyles((theme) => ({
     marginLeft: theme.spacing(0.5),
   },
 }));
-export default function TimeoutModal() {
-  let expiredIntervalId = 0;
-  let expiresIn = null;
-  let refresh = false;
-  let retryAttempts = 0;
 
+let expiredIntervalId = 0;
+let expiresIn = null;
+let refresh = false;
+let retryAttempts = 0;
+
+export default function TimeoutModal() {
   const classes = useStyles();
   const [modalStyle] = React.useState(getModalStyle);
   const [open, setOpen] = React.useState(false);

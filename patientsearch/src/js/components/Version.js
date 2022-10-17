@@ -2,6 +2,7 @@ import React from "react";
 import PropTypes from "prop-types";
 import { makeStyles} from "@material-ui/core/styles";
 import { useSettingContext } from "../context/SettingContextProvider";
+import { MAX_MAIN_TABLE_WIDTH } from "../constants/consts";
 
 const useStyles = makeStyles((theme) => ({
   container: {
@@ -9,7 +10,7 @@ const useStyles = makeStyles((theme) => ({
     margin: theme.spacing(2, 3, 2),
     color: theme.palette.muted.main,
     [theme.breakpoints.up("md")]: {
-      maxWidth: "1280px",
+      maxWidth: MAX_MAIN_TABLE_WIDTH,
       marginLeft: "auto",
       marginRight: "auto",
       paddingLeft: theme.spacing(3),
