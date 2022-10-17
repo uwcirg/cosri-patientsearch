@@ -39,9 +39,8 @@ import {
   sendRequest,
 } from "../helpers/utility";
 import { useSettingContext } from "../context/SettingContextProvider";
-import theme from "../themes/theme";
 
-const useStyles = makeStyles({
+const useStyles = makeStyles((theme) => ({
   container: {
     paddingLeft: theme.spacing(3),
     paddingRight: theme.spacing(3),
@@ -146,9 +145,9 @@ const useStyles = makeStyles({
     position: "relative",
   },
   overDueContainer: {
-    marginBottom: theme.spacing(2)
-  }
-});
+    marginBottom: theme.spacing(2),
+  },
+}));
 
 export default function UrineScreen(props) {
   const appCtx = useSettingContext();

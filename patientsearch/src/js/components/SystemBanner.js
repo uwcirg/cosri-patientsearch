@@ -1,10 +1,9 @@
 import React from "react";
 import PropTypes from "prop-types";
 import { makeStyles } from "@material-ui/core/styles";
-import theme from "../themes/theme";
 import { useSettingContext } from "../context/SettingContextProvider";
 
-const useStyles = makeStyles({
+const useStyles = makeStyles((theme) => ({
   container: {
     textAlign: "center",
     position: "fixed",
@@ -13,7 +12,7 @@ const useStyles = makeStyles({
     zIndex: 9999,
     backgroundColor: theme.palette.primary.warningLight,
   },
-});
+}));
 
 export default function SystemBanner(props) {
   const classes = useStyles();

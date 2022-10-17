@@ -1,5 +1,5 @@
 import React from "react";
-import { makeStyles } from "@material-ui/core/styles";
+import { makeStyles, useTheme } from "@material-ui/core/styles";
 import jsonpath from "jsonpath";
 import DOMPurify from "dompurify";
 import MaterialTable from "@material-table/core";
@@ -21,7 +21,6 @@ import UrineScreen from "./UrineScreen";
 import Agreement from "./Agreement";
 import { useSettingContext } from "../context/SettingContextProvider";
 import { tableIcons } from "../constants/consts";
-import theme from "../themes/theme";
 import {
   fetchData,
   getLocalDateTimeString,
@@ -31,8 +30,7 @@ import {
   isString,
   validateToken,
 } from "../helpers/utility";
-
-const useStyles = makeStyles({
+const useStyles = makeStyles((theme) => ({
   container: {
     marginLeft: "auto",
     marginRight: "auto",
@@ -135,11 +133,10 @@ const useStyles = makeStyles({
   moreIcon: {
     marginRight: theme.spacing(1),
   },
-});
-
+}));
 let filterIntervalId = 0;
-
 export default function PatientListTable() {
+  const theme = useTheme();
   const classes = useStyles();
   const appSettings = useSettingContext().appSettings;
   const [appClients, setAppClients] = React.useState(null);
@@ -322,7 +319,6 @@ export default function PatientListTable() {
     return appClients && appClients.length > 1;
   };
   const handleLaunchApp = (rowData, launchParams) => {
-
     if (!launchParams) {
       // if only one SoF client, use its launch params
       launchParams =

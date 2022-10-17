@@ -1,45 +1,43 @@
 import React from "react";
 import PropTypes from "prop-types";
-import { makeStyles, styled } from "@material-ui/core/styles";
+import { makeStyles, styled} from "@material-ui/core/styles";
 import AddCircleOutlineIcon from "@material-ui/icons/AddCircleOutline";
 import Button from "@material-ui/core/Button";
 import ListItemIcon from "@material-ui/core/ListItemIcon";
 import Menu from "@material-ui/core/Menu";
 import MenuItem from "@material-ui/core/MenuItem";
 import Typography from "@material-ui/core/Typography";
-import theme from "../themes/theme";
-
-const useStyles = makeStyles({
-  menu: {
-    paddingTop: theme.spacing(2.5),
-  },
-  menuTitle: {
-    position: "absolute",
-    top: 0,
-    width: "100%",
-    paddingTop: theme.spacing(0.5),
-    paddingBottom: theme.spacing(0.5),
-    backgroundColor: theme.palette.primary.dark,
-    color: "#FFF",
-  },
-  menuIcon: {
-    minWidth: theme.spacing(3),
-    marginRight: theme.spacing(0.5),
-  },
-  menuTitleText: {
-    display: "inline-block",
-    marginLeft: theme.spacing(2),
-    fontWeight: 500,
-  },
-  menuCloseButton: {
-    position: "absolute",
-    right: "-8px",
-    top: "0",
-    fontSize: "12px",
-    color: "#FFF",
-  },
-});
 export default function Dropdown(props) {
+  const useStyles = makeStyles((theme) => ({
+    menu: {
+      paddingTop: theme.spacing(2.5),
+    },
+    menuTitle: {
+      position: "absolute",
+      top: 0,
+      width: "100%",
+      paddingTop: theme.spacing(0.5),
+      paddingBottom: theme.spacing(0.5),
+      backgroundColor: theme.palette.primary.dark,
+      color: "#FFF",
+    },
+    menuIcon: {
+      minWidth: theme.spacing(3),
+      marginRight: theme.spacing(0.5),
+    },
+    menuTitleText: {
+      display: "inline-block",
+      marginLeft: theme.spacing(2),
+      fontWeight: 500,
+    },
+    menuCloseButton: {
+      position: "absolute",
+      right: "-8px",
+      top: "0",
+      fontSize: "12px",
+      color: "#FFF",
+    },
+  }));
   const classes = useStyles();
   const StyledMenu = styled((props) => <Menu {...props} />)(({ theme }) => ({
     "& .MuiPaper-root": {

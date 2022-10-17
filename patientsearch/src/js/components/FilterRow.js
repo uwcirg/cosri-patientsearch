@@ -1,6 +1,6 @@
 import React from "react";
 import PropTypes from "prop-types";
-import { makeStyles } from "@material-ui/core/styles";
+import { makeStyles} from "@material-ui/core/styles";
 import DateFnsUtils from "@date-io/date-fns";
 import isValid from "date-fns/isValid";
 import ClearIcon from "@material-ui/icons/Clear";
@@ -14,9 +14,8 @@ import {
   MuiPickersUtilsProvider,
   KeyboardDatePicker,
 } from "@material-ui/pickers";
-import theme from "../themes/theme";
 
-const useStyles = makeStyles({
+const useStyles = makeStyles((theme) => ({
   row: {
     border: "2px solid #ececec !important",
   },
@@ -48,7 +47,8 @@ const useStyles = makeStyles({
     width: "24px",
     backgroundColor: "#f7f7f7",
   },
-});
+}));
+
 export default function FilterRow(props) {
   const classes = useStyles();
   const LAUNCH_BUTTON_LABEL = "VIEW";
@@ -56,7 +56,7 @@ export default function FilterRow(props) {
   const [lastName, setLastName] = React.useState("");
   const [date, setDate] = React.useState(null);
   const [dateInput, setDateInput] = React.useState(null);
-  const trimFilterValue = (val) => !val?"":val.trim();
+  const trimFilterValue = (val) => (!val ? "" : val.trim());
   const handleFirstNameChange = (event) => {
     let targetValue = trimFilterValue(event.target.value);
     setFirstName(targetValue);
@@ -97,7 +97,7 @@ export default function FilterRow(props) {
     return firstName || lastName || dateInput;
   };
   const hasCompleteFilters = () => {
-    return firstName && lastName && (dateInput && isValid(new Date(dateInput)));
+    return firstName && lastName && dateInput && isValid(new Date(dateInput));
   };
   const getFilterData = () => {
     if (!hasCompleteFilters()) return null;
