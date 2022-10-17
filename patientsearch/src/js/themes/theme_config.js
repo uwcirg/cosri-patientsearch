@@ -98,4 +98,3 @@ export const themes = {
 export const getTheme = (projectID) => {
     return themes[String(projectID).toLowerCase()] || themes["default"];
 };
-

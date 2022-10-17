@@ -353,8 +353,3 @@ export function setFavicon(href) {
   if (!faviconEl) return;
   faviconEl.href = href;
 }
-
-export function getWinAppSetting(key) {
-  if (!window.app || !window.app.settings) return null;
-  return window.app["settings"][key];
-}

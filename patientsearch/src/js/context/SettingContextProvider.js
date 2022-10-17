@@ -11,7 +11,7 @@ export default function SettingContextProvider({children}) {
     useEffect(() => {
         getSettings((data) => {
             if (data && !data.error) {
-              setAppSettings(data);
+                setAppSettings(data);
             }
         });
     }, []);
