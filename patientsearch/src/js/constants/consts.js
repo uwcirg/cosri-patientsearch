@@ -39,5 +39,5 @@ export const tableIcons = {
     </Delete>
   )),
 };
-const MAX_MAIN_TABLE_WIDTH = "1280px";
+export const MAX_MAIN_TABLE_WIDTH = "1280px";
 
