@@ -12,7 +12,7 @@ export default function ProjectThemeProvider({children}) {
             {children}
         </ThemeProvider>
     );
-};
+}
 
 ProjectThemeProvider.propTypes = {
   children: PropTypes.oneOfType([PropTypes.element, PropTypes.array]),
