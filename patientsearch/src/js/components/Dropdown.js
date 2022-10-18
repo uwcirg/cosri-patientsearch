@@ -1,6 +1,6 @@
 import React from "react";
 import PropTypes from "prop-types";
-import { makeStyles, styled, useTheme} from "@material-ui/core/styles";
+import { makeStyles, styled} from "@material-ui/core/styles";
 import AddCircleOutlineIcon from "@material-ui/icons/AddCircleOutline";
 import Button from "@material-ui/core/Button";
 import ListItemIcon from "@material-ui/core/ListItemIcon";
@@ -38,7 +38,6 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 export default function Dropdown(props) {
-  const theme = useTheme();
   const classes = useStyles();
   const StyledMenu = styled((props) => <Menu {...props} />)(({ theme }) => ({
     "& .MuiPaper-root": {
