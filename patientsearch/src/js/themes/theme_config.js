@@ -60,7 +60,7 @@ export const themes = {
   dcw: createTheme({
     palette: {
       dark: {
-        main: "#024144",
+        main: deepPurple[900],
         secondary: deepPurple[900],
       },
       primary: {
