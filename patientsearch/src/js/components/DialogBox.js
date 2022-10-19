@@ -6,16 +6,15 @@ import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import { makeStyles } from "@material-ui/core/styles";
-import theme from "../themes/theme";
 
-const useStyles = makeStyles({
+const useStyles = makeStyles((theme) => ({
   diaglogTitle: {
     backgroundColor: theme.palette.primary.lightest,
   },
   diaglogContent: {
     marginTop: theme.spacing(3),
   },
-});
+}));
 
 export default function DialogBox(props) {
     const classes = useStyles();

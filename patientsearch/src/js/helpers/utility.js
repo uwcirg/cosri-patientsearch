@@ -353,4 +353,3 @@ export function setFavicon(href) {
   if (!faviconEl) return;
   faviconEl.href = href;
 }
-

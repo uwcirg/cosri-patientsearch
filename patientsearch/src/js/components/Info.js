@@ -1,15 +1,14 @@
 import React from "react";
 import PropTypes from "prop-types";
 import DOMPurify from "dompurify";
-import { makeStyles } from "@material-ui/core/styles";
+import { makeStyles} from "@material-ui/core/styles";
 import Button from "@material-ui/core/Button";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import Typography from "@material-ui/core/Typography";
 import { imageOK } from "../helpers/utility";
 import { useSettingContext } from "../context/SettingContextProvider";
-import theme from "../themes/theme";
 
-const useStyles = makeStyles({
+const useStyles = makeStyles((theme) => ({
   wrapper: {
     position: "relative",
   },
@@ -62,8 +61,7 @@ const useStyles = makeStyles({
     fontSize: "1.25rem",
     lineHeight: "1.5",
   },
-});
-
+}));
 export default function Info(props) {
   const classes = useStyles();
   const settingsCtx = useSettingContext();

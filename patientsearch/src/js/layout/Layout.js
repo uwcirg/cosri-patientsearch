@@ -1,23 +1,20 @@
 import PropTypes from "prop-types";
 import React from "react";
-import CssBaseline from "@material-ui/core/CssBaseline";
-import { ThemeProvider } from "@material-ui/styles";
 import Header from "../components/Header";
 import SystemBanner from "../components/SystemBanner";
+import ProjectThemeProvider from "../context/ProjectThemeProvider";
 import SettingContextProvider from "../context/SettingContextProvider";
-import theme from "../themes/theme";
 import "../../styles/app.scss";
 
 export default function Layout({children}) {
   return (
     <SettingContextProvider>
       <React.Fragment>
-        <ThemeProvider theme={theme}>
-          <CssBaseline />
+        <ProjectThemeProvider>
           <SystemBanner />
           <Header />
           {children}
-        </ThemeProvider>
+        </ProjectThemeProvider>
       </React.Fragment>
     </SettingContextProvider>
   );

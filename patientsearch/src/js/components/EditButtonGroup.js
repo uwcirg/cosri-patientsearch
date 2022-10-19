@@ -9,9 +9,8 @@ import SaveIcon from "@material-ui/icons/Save";
 import Button from "@material-ui/core/Button";
 import ButtonGroup from "@material-ui/core/ButtonGroup";
 import Modal from "@material-ui/core/Modal";
-import theme from "../themes/theme";
 
-const useStyles = makeStyles({
+const useStyles = makeStyles((theme) => ({
     buttonGroupContainer: {
         marginLeft: theme.spacing(1.5),
         marginTop: theme.spacing(0.5),
@@ -24,7 +23,7 @@ const useStyles = makeStyles({
     delYesButton: {
         marginRight: theme.spacing(0.5)
     },
-});
+}));
 // button group: Edit, Update, Delete and Cancel buttons
 export default function EditButtonGroup(props) {
     const classes = useStyles();

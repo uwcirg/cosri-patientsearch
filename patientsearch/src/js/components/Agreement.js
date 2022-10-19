@@ -33,10 +33,9 @@ import {
   isAdult,
   padDateString,
 } from "../helpers/utility";
-import theme from "../themes/theme";
 const LOINC_SYSTEM_URL = "https://loinc.org";
 const CONTRACT_CODE = "94136-9";
-const useStyles = makeStyles({
+const useStyles = makeStyles((theme) => ({
   container: {
     paddingLeft: theme.spacing(3),
     paddingRight: theme.spacing(3),
@@ -120,7 +119,7 @@ const useStyles = makeStyles({
   tableContainer: {
     position: "relative",
   },
-});
+}));
 
 export default function Agreement(props) {
   const classes = useStyles();

@@ -3,7 +3,6 @@ import PropTypes from "prop-types";
 import { makeStyles } from "@material-ui/core/styles";
 import AssignmentLateIcon from "@material-ui/icons/AssignmentLate";
 import Typography from "@material-ui/core/Typography";
-import theme from "../themes/theme";
 import {
   addYearsToDate,
   getLocalDateTimeString,
@@ -12,7 +11,7 @@ import {
   isDateInPast,
 } from "../helpers/utility";
 
-const useStyles = makeStyles({
+const useStyles = makeStyles((theme) => ({
   alertIcon: {
     fill: theme.palette.primary.alert,
     position: "relative",
@@ -35,9 +34,10 @@ const useStyles = makeStyles({
     display: "inline-block",
     marginLeft: "6px",
   },
-});
+}));
 
 export default function OverdueAlert(props) {
+
   /*
    * 3 or 4 months before next due date
    */
