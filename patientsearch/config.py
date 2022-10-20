@@ -26,25 +26,29 @@ FORBIDDEN_TEXT = os.getenv(
     "Your account is not authorized for access, please contact an administrator",
 )
 
-DASHBOARD_COLUMNS = os.getenv("DASHBOARD_COLUMNS", [
-    {
-        "label": "First Name",
-        "expr": "$.name[0].given[0]",
-    },
-    {
-        "label": "Last Name",
-        "expr": "$.name[0].family",
-    },
-    {
-        "label": "Birth Date",
-        "expr": "$.birthdate",
-    },
-    {
-        "label": "Last Accessed",
-        "defaultSort": "desc",
-        "expr": "$.meta.lastUpdated",
-        "dataType": "date",
-    }])
+DASHBOARD_COLUMNS = os.getenv(
+    "DASHBOARD_COLUMNS",
+    [
+        {
+            "label": "First Name",
+            "expr": "$.name[0].given[0]",
+        },
+        {
+            "label": "Last Name",
+            "expr": "$.name[0].family",
+        },
+        {
+            "label": "Birth Date",
+            "expr": "$.birthdate",
+        },
+        {
+            "label": "Last Accessed",
+            "defaultSort": "desc",
+            "expr": "$.meta.lastUpdated",
+            "dataType": "date",
+        }
+    ]
+)
 
 LANDING_INTRO = os.getenv("LANDING_INTRO", "")
 LANDING_BUTTON_TEXT = os.getenv("LANDING_BUTTON_TEXT", "")
