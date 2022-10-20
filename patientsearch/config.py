@@ -46,8 +46,8 @@ DASHBOARD_COLUMNS = os.getenv(
             "defaultSort": "desc",
             "expr": "$.meta.lastUpdated",
             "dataType": "date",
-        }
-    ]
+        },
+    ],
 )
 
 LANDING_INTRO = os.getenv("LANDING_INTRO", "")
