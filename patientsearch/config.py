@@ -39,7 +39,7 @@ DASHBOARD_COLUMNS = os.getenv(
         },
         {
             "label": "Birth Date",
-            "expr": "$.birthdate",
+            "expr": "$.birthDate",
         },
         {
             "label": "Last Accessed",
