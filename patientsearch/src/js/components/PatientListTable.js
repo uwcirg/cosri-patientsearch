@@ -27,6 +27,7 @@ import {
   getUrlParameter,
   getRolesFromToken,
   getClientsByRequiredRoles,
+  isEmptyArray,
   isString,
   validateToken,
 } from "../helpers/utility";
@@ -218,6 +219,7 @@ export default function PatientListTable() {
     last_name: "family",
     birth_date: "birthdate",
     last_accessed: "_lastUpdated",
+    //mrn: "identifier"
   };
   const default_columns = [
     {
@@ -436,12 +438,20 @@ export default function PatientListTable() {
       ? data.map((item) => {
           const source = item.resource ? item.resource : item;
           const cols = columns;
+          // console.log(
+          //   "q data ",
+          //   jsonpath.query(
+          //     source,
+          //     "$.resources"
+          //   )
+          // );
+          console.log("WTF source data ", Object.keys(source));
           let rowData = {
             id: jsonpath.value(source, "$.id"),
             resource: source,
             identifier: jsonpath.value(source, "$.identifier") || [],
-            resources: []
           };
+          console.log("resources  ", typeof source.resources);
           cols.forEach((col) => {
             let value = jsonpath.value(source, col.expr) || null;
             if (col.dataType === "date") {
@@ -643,8 +653,7 @@ export default function PatientListTable() {
     let apiURL = `/fhir/Patient?_include=Patient:link&_total=accurate&_count=${pagination.pageSize}`;
 
     const additionalParams = getAppSettingByKey("FHIR_REST_EXTRA_PARAMS");
-    if (additionalParams) apiURL =
-      apiURL + `&${additionalParams}`;
+    if (additionalParams) apiURL = apiURL + `&${additionalParams}`;
 
     if (
       pagination.pageNumber > pagination.prevPageNumber &&
@@ -677,31 +686,7 @@ export default function PatientListTable() {
             resolve(defaults);
             return;
           }
-          // query returned from including _include or _revinclude parameters returns a flat array of items of different resourceTypes
-          // need to bundle up those resources other than patient resource into a bundle
-          let patientResources = response.entry.filter(item=>item.resource && item.resource.resourceType==="Patient");
-          const otherResources = response.entry.filter(
-            (item) => item.resource && item.resource.resourceType !== "Patient"
-          );
-          if (otherResources.length > 0) {
-            patientResources = patientResources.map((item) => {
-              let subjectId = item.resource.id;
-              item.resource["resources"] = otherResources
-                .filter(
-                  (o) =>
-                    o.resource &&
-                    o.resource.subject &&
-                    o.resource.subject.reference &&
-                    o.resource.subject.reference.split("/")[1] === subjectId
-                )
-                .map((resourceItem) => resourceItem.resource);
-              return item;
-            });
-            // console.log("transformed ", transformed)
-          }
-          let responseData = formatData(patientResources);
 
-          setData(responseData || []);
           if (needExternalAPILookup()) setNoPMPFlag(responseData);
           let responsePageoffset = 0;
           let responseSelfLink = response.link
@@ -746,11 +731,86 @@ export default function PatientListTable() {
               totalCount: response.total,
             },
           });
-          resolve({
+
+          let patientResources = response.entry.filter(
+            (item) => item.resource && item.resource.resourceType === "Patient"
+          );
+
+          let responseData = formatData(patientResources) || [];
+
+          const additionalParams = getAppSettingByKey(
+            "FHIR_REST_EXTRA_PARAMS_LIST"
+          );
+          const resolvedData = {
             data: responseData,
             page: currentPage,
             totalCount: response.total,
-          });
+          };
+          if (isEmptyArray(additionalParams)) {
+            setData(responseData);
+            resolve(resolvedData);
+            return;
+          }
+
+          // query for additional resources if specified via config
+
+          // gather patient id(s) from API returned result
+          const ids = patientResources
+            .map((item) => item.resource.id)
+            .join(",");
+          // FHIR resources request(s)
+          const requests = additionalParams.map((queryString) =>
+            fetchData(
+              `/fhir/${queryString}` +
+                (queryString.indexOf("?") !== -1 ? "&" : "?") +
+                `patient=${ids}`,
+              noCacheParam
+            )
+          );
+          const queryResults = (async () => {
+            const results = await Promise.all(requests).catch((e) => {
+              throw new Error(e);
+            });
+            if (isEmptyArray(results)) return patientResources;
+            return patientResources.map((item) => {
+              let subjectId = item.resource.id;
+              if (!item.resource["resources"]) item.resource["resources"] = [];
+              results.forEach((result) => {
+                if (isEmptyArray(result.entry)) return true;
+                item.resource["resources"] = [
+                  ...item.resource["resources"],
+                  ...result.entry
+                    .filter(
+                      (o) =>
+                        o.resource &&
+                        o.resource.subject &&
+                        o.resource.subject.reference &&
+                        o.resource.subject.reference.split("/")[1] === subjectId
+                    )
+                    .map((resourceItem) => resourceItem.resource),
+                ];
+              });
+              return item;
+            });
+          })();
+          queryResults
+            .then((data) => {
+              const resultData = formatData(data);
+              setData(resultData || []);
+              resolve({
+                data: resultData,
+                page: currentPage,
+                totalCount: response.total,
+              });
+            })
+            .catch((e) => {
+              setErrorMessage(
+                "Error retrieving additional FHIR resources.  See console for detail."
+              );
+              console.log(e);
+              setData(responseData);
+              resolve(resolvedData);
+            });
         })
         .catch((error) => {
           console.log("Failed to retrieve data", error);
