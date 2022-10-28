@@ -85,7 +85,7 @@ LOG_LEVEL = os.environ.get("LOG_LEVEL", "DEBUG").upper()
 
 VERSION_STRING = os.getenv("VERSION_STRING")
 
-EXTERNAL_FHIR_API = os.getenv("EXTERNAL_FHIR_API", "_revinclude=QuestionnaireResponse:patient")
+EXTERNAL_FHIR_API = os.getenv("EXTERNAL_FHIR_API", "")
 MAP_API = os.getenv("MAP_API")
 SOF_HOST_FHIR_URL = os.getenv("SOF_HOST_FHIR_URL")
 SOF_CLIENTS = json.loads(os.getenv("SOF_CLIENTS", "[]"))
