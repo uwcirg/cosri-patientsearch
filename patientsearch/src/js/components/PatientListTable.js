@@ -438,20 +438,11 @@ export default function PatientListTable() {
       ? data.map((item) => {
           const source = item.resource ? item.resource : item;
           const cols = columns;
-          // console.log(
-          //   "q data ",
-          //   jsonpath.query(
-          //     source,
-          //     "$.resources"
-          //   )
-          // );
-          console.log("WTF source data ", Object.keys(source));
           let rowData = {
             id: jsonpath.value(source, "$.id"),
             resource: source,
             identifier: jsonpath.value(source, "$.identifier") || [],
           };
-          console.log("resources  ", typeof source.resources);
           cols.forEach((col) => {
             let value = jsonpath.value(source, col.expr) || null;
             if (col.dataType === "date") {
@@ -652,9 +643,6 @@ export default function PatientListTable() {
     };
     let apiURL = `/fhir/Patient?_include=Patient:link&_total=accurate&_count=${pagination.pageSize}`;
 
-    const additionalParams = getAppSettingByKey("FHIR_REST_EXTRA_PARAMS");
-    if (additionalParams) apiURL = apiURL + `&${additionalParams}`;
-
     if (
       pagination.pageNumber > pagination.prevPageNumber &&
       pagination.nextPageURL
@@ -751,9 +739,7 @@ export default function PatientListTable() {
             resolve(resolvedData);
             return;
           }
-
           // query for additional resources if specified via config
-
           // gather patient id(s) from API returned result
           const ids = patientResources
             .map((item) => item.resource.id)
