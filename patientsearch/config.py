@@ -50,6 +50,8 @@ DASHBOARD_COLUMNS = os.getenv(
     ],
 )
 
+FHIR_REST_EXTRA_PARAMS = os.getenv("FHIR_REST_EXTRA_PARAMS", "")
+
 LANDING_INTRO = os.getenv("LANDING_INTRO", "")
 LANDING_BUTTON_TEXT = os.getenv("LANDING_BUTTON_TEXT", "")
 LANDING_BODY = os.getenv("LANDING_BODY", "")
@@ -83,7 +85,7 @@ LOG_LEVEL = os.environ.get("LOG_LEVEL", "DEBUG").upper()
 
 VERSION_STRING = os.getenv("VERSION_STRING")
 
-EXTERNAL_FHIR_API = os.getenv("EXTERNAL_FHIR_API", "")
+EXTERNAL_FHIR_API = os.getenv("EXTERNAL_FHIR_API", "_revinclude=QuestionnaireResponse:patient")
 MAP_API = os.getenv("MAP_API")
 SOF_HOST_FHIR_URL = os.getenv("SOF_HOST_FHIR_URL")
 SOF_CLIENTS = json.loads(os.getenv("SOF_CLIENTS", "[]"))

@@ -232,6 +232,12 @@ export default function PatientListTable() {
       label: "Birth Date",
       expr: "$.birthDate",
     },
+    {
+      label: "Last Accessed",
+      defaultSort: "desc",
+      expr: "$.meta.lastUpdated",
+      dataType: "date",
+    },
   ];
   const errorStyle = { display: errorMessage ? "block" : "none" };
   const toTop = () => {
@@ -434,6 +440,7 @@ export default function PatientListTable() {
             id: jsonpath.value(source, "$.id"),
             resource: source,
             identifier: jsonpath.value(source, "$.identifier") || [],
+            resources: []
           };
           cols.forEach((col) => {
             let value = jsonpath.value(source, col.expr) || null;
@@ -634,6 +641,11 @@ export default function PatientListTable() {
       totalCount: 0,
     };
     let apiURL = `/fhir/Patient?_include=Patient:link&_total=accurate&_count=${pagination.pageSize}`;
+
+    const additionalParams = getAppSettingByKey("FHIR_REST_EXTRA_PARAMS");
+    if (additionalParams) apiURL =
+      apiURL + `&${additionalParams}`;
+
     if (
       pagination.pageNumber > pagination.prevPageNumber &&
       pagination.nextPageURL
@@ -665,7 +677,30 @@ export default function PatientListTable() {
             resolve(defaults);
             return;
           }
-          let responseData = formatData(response.entry);
+          // query returned from including _include or _revinclude parameters returns a flat array of items of different resourceTypes
+          // need to bundle up those resources other than patient resource into a bundle
+          let patientResources = response.entry.filter(item=>item.resource && item.resource.resourceType==="Patient");
+          const otherResources = response.entry.filter(
+            (item) => item.resource && item.resource.resourceType !== "Patient"
+          );
+          if (otherResources.length > 0) {
+            patientResources = patientResources.map((item) => {
+              let subjectId = item.resource.id;
+              item.resource["resources"] = otherResources
+                .filter(
+                  (o) =>
+                    o.resource &&
+                    o.resource.subject &&
+                    o.resource.subject.reference &&
+                    o.resource.subject.reference.split("/")[1] === subjectId
+                )
+                .map((resourceItem) => resourceItem.resource);
+              return item;
+            });
+            // console.log("transformed ", transformed)
+          }
+          let responseData = formatData(patientResources);
+
           setData(responseData || []);
           if (needExternalAPILookup()) setNoPMPFlag(responseData);
           let responsePageoffset = 0;
