@@ -219,7 +219,7 @@ export default function PatientListTable() {
     last_name: "family",
     birth_date: "birthdate",
     last_accessed: "_lastUpdated",
-    //mrn: "identifier"
+    mrn: "identifier"
   };
   const default_columns = [
     {
