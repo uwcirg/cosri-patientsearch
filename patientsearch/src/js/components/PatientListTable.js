@@ -749,7 +749,7 @@ export default function PatientListTable() {
             fetchData(
               `/fhir/${queryString}` +
                 (queryString.indexOf("?") !== -1 ? "&" : "?") +
-                `patient=${ids}`,
+                `patient=${ids}&_count=1000`,
               noCacheParam
             )
           );
@@ -781,6 +781,7 @@ export default function PatientListTable() {
           })();
           queryResults
             .then((data) => {
+              console.log("query result data ", data);
               const resultData = formatData(data);
               setData(resultData || []);
               resolve({
