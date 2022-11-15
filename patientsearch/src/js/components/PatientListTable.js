@@ -253,7 +253,11 @@ export default function PatientListTable() {
   };
   const getColumns = () => {
     const configColumns = getAppSettingByKey("DASHBOARD_COLUMNS");
-    let cols = configColumns ? configColumns : default_columns;
+    const isValidConfig = configColumns && Array.isArray(configColumns);
+    let cols = isValidConfig ? configColumns : default_columns;
+    if (!isValidConfig) {
+      console.log("invalid columns via config. Null or not an array.");
+    }
     const hasIdField = cols.filter((col) => col.field === "id").length > 0;
     //columns must include an id field, add if not present
     if (!hasIdField)
