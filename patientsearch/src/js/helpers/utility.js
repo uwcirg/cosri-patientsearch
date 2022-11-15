@@ -353,3 +353,7 @@ export function setFavicon(href) {
   if (!faviconEl) return;
   faviconEl.href = href;
 }
+
+export function isEmptyArray(arrObj) {
+  return !arrObj || !Array.isArray(arrObj) || arrObj.length === 0;
+}
