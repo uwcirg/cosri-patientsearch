@@ -26,29 +26,33 @@ FORBIDDEN_TEXT = os.getenv(
     "Your account is not authorized for access, please contact an administrator",
 )
 
-DASHBOARD_COLUMNS = json.loads(os.getenv(
-    "DASHBOARD_COLUMNS", json.dumps(
-    [
-        {
-            "label": "First Name",
-            "expr": "$.name[0].given[0]",
-        },
-        {
-            "label": "Last Name",
-            "expr": "$.name[0].family",
-        },
-        {
-            "label": "Birth Date",
-            "expr": "$.birthDate",
-        },
-        {
-            "label": "Last Accessed",
-            "defaultSort": "desc",
-            "expr": "$.meta.lastUpdated",
-            "dataType": "date",
-        },
-    ],)
-))
+DASHBOARD_COLUMNS = json.loads(
+    os.getenv(
+        "DASHBOARD_COLUMNS",
+        json.dumps(
+            [
+                {
+                    "label": "First Name",
+                    "expr": "$.name[0].given[0]",
+                },
+                {
+                    "label": "Last Name",
+                    "expr": "$.name[0].family",
+                },
+                {
+                    "label": "Birth Date",
+                    "expr": "$.birthDate",
+                },
+                {
+                    "label": "Last Accessed",
+                    "defaultSort": "desc",
+                    "expr": "$.meta.lastUpdated",
+                    "dataType": "date",
+                },
+            ],
+        ),
+    )
+)
 
 FHIR_REST_EXTRA_PARAMS_LIST = json.loads(os.getenv("FHIR_REST_EXTRA_PARAMS_LIST", "[]"))
 LANDING_INTRO = os.getenv("LANDING_INTRO", "")
