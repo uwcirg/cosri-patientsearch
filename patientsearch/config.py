@@ -26,8 +26,8 @@ FORBIDDEN_TEXT = os.getenv(
     "Your account is not authorized for access, please contact an administrator",
 )
 
-DASHBOARD_COLUMNS = os.getenv(
-    "DASHBOARD_COLUMNS",
+DASHBOARD_COLUMNS = json.loads(os.getenv(
+    "DASHBOARD_COLUMNS", json.dumps(
     [
         {
             "label": "First Name",
@@ -47,10 +47,10 @@ DASHBOARD_COLUMNS = os.getenv(
             "expr": "$.meta.lastUpdated",
             "dataType": "date",
         },
-    ],
-)
+    ],)
+))
 
-FHIR_REST_EXTRA_PARAMS_LIST = os.getenv("FHIR_REST_EXTRA_PARAMS_LIST", [])
+FHIR_REST_EXTRA_PARAMS_LIST = json.loads(os.getenv("FHIR_REST_EXTRA_PARAMS_LIST", "[]"))
 LANDING_INTRO = os.getenv("LANDING_INTRO", "")
 LANDING_BUTTON_TEXT = os.getenv("LANDING_BUTTON_TEXT", "")
 LANDING_BODY = os.getenv("LANDING_BODY", "")
