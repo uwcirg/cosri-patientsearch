@@ -1,0 +1,2042 @@
+{
+  "resourceType": "Bundle",
+  "id": "f0268074-6490-40d6-8353-eb648ed1194c",
+  "meta": {
+    "lastUpdated": "2022-11-02T23:46:52.898+00:00"
+  },
+  "type": "searchset",
+  "total": 7,
+  "link": [ {
+    "relation": "self",
+    "url": "https://femr.dcw.dev.cirg.uw.edu/fhir/Patient?_count=20&_format=json&_include=Patient%3Alink&_revinclude=QuestionnaireResponse%3Apatient&_sort=-_lastUpdated&_total=accurate"
+  } ],
+  "entry": [ {
+    "fullUrl": "https://femr.dcw.dev.cirg.uw.edu/fhir/Patient/53",
+    "resource": {
+      "resourceType": "Patient",
+      "id": "53",
+      "meta": {
+        "versionId": "2",
+        "lastUpdated": "2022-10-28T16:37:13.960+00:00",
+        "source": "#drgrKYMwfQYromCf"
+      },
+      "text": {
+        "status": "generated",
+        "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\"><div class=\"hapiHeaderText\">Eleven <b>UPSIDE-DOWN </b></div><table class=\"hapiPropertyTable\"><tbody><tr><td>Date of birth</td><td><span>01 January 2000</span></td></tr></tbody></table></div>"
+      },
+      "identifier": [ {
+        "system": "https://hl7.org/mrn",
+        "value": "5213"
+      } ],
+      "name": [ {
+        "family": "Upside-Down",
+        "given": [ "Eleven" ]
+      } ],
+      "birthDate": "2000-01-01"
+    },
+    "search": {
+      "mode": "match"
+    }
+  }, {
+    "fullUrl": "https://femr.dcw.dev.cirg.uw.edu/fhir/Patient/12",
+    "resource": {
+      "resourceType": "Patient",
+      "id": "12",
+      "meta": {
+        "versionId": "4",
+        "lastUpdated": "2022-10-28T16:32:42.218+00:00",
+        "source": "#MbVGSwrcRqGIenhh"
+      },
+      "text": {
+        "status": "generated",
+        "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\"><div class=\"hapiHeaderText\">Eleven <b>UPSIDE-DOWN2</b></div><table class=\"hapiPropertyTable\"><tbody><tr><td>Date of birth</td><td><span>01 January 2000</span></td></tr></tbody></table></div>"
+      },
+      "identifier": [ {
+        "system": "https://hl7.org/mrn",
+        "value": "1234"
+      } ],
+      "name": [ {
+        "family": "Upside-Down2",
+        "given": [ "Eleven" ]
+      } ],
+      "birthDate": "2000-01-01"
+    },
+    "search": {
+      "mode": "match"
+    }
+  }, {
+    "fullUrl": "https://femr.dcw.dev.cirg.uw.edu/fhir/Patient/26",
+    "resource": {
+      "resourceType": "Patient",
+      "id": "26",
+      "meta": {
+        "versionId": "1",
+        "lastUpdated": "2022-10-26T05:00:46.180+00:00",
+        "source": "#AyZO8Fbg1LXVtebg"
+      },
+      "text": {
+        "status": "generated",
+        "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\"><div class=\"hapiHeaderText\">Will <b>BYERS </b></div><table class=\"hapiPropertyTable\"><tbody><tr><td>Date of birth</td><td><span>11 March 2002</span></td></tr></tbody></table></div>"
+      },
+      "name": [ {
+        "family": "Byers",
+        "given": [ "Will" ]
+      } ],
+      "birthDate": "2002-03-11"
+    },
+    "search": {
+      "mode": "match"
+    }
+  }, {
+    "fullUrl": "https://femr.dcw.dev.cirg.uw.edu/fhir/Patient/24",
+    "resource": {
+      "resourceType": "Patient",
+      "id": "24",
+      "meta": {
+        "versionId": "1",
+        "lastUpdated": "2022-10-26T04:58:41.248+00:00",
+        "source": "#FG7W2CC1ZvOfIHeb"
+      },
+      "text": {
+        "status": "generated",
+        "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\"><div class=\"hapiHeaderText\">Mike <b>WHEELER </b></div><table class=\"hapiPropertyTable\"><tbody><tr><td>Date of birth</td><td><span>21 February 2005</span></td></tr></tbody></table></div>"
+      },
+      "name": [ {
+        "family": "Wheeler",
+        "given": [ "Mike" ]
+      } ],
+      "birthDate": "2005-02-21"
+    },
+    "search": {
+      "mode": "match"
+    }
+  }, {
+    "fullUrl": "https://femr.dcw.dev.cirg.uw.edu/fhir/Patient/15",
+    "resource": {
+      "resourceType": "Patient",
+      "id": "15",
+      "meta": {
+        "versionId": "1",
+        "lastUpdated": "2022-10-19T21:44:21.412+00:00",
+        "source": "#EU3EG3UGvSQadPCk"
+      },
+      "text": {
+        "status": "generated",
+        "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\"><div class=\"hapiHeaderText\">Junk <b>DONTUSE </b></div><table class=\"hapiPropertyTable\"><tbody><tr><td>Date of birth</td><td><span>04 July 1976</span></td></tr></tbody></table></div>"
+      },
+      "name": [ {
+        "family": "Dontuse",
+        "given": [ "Junk" ]
+      } ],
+      "birthDate": "1976-07-04"
+    },
+    "search": {
+      "mode": "match"
+    }
+  }, {
+    "fullUrl": "https://femr.dcw.dev.cirg.uw.edu/fhir/Patient/test-patient-1",
+    "resource": {
+      "resourceType": "Patient",
+      "id": "test-patient-1",
+      "meta": {
+        "versionId": "1",
+        "lastUpdated": "2022-10-19T15:16:28.268+00:00",
+        "source": "#voUWZRyOK9HPDojH"
+      },
+      "text": {
+        "status": "generated",
+        "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\"><div class=\"hapiHeaderText\">John <b>DOE </b></div><table class=\"hapiPropertyTable\"><tbody><tr><td>Date of birth</td><td><span>04 July 1976</span></td></tr></tbody></table></div>"
+      },
+      "name": [ {
+        "family": "Doe",
+        "given": [ "John" ]
+      } ],
+      "gender": "male",
+      "birthDate": "1976-07-04"
+    },
+    "search": {
+      "mode": "match"
+    }
+  }, {
+    "fullUrl": "https://femr.dcw.dev.cirg.uw.edu/fhir/Patient/test-patient-2",
+    "resource": {
+      "resourceType": "Patient",
+      "id": "test-patient-2",
+      "meta": {
+        "versionId": "1",
+        "lastUpdated": "2022-10-19T15:16:28.268+00:00",
+        "source": "#voUWZRyOK9HPDojH"
+      },
+      "text": {
+        "status": "generated",
+        "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\"><div class=\"hapiHeaderText\">Jane <b>DOE </b></div><table class=\"hapiPropertyTable\"><tbody><tr><td>Date of birth</td><td><span>01 January 1980</span></td></tr></tbody></table></div>"
+      },
+      "name": [ {
+        "family": "Doe",
+        "given": [ "Jane" ]
+      } ],
+      "gender": "female",
+      "birthDate": "1980-01-01"
+    },
+    "search": {
+      "mode": "match"
+    }
+  }, {
+    "fullUrl": "https://femr.dcw.dev.cirg.uw.edu/fhir/QuestionnaireResponse/64",
+    "resource": {
+      "resourceType": "QuestionnaireResponse",
+      "id": "64",
+      "meta": {
+        "versionId": "1",
+        "lastUpdated": "2022-11-02T21:19:37.807+00:00",
+        "source": "#vAyhpnwuhuxB0dHR"
+      },
+      "questionnaire": "Questionnaire/CIRG-PHQ9",
+      "status": "completed",
+      "subject": {
+        "reference": "Patient/test-patient-2"
+      },
+      "authored": "2022-11-02",
+      "item": [ {
+        "linkId": "/44261-6",
+        "text": "Patient health questionnaire 9 item total score",
+        "answer": [ {
+          "valueDecimal": 14
+        } ]
+      }, {
+        "linkId": "/44250-9",
+        "text": "Little interest or pleasure in doing things",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6569-3",
+            "display": "Several days"
+          }
+        } ]
+      }, {
+        "linkId": "/44255-8",
+        "text": "Feeling down, depressed, or hopeless",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6569-3",
+            "display": "Several days"
+          }
+        } ]
+      }, {
+        "linkId": "/44259-0",
+        "text": "Trouble falling or staying asleep, or sleeping too much",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6568-5",
+            "display": "Not at all"
+          }
+        } ]
+      }, {
+        "linkId": "/44254-1",
+        "text": "Feeling tired or having little energy",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6569-3",
+            "display": "Several days"
+          }
+        } ]
+      }, {
+        "linkId": "/44251-7",
+        "text": "Poor appetite or overeating",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6570-1",
+            "display": "More than half the days"
+          }
+        } ]
+      }, {
+        "linkId": "/44258-2",
+        "text": "Feeling bad about yourself-or that you are a failure or have let yourself or your family down",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6571-9",
+            "display": "Nearly every day"
+          }
+        } ]
+      }, {
+        "linkId": "/44252-5",
+        "text": "Trouble concentrating on things, such as reading the newspaper or watching television",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6570-1",
+            "display": "More than half the days"
+          }
+        } ]
+      }, {
+        "linkId": "/44253-3",
+        "text": "Moving or speaking so slowly that other people could have noticed. Or the opposite-being so fidgety or restless that you have been moving around a lot more than usual",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6569-3",
+            "display": "Several days"
+          }
+        } ]
+      }, {
+        "linkId": "/44260-8",
+        "text": "Thoughts that you would be better off dead, or of hurting yourself in some way",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6570-1",
+            "display": "More than half the days"
+          }
+        } ]
+      }, {
+        "linkId": "/69722-7",
+        "text": "How difficult have these problems made it for you to do your work, take care of things at home, or get along with other people?",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6573-5",
+            "display": "Somewhat difficult"
+          }
+        } ]
+      } ]
+    },
+    "search": {
+      "mode": "include"
+    }
+  }, {
+    "fullUrl": "https://femr.dcw.dev.cirg.uw.edu/fhir/QuestionnaireResponse/13",
+    "resource": {
+      "resourceType": "QuestionnaireResponse",
+      "id": "13",
+      "meta": {
+        "versionId": "1",
+        "lastUpdated": "2022-10-19T17:18:40.800+00:00",
+        "source": "#pFkk5BG8x56SUFS3"
+      },
+      "questionnaire": "Questionnaire/CIRG-MINICOG",
+      "status": "completed",
+      "subject": {
+        "reference": "Patient/12"
+      },
+      "authored": "2022-10-19",
+      "item": [ {
+        "linkId": "minicog-total-score",
+        "text": "Total Score (0 - 5 points)",
+        "answer": [ {
+          "valueDecimal": 3
+        } ]
+      }, {
+        "linkId": "minicog-question1",
+        "text": "Word Recall (0-3 points)",
+        "answer": [ {
+          "valueDecimal": 1
+        } ]
+      }, {
+        "linkId": "minicog-question2",
+        "text": "Clock Draw (0 or 2 points)",
+        "answer": [ {
+          "valueDecimal": 2
+        } ]
+      } ]
+    },
+    "search": {
+      "mode": "include"
+    }
+  }, {
+    "fullUrl": "https://femr.dcw.dev.cirg.uw.edu/fhir/QuestionnaireResponse/14",
+    "resource": {
+      "resourceType": "QuestionnaireResponse",
+      "id": "14",
+      "meta": {
+        "versionId": "1",
+        "lastUpdated": "2022-10-19T21:16:22.080+00:00",
+        "source": "#2nG1ga6sbvVC6rsW"
+      },
+      "questionnaire": "Questionnaire/CIRG-MINICOG",
+      "status": "completed",
+      "subject": {
+        "reference": "Patient/12"
+      },
+      "authored": "2022-10-19",
+      "item": [ {
+        "linkId": "minicog-total-score",
+        "text": "Total Score (0 - 5 points)",
+        "answer": [ {
+          "valueDecimal": 5
+        } ]
+      }, {
+        "linkId": "minicog-question1",
+        "text": "Word Recall (0-3 points)",
+        "answer": [ {
+          "valueDecimal": 3
+        } ]
+      }, {
+        "linkId": "minicog-question2",
+        "text": "Clock Draw (0 or 2 points)",
+        "answer": [ {
+          "valueDecimal": 2
+        } ]
+      } ]
+    },
+    "search": {
+      "mode": "include"
+    }
+  }, {
+    "fullUrl": "https://femr.dcw.dev.cirg.uw.edu/fhir/QuestionnaireResponse/16",
+    "resource": {
+      "resourceType": "QuestionnaireResponse",
+      "id": "16",
+      "meta": {
+        "versionId": "1",
+        "lastUpdated": "2022-10-21T16:30:49.302+00:00",
+        "source": "#Xk9P2X48UeutBGIY"
+      },
+      "questionnaire": "Questionnaire/CIRG-PHQ9",
+      "status": "completed",
+      "subject": {
+        "reference": "Patient/test-patient-2"
+      },
+      "authored": "2022-10-21",
+      "item": [ {
+        "linkId": "/44261-6",
+        "text": "Patient health questionnaire 9 item total score",
+        "answer": [ {
+          "valueDecimal": 18
+        } ]
+      }, {
+        "linkId": "/44250-9",
+        "text": "Little interest or pleasure in doing things",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6569-3",
+            "display": "Several days"
+          }
+        } ]
+      }, {
+        "linkId": "/44255-8",
+        "text": "Feeling down, depressed, or hopeless",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6570-1",
+            "display": "More than half the days"
+          }
+        } ]
+      }, {
+        "linkId": "/44259-0",
+        "text": "Trouble falling or staying asleep, or sleeping too much",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6569-3",
+            "display": "Several days"
+          }
+        } ]
+      }, {
+        "linkId": "/44254-1",
+        "text": "Feeling tired or having little energy",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6570-1",
+            "display": "More than half the days"
+          }
+        } ]
+      }, {
+        "linkId": "/44251-7",
+        "text": "Poor appetite or overeating",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6570-1",
+            "display": "More than half the days"
+          }
+        } ]
+      }, {
+        "linkId": "/44258-2",
+        "text": "Feeling bad about yourself-or that you are a failure or have let yourself or your family down",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6570-1",
+            "display": "More than half the days"
+          }
+        } ]
+      }, {
+        "linkId": "/44252-5",
+        "text": "Trouble concentrating on things, such as reading the newspaper or watching television",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6570-1",
+            "display": "More than half the days"
+          }
+        } ]
+      }, {
+        "linkId": "/44253-3",
+        "text": "Moving or speaking so slowly that other people could have noticed. Or the opposite-being so fidgety or restless that you have been moving around a lot more than usual",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6570-1",
+            "display": "More than half the days"
+          }
+        } ]
+      }, {
+        "linkId": "/44260-8",
+        "text": "Thoughts that you would be better off dead, or of hurting yourself in some way",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6570-1",
+            "display": "More than half the days"
+          }
+        } ]
+      }, {
+        "linkId": "/69722-7",
+        "text": "How difficult have these problems made it for you to do your work, take care of things at home, or get along with other people?",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6575-0",
+            "display": "Very difficult"
+          }
+        } ]
+      } ]
+    },
+    "search": {
+      "mode": "include"
+    }
+  }, {
+    "fullUrl": "https://femr.dcw.dev.cirg.uw.edu/fhir/QuestionnaireResponse/17",
+    "resource": {
+      "resourceType": "QuestionnaireResponse",
+      "id": "17",
+      "meta": {
+        "versionId": "1",
+        "lastUpdated": "2022-10-21T16:31:03.515+00:00",
+        "source": "#5alasnNJv2tZwttf"
+      },
+      "questionnaire": "Questionnaire/CIRG-GAD7",
+      "status": "completed",
+      "subject": {
+        "reference": "Patient/test-patient-2"
+      },
+      "authored": "2022-10-21",
+      "item": [ {
+        "linkId": "/70274-6",
+        "text": "Generalized anxiety disorder 7 item total score",
+        "answer": [ {
+          "valueDecimal": 13
+        } ]
+      }, {
+        "linkId": "/69725-0",
+        "text": "Feeling nervous, anxious or on edge",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6569-3",
+            "display": "Several days"
+          }
+        } ]
+      }, {
+        "linkId": "/68509-9",
+        "text": "Over the past 2 weeks have you not been able to stop or control worrying",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6569-3",
+            "display": "Several days"
+          }
+        } ]
+      }, {
+        "linkId": "/69733-4",
+        "text": "Worrying too much about different things",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6570-1",
+            "display": "More than half the days"
+          }
+        } ]
+      }, {
+        "linkId": "/69734-2",
+        "text": "Trouble relaxing",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6570-1",
+            "display": "More than half the days"
+          }
+        } ]
+      }, {
+        "linkId": "/69735-9",
+        "text": "Being so restless that it is hard to sit still",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6570-1",
+            "display": "More than half the days"
+          }
+        } ]
+      }, {
+        "linkId": "/69689-8",
+        "text": "Becoming easily annoyed or irritable.",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6571-9",
+            "display": "Nearly every day"
+          }
+        } ]
+      }, {
+        "linkId": "/69736-7",
+        "text": "Feeling afraid as if something awful might happen",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6570-1",
+            "display": "More than half the days"
+          }
+        } ]
+      } ]
+    },
+    "search": {
+      "mode": "include"
+    }
+  }, {
+    "fullUrl": "https://femr.dcw.dev.cirg.uw.edu/fhir/QuestionnaireResponse/19",
+    "resource": {
+      "resourceType": "QuestionnaireResponse",
+      "id": "19",
+      "meta": {
+        "versionId": "1",
+        "lastUpdated": "2022-10-22T07:03:55.821+00:00",
+        "source": "#JKiwtKxCf1LQUepP"
+      },
+      "questionnaire": "Questionnaire/CIRG-PHQ9",
+      "status": "completed",
+      "subject": {
+        "reference": "Patient/test-patient-2"
+      },
+      "authored": "2022-10-22",
+      "item": [ {
+        "linkId": "/44261-6",
+        "text": "Patient health questionnaire 9 item total score",
+        "answer": [ {
+          "valueDecimal": 23
+        } ]
+      }, {
+        "linkId": "/44250-9",
+        "text": "Little interest or pleasure in doing things",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6571-9",
+            "display": "Nearly every day"
+          }
+        } ]
+      }, {
+        "linkId": "/44255-8",
+        "text": "Feeling down, depressed, or hopeless",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6570-1",
+            "display": "More than half the days"
+          }
+        } ]
+      }, {
+        "linkId": "/44259-0",
+        "text": "Trouble falling or staying asleep, or sleeping too much",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6570-1",
+            "display": "More than half the days"
+          }
+        } ]
+      }, {
+        "linkId": "/44254-1",
+        "text": "Feeling tired or having little energy",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6571-9",
+            "display": "Nearly every day"
+          }
+        } ]
+      }, {
+        "linkId": "/44251-7",
+        "text": "Poor appetite or overeating",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6570-1",
+            "display": "More than half the days"
+          }
+        } ]
+      }, {
+        "linkId": "/44258-2",
+        "text": "Feeling bad about yourself-or that you are a failure or have let yourself or your family down",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6571-9",
+            "display": "Nearly every day"
+          }
+        } ]
+      }, {
+        "linkId": "/44252-5",
+        "text": "Trouble concentrating on things, such as reading the newspaper or watching television",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6571-9",
+            "display": "Nearly every day"
+          }
+        } ]
+      }, {
+        "linkId": "/44253-3",
+        "text": "Moving or speaking so slowly that other people could have noticed. Or the opposite-being so fidgety or restless that you have been moving around a lot more than usual",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6570-1",
+            "display": "More than half the days"
+          }
+        } ]
+      }, {
+        "linkId": "/44260-8",
+        "text": "Thoughts that you would be better off dead, or of hurting yourself in some way",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6570-1",
+            "display": "More than half the days"
+          }
+        } ]
+      }, {
+        "linkId": "/69722-7",
+        "text": "How difficult have these problems made it for you to do your work, take care of things at home, or get along with other people?",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6573-5",
+            "display": "Somewhat difficult"
+          }
+        } ]
+      } ]
+    },
+    "search": {
+      "mode": "include"
+    }
+  }, {
+    "fullUrl": "https://femr.dcw.dev.cirg.uw.edu/fhir/QuestionnaireResponse/20",
+    "resource": {
+      "resourceType": "QuestionnaireResponse",
+      "id": "20",
+      "meta": {
+        "versionId": "1",
+        "lastUpdated": "2022-10-22T07:04:17.257+00:00",
+        "source": "#8VLKnKd6cmdssrwt"
+      },
+      "questionnaire": "Questionnaire/CIRG-GAD7",
+      "status": "completed",
+      "subject": {
+        "reference": "Patient/test-patient-2"
+      },
+      "authored": "2022-10-22",
+      "item": [ {
+        "linkId": "/70274-6",
+        "text": "Generalized anxiety disorder 7 item total score",
+        "answer": [ {
+          "valueDecimal": 8
+        } ]
+      }, {
+        "linkId": "/69725-0",
+        "text": "Feeling nervous, anxious or on edge",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6569-3",
+            "display": "Several days"
+          }
+        } ]
+      }, {
+        "linkId": "/68509-9",
+        "text": "Over the past 2 weeks have you not been able to stop or control worrying",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6568-5",
+            "display": "Not at all"
+          }
+        } ]
+      }, {
+        "linkId": "/69733-4",
+        "text": "Worrying too much about different things",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6569-3",
+            "display": "Several days"
+          }
+        } ]
+      }, {
+        "linkId": "/69734-2",
+        "text": "Trouble relaxing",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6569-3",
+            "display": "Several days"
+          }
+        } ]
+      }, {
+        "linkId": "/69735-9",
+        "text": "Being so restless that it is hard to sit still",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6570-1",
+            "display": "More than half the days"
+          }
+        } ]
+      }, {
+        "linkId": "/69689-8",
+        "text": "Becoming easily annoyed or irritable.",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6570-1",
+            "display": "More than half the days"
+          }
+        } ]
+      }, {
+        "linkId": "/69736-7",
+        "text": "Feeling afraid as if something awful might happen",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6569-3",
+            "display": "Several days"
+          }
+        } ]
+      } ]
+    },
+    "search": {
+      "mode": "include"
+    }
+  }, {
+    "fullUrl": "https://femr.dcw.dev.cirg.uw.edu/fhir/QuestionnaireResponse/21",
+    "resource": {
+      "resourceType": "QuestionnaireResponse",
+      "id": "21",
+      "meta": {
+        "versionId": "1",
+        "lastUpdated": "2022-10-25T05:15:11.873+00:00",
+        "source": "#1KXPjOEAsuNLIhWU"
+      },
+      "questionnaire": "Questionnaire/CIRG-MINICOG",
+      "status": "completed",
+      "subject": {
+        "reference": "Patient/15"
+      },
+      "authored": "2022-10-24",
+      "item": [ {
+        "linkId": "minicog-total-score",
+        "text": "Total Score (0 - 5 points)",
+        "answer": [ {
+          "valueDecimal": 1
+        } ]
+      }, {
+        "linkId": "minicog-question1",
+        "text": "Word Recall (0-3 points)",
+        "answer": [ {
+          "valueDecimal": 1
+        } ]
+      }, {
+        "linkId": "minicog-question2",
+        "text": "Clock Draw (0 or 2 points)",
+        "answer": [ {
+          "valueDecimal": 2
+        } ]
+      } ]
+    },
+    "search": {
+      "mode": "include"
+    }
+  }, {
+    "fullUrl": "https://femr.dcw.dev.cirg.uw.edu/fhir/QuestionnaireResponse/22",
+    "resource": {
+      "resourceType": "QuestionnaireResponse",
+      "id": "22",
+      "meta": {
+        "versionId": "1",
+        "lastUpdated": "2022-10-25T18:43:12.907+00:00",
+        "source": "#qFIhBq9xSnJXG0ew"
+      },
+      "questionnaire": "Questionnaire/CIRG-MINICOG",
+      "status": "completed",
+      "subject": {
+        "reference": "Patient/15"
+      },
+      "authored": "2022-10-25",
+      "item": [ {
+        "linkId": "minicog-total-score",
+        "text": "Total Score (0 - 5 points)",
+        "answer": [ {
+          "valueDecimal": 5
+        } ]
+      }, {
+        "linkId": "minicog-question1",
+        "text": "Word Recall (0-3 points)",
+        "answer": [ {
+          "valueDecimal": 3
+        } ]
+      }, {
+        "linkId": "minicog-question2",
+        "text": "Clock Draw (0 or 2 points)",
+        "answer": [ {
+          "valueDecimal": 2
+        } ]
+      } ]
+    },
+    "search": {
+      "mode": "include"
+    }
+  }, {
+    "fullUrl": "https://femr.dcw.dev.cirg.uw.edu/fhir/QuestionnaireResponse/23",
+    "resource": {
+      "resourceType": "QuestionnaireResponse",
+      "id": "23",
+      "meta": {
+        "versionId": "1",
+        "lastUpdated": "2022-10-26T00:59:59.817+00:00",
+        "source": "#6LHcOMfskTLfRt7I"
+      },
+      "questionnaire": "Questionnaire/CIRG-MINICOG",
+      "status": "completed",
+      "subject": {
+        "reference": "Patient/12"
+      },
+      "authored": "2022-10-25",
+      "item": [ {
+        "linkId": "minicog-total-score",
+        "text": "Total Score (0 - 5 points)",
+        "answer": [ {
+          "valueDecimal": 3
+        } ]
+      }, {
+        "linkId": "minicog-question1",
+        "text": "Word Recall (0-3 points)",
+        "answer": [ {
+          "valueDecimal": 1
+        } ]
+      }, {
+        "linkId": "minicog-question2",
+        "text": "Clock Draw (0 or 2 points)",
+        "answer": [ {
+          "valueDecimal": 2
+        } ]
+      } ]
+    },
+    "search": {
+      "mode": "include"
+    }
+  }, {
+    "fullUrl": "https://femr.dcw.dev.cirg.uw.edu/fhir/QuestionnaireResponse/25",
+    "resource": {
+      "resourceType": "QuestionnaireResponse",
+      "id": "25",
+      "meta": {
+        "versionId": "2",
+        "lastUpdated": "2022-10-26T16:13:50.978+00:00",
+        "source": "#k3RU8pGjxPplGKB0"
+      },
+      "questionnaire": "Questionnaire/CIRG-MINICOG",
+      "status": "completed",
+      "subject": {
+        "reference": "Patient/24"
+      },
+      "authored": "2022-10-25",
+      "item": [ {
+        "linkId": "minicog-total-score",
+        "text": "Total Score (0 - 5 points)",
+        "answer": [ {
+          "valueDecimal": 3
+        } ]
+      }, {
+        "linkId": "minicog-question1",
+        "text": "Word Recall (0-3 points)",
+        "answer": [ {
+          "valueDecimal": 1
+        } ]
+      }, {
+        "linkId": "minicog-question2",
+        "text": "Clock Draw (0 or 2 points)",
+        "answer": [ {
+          "valueDecimal": 2
+        } ]
+      } ]
+    },
+    "search": {
+      "mode": "include"
+    }
+  }, {
+    "fullUrl": "https://femr.dcw.dev.cirg.uw.edu/fhir/QuestionnaireResponse/27",
+    "resource": {
+      "resourceType": "QuestionnaireResponse",
+      "id": "27",
+      "meta": {
+        "versionId": "2",
+        "lastUpdated": "2022-10-26T16:10:27.163+00:00",
+        "source": "#ZrEfwoktMSKppT9q"
+      },
+      "questionnaire": "Questionnaire/CIRG-MINICOG",
+      "status": "completed",
+      "subject": {
+        "reference": "Patient/26"
+      },
+      "authored": "2022-10-25",
+      "item": [ {
+        "linkId": "minicog-total-score",
+        "text": "Total Score (0 - 5 points)",
+        "answer": [ {
+          "valueDecimal": 4
+        } ]
+      }, {
+        "linkId": "minicog-question1",
+        "text": "Word Recall (0-3 points)",
+        "answer": [ {
+          "valueDecimal": 2
+        } ]
+      }, {
+        "linkId": "minicog-question2",
+        "text": "Clock Draw (0 or 2 points)",
+        "answer": [ {
+          "valueDecimal": 2
+        } ]
+      } ]
+    },
+    "search": {
+      "mode": "include"
+    }
+  }, {
+    "fullUrl": "https://femr.dcw.dev.cirg.uw.edu/fhir/QuestionnaireResponse/29",
+    "resource": {
+      "resourceType": "QuestionnaireResponse",
+      "id": "29",
+      "meta": {
+        "versionId": "1",
+        "lastUpdated": "2022-10-26T16:34:50.533+00:00",
+        "source": "#gVQn29mE9I3E6Pgb"
+      },
+      "questionnaire": "Questionnaire/CIRG-PHQ9",
+      "status": "completed",
+      "subject": {
+        "reference": "Patient/test-patient-2"
+      },
+      "authored": "2022-10-26",
+      "item": [ {
+        "linkId": "/44261-6",
+        "text": "Patient health questionnaire 9 item total score",
+        "answer": [ {
+          "valueDecimal": 16
+        } ]
+      }, {
+        "linkId": "/44250-9",
+        "text": "Little interest or pleasure in doing things",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6571-9",
+            "display": "Nearly every day"
+          }
+        } ]
+      }, {
+        "linkId": "/44255-8",
+        "text": "Feeling down, depressed, or hopeless",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6570-1",
+            "display": "More than half the days"
+          }
+        } ]
+      }, {
+        "linkId": "/44259-0",
+        "text": "Trouble falling or staying asleep, or sleeping too much",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6568-5",
+            "display": "Not at all"
+          }
+        } ]
+      }, {
+        "linkId": "/44254-1",
+        "text": "Feeling tired or having little energy",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6571-9",
+            "display": "Nearly every day"
+          }
+        } ]
+      }, {
+        "linkId": "/44251-7",
+        "text": "Poor appetite or overeating",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6571-9",
+            "display": "Nearly every day"
+          }
+        } ]
+      }, {
+        "linkId": "/44258-2",
+        "text": "Feeling bad about yourself-or that you are a failure or have let yourself or your family down",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6569-3",
+            "display": "Several days"
+          }
+        } ]
+      }, {
+        "linkId": "/44252-5",
+        "text": "Trouble concentrating on things, such as reading the newspaper or watching television",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6570-1",
+            "display": "More than half the days"
+          }
+        } ]
+      }, {
+        "linkId": "/44253-3",
+        "text": "Moving or speaking so slowly that other people could have noticed. Or the opposite-being so fidgety or restless that you have been moving around a lot more than usual",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6569-3",
+            "display": "Several days"
+          }
+        } ]
+      }, {
+        "linkId": "/44260-8",
+        "text": "Thoughts that you would be better off dead, or of hurting yourself in some way",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6569-3",
+            "display": "Several days"
+          }
+        } ]
+      }, {
+        "linkId": "/69722-7",
+        "text": "How difficult have these problems made it for you to do your work, take care of things at home, or get along with other people?",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6572-7",
+            "display": "Not difficult at all"
+          }
+        } ]
+      } ]
+    },
+    "search": {
+      "mode": "include"
+    }
+  }, {
+    "fullUrl": "https://femr.dcw.dev.cirg.uw.edu/fhir/QuestionnaireResponse/30",
+    "resource": {
+      "resourceType": "QuestionnaireResponse",
+      "id": "30",
+      "meta": {
+        "versionId": "1",
+        "lastUpdated": "2022-10-26T16:35:04.830+00:00",
+        "source": "#BhLnW31qTsJnBdEJ"
+      },
+      "questionnaire": "Questionnaire/CIRG-GAD7",
+      "status": "completed",
+      "subject": {
+        "reference": "Patient/test-patient-2"
+      },
+      "authored": "2022-10-26",
+      "item": [ {
+        "linkId": "/70274-6",
+        "text": "Generalized anxiety disorder 7 item total score",
+        "answer": [ {
+          "valueDecimal": 17
+        } ]
+      }, {
+        "linkId": "/69725-0",
+        "text": "Feeling nervous, anxious or on edge",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6570-1",
+            "display": "More than half the days"
+          }
+        } ]
+      }, {
+        "linkId": "/68509-9",
+        "text": "Over the past 2 weeks have you not been able to stop or control worrying",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA18938-3",
+            "display": "More days than not"
+          }
+        } ]
+      }, {
+        "linkId": "/69733-4",
+        "text": "Worrying too much about different things",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6571-9",
+            "display": "Nearly every day"
+          }
+        } ]
+      }, {
+        "linkId": "/69734-2",
+        "text": "Trouble relaxing",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6571-9",
+            "display": "Nearly every day"
+          }
+        } ]
+      }, {
+        "linkId": "/69735-9",
+        "text": "Being so restless that it is hard to sit still",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6570-1",
+            "display": "More than half the days"
+          }
+        } ]
+      }, {
+        "linkId": "/69689-8",
+        "text": "Becoming easily annoyed or irritable.",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6570-1",
+            "display": "More than half the days"
+          }
+        } ]
+      }, {
+        "linkId": "/69736-7",
+        "text": "Feeling afraid as if something awful might happen",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6571-9",
+            "display": "Nearly every day"
+          }
+        } ]
+      } ]
+    },
+    "search": {
+      "mode": "include"
+    }
+  }, {
+    "fullUrl": "https://femr.dcw.dev.cirg.uw.edu/fhir/QuestionnaireResponse/31",
+    "resource": {
+      "resourceType": "QuestionnaireResponse",
+      "id": "31",
+      "meta": {
+        "versionId": "1",
+        "lastUpdated": "2022-10-26T17:30:18.117+00:00",
+        "source": "#lmz5UoUyGRokC01l"
+      },
+      "questionnaire": "Questionnaire/CIRG-PHQ9",
+      "status": "completed",
+      "subject": {
+        "reference": "Patient/test-patient-2"
+      },
+      "authored": "2022-10-26",
+      "item": [ {
+        "linkId": "/44261-6",
+        "text": "Patient health questionnaire 9 item total score",
+        "answer": [ {
+          "valueDecimal": 11
+        } ]
+      }, {
+        "linkId": "/44250-9",
+        "text": "Little interest or pleasure in doing things",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6569-3",
+            "display": "Several days"
+          }
+        } ]
+      }, {
+        "linkId": "/44255-8",
+        "text": "Feeling down, depressed, or hopeless",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6569-3",
+            "display": "Several days"
+          }
+        } ]
+      }, {
+        "linkId": "/44259-0",
+        "text": "Trouble falling or staying asleep, or sleeping too much",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6568-5",
+            "display": "Not at all"
+          }
+        } ]
+      }, {
+        "linkId": "/44254-1",
+        "text": "Feeling tired or having little energy",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6570-1",
+            "display": "More than half the days"
+          }
+        } ]
+      }, {
+        "linkId": "/44251-7",
+        "text": "Poor appetite or overeating",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6568-5",
+            "display": "Not at all"
+          }
+        } ]
+      }, {
+        "linkId": "/44258-2",
+        "text": "Feeling bad about yourself-or that you are a failure or have let yourself or your family down",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6569-3",
+            "display": "Several days"
+          }
+        } ]
+      }, {
+        "linkId": "/44252-5",
+        "text": "Trouble concentrating on things, such as reading the newspaper or watching television",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6569-3",
+            "display": "Several days"
+          }
+        } ]
+      }, {
+        "linkId": "/44253-3",
+        "text": "Moving or speaking so slowly that other people could have noticed. Or the opposite-being so fidgety or restless that you have been moving around a lot more than usual",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6569-3",
+            "display": "Several days"
+          }
+        } ]
+      }, {
+        "linkId": "/44260-8",
+        "text": "Thoughts that you would be better off dead, or of hurting yourself in some way",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6570-1",
+            "display": "More than half the days"
+          }
+        } ]
+      }, {
+        "linkId": "/69722-7",
+        "text": "How difficult have these problems made it for you to do your work, take care of things at home, or get along with other people?",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6575-0",
+            "display": "Very difficult"
+          }
+        } ]
+      } ]
+    },
+    "search": {
+      "mode": "include"
+    }
+  }, {
+    "fullUrl": "https://femr.dcw.dev.cirg.uw.edu/fhir/QuestionnaireResponse/32",
+    "resource": {
+      "resourceType": "QuestionnaireResponse",
+      "id": "32",
+      "meta": {
+        "versionId": "1",
+        "lastUpdated": "2022-10-26T17:34:08.728+00:00",
+        "source": "#0g2ecxWL5ycKmOHm"
+      },
+      "questionnaire": "Questionnaire/CIRG-GAD7",
+      "status": "completed",
+      "subject": {
+        "reference": "Patient/test-patient-2"
+      },
+      "authored": "2022-10-26",
+      "item": [ {
+        "linkId": "/70274-6",
+        "text": "Generalized anxiety disorder 7 item total score",
+        "answer": [ {
+          "valueDecimal": 9
+        } ]
+      }, {
+        "linkId": "/69725-0",
+        "text": "Feeling nervous, anxious or on edge",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6570-1",
+            "display": "More than half the days"
+          }
+        } ]
+      }, {
+        "linkId": "/68509-9",
+        "text": "Over the past 2 weeks have you not been able to stop or control worrying",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6569-3",
+            "display": "Several days"
+          }
+        } ]
+      }, {
+        "linkId": "/69733-4",
+        "text": "Worrying too much about different things",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6570-1",
+            "display": "More than half the days"
+          }
+        } ]
+      }, {
+        "linkId": "/69734-2",
+        "text": "Trouble relaxing",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6570-1",
+            "display": "More than half the days"
+          }
+        } ]
+      }, {
+        "linkId": "/69735-9",
+        "text": "Being so restless that it is hard to sit still",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6570-1",
+            "display": "More than half the days"
+          }
+        } ]
+      }, {
+        "linkId": "/69689-8",
+        "text": "Becoming easily annoyed or irritable.",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6568-5",
+            "display": "Not at all"
+          }
+        } ]
+      }, {
+        "linkId": "/69736-7",
+        "text": "Feeling afraid as if something awful might happen",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6568-5",
+            "display": "Not at all"
+          }
+        } ]
+      } ]
+    },
+    "search": {
+      "mode": "include"
+    }
+  }, {
+    "fullUrl": "https://femr.dcw.dev.cirg.uw.edu/fhir/QuestionnaireResponse/52",
+    "resource": {
+      "resourceType": "QuestionnaireResponse",
+      "id": "52",
+      "meta": {
+        "versionId": "1",
+        "lastUpdated": "2022-10-26T22:40:28.530+00:00",
+        "source": "#pT4kQEh5Pf4hKmj4"
+      },
+      "questionnaire": "Questionnaire/CIRG-MINICOG",
+      "status": "completed",
+      "subject": {
+        "reference": "Patient/26"
+      },
+      "authored": "2022-10-26",
+      "item": [ {
+        "linkId": "minicog-total-score",
+        "text": "Total Score (0 - 5 points)",
+        "answer": [ {
+          "valueDecimal": 3
+        } ]
+      }, {
+        "linkId": "minicog-question1",
+        "text": "Word Recall (0-3 points)",
+        "answer": [ {
+          "valueDecimal": 1
+        } ]
+      }, {
+        "linkId": "minicog-question2",
+        "text": "Clock Draw (0 or 2 points)",
+        "answer": [ {
+          "valueDecimal": 2
+        } ]
+      } ]
+    },
+    "search": {
+      "mode": "include"
+    }
+  }, {
+    "fullUrl": "https://femr.dcw.dev.cirg.uw.edu/fhir/QuestionnaireResponse/54",
+    "resource": {
+      "resourceType": "QuestionnaireResponse",
+      "id": "54",
+      "meta": {
+        "versionId": "1",
+        "lastUpdated": "2022-10-27T23:11:06.841+00:00",
+        "source": "#dhWmcOIHblXhjGMF"
+      },
+      "questionnaire": "Questionnaire/CIRG-MINICOG",
+      "status": "completed",
+      "subject": {
+        "reference": "Patient/53"
+      },
+      "authored": "2022-10-27",
+      "item": [ {
+        "linkId": "minicog-total-score",
+        "text": "Total Score (0 - 5 points)",
+        "answer": [ {
+          "valueDecimal": 3
+        } ]
+      }, {
+        "linkId": "minicog-question1",
+        "text": "Word Recall (0-3 points)",
+        "answer": [ {
+          "valueDecimal": 1
+        } ]
+      }, {
+        "linkId": "minicog-question2",
+        "text": "Clock Draw (0 or 2 points)",
+        "answer": [ {
+          "valueDecimal": 2
+        } ]
+      } ]
+    },
+    "search": {
+      "mode": "include"
+    }
+  }, {
+    "fullUrl": "https://femr.dcw.dev.cirg.uw.edu/fhir/QuestionnaireResponse/56",
+    "resource": {
+      "resourceType": "QuestionnaireResponse",
+      "id": "56",
+      "meta": {
+        "versionId": "1",
+        "lastUpdated": "2022-10-28T20:35:21.733+00:00",
+        "source": "#XBIUHJWl6zmKPSnU"
+      },
+      "questionnaire": "Questionnaire/CIRG-MINICOG",
+      "status": "completed",
+      "subject": {
+        "reference": "Patient/24"
+      },
+      "authored": "2022-10-28",
+      "item": [ {
+        "linkId": "minicog-total-score",
+        "text": "Total Score (0 - 5 points)",
+        "answer": [ {
+          "valueDecimal": 4
+        } ]
+      }, {
+        "linkId": "minicog-question1",
+        "text": "Word Recall (0-3 points)",
+        "answer": [ {
+          "valueDecimal": 2
+        } ]
+      }, {
+        "linkId": "minicog-question2",
+        "text": "Clock Draw (0 or 2 points)",
+        "answer": [ {
+          "valueDecimal": 2
+        } ]
+      } ]
+    },
+    "search": {
+      "mode": "include"
+    }
+  }, {
+    "fullUrl": "https://femr.dcw.dev.cirg.uw.edu/fhir/QuestionnaireResponse/57",
+    "resource": {
+      "resourceType": "QuestionnaireResponse",
+      "id": "57",
+      "meta": {
+        "versionId": "1",
+        "lastUpdated": "2022-11-01T19:22:59.585+00:00",
+        "source": "#rmKtV03Cp3oBMCW9"
+      },
+      "questionnaire": "Questionnaire/CIRG-PHQ9",
+      "status": "completed",
+      "subject": {
+        "reference": "Patient/test-patient-2"
+      },
+      "authored": "2022-11-01",
+      "item": [ {
+        "linkId": "/44261-6",
+        "text": "Patient health questionnaire 9 item total score",
+        "answer": [ {
+          "valueDecimal": 17
+        } ]
+      }, {
+        "linkId": "/44250-9",
+        "text": "Little interest or pleasure in doing things",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6569-3",
+            "display": "Several days"
+          }
+        } ]
+      }, {
+        "linkId": "/44255-8",
+        "text": "Feeling down, depressed, or hopeless",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6570-1",
+            "display": "More than half the days"
+          }
+        } ]
+      }, {
+        "linkId": "/44259-0",
+        "text": "Trouble falling or staying asleep, or sleeping too much",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6569-3",
+            "display": "Several days"
+          }
+        } ]
+      }, {
+        "linkId": "/44254-1",
+        "text": "Feeling tired or having little energy",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6570-1",
+            "display": "More than half the days"
+          }
+        } ]
+      }, {
+        "linkId": "/44251-7",
+        "text": "Poor appetite or overeating",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6569-3",
+            "display": "Several days"
+          }
+        } ]
+      }, {
+        "linkId": "/44258-2",
+        "text": "Feeling bad about yourself-or that you are a failure or have let yourself or your family down",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6570-1",
+            "display": "More than half the days"
+          }
+        } ]
+      }, {
+        "linkId": "/44252-5",
+        "text": "Trouble concentrating on things, such as reading the newspaper or watching television",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6569-3",
+            "display": "Several days"
+          }
+        } ]
+      }, {
+        "linkId": "/44253-3",
+        "text": "Moving or speaking so slowly that other people could have noticed. Or the opposite-being so fidgety or restless that you have been moving around a lot more than usual",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6570-1",
+            "display": "More than half the days"
+          }
+        } ]
+      }, {
+        "linkId": "/44260-8",
+        "text": "Thoughts that you would be better off dead, or of hurting yourself in some way",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6571-9",
+            "display": "Nearly every day"
+          }
+        } ]
+      }, {
+        "linkId": "/69722-7",
+        "text": "How difficult have these problems made it for you to do your work, take care of things at home, or get along with other people?",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6575-0",
+            "display": "Very difficult"
+          }
+        } ]
+      } ]
+    },
+    "search": {
+      "mode": "include"
+    }
+  }, {
+    "fullUrl": "https://femr.dcw.dev.cirg.uw.edu/fhir/QuestionnaireResponse/58",
+    "resource": {
+      "resourceType": "QuestionnaireResponse",
+      "id": "58",
+      "meta": {
+        "versionId": "1",
+        "lastUpdated": "2022-11-01T19:23:16.899+00:00",
+        "source": "#FVPiu52wuvnVZHk9"
+      },
+      "questionnaire": "Questionnaire/CIRG-GAD7",
+      "status": "completed",
+      "subject": {
+        "reference": "Patient/test-patient-2"
+      },
+      "authored": "2022-11-01",
+      "item": [ {
+        "linkId": "/70274-6",
+        "text": "Generalized anxiety disorder 7 item total score",
+        "answer": [ {
+          "valueDecimal": 10
+        } ]
+      }, {
+        "linkId": "/69725-0",
+        "text": "Feeling nervous, anxious or on edge",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6569-3",
+            "display": "Several days"
+          }
+        } ]
+      }, {
+        "linkId": "/68509-9",
+        "text": "Over the past 2 weeks have you not been able to stop or control worrying",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA18938-3",
+            "display": "More days than not"
+          }
+        } ]
+      }, {
+        "linkId": "/69733-4",
+        "text": "Worrying too much about different things",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6569-3",
+            "display": "Several days"
+          }
+        } ]
+      }, {
+        "linkId": "/69734-2",
+        "text": "Trouble relaxing",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6569-3",
+            "display": "Several days"
+          }
+        } ]
+      }, {
+        "linkId": "/69735-9",
+        "text": "Being so restless that it is hard to sit still",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6570-1",
+            "display": "More than half the days"
+          }
+        } ]
+      }, {
+        "linkId": "/69689-8",
+        "text": "Becoming easily annoyed or irritable.",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6569-3",
+            "display": "Several days"
+          }
+        } ]
+      }, {
+        "linkId": "/69736-7",
+        "text": "Feeling afraid as if something awful might happen",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6570-1",
+            "display": "More than half the days"
+          }
+        } ]
+      } ]
+    },
+    "search": {
+      "mode": "include"
+    }
+  }, {
+    "fullUrl": "https://femr.dcw.dev.cirg.uw.edu/fhir/QuestionnaireResponse/59",
+    "resource": {
+      "resourceType": "QuestionnaireResponse",
+      "id": "59",
+      "meta": {
+        "versionId": "1",
+        "lastUpdated": "2022-11-01T21:34:00.228+00:00",
+        "source": "#uOdv1kOmRTSK1TZT"
+      },
+      "questionnaire": "Questionnaire/CIRG-PHQ9",
+      "status": "completed",
+      "subject": {
+        "reference": "Patient/test-patient-2"
+      },
+      "authored": "2022-11-01",
+      "item": [ {
+        "linkId": "/44261-6",
+        "text": "Patient health questionnaire 9 item total score",
+        "answer": [ {
+          "valueDecimal": 19
+        } ]
+      }, {
+        "linkId": "/44250-9",
+        "text": "Little interest or pleasure in doing things",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6570-1",
+            "display": "More than half the days"
+          }
+        } ]
+      }, {
+        "linkId": "/44255-8",
+        "text": "Feeling down, depressed, or hopeless",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6569-3",
+            "display": "Several days"
+          }
+        } ]
+      }, {
+        "linkId": "/44259-0",
+        "text": "Trouble falling or staying asleep, or sleeping too much",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6570-1",
+            "display": "More than half the days"
+          }
+        } ]
+      }, {
+        "linkId": "/44254-1",
+        "text": "Feeling tired or having little energy",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6571-9",
+            "display": "Nearly every day"
+          }
+        } ]
+      }, {
+        "linkId": "/44251-7",
+        "text": "Poor appetite or overeating",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6568-5",
+            "display": "Not at all"
+          }
+        } ]
+      }, {
+        "linkId": "/44258-2",
+        "text": "Feeling bad about yourself-or that you are a failure or have let yourself or your family down",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6570-1",
+            "display": "More than half the days"
+          }
+        } ]
+      }, {
+        "linkId": "/44252-5",
+        "text": "Trouble concentrating on things, such as reading the newspaper or watching television",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6569-3",
+            "display": "Several days"
+          }
+        } ]
+      }, {
+        "linkId": "/44253-3",
+        "text": "Moving or speaking so slowly that other people could have noticed. Or the opposite-being so fidgety or restless that you have been moving around a lot more than usual",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6570-1",
+            "display": "More than half the days"
+          }
+        } ]
+      }, {
+        "linkId": "/44260-8",
+        "text": "Thoughts that you would be better off dead, or of hurting yourself in some way",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6571-9",
+            "display": "Nearly every day"
+          }
+        } ]
+      }, {
+        "linkId": "/69722-7",
+        "text": "How difficult have these problems made it for you to do your work, take care of things at home, or get along with other people?",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6574-3",
+            "display": "Extremely difficult"
+          }
+        } ]
+      } ]
+    },
+    "search": {
+      "mode": "include"
+    }
+  }, {
+    "fullUrl": "https://femr.dcw.dev.cirg.uw.edu/fhir/QuestionnaireResponse/60",
+    "resource": {
+      "resourceType": "QuestionnaireResponse",
+      "id": "60",
+      "meta": {
+        "versionId": "1",
+        "lastUpdated": "2022-11-01T21:34:21.360+00:00",
+        "source": "#MX4jvhbhaC2pgK5c"
+      },
+      "questionnaire": "Questionnaire/CIRG-GAD7",
+      "status": "completed",
+      "subject": {
+        "reference": "Patient/test-patient-2"
+      },
+      "authored": "2022-11-01",
+      "item": [ {
+        "linkId": "/70274-6",
+        "text": "Generalized anxiety disorder 7 item total score",
+        "answer": [ {
+          "valueDecimal": 9
+        } ]
+      }, {
+        "linkId": "/69725-0",
+        "text": "Feeling nervous, anxious or on edge",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6569-3",
+            "display": "Several days"
+          }
+        } ]
+      }, {
+        "linkId": "/69733-4",
+        "text": "Worrying too much about different things",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6570-1",
+            "display": "More than half the days"
+          }
+        } ]
+      }, {
+        "linkId": "/69734-2",
+        "text": "Trouble relaxing",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6569-3",
+            "display": "Several days"
+          }
+        } ]
+      }, {
+        "linkId": "/69735-9",
+        "text": "Being so restless that it is hard to sit still",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6568-5",
+            "display": "Not at all"
+          }
+        } ]
+      }, {
+        "linkId": "/69689-8",
+        "text": "Becoming easily annoyed or irritable.",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6571-9",
+            "display": "Nearly every day"
+          }
+        } ]
+      }, {
+        "linkId": "/69736-7",
+        "text": "Feeling afraid as if something awful might happen",
+        "answer": [ {
+          "valueCoding": {
+            "code": "LA6570-1",
+            "display": "More than half the days"
+          }
+        } ]
+      } ]
+    },
+    "search": {
+      "mode": "include"
+    }
+  }, {
+    "fullUrl": "https://femr.dcw.dev.cirg.uw.edu/fhir/QuestionnaireResponse/61",
+    "resource": {
+      "resourceType": "QuestionnaireResponse",
+      "id": "61",
+      "meta": {
+        "versionId": "1",
+        "lastUpdated": "2022-11-01T21:37:12.212+00:00",
+        "source": "#qppkFQoDGIVESkDp"
+      },
+      "questionnaire": "Questionnaire/CIRG-MINICOG",
+      "status": "completed",
+      "subject": {
+        "reference": "Patient/24"
+      },
+      "authored": "2022-11-01",
+      "item": [ {
+        "linkId": "minicog-question1",
+        "text": "Word Recall (0-3 points)",
+        "answer": [ {
+          "valueDecimal": 3
+        } ]
+      }, {
+        "linkId": "minicog-question2",
+        "text": "Clock Draw (0 or 2 points)",
+        "answer": [ {
+          "valueDecimal": 2
+        } ]
+      }, {
+        "linkId": "minicog-total-score",
+        "text": "Total Score (0 - 5 points)",
+        "answer": [ {
+          "valueDecimal": 5
+        } ]
+      } ]
+    },
+    "search": {
+      "mode": "include"
+    }
+  }, {
+    "fullUrl": "https://femr.dcw.dev.cirg.uw.edu/fhir/QuestionnaireResponse/62",
+    "resource": {
+      "resourceType": "QuestionnaireResponse",
+      "id": "62",
+      "meta": {
+        "versionId": "1",
+        "lastUpdated": "2022-11-02T12:20:52.415+00:00",
+        "source": "#BhDKy5Df5KX3D6ri"
+      },
+      "questionnaire": "Questionnaire/CIRG-MINICOG",
+      "status": "completed",
+      "subject": {
+        "reference": "Patient/53"
+      },
+      "authored": "2022-11-02",
+      "item": [ {
+        "linkId": "minicog-total-score",
+        "text": "Total Score (0 - 5 points)",
+        "answer": [ {
+          "valueDecimal": 4
+        } ]
+      }, {
+        "linkId": "minicog-question1",
+        "text": "Word Recall (0-3 points)",
+        "answer": [ {
+          "valueDecimal": 2
+        } ]
+      }, {
+        "linkId": "minicog-question2",
+        "text": "Clock Draw (0 or 2 points)",
+        "answer": [ {
+          "valueDecimal": 2
+        } ]
+      } ]
+    },
+    "search": {
+      "mode": "include"
+    }
+  }, {
+    "fullUrl": "https://femr.dcw.dev.cirg.uw.edu/fhir/QuestionnaireResponse/63",
+    "resource": {
+      "resourceType": "QuestionnaireResponse",
+      "id": "63",
+      "meta": {
+        "versionId": "1",
+        "lastUpdated": "2022-11-02T16:34:18.108+00:00",
+        "source": "#fM4xE532KENykP7Y"
+      },
+      "questionnaire": "Questionnaire/CIRG-MINICOG",
+      "status": "completed",
+      "subject": {
+        "reference": "Patient/53"
+      },
+      "authored": "2022-11-02",
+      "item": [ {
+        "linkId": "minicog-total-score",
+        "text": "Total Score (0 - 5 points)",
+        "answer": [ {
+          "valueDecimal": 3
+        } ]
+      }, {
+        "linkId": "minicog-question1",
+        "text": "Word Recall (0-3 points)",
+        "answer": [ {
+          "valueDecimal": 1
+        } ]
+      }, {
+        "linkId": "minicog-question2",
+        "text": "Clock Draw (0 or 2 points)",
+        "answer": [ {
+          "valueDecimal": 2
+        } ]
+      } ]
+    },
+    "search": {
+      "mode": "include"
+    }
+  } ]
+}
