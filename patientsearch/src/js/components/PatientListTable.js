@@ -951,6 +951,7 @@ export default function PatientListTable() {
             toolbar: false,
             filtering: false,
             sorting: true,
+            thirdSortClick: false,
             search: false,
             showTitle: false,
             headerStyle: {
