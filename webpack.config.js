@@ -2,6 +2,7 @@ const webpack = require("webpack");
 const path = require("path");
 const TerserWebpackPlugin = require("terser-webpack-plugin");
 const CssMinimizerPlugin = require("css-minimizer-webpack-plugin");
+//const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const { CleanWebpackPlugin } = require("clean-webpack-plugin");
 const FileManagerPlugin = require("filemanager-webpack-plugin");
@@ -10,13 +11,15 @@ const NodePolyfillPlugin = require("node-polyfill-webpack-plugin");
 const appTitle = "Patient Search";
 const templateFilePath = path.join(__dirname, "/patientsearch/src/index.html");
 
-module.exports = function(_env, argv) {
+module.exports = function (_env, argv) {
   const isProduction = argv.mode === "production";
   const isDevelopment = !isProduction;
   /*
    * output to static file for ease of development
    */
-  const outputDirectory = isDevelopment?"/patientsearch/static":"/patientsearch/dist";
+  const outputDirectory = isDevelopment
+    ? "/patientsearch/static"
+    : "/patientsearch/dist";
   const jsDirectory = `${outputDirectory}/js`;
   const templateDirectory = `${outputDirectory}/templates`;
 
@@ -60,11 +63,8 @@ module.exports = function(_env, argv) {
       rules: [
         //parse css files
         {
-          test: /\.s?css$/,
+          test: /\.css$/,
           use: [
-            {
-              loader: MiniCssExtractPlugin.loader,
-            },
             {
               loader: "style-loader",
             },

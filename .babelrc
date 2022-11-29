@@ -10,7 +10,10 @@
     ],
     "plugins": [
         [
-            "@babel/plugin-proposal-nullish-coalescing-operator"
+        "@babel/proposal-optional-chaining"
+        ],
+        [
+        "@babel/proposal-nullish-coalescing-operator"
         ],
         [
             "transform-react-jsx"
