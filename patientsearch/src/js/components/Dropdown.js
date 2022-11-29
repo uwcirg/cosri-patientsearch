@@ -1,15 +1,13 @@
 import React from "react";
 import PropTypes from "prop-types";
-import { makeStyles, styled } from "@material-ui/core/styles";
+import { makeStyles, styled} from "@material-ui/core/styles";
 import AddCircleOutlineIcon from "@material-ui/icons/AddCircleOutline";
 import Button from "@material-ui/core/Button";
 import ListItemIcon from "@material-ui/core/ListItemIcon";
 import Menu from "@material-ui/core/Menu";
 import MenuItem from "@material-ui/core/MenuItem";
 import Typography from "@material-ui/core/Typography";
-import theme from "../themes/theme";
-
-const useStyles = makeStyles({
+const useStyles = makeStyles((theme) => ({
   menu: {
     paddingTop: theme.spacing(2.5),
   },
@@ -38,7 +36,7 @@ const useStyles = makeStyles({
     fontSize: "12px",
     color: "#FFF",
   },
-});
+}));
 export default function Dropdown(props) {
   const classes = useStyles();
   const StyledMenu = styled((props) => <Menu {...props} />)(({ theme }) => ({

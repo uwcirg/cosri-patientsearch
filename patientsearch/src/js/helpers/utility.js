@@ -354,3 +354,6 @@ export function setFavicon(href) {
   faviconEl.href = href;
 }
 
+export function isEmptyArray(arrObj) {
+  return !arrObj || !Array.isArray(arrObj) || arrObj.length === 0;
+}

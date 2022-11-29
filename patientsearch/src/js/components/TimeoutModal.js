@@ -3,7 +3,6 @@ import { makeStyles } from "@material-ui/core/styles";
 import Button from "@material-ui/core/Button";
 import Modal from "@material-ui/core/Modal";
 import { sendRequest } from "../helpers/utility";
-import theme from "../themes/theme";
 import { useSettingContext } from "../context/SettingContextProvider";
 
 function getModalStyle() {
@@ -15,7 +14,6 @@ function getModalStyle() {
     transform: `translate(-${top}%, -${left}%)`,
   };
 }
-
 const useStyles = makeStyles((theme) => ({
   paper: {
     position: "absolute",
@@ -29,12 +27,12 @@ const useStyles = makeStyles((theme) => ({
     color: theme.palette.primary.warning,
     marginTop: theme.spacing(1),
     marginBottom: theme.spacing(2),
-    fontWeight: 500
+    fontWeight: 500,
   },
   expiredDisplay: {
     fontWeight: 500,
-    marginLeft: theme.spacing(0.5)
-  }
+    marginLeft: theme.spacing(0.5),
+  },
 }));
 
 let expiredIntervalId = 0;
@@ -43,7 +41,7 @@ let refresh = false;
 let retryAttempts = 0;
 
 export default function TimeoutModal() {
-  const classes = useStyles(theme);
+  const classes = useStyles();
   const [modalStyle] = React.useState(getModalStyle);
   const [open, setOpen] = React.useState(false);
   const [disabled, setDisabled] = React.useState(false);
@@ -55,7 +53,6 @@ export default function TimeoutModal() {
     clearInterval(expiredIntervalId);
   };
   const checkSessionValidity = () => {
-
     const reTry = () => {
       //try again?
       if (retryAttempts < 2) {

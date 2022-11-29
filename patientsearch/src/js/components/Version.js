@@ -1,23 +1,23 @@
 import React from "react";
 import PropTypes from "prop-types";
-import { makeStyles } from "@material-ui/core/styles";
-import theme from "../themes/theme";
+import { makeStyles} from "@material-ui/core/styles";
 import { useSettingContext } from "../context/SettingContextProvider";
+import { MAX_MAIN_TABLE_WIDTH } from "../constants/consts";
 
-const useStyles = makeStyles({
+const useStyles = makeStyles((theme) => ({
   container: {
     textAlign: "right",
     margin: theme.spacing(2, 3, 2),
     color: theme.palette.muted.main,
     [theme.breakpoints.up("md")]: {
-      maxWidth: "1080px",
+      maxWidth: MAX_MAIN_TABLE_WIDTH,
       marginLeft: "auto",
       marginRight: "auto",
       paddingLeft: theme.spacing(3),
       paddingRight: theme.spacing(3),
     },
   },
-});
+}));
 
 export default function Version(props) {
   const classes = useStyles();

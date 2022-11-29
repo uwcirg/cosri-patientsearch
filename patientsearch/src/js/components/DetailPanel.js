@@ -1,9 +1,8 @@
 import PropTypes from "prop-types";
 import Paper from "@material-ui/core/Paper";
 import { makeStyles } from "@material-ui/core/styles";
-import theme from "../themes/theme";
 
-const useStyles = makeStyles({
+const useStyles = makeStyles((theme) => ({
   detailPanelWrapper: {
     backgroundColor: "#dde7e6",
     padding: theme.spacing(0.25),
@@ -13,7 +12,7 @@ const useStyles = makeStyles({
     minHeight: theme.spacing(8),
     backgroundColor: "#fbfbfb",
   },
-});
+}));
 
 export default function DetailPanel(props) {
   const classes = useStyles();

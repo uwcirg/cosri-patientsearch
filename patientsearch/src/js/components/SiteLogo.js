@@ -3,15 +3,14 @@ import PropTypes from "prop-types";
 import { makeStyles } from "@material-ui/core/styles";
 import { imageOK } from "../helpers/utility";
 import { useSettingContext } from "../context/SettingContextProvider";
-import theme from "../themes/theme";
 
-const useStyles = makeStyles({
+const useStyles = makeStyles((theme) => ({
   container: {
     textAlign: "center",
     marginLeft: theme.spacing(2),
     marginRight: theme.spacing(2),
   },
-});
+}));
 
 export default function SiteLogo(props) {
   const classes = useStyles();
