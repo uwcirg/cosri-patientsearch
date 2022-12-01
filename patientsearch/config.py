@@ -21,6 +21,11 @@ APPLICATION_TITLE = os.getenv(
 ENABLE_INACTIVITY_TIMEOUT = (
     os.getenv("ENABLE_INACTIVITY_TIMEOUT", "true").lower() == "true"
 )
+
+ENABLE_DELETE = (
+    os.getenv("ENABLE_DELETE", "true").lower() == "true"
+)
+
 FORBIDDEN_TEXT = os.getenv(
     "FORBIDDEN_TEXT",
     "Your account is not authorized for access, please contact an administrator",

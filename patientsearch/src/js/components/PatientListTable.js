@@ -978,6 +978,7 @@ export default function PatientListTable() {
             handleLaunchApp(rowData);
           }}
           editable={{
+            isDeleteHidden: () => !appSettings["ENABLE_DELETE"],
             onRowDelete: (oldData) =>
               fetchData("/fhir/Patient/" + oldData.id, {
                 method: "DELETE",
