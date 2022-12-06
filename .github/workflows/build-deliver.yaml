@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout commit with full git history
-        uses: actions/checkout@v1
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
@@ -19,7 +19,6 @@ jobs:
         # TODO pin to hash
         uses: elgohr/Publish-Docker-Github-Action@master
         with:
-          # https://help.github.com/en/actions/reference/context-and-expression-syntax-for-github-actions
           name: ${{ github.repository }}
           # configured at repo settings/secrets
           username: ${{ secrets.DOCKER_USERNAME }}
