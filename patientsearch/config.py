@@ -22,9 +22,7 @@ ENABLE_INACTIVITY_TIMEOUT = (
     os.getenv("ENABLE_INACTIVITY_TIMEOUT", "true").lower() == "true"
 )
 
-ENABLE_PATIENT_DELETE = (
-    os.getenv("ENABLE_PATIENT_DELETE", "false").lower() == "true"
-)
+ENABLE_PATIENT_DELETE = os.getenv("ENABLE_PATIENT_DELETE", "false").lower() == "true"
 
 FORBIDDEN_TEXT = os.getenv(
     "FORBIDDEN_TEXT",
