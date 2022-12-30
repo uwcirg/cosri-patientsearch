@@ -17,7 +17,7 @@ jobs:
 
       - name: Publish to GitHub Container Registry
         # TODO: pin to hash
-        uses: elgohr/Publish-Docker-Github-Action@master
+        uses: elgohr/Publish-Docker-Github-Action@v5
         with:
           name: ${{ github.repository }}
           registry: ghcr.io
@@ -35,7 +35,7 @@ jobs:
       # TODO remove after every *-environments migrated to GHCR
       - name: Publish to Dockerhub registry
         # TODO pin to hash
-        uses: elgohr/Publish-Docker-Github-Action@master
+        uses: elgohr/Publish-Docker-Github-Action@v5
         with:
           name: ${{ github.repository }}
           # configured at repo settings/secrets
