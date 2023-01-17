@@ -29,6 +29,7 @@ import {
   getClientsByRequiredRoles,
   isEmptyArray,
   isString,
+  putPatientData,
   validateToken,
 } from "../helpers/utility";
 const useStyles = makeStyles((theme) => ({
@@ -922,6 +923,8 @@ export default function PatientListTable() {
                     ),
                     onClick: (event, rowData) => {
                       event.stopPropagation();
+                      // this will ensure that last accessed date is being updated
+                      putPatientData(rowData.id, rowData.resource, handleErrorCallback);
                       handleLaunchApp(rowData, client);
                     },
                     tooltip: `Launch ${client.id} application for the user`,

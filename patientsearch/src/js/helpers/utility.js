@@ -357,3 +357,26 @@ export function setFavicon(href) {
 export function isEmptyArray(arrObj) {
   return !arrObj || !Array.isArray(arrObj) || arrObj.length === 0;
 }
+
+/*
+ * helper function for updating patient data via a PUT method call to FHIR host API
+ * @param patientId, Id of the patient whose data will be updated
+ * @param data, request payload
+ * @erroCallback, callback function to be called if error occurs
+ */
+export function putPatientData(patientId, data, errorCallback) {
+  if (!patientId || !data) return;
+  fetchData(
+    "/fhir/Patient/" + patientId,
+    {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data)
+    },
+    (e) => {
+      if (errorCallback) errorCallback(e);
+    }
+  ).then(() => console.log("PUT complete for patient " + patientId));
+}
