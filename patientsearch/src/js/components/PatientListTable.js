@@ -220,7 +220,7 @@ export default function PatientListTable() {
     last_name: "family",
     birth_date: "birthdate",
     last_accessed: "_lastUpdated",
-    mrn: "identifier"
+    mrn: "identifier",
   };
   const default_columns = [
     {
@@ -923,8 +923,20 @@ export default function PatientListTable() {
                     ),
                     onClick: (event, rowData) => {
                       event.stopPropagation();
-                      // this will ensure that last accessed date, i.e. meta.lastUpdated, is being updated
-                      putPatientData(rowData.id, rowData.resource, handleErrorCallback);
+                      const columns = getColumns();
+                      const hasLastAccessedField =
+                        columns.filter(
+                          (column) => column.field === "last_accessed"
+                        ).length > 0;
+                      // if last accessed field is present
+                      if (hasLastAccessedField) {
+                        // this will ensure that last accessed date, i.e. meta.lastUpdated, is being updated
+                        putPatientData(
+                          rowData.id,
+                          rowData.resource,
+                          handleErrorCallback
+                        );
+                      }
                       handleLaunchApp(rowData, client);
                     },
                     tooltip: `Launch ${client.id} application for the user`,
