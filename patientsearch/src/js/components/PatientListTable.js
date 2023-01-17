@@ -923,7 +923,7 @@ export default function PatientListTable() {
                     ),
                     onClick: (event, rowData) => {
                       event.stopPropagation();
-                      // this will ensure that last accessed date is being updated
+                      // this will ensure that last accessed date, i.e. meta.lastUpdated, is being updated
                       putPatientData(rowData.id, rowData.resource, handleErrorCallback);
                       handleLaunchApp(rowData, client);
                     },
