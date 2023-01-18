@@ -680,7 +680,7 @@ export default function PatientListTable() {
             return;
           }
 
-          if (needExternalAPILookup()) setNoPMPFlag(responseData);
+          if (needExternalAPILookup()) setNoPMPFlag(response.entry);
           let responsePageoffset = 0;
           let responseSelfLink = response.link
             ? response.link.filter((item) => {
