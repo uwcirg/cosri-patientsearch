@@ -59,6 +59,79 @@ export default function HistoryTable(props) {
     setRowsPerPage(parseInt(event.target.value, 5));
     setPage(0);
   };
+  const defaultOptions = {
+    padding: "dense",
+    emptyRowsWhenPaging: false,
+    toolbar: false,
+    filtering: false,
+    sorting: true,
+    search: false,
+    showTitle: false,
+    pageSizeOptions: [5],
+    headerStyle: {
+      backgroundColor: theme.palette.primary.lightest,
+      paddingTop: theme.spacing(0.5),
+      paddingBottom: theme.spacing(0.5),
+    },
+    actionsCellStyle: {
+      paddingLeft: theme.spacing(2),
+      paddingRight: theme.spacing(2),
+      justifyContent: "center",
+    },
+    actionsColumnIndex: -1,
+  };
+  const localizations = {
+    header: {
+      actions: "",
+    },
+    body: {
+      deleteTooltip: "Remove record",
+      editRow: {
+        deleteText: "Are you sure you want to remove this record?",
+        saveTooltip: "OK",
+      },
+    },
+    pagination: {
+      labelRowsSelect: "records",
+      labelRowsPerPage: "Records per page",
+    },
+  };
+  const renderTablePagination = (parentProps) => (
+    <TablePagination
+      count={data.length}
+      page={page}
+      onPageChange={(e, page) => {
+        handleChangePage(e, page);
+        if (parentProps.onChangePage) parentProps.onChangePage(e, page);
+        if (parentProps.onPageChange) parentProps.onPageChange(e, page);
+      }}
+      rowsPerPageOptions={[5]}
+      rowsPerPage={rowsPerPage}
+      onRowsPerPageChange={(e) => {
+        handleChangeRowsPerPage(e);
+        if (parentProps.onChangeRowsPerPage) parentProps.onChangeRowsPerPage(e);
+        if (parentProps.onRowsPerPageChange) parentProps.onRowsPerPageChange(e);
+      }}
+      classes={{
+        root: classes.paginationRoot,
+        actions: classes.paginationActions,
+        toolbar: classes.paginationToolbar,
+      }}
+      labelRowsPerPage="Records per page:"
+    />
+  );
+  const renderOverloadingComponent = () => (
+    <div className={classes.overlayContainer}>
+      <div className={classes.overlayElement}>
+        <CircularProgress></CircularProgress>
+      </div>
+    </div>
+  );
+  const renderError = () => (
+    <div className={classes.errorContainer}>
+      <Error message={errorMessage} style={errorStyle} />
+    </div>
+  );
   return (
     <React.Fragment>
       <div className={classes.root}>
@@ -67,84 +140,16 @@ export default function HistoryTable(props) {
           columns={props.columns}
           data={data}
           options={{
-            ...{
-              padding: "dense",
-              emptyRowsWhenPaging: false,
-              toolbar: false,
-              filtering: false,
-              sorting: true,
-              search: false,
-              showTitle: false,
-              pageSizeOptions: [5],
-              headerStyle: {
-                backgroundColor: theme.palette.primary.lightest,
-                paddingTop: theme.spacing(0.5),
-                paddingBottom: theme.spacing(0.5),
-              },
-              actionsCellStyle: {
-                paddingLeft: theme.spacing(2),
-                paddingRight: theme.spacing(2),
-                justifyContent: "center",
-              },
-              actionsColumnIndex: -1,
-            },
+            ...defaultOptions,
             ...customOptions,
           }}
           icons={tableIcons}
           loadingType="linear"
-          localization={{
-            header: {
-              actions: "",
-            },
-            body: {
-              deleteTooltip: "Remove record",
-              editRow: {
-                deleteText: "Are you sure you want to remove this record?",
-                saveTooltip: "OK",
-              },
-            },
-            pagination: {
-              labelRowsSelect: "records",
-              labelRowsPerPage: "Records per page",
-            },
-          }}
+          localization={localizations}
           //overlay
           components={{
-            OverlayLoading: () => (
-              <div className={classes.overlayContainer}>
-                <div className={classes.overlayElement}>
-                  <CircularProgress></CircularProgress>
-                </div>
-              </div>
-            ),
-            Pagination: (parentProps) => (
-              <TablePagination
-                count={data.length}
-                page={page}
-                onPageChange={(e, page) => {
-                  handleChangePage(e, page);
-                  if (parentProps.onChangePage)
-                    parentProps.onChangePage(e, page);
-                  if (parentProps.onPageChange)
-                    parentProps.onPageChange(e, page);
-                }}
-                rowsPerPageOptions={[5]}
-                rowsPerPage={rowsPerPage}
-                onRowsPerPageChange={(e) => {
-                  handleChangeRowsPerPage(e);
-                  if (parentProps.onChangeRowsPerPage)
-                    parentProps.onChangeRowsPerPage(e);
-                  if (parentProps.onRowsPerPageChange)
-                    parentProps.onRowsPerPageChange(e);
-                }}
-                classes={{
-                  root: classes.paginationRoot,
-                  actions: classes.paginationActions,
-                  toolbar: classes.paginationToolbar,
-                }}
-                labelRowsPerPage="Records per page:"
-              />
-            ),
+            OverlayLoading: () => renderOverloadingComponent(),
+            Pagination: (parentProps) => renderTablePagination(parentProps),
           }}
           editable={{
             onRowUpdate: (newData, oldData) => {
@@ -197,9 +202,7 @@ export default function HistoryTable(props) {
           }}
         />
       </div>
-      <div className={classes.errorContainer}>
-        <Error message={errorMessage} style={errorStyle} />
-      </div>
+      {renderError()}
     </React.Fragment>
   );
 }
