@@ -934,8 +934,10 @@ export default function PatientListTable() {
                         putPatientData(
                           rowData.id,
                           rowData.resource,
-                          handleErrorCallback
+                          handleErrorCallback,
+                          () => handleLaunchApp(rowData, client)
                         );
+                        return;
                       }
                       handleLaunchApp(rowData, client);
                     },

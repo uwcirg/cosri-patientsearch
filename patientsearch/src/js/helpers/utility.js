@@ -1,40 +1,39 @@
 import differenceInMonths from "date-fns/differenceInMonths";
 import isValid from "date-fns/isValid";
 
-export function sendRequest (url, params) {
-    params = params || {};
-    // Return a new promise.
-    return new Promise(function(resolve, reject) {
-      // Do the usual XHR stuff
-      var req = new XMLHttpRequest();
-      req.open("GET", url);
-      if (params.nocache) {
-        // via Cache-Control header:
-        req.setRequestHeader("Cache-Control", "no-cache");
-      }
+export function sendRequest(url, params) {
+  params = params || {};
+  // Return a new promise.
+  return new Promise(function (resolve, reject) {
+    // Do the usual XHR stuff
+    var req = new XMLHttpRequest();
+    req.open("GET", url);
+    if (params.nocache) {
+      // via Cache-Control header:
+      req.setRequestHeader("Cache-Control", "no-cache");
+    }
 
-      req.onload = function() {
-        // This is called even on 404 etc
-        // so check the status
-        if (req.status == 200) {
-          // Resolve the promise with the response text
-          resolve(req.response);
-        }
-        else {
-          // Otherwise reject with the status text
-          // which will hopefully be a meaningful error
-          reject(req);
-        }
-      };
-
-      // Handle network errors
-      req.onerror = function() {
+    req.onload = function () {
+      // This is called even on 404 etc
+      // so check the status
+      if (req.status == 200) {
+        // Resolve the promise with the response text
+        resolve(req.response);
+      } else {
+        // Otherwise reject with the status text
+        // which will hopefully be a meaningful error
         reject(req);
-      };
+      }
+    };
 
-      // Make the request
-      req.send();
-    });
+    // Handle network errors
+    req.onerror = function () {
+      reject(req);
+    };
+
+    // Make the request
+    req.send();
+  });
 }
 
 /*
@@ -43,7 +42,7 @@ export function sendRequest (url, params) {
 export async function fetchData(url, params, errorCallback) {
   const MAX_WAIT_TIME = 20000;
   params = params || {};
-  errorCallback = errorCallback || function() {};
+  errorCallback = errorCallback || function () {};
   // Create a promise that rejects in maximum wait time in milliseconds
   let timeoutPromise = new Promise((resolve, reject) => {
     let id = setTimeout(() => {
@@ -56,31 +55,33 @@ export async function fetchData(url, params, errorCallback) {
    * then the timeout promise will kick in
    */
   let json = null;
-  let results = await Promise.race([
-    fetch(url, params),
-    timeoutPromise
-  ]).catch(e => {
+  let results = await Promise.race([fetch(url, params), timeoutPromise]).catch(
+    (e) => {
       console.log("error retrieving data ", e);
       errorCallback(e);
       throw e;
-  });
+    }
+  );
 
   if (!results || !results.ok) {
     console.log("no results returned ", results);
     errorCallback(results ? results : "error retrieving data");
     if (!results.ok) {
-      throw "There was error processing data. " + (results && results.status ? "Status code: " + results.status : "");
+      throw (
+        "There was error processing data. " +
+        (results && results.status ? "Status code: " + results.status : "")
+      );
     }
     return null;
   }
 
   try {
     //read response stream
-    json = await (results.json()).catch(e => {
-        console.log("There was error processing data.");
-        throw e.message;
+    json = await results.json().catch((e) => {
+      console.log("There was error processing data.");
+      throw e.message;
     });
-  } catch(e) {
+  } catch (e) {
     console.log(`There was error parsing data: ${e}`);
     json = null;
     errorCallback(e);
@@ -91,23 +92,28 @@ export async function fetchData(url, params, errorCallback) {
 /*
  * return application settings in JSON
  */
-export async function getSettings(callback, noCache){
+export async function getSettings(callback, noCache) {
   callback = callback || function () {};
   const today = new Date();
-  const settingStorageKey = "FEMR_APP_SETTINGS_"+today.getFullYear()+pad(today.getMonth())+pad(today.getDate())+pad(today.getMinutes());
+  const settingStorageKey =
+    "FEMR_APP_SETTINGS_" +
+    today.getFullYear() +
+    pad(today.getMonth()) +
+    pad(today.getDate()) +
+    pad(today.getMinutes());
   if (!noCache && sessionStorage.getItem(settingStorageKey)) {
     let cachedSetting = JSON.parse(sessionStorage.getItem(settingStorageKey));
     callback(cachedSetting);
     return cachedSetting;
   }
-  const response = await fetch("./settings").catch(e => {
-    callback({error: e});
+  const response = await fetch("./settings").catch((e) => {
+    callback({ error: e });
   });
   let data = null;
   try {
     data = await response.json();
-  } catch(e) {
-    callback({error: e});
+  } catch (e) {
+    callback({ error: e });
   }
   if (data && Object.keys(data).length) {
     sessionStorage.setItem(settingStorageKey, JSON.stringify(data));
@@ -134,16 +140,16 @@ export function isoShortDateFormat(input) {
 
 export function imageOK(img) {
   if (!img) {
-      return false;
+    return false;
   }
   if (!img.getAttribute("src")) {
-      return false;
+    return false;
   }
   if (!img.complete) {
-      return false;
+    return false;
   }
   if (typeof img.naturalWidth !== "undefined" && img.naturalWidth === 0) {
-      return false;
+    return false;
   }
   return true;
 }
@@ -152,14 +158,16 @@ export function getUrlParameter(name, queryString) {
   name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
   var regex = new RegExp("[\\?&]" + name + "=([^&#]*)");
   var results = regex.exec(queryString ? queryString : location.search);
-  return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+  return results === null
+    ? ""
+    : decodeURIComponent(results[1].replace(/\+/g, " "));
 }
 
-export function isString (obj) {
-  return (Object.prototype.toString.call(obj) === "[object String]");
+export function isString(obj) {
+  return Object.prototype.toString.call(obj) === "[object String]";
 }
 
-export function pad (val, len) {
+export function pad(val, len) {
   if (!val && parseInt(val) !== 0) return "";
   val = String(val);
   len = len || 2;
@@ -174,16 +182,16 @@ export function pad (val, len) {
 export function getLocalDateTimeString(utcDateString, shortFormat) {
   if (!utcDateString) return "";
   //note javascript Date object automatically convert UTC date/time to locate date/time, no need to parse and convert
-  let dateObj = (utcDateString instanceof Date) ? utcDateString : new Date(utcDateString);
+  let dateObj =
+    utcDateString instanceof Date ? utcDateString : new Date(utcDateString);
   let year = dateObj.getFullYear();
-  let month = pad(dateObj.getMonth()+1);
+  let month = pad(dateObj.getMonth() + 1);
   let day = pad(dateObj.getDate());
   let hours = pad(dateObj.getHours());
   let minutes = pad(dateObj.getMinutes());
   if (shortFormat) return `${year}-${month}-${day}`;
   return `${year}-${month}-${day} ${hours}:${minutes}`;
 }
-
 
 /*
  *  given two date/time string, sort it in descending order
@@ -204,10 +212,10 @@ export function dateTimeCompare(a, b) {
 /*
  * add n number of years to a date object
  */
-export function addYearsToDate(dt,n) {
+export function addYearsToDate(dt, n) {
   if (!(dt instanceof Date)) {
     let arrDates = getShortDateFromISODateString(dt).split("-");
-    dt = new Date(arrDates[0], arrDates[1]-1, arrDates[2]);
+    dt = new Date(arrDates[0], arrDates[1] - 1, arrDates[2]);
   }
   dt.setFullYear(dt.getFullYear() + n);
   return dt;
@@ -218,7 +226,7 @@ export function addYearsToDate(dt,n) {
  */
 export function isInMonthPeriod(dateFrom, dateTo, numOfMonths) {
   let months = differenceInMonths(dateTo, dateFrom);
-  return  months >= 0 && months <= numOfMonths;
+  return months >= 0 && months <= numOfMonths;
 }
 
 /*
@@ -252,7 +260,8 @@ export function getAge(birthDateString) {
   const yearsDifference = today.getFullYear() - birthDate.getFullYear();
   if (
     today.getMonth() < birthDate.getMonth() ||
-    (today.getMonth() === birthDate.getMonth() && today.getDate() < birthDate.getDate())
+    (today.getMonth() === birthDate.getMonth() &&
+      today.getDate() < birthDate.getDate())
   ) {
     return yearsDifference - 1;
   }
@@ -281,7 +290,7 @@ export function padDateString(dateString) {
   return [year, month, day].join("-");
 }
 
-export  async function validateToken() {
+export async function validateToken() {
   const response = await fetch("./validate_token");
   if (!response.ok) {
     throw response;
@@ -362,9 +371,10 @@ export function isEmptyArray(arrObj) {
  * helper function for updating patient data via a PUT method call to FHIR host API
  * @param patientId, Id of the patient whose data will be updated
  * @param data, request payload
- * @erroCallback, callback function to be called if error occurs
+ * @errorCallback, callback function to be called if error occurs
+ * @successCallback, callback function to be called if the request
  */
-export function putPatientData(patientId, data, errorCallback) {
+export function putPatientData(patientId, data, errorCallback, successCallback) {
   if (!patientId || !data) return;
   fetchData(
     "/fhir/Patient/" + patientId,
@@ -373,10 +383,13 @@ export function putPatientData(patientId, data, errorCallback) {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(data)
+      body: JSON.stringify(data),
     },
     (e) => {
       if (errorCallback) errorCallback(e);
     }
-  ).then(() => console.log("PUT complete for patient " + patientId));
+  ).then(() => {
+    console.log("PUT complete for patient " + patientId);
+    if (successCallback) successCallback();
+  });
 }
