@@ -9,5 +9,5 @@ describe("Header", () => {
   });
   it("contains logo image", () => {
     expect(document.querySelector("img")).toBeDefined();
-  })
+  });
 });
