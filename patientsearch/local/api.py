@@ -1,1 +1,0 @@
-/home/clone/cosri-patientsearch/patientsearch/api.py
