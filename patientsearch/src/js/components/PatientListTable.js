@@ -826,8 +826,10 @@ export default function PatientListTable() {
   React.useEffect(() => {
     //when page unloads, remove loading indicator
     window.addEventListener("beforeunload", handlePageUnload);
-    if (appSettings)
-    addMamotoTracking(appSettings["MATOMO_SITE_ID"]);
+    if (appSettings) {
+      addMamotoTracking(appSettings["MATOMO_SITE_ID"]);
+      //TODO what user id to track here?
+    }
     validateToken().then(
       (token) => {
         if (!token) {
