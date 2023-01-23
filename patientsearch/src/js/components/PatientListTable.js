@@ -858,7 +858,13 @@ export default function PatientListTable() {
           // if last accessed field is present
           if (hasLastAccessedField) {
             // this will ensure that last accessed date, i.e. meta.lastUpdated, is being updated
-            putPatientData(rowData.id, rowData.resource, handleErrorCallback);
+            putPatientData(
+              rowData.id,
+              rowData.resource,
+              handleErrorCallback,
+              () => handleLaunchApp(rowData, client)
+            );
+            return;
           }
           handleLaunchApp(rowData, client);
         },
