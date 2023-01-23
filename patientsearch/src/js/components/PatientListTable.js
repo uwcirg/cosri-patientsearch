@@ -28,6 +28,7 @@ import {
   getUrlParameter,
   getRolesFromToken,
   getClientsByRequiredRoles,
+  getPreferredUserNameFromToken,
   isEmptyArray,
   isString,
   putPatientData,
@@ -826,10 +827,6 @@ export default function PatientListTable() {
   React.useEffect(() => {
     //when page unloads, remove loading indicator
     window.addEventListener("beforeunload", handlePageUnload);
-    if (appSettings) {
-      addMamotoTracking(appSettings["MATOMO_SITE_ID"]);
-      //TODO what user id to track here?
-    }
     validateToken().then(
       (token) => {
         if (!token) {
@@ -838,6 +835,11 @@ export default function PatientListTable() {
           return false;
         }
         if (appSettings) {
+          addMamotoTracking(
+            appSettings["MATOMO_SITE_ID"],
+            // use preferred_username from token as user id
+            getPreferredUserNameFromToken(token)
+          );
           const clients = getClientsByRequiredRoles(
             appSettings["SOF_CLIENTS"],
             getRolesFromToken(token)

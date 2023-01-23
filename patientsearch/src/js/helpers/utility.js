@@ -322,6 +322,12 @@ export function getRolesFromToken(token) {
   return roles;
 }
 
+export function getPreferredUserNameFromToken(token) {
+  return token["access_token"] && token["access_token"]["preferred_username"]
+    ? token["access_token"]["preferred_username"]
+    : null;
+}
+
 export function getClientsByRequiredRoles(sofClients, currentRoles) {
   if (!sofClients) {
     return;
