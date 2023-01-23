@@ -401,8 +401,6 @@ export function putPatientData(
 
 export function addMamotoTracking(siteId, userId) {
   if (document.querySelector("#matomoScript")) return;
-
-  console.log("track site id ", siteId)
   window._paq = [];
   window._paq.push(["trackPageView"]);
   window._paq.push(["enableLinkTracking"]);
