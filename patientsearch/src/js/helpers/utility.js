@@ -374,7 +374,12 @@ export function isEmptyArray(arrObj) {
  * @errorCallback, callback function to be called if error occurs
  * @successCallback, callback function to be called if the request
  */
-export function putPatientData(patientId, data, errorCallback, successCallback) {
+export function putPatientData(
+  patientId,
+  data,
+  errorCallback,
+  successCallback
+) {
   if (!patientId || !data) return;
   fetchData(
     "/fhir/Patient/" + patientId,
@@ -392,4 +397,31 @@ export function putPatientData(patientId, data, errorCallback, successCallback) 
     console.log("PUT complete for patient " + patientId);
     if (successCallback) successCallback();
   });
+}
+
+export function addMamotoTracking(siteId, userId) {
+  if (document.querySelector("#matomoScript")) return;
+
+  console.log("track site id ", siteId)
+  window._paq = [];
+  window._paq.push(["trackPageView"]);
+  window._paq.push(["enableLinkTracking"]);
+  if (siteId) {
+    window._paq.push(["setSiteId", siteId]);
+  }
+  if (userId) {
+    window._paq.push(["setUserId", userId]);
+  }
+
+  let u = "https://piwik.cirg.washington.edu/";
+  window._paq.push(["setTrackerUrl", u + "matomo.php"]);
+  let d = document,
+    g = d.createElement("script"),
+    headElement = document.querySelector("head");
+  g.type = "text/javascript";
+  g.async = true;
+  g.defer = true;
+  g.setAttribute("src", u + "matomo.js");
+  g.setAttribute("id", "matomoScript");
+  headElement.appendChild(g);
 }

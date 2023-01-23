@@ -22,6 +22,7 @@ import Agreement from "./Agreement";
 import { useSettingContext } from "../context/SettingContextProvider";
 import { tableIcons } from "../constants/consts";
 import {
+  addMamotoTracking,
   fetchData,
   getLocalDateTimeString,
   getUrlParameter,
@@ -825,6 +826,8 @@ export default function PatientListTable() {
   React.useEffect(() => {
     //when page unloads, remove loading indicator
     window.addEventListener("beforeunload", handlePageUnload);
+    if (appSettings)
+    addMamotoTracking(appSettings["MATOMO_SITE_ID"]);
     validateToken().then(
       (token) => {
         if (!token) {
