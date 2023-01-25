@@ -51,7 +51,7 @@ const useStyles = makeStyles((theme) => ({
   },
   addTitle: {
     display: "inline-block",
-    color: theme.palette.dark.main,
+    color: theme.palette.dark ? theme.palette.dark.main : "#444",
     fontWeight: 500,
     borderBottom: `2px solid ${theme.palette.primary.lightest}`,
     marginBottom: theme.spacing(2.5),
@@ -95,7 +95,7 @@ const useStyles = makeStyles((theme) => ({
   },
   historyTitle: {
     display: "inline-block",
-    color: theme.palette.dark.main,
+    color: theme.palette.dark ? theme.palette.dark.main : "#444",
     fontWeight: 500,
     borderBottom: `2px solid ${theme.palette.primary.lightest}`,
     marginBottom: theme.spacing(1),
@@ -458,247 +458,261 @@ export default function Agreement(props) {
       ),
     },
   ];
+  const renderTitle = () => (
+    <h3>{`Controlled Substance Agreement for ${rowData.first_name} ${rowData.last_name}`}</h3>
+  );
+
+  const renderAddInProgressIndicator = () => {
+    if (!addInProgress) return null;
+    return (
+      <div className={classes.progressContainer}>
+        <CircularProgress
+          className={classes.progressIcon}
+          color="primary"
+          size={32}
+        />
+      </div>
+    );
+  };
+  const renderAddComponent = () => (
+    <Paper className={classes.addContainer} elevation={1}>
+      <Typography
+        variant="caption"
+        display="block"
+        className={classes.addTitle}
+      >
+        Add New
+      </Typography>
+      <MuiPickersUtilsProvider utils={DateFnsUtils}>
+        {/* order date field */}
+        <InputLabel className={classes.dateLabel}>Agreement Date</InputLabel>
+        <KeyboardDatePicker
+          autoOk={true}
+          variant="dialog"
+          openTo="year"
+          disableFuture
+          InputProps={{
+            startAdornment: (
+              <InputAdornment
+                position="end"
+                style={{ order: 1, marginLeft: 0 }}
+              >
+                <IconButton
+                  onClick={() => {
+                    clearDate();
+                  }}
+                  style={{ order: 2, padding: 0 }}
+                  aria-label="Clear date"
+                  title="Clear date"
+                >
+                  <ClearIcon color="primary" fontSize="small" />
+                </IconButton>
+              </InputAdornment>
+            ),
+            className: classes.dateInput,
+          }}
+          format="yyyy-MM-dd"
+          minDate={new Date("1950-01-01")}
+          invalidDateMessage="Date must be in YYYY-MM-DD format, e.g. 1977-01-12"
+          maxDateMessage="Date must not be in the future"
+          placeholder="YYYY-MM-DD"
+          value={date}
+          orientation="landscape"
+          onKeyDown={(event) => handleKeyDownAdd(event)}
+          onChange={(event, dateString) => {
+            setDateInput(dateString);
+            if (!event || !isValid(event)) {
+              if (event && String(dateInput).replace(/[-_]/g, "").length >= 8)
+                setDate(event);
+              return;
+            }
+            setDate(event);
+          }}
+          KeyboardButtonProps={{ color: "primary", title: "Date picker" }}
+          autoFocus
+        />
+      </MuiPickersUtilsProvider>
+      <div className={classes.buttonsContainer}>
+        <Button
+          variant="contained"
+          color="primary"
+          className={classes.addButton}
+          disabled={!hasValues()}
+          onClick={() => handleAdd()}
+        >
+          Add
+        </Button>
+        <Button
+          variant="outlined"
+          onClick={clearFields}
+          disabled={!hasValues()}
+        >
+          Clear
+        </Button>
+      </div>
+    </Paper>
+  );
+  const renderUpdateInProgressIndicator = () => (
+    <div className={classes.progressContainer}>
+      <CircularProgress
+        color="primary"
+        size={32}
+        className={classes.progressIcon}
+      />
+    </div>
+  );
+  const renderMostRecentHistory = () => (
+    <React.Fragment>
+      <Typography
+        variant="caption"
+        display="block"
+        className={classes.historyTitle}
+        gutterBottom
+      >
+        Latest Controlled Substance Agreement
+      </Typography>
+      {!hasHistory() && (
+        <div>No previously recorded controlled substance agreement</div>
+      )}
+      {/* most recent entry */}
+      {hasHistory() && (
+        <div>
+          <div>
+            {!editMode && (
+              <span
+                dangerouslySetInnerHTML={{
+                  __html: DOMPurify.sanitize(displayMostRecent()),
+                }}
+              ></span>
+            )}
+            {editMode && displayEditHistory()}
+            <EditButtonGroup
+              onEnableEditMode={handleEnableEditMode}
+              onDisableEditMode={handleDisableEditMode}
+              isUpdateDisabled={!isValidEditDate()}
+              handleEditSave={() => handleEditSave()}
+              handleDelete={() => handleDelete()}
+              entryDescription={`Controlled substance agreement signed on <b>${lastEntry.date}</b>`}
+            ></EditButtonGroup>
+          </div>
+          {/* alerts */}
+          {isAdult(rowData.birth_date) && (
+            <OverdueAlert
+              date={lastEntry.date}
+              type="controlled substance agreement"
+              overdueMessage="It has been more than 12 months since the patient has signed a controlled substance agreement."
+            ></OverdueAlert>
+          )}
+        </div>
+      )}
+    </React.Fragment>
+  );
+  const renderHistory = () => (
+    <Paper className={classes.historyContainer} elevation={1}>
+      <div className={classes.totalEntriesContainer}>
+        <Typography
+          variant="caption"
+          display="block"
+          className={classes.historyTitle}
+        >
+          History
+        </Typography>
+        <div>
+          <span>
+            <b>{history.length}</b> record(s)
+          </span>
+          {!expandHistory && (
+            <Button
+              arial-label="expand"
+              color="primary"
+              onClick={() => setExpandHistory(true)}
+              endIcon={
+                <ExpandMoreIcon className={classes.endIcon}></ExpandMoreIcon>
+              }
+              size="small"
+              className={classes.expandIcon}
+            >
+              View
+            </Button>
+          )}
+          {expandHistory && (
+            <Button
+              arial-label="collapse"
+              color="primary"
+              onClick={() => setExpandHistory(false)}
+              endIcon={
+                <ExpandLessIcon className={classes.endIcon}></ExpandLessIcon>
+              }
+              size="small"
+              className={classes.expandIcon}
+            >
+              Hide
+            </Button>
+          )}
+        </div>
+      </div>
+      <div className={classes.tableContainer}>
+        {expandHistory && (
+          <div className="history-table">
+            <HistoryTable
+              data={history}
+              columns={columns}
+              APIURL="/fhir/DocumentReference/"
+              submitDataFormatter={submitDataFormatter}
+              onRowUpdate={() => getHistory()}
+              onRowDelete={() => getHistory()}
+              options={{
+                actionsCellStyle: {
+                  width: "80%",
+                  textAlign: "left",
+                },
+              }}
+            ></HistoryTable>
+          </div>
+        )}
+      </div>
+    </Paper>
+  );
+  const renderFeedbackSnackbar = () => (
+    <Snackbar
+      open={snackOpen}
+      autoHideDuration={3000}
+      onClose={handleSnackClose}
+    >
+      <Alert
+        onClose={handleSnackClose}
+        severity="success"
+        message="Request processed successfully."
+      ></Alert>
+    </Snackbar>
+  );
+  const renderError = () => (
+    <div className={classes.errorContainer}>
+      {error && <Error message={error}></Error>}
+    </div>
+  );
+
   React.useEffect(() => {
     getHistory();
   }, [getHistory]);
+
   return (
     <div className={classes.container}>
       <div className={classes.contentContainer}>
-        {addInProgress && (
-          <div className={classes.progressContainer}>
-            <CircularProgress
-              className={classes.progressIcon}
-              color="primary"
-              size={32}
-            />
-          </div>
-        )}
-        <h3>{`Controlled Substance Agreement for ${rowData.first_name} ${rowData.last_name}`}</h3>
+        {renderTitle()}
+        {renderAddInProgressIndicator()}
         {/* add new agreement UI */}
-        <Paper className={classes.addContainer} elevation={1}>
-          <Typography
-            variant="caption"
-            display="block"
-            className={classes.addTitle}
-          >
-            Add New
-          </Typography>
-          <MuiPickersUtilsProvider utils={DateFnsUtils}>
-            {/* order date field */}
-            <InputLabel className={classes.dateLabel}>
-              Agreement Date
-            </InputLabel>
-            <KeyboardDatePicker
-              autoOk={true}
-              variant="dialog"
-              openTo="year"
-              disableFuture
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment
-                    position="end"
-                    style={{ order: 1, marginLeft: 0 }}
-                  >
-                    <IconButton
-                      onClick={() => {
-                        clearDate();
-                      }}
-                      style={{ order: 2, padding: 0 }}
-                      aria-label="Clear date"
-                      title="Clear date"
-                    >
-                      <ClearIcon color="primary" fontSize="small" />
-                    </IconButton>
-                  </InputAdornment>
-                ),
-                className: classes.dateInput,
-              }}
-              format="yyyy-MM-dd"
-              minDate={new Date("1950-01-01")}
-              invalidDateMessage="Date must be in YYYY-MM-DD format, e.g. 1977-01-12"
-              maxDateMessage="Date must not be in the future"
-              placeholder="YYYY-MM-DD"
-              value={date}
-              orientation="landscape"
-              onKeyDown={(event) => handleKeyDownAdd(event)}
-              onChange={(event, dateString) => {
-                setDateInput(dateString);
-                if (!event || !isValid(event)) {
-                  if (
-                    event &&
-                    String(dateInput).replace(/[-_]/g, "").length >= 8
-                  )
-                    setDate(event);
-                  return;
-                }
-                setDate(event);
-              }}
-              KeyboardButtonProps={{ color: "primary", title: "Date picker" }}
-              autoFocus
-            />
-          </MuiPickersUtilsProvider>
-          <div className={classes.buttonsContainer}>
-            <Button
-              variant="contained"
-              color="primary"
-              className={classes.addButton}
-              disabled={!hasValues()}
-              onClick={() => handleAdd()}
-            >
-              Add
-            </Button>
-            <Button
-              variant="outlined"
-              onClick={clearFields}
-              disabled={!hasValues()}
-            >
-              Clear
-            </Button>
-          </div>
-        </Paper>
+        {renderAddComponent()}
         {/* history UI */}
         <Paper className={classes.historyContainer} elevation={1}>
-          {(!historyInitialized || updateInProgress) && (
-            <div className={classes.progressContainer}>
-              <CircularProgress
-                color="primary"
-                size={32}
-                className={classes.progressIcon}
-              />
-            </div>
-          )}
-          {historyInitialized && (
-            <React.Fragment>
-              <Typography
-                variant="caption"
-                display="block"
-                className={classes.historyTitle}
-                gutterBottom
-              >
-                Latest Controlled Substance Agreement
-              </Typography>
-              {!hasHistory() && (
-                <div>No previously recorded controlled substance agreement</div>
-              )}
-              {/* most recent entry */}
-              {hasHistory() && (
-                <div>
-                  <div>
-                    {!editMode && (
-                      <span
-                        dangerouslySetInnerHTML={{
-                          __html: DOMPurify.sanitize(displayMostRecent()),
-                        }}
-                      ></span>
-                    )}
-                    {editMode && displayEditHistory()}
-                    <EditButtonGroup
-                      onEnableEditMode={handleEnableEditMode}
-                      onDisableEditMode={handleDisableEditMode}
-                      isUpdateDisabled={!isValidEditDate()}
-                      handleEditSave={() => handleEditSave()}
-                      handleDelete={() => handleDelete()}
-                      entryDescription={`Controlled substance agreement signed on <b>${lastEntry.date}</b>`}
-                    ></EditButtonGroup>
-                  </div>
-                  {/* alerts */}
-                  {isAdult(rowData.birth_date) && (
-                    <OverdueAlert
-                      date={lastEntry.date}
-                      type="controlled substance agreement"
-                      overdueMessage="It has been more than 12 months since the patient has signed a controlled substance agreement."
-                    ></OverdueAlert>
-                  )}
-                </div>
-              )}
-            </React.Fragment>
-          )}
+          {(!historyInitialized || updateInProgress) &&
+            renderUpdateInProgressIndicator()}
+          {historyInitialized && renderMostRecentHistory()}
         </Paper>
-        {hasHistory() && (
-          <Paper className={classes.historyContainer} elevation={1}>
-            <div className={classes.totalEntriesContainer}>
-              <Typography
-                variant="caption"
-                display="block"
-                className={classes.historyTitle}
-              >
-                History
-              </Typography>
-              <div>
-                <span>
-                  <b>{history.length}</b> record(s)
-                </span>
-                {!expandHistory && (
-                  <Button
-                    arial-label="expand"
-                    color="primary"
-                    onClick={() => setExpandHistory(true)}
-                    endIcon={
-                      <ExpandMoreIcon
-                        className={classes.endIcon}
-                      ></ExpandMoreIcon>
-                    }
-                    size="small"
-                    className={classes.expandIcon}
-                  >
-                    View
-                  </Button>
-                )}
-                {expandHistory && (
-                  <Button
-                    arial-label="collapse"
-                    color="primary"
-                    onClick={() => setExpandHistory(false)}
-                    endIcon={
-                      <ExpandLessIcon
-                        className={classes.endIcon}
-                      ></ExpandLessIcon>
-                    }
-                    size="small"
-                    className={classes.expandIcon}
-                  >
-                    Hide
-                  </Button>
-                )}
-              </div>
-            </div>
-            <div className={classes.tableContainer}>
-              {expandHistory && (
-                <div className="history-table">
-                  <HistoryTable
-                    data={history}
-                    columns={columns}
-                    APIURL="/fhir/DocumentReference/"
-                    submitDataFormatter={submitDataFormatter}
-                    onRowUpdate={() => getHistory()}
-                    onRowDelete={() => getHistory()}
-                    options={{
-                      actionsCellStyle: {
-                        width: "80%",
-                        textAlign: "left",
-                      },
-                    }}
-                  ></HistoryTable>
-                </div>
-              )}
-            </div>
-          </Paper>
-        )}
+        {hasHistory() && renderHistory()}
         {/* submission feedback UI */}
-        <Snackbar
-          open={snackOpen}
-          autoHideDuration={3000}
-          onClose={handleSnackClose}
-        >
-          <Alert
-            onClose={handleSnackClose}
-            severity="success"
-            message="Request processed successfully."
-          ></Alert>
-        </Snackbar>
-        <div className={classes.errorContainer}>
-          {error && <Error message={error}></Error>}
-        </div>
+        {renderFeedbackSnackbar()}
+        {renderError()}
       </div>
     </div>
   );

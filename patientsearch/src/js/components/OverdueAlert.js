@@ -37,11 +37,10 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export default function OverdueAlert(props) {
-
   /*
    * 3 or 4 months before next due date
    */
-  function shouldShowSoftAlert(dt) {
+  const shouldShowSoftAlert = (dt) => {
     if (!dt) return false;
     let currentDate = new Date();
     let shortDate = getShortDateFromISODateString(dt);
@@ -54,12 +53,12 @@ export default function OverdueAlert(props) {
       isInMonthPeriod(currentDate, nextDueDate, 4) ||
       isInMonthPeriod(currentDate, nextDueDate, 3)
     );
-  }
+  };
 
   /*
    * overdue
    */
-  function shouldShowHardAlert(dt) {
+  const shouldShowHardAlert = (dt) => {
     if (!dt) return true;
     let currentDate = new Date();
     let shortDate = getShortDateFromISODateString(dt);
@@ -69,9 +68,9 @@ export default function OverdueAlert(props) {
       1
     );
     return isDateInPast(nextDueDate, currentDate);
-  }
+  };
 
-  function isOverdue(dt) {
+  const isOverdue = (dt) => {
     if (!dt) return false;
     let currentDate = new Date();
     let shortDate = getShortDateFromISODateString(dt);
@@ -81,23 +80,23 @@ export default function OverdueAlert(props) {
       1
     );
     return isDateInPast(nextDueDate, currentDate);
-  }
+  };
 
-  function shouldShowAlerts(dt) {
+  const shouldShowAlerts = (dt) => {
     return shouldShowSoftAlert(dt) || shouldShowHardAlert(dt);
-  }
+  };
 
-  function formatMessage(message, dt) {
+  const formatMessage = (message, dt) => {
     if (!dt) return message;
     let dueDate = getLocalDateTimeString(addYearsToDate(dt, 1), true);
     return message.replace("[duedate]", dueDate);
-  }
-  function getIconClass(dt) {
+  };
+  const getIconClass = (dt) => {
     return shouldShowHardAlert(dt) ? classes.alertIcon : classes.warningIcon;
-  }
-  function getMessageClass(dt) {
+  };
+  const getMessageClass = (dt) => {
     return shouldShowHardAlert(dt) ? classes.alertText : classes.warningText;
-  }
+  };
   const getMessage = () => {
     if (!props.date) return `No ${props.type} found for this patient.`;
     if (isOverdue(props.date)) {
@@ -109,20 +108,18 @@ export default function OverdueAlert(props) {
   };
   const classes = useStyles();
 
+  const showAlert = shouldShowAlerts(props.date);
+  if (!showAlert) return null;
   return (
-    <React.Fragment>
-      {shouldShowAlerts(props.date) && (
-        <div>
-          <AssignmentLateIcon
-            size="small"
-            className={getIconClass(props.date)}
-          ></AssignmentLateIcon>
-          <Typography variant="body2" className={getMessageClass(props.date)}>
-            {formatMessage(getMessage(), props.date)}
-          </Typography>
-        </div>
-      )}
-    </React.Fragment>
+    <div>
+      <AssignmentLateIcon
+        size="small"
+        className={getIconClass(props.date)}
+      ></AssignmentLateIcon>
+      <Typography variant="body2" className={getMessageClass(props.date)}>
+        {formatMessage(getMessage(), props.date)}
+      </Typography>
+    </div>
   );
 }
 OverdueAlert.propTypes = {
