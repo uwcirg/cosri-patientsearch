@@ -1,6 +1,6 @@
 import React from "react";
 import PropTypes from "prop-types";
-import { makeStyles} from "@material-ui/core/styles";
+import { makeStyles } from "@material-ui/core/styles";
 import DateFnsUtils from "@date-io/date-fns";
 import isValid from "date-fns/isValid";
 import ClearIcon from "@material-ui/icons/Clear";
@@ -149,160 +149,166 @@ export default function FilterRow(props) {
     }
     return false;
   };
+  const renderFirstNameField = () => (
+    <TextField
+      variant="standard"
+      margin="normal"
+      id="firstName"
+      placeholder="First Name"
+      name="firstName"
+      value={firstName}
+      onChange={handleFirstNameChange}
+      onKeyDown={handleKeyDown}
+      key="ftFirstName"
+      inputProps={{ "data-lpignore": true }}
+      InputProps={{
+        startAdornment: (
+          <InputAdornment position="start">
+            <Search color="primary" />
+          </InputAdornment>
+        ),
+      }}
+    />
+  );
+  const renderLastNameField = () => (
+    <TextField
+      variant="standard"
+      margin="normal"
+      name="lastName"
+      placeholder="Last Name"
+      id="lastName"
+      key="ftLastName"
+      value={lastName}
+      onChange={handleLastNameChange}
+      onKeyDown={handleKeyDown}
+      inputProps={{ "data-lpignore": true }}
+      InputProps={{
+        startAdornment: (
+          <InputAdornment position="start">
+            <Search color="primary" />
+          </InputAdornment>
+        ),
+      }}
+    />
+  );
+  const renderDOBField = () => (
+    <MuiPickersUtilsProvider utils={DateFnsUtils}>
+      {/* birth date field */}
+      <KeyboardDatePicker
+        autoOk={true}
+        variant="dialog"
+        openTo="year"
+        disableFuture
+        InputProps={{
+          startAdornment: (
+            <InputAdornment position="end" style={{ order: 1, marginLeft: 0 }}>
+              <IconButton
+                onClick={() => {
+                  clearDate();
+                }}
+                style={{ order: 2, padding: 0 }}
+                aria-label="Clear date"
+                title="Clear date"
+                tabIndex={-1}
+              >
+                <ClearIcon fontSize="small" />
+              </IconButton>
+            </InputAdornment>
+          ),
+          className: classes.dateInput,
+        }}
+        format="yyyy-MM-dd"
+        id="birthDate"
+        key="ftBirthDate"
+        minDate={new Date("1900-01-01")}
+        invalidDateMessage="Date must be in YYYY-MM-DD format, e.g. 1977-01-12"
+        placeholder="YYYY-MM-DD"
+        value={date}
+        orientation="landscape"
+        onKeyDown={handleKeyDown}
+        onChange={(event, dateString) => {
+          setDateInput(dateString);
+          if (!event || !isValid(event)) {
+            if (event && String(dateInput).replace(/[-_]/g, "").length >= 8)
+              setDate(event);
+            props.onFiltersDidChange([
+              {
+                field: "first_name",
+                value: firstName,
+              },
+              {
+                field: "last_name",
+                value: lastName,
+              },
+              {
+                field: "birth_date",
+                value: null,
+              },
+            ]);
+            return;
+          }
+          setDate(event);
+          props.onFiltersDidChange([
+            {
+              field: "first_name",
+              value: firstName,
+            },
+            {
+              field: "last_name",
+              value: lastName,
+            },
+            {
+              field: "birth_date",
+              value: dateString,
+            },
+          ]);
+        }}
+        KeyboardButtonProps={{ color: "primary", title: "Date picker" }}
+      />
+    </MuiPickersUtilsProvider>
+  );
+  const renderLaunchButton = () => (
+    <Button
+      className={
+        !hasCompleteFilters() ? `${classes.button} disabled` : classes.button
+      }
+      color="primary"
+      size="small"
+      variant="contained"
+      onClick={() => props.launchFunc(getFilterData())}
+    >
+      {getLaunchButtonLabel()}
+    </Button>
+  );
+  const renderClearButton = () => (
+    <Tooltip title="Clear search fields">
+      <Button
+        variant="contained"
+        size="small"
+        onClick={handleClear}
+        className={!hasFilter() ? `${classes.button} disabled` : classes.button}
+        id="btnClear"
+      >
+        Clear
+      </Button>
+    </Tooltip>
+  );
   return (
     <tr className={classes.row} key="filterRow">
       <td className={classes.cell}>
         {/* first name field */}
-        <TextField
-          variant="standard"
-          margin="normal"
-          id="firstName"
-          placeholder="First Name"
-          name="firstName"
-          value={firstName}
-          onChange={handleFirstNameChange}
-          onKeyDown={handleKeyDown}
-          key="ftFirstName"
-          inputProps={{ "data-lpignore": true }}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <Search color="primary" />
-              </InputAdornment>
-            ),
-          }}
-        />
+        {renderFirstNameField()}
       </td>
       <td className={classes.cell}>
         {/* last name field */}
-        <TextField
-          variant="standard"
-          margin="normal"
-          name="lastName"
-          placeholder="Last Name"
-          id="lastName"
-          key="ftLastName"
-          value={lastName}
-          onChange={handleLastNameChange}
-          onKeyDown={handleKeyDown}
-          inputProps={{ "data-lpignore": true }}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <Search color="primary" />
-              </InputAdornment>
-            ),
-          }}
-        />
+        {renderLastNameField()}
       </td>
-      <td className={classes.dateCell}>
-        <MuiPickersUtilsProvider utils={DateFnsUtils}>
-          {/* birth date field */}
-          <KeyboardDatePicker
-            autoOk={true}
-            variant="dialog"
-            openTo="year"
-            disableFuture
-            InputProps={{
-              startAdornment: (
-                <InputAdornment
-                  position="end"
-                  style={{ order: 1, marginLeft: 0 }}
-                >
-                  <IconButton
-                    onClick={() => {
-                      clearDate();
-                    }}
-                    style={{ order: 2, padding: 0 }}
-                    aria-label="Clear date"
-                    title="Clear date"
-                    tabIndex={-1}
-                  >
-                    <ClearIcon fontSize="small" />
-                  </IconButton>
-                </InputAdornment>
-              ),
-              className: classes.dateInput,
-            }}
-            format="yyyy-MM-dd"
-            id="birthDate"
-            key="ftBirthDate"
-            minDate={new Date("1900-01-01")}
-            invalidDateMessage="Date must be in YYYY-MM-DD format, e.g. 1977-01-12"
-            placeholder="YYYY-MM-DD"
-            value={date}
-            orientation="landscape"
-            onKeyDown={handleKeyDown}
-            onChange={(event, dateString) => {
-              setDateInput(dateString);
-              if (!event || !isValid(event)) {
-                if (event && String(dateInput).replace(/[-_]/g, "").length >= 8)
-                  setDate(event);
-                props.onFiltersDidChange([
-                  {
-                    field: "first_name",
-                    value: firstName,
-                  },
-                  {
-                    field: "last_name",
-                    value: lastName,
-                  },
-                  {
-                    field: "birth_date",
-                    value: null,
-                  },
-                ]);
-                return;
-              }
-              setDate(event);
-              props.onFiltersDidChange([
-                {
-                  field: "first_name",
-                  value: firstName,
-                },
-                {
-                  field: "last_name",
-                  value: lastName,
-                },
-                {
-                  field: "birth_date",
-                  value: dateString,
-                },
-              ]);
-            }}
-            KeyboardButtonProps={{ color: "primary", title: "Date picker" }}
-          />
-        </MuiPickersUtilsProvider>
-      </td>
+      <td className={classes.dateCell}>{renderDOBField()}</td>
       <td className={classes.empty}></td>
       <td className={classes.toolbarCell}>
         {/* toolbar go button */}
-        <Button
-          className={
-            !hasCompleteFilters()
-              ? `${classes.button} disabled`
-              : classes.button
-          }
-          color="primary"
-          size="small"
-          variant="contained"
-          onClick={() => props.launchFunc(getFilterData())}
-        >
-          {getLaunchButtonLabel()}
-        </Button>
-        <Tooltip title="Clear search fields">
-          <Button
-            variant="contained"
-            size="small"
-            onClick={handleClear}
-            className={
-              !hasFilter() ? `${classes.button} disabled` : classes.button
-            }
-            id="btnClear"
-          >
-            Clear
-          </Button>
-        </Tooltip>
+        {renderLaunchButton()}
+        {renderClearButton()}
       </td>
     </tr>
   );

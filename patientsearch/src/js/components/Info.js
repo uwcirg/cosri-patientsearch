@@ -1,7 +1,7 @@
 import React from "react";
 import PropTypes from "prop-types";
 import DOMPurify from "dompurify";
-import { makeStyles} from "@material-ui/core/styles";
+import { makeStyles } from "@material-ui/core/styles";
 import Button from "@material-ui/core/Button";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import Typography from "@material-ui/core/Typography";
@@ -78,7 +78,7 @@ export default function Info(props) {
   }
 
   /* return config variable by key */
-  function getConfig (key) {
+  function getConfig(key) {
     if (!hasSettings()) return "";
     return appSettings[key];
   }
@@ -122,9 +122,49 @@ export default function Info(props) {
     if (getConfig("LANDING_BODY")) return getConfig("LANDING_BODY");
     //defaults
     if (!siteID)
-      return `This is a ${getConfig(SYSTEM_TYPE_STRING)} system.  Not for clinical use.`;
+      return `This is a ${getConfig(
+        SYSTEM_TYPE_STRING
+      )} system.  Not for clinical use.`;
     return "This system is only for use by clinical staff.";
   }
+
+  const renderLoadingIndicator = () => (
+    <div className={classes.loader}>
+      <CircularProgress
+        size={56}
+        color="primary"
+        className={classes.loadingIcon}
+      ></CircularProgress>
+    </div>
+  );
+
+  const renderIntroText = () => (
+    <div className={classes.introText}>
+      <div
+        dangerouslySetInnerHTML={{
+          __html: DOMPurify.sanitize(getIntroText()),
+        }}
+      ></div>
+    </div>
+  );
+
+  const renderBodyText = () => (
+    <div className={classes.bodyText}>
+      <Typography
+        component="h4"
+        variant="h5"
+        color="inherit"
+        align="center"
+        className={classes.title}
+      >
+        <div
+          dangerouslySetInnerHTML={{
+            __html: DOMPurify.sanitize(getBodyText()),
+          }}
+        ></div>
+      </Typography>
+    </div>
+  );
 
   React.useEffect(() => {
     setTimeout(() => setLoading(false), 250);
@@ -132,25 +172,11 @@ export default function Info(props) {
 
   return (
     <div className={classes.wrapper}>
-      {loading && (
-        <div className={classes.loader}>
-          <CircularProgress
-            size={56}
-            color="primary"
-            className={classes.loadingIcon}
-          ></CircularProgress>
-        </div>
-      )}
+      {loading && renderLoadingIndicator()}
       {!loading && hasSettings() && (
         <div className={classes.container}>
           {/* intro text, e.g. HTML block 1 */}
-          <div className={classes.introText}>
-            <div
-              dangerouslySetInnerHTML={{
-                __html: DOMPurify.sanitize(getIntroText()),
-              }}
-            ></div>
-          </div>
+          {renderIntroText()}
           {/* logo image */}
           {siteID && (
             <img
@@ -171,26 +197,12 @@ export default function Info(props) {
             {getButtonText()}
           </Button>
           {/* body text, e.g. HTML block 2 */}
-          <div className={classes.bodyText}>
-            <Typography
-              component="h4"
-              variant="h5"
-              color="inherit"
-              align="center"
-              className={classes.title}
-            >
-              <div
-                dangerouslySetInnerHTML={{
-                  __html: DOMPurify.sanitize(getBodyText()),
-                }}
-              ></div>
-            </Typography>
-          </div>
+          {renderBodyText()}
         </div>
       )}
     </div>
   );
 }
 Info.propTypes = {
-  appSettings: PropTypes.object
+  appSettings: PropTypes.object,
 };

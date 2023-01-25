@@ -1,6 +1,6 @@
 import React from "react";
 import PropTypes from "prop-types";
-import { makeStyles, styled} from "@material-ui/core/styles";
+import { makeStyles, styled } from "@material-ui/core/styles";
 import AddCircleOutlineIcon from "@material-ui/icons/AddCircleOutline";
 import Button from "@material-ui/core/Button";
 import ListItemIcon from "@material-ui/core/ListItemIcon";
@@ -71,6 +71,10 @@ export default function Dropdown(props) {
     handleMenuClose(event);
   };
 
+  const menuItems = props.menuItems ? props.menuItems : null;
+
+  if (!menuItems) return null;
+
   return (
     <StyledMenu
       id="dropdownMenu"
@@ -96,7 +100,7 @@ export default function Dropdown(props) {
           X
         </Button>
       </div>
-      {props.menuItems.map((item, index) => {
+      {menuItems.map((item, index) => {
         return (
           <MenuItem
             key={`menuItem${index}`}
