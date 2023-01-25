@@ -54,7 +54,7 @@
     "eslint-plugin-compat": "^3.13.0",
     "eslint-plugin-react": "^7.32.1",
     "eslint-plugin-react-hooks": "^4.6.0",
-    "filemanager-webpack-plugin": "^2.0.5",
+    "filemanager-webpack-plugin": "^8.0.0",
     "html-webpack-plugin": "^4.5.2",
     "jest": "^25.3.0",
     "json-loader": "^0.5.7",
