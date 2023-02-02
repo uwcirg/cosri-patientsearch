@@ -375,15 +375,7 @@ only screen and (max-width: 736px),
 	/*
 	Label the data
 	*/
-	#patientList tbody td:nth-of-type(1):not(:last-of-type):before { content: "First Name"; }
-	#patientList tbody td:nth-of-type(2):before { content: "Last Name"; }
-	#patientList tbody td:nth-of-type(3):before { content: "Birth Date"; }
-  #patientList body td:not(:empty):nth-of-type(4):before { content: "Last updated";  text-align: left !important}
-  .history-table tbody td:nth-of-type(1):not(:last-of-type):before { content: "History" !important; top: 0}
-	.history-table tbody td:nth-of-type(2):before { content: "" !important; }
-	.history-table tbody td:nth-of-type(3):before { content: "" !important; }
-  .history-table body td:not(:empty):nth-of-type(4):before { content: "" !important;}
-  tbody td:not(:empty):nth-of-type(4) { text-align: left !important}
+  #patientList tbody td { font-weight: 500 !important; }
   tfoot .MuiTablePagination-toolbar {
     display: flex;
     flex-direction: column;
