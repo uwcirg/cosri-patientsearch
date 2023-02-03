@@ -1097,7 +1097,7 @@ export default function PatientListTable() {
         if (appSettings) {
           addMamotoTracking(
             appSettings["MATOMO_SITE_ID"],
-            // use preferred_username from token as user id
+            // use preferred_username from OIDC ID token as user id
             getPreferredUserNameFromToken(token)
           );
           const clients = getClientsByRequiredRoles(
