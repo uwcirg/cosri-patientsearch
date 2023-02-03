@@ -22,11 +22,13 @@ import Agreement from "./Agreement";
 import { useSettingContext } from "../context/SettingContextProvider";
 import { tableIcons } from "../constants/consts";
 import {
+  addMamotoTracking,
   fetchData,
   getLocalDateTimeString,
   getUrlParameter,
   getRolesFromToken,
   getClientsByRequiredRoles,
+  getPreferredUserNameFromToken,
   isEmptyArray,
   isString,
   putPatientData,
@@ -1093,6 +1095,11 @@ export default function PatientListTable() {
           return false;
         }
         if (appSettings) {
+          addMamotoTracking(
+            appSettings["MATOMO_SITE_ID"],
+            // use preferred_username from OIDC ID token as user id
+            getPreferredUserNameFromToken(token)
+          );
           const clients = getClientsByRequiredRoles(
             appSettings["SOF_CLIENTS"],
             getRolesFromToken(token)
