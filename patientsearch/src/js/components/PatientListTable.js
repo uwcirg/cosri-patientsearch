@@ -769,7 +769,6 @@ export default function PatientListTable() {
             return patientResources.map((item) => {
               let subjectId = item.resource.id;
               if (!item.resource["resources"]) item.resource["resources"] = [];
-              console.log("results", results);
               results.forEach((result) => {
                 if (isEmptyArray(result.entry)) return true;
                 item.resource["resources"] = [
