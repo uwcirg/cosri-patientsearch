@@ -726,7 +726,8 @@ export default function PatientListTable() {
           );
           const eligibleRequests = additionalParams.filter(
             (request) =>
-              typeof request === "string" || typeof request === "object"
+              typeof request === "string" ||
+              (typeof request === "object" && request.resourceType)
           );
           const resolvedData = {
             data: responseData,
@@ -776,7 +777,9 @@ export default function PatientListTable() {
                   ...result.entry
                     .filter((o) => {
                       const matchedResource = additionalParams.filter(
-                        (item) => item.resourceType === o.resource.resourceType
+                        (item) =>
+                          item.resourceType &&
+                          item.resourceType === o.resource.resourceType
                       );
                       const referenceElementName =
                         matchedResource.length > 0

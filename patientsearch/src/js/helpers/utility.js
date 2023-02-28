@@ -434,7 +434,7 @@ export function addMamotoTracking(siteId, userId) {
 
 /*
  * @param objDate of type Date object
- * return text display of time in hour or day
+ * @returns text display of time ago as string e.g. < 50 seconds, < 1 hour, 1 day 2 hours, 3 hours, 3 days
  */
 export function getTimeAgoDisplay(objDate) {
   if (!objDate) return "";
