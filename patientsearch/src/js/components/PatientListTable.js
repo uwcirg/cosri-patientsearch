@@ -228,9 +228,13 @@ export default function PatientListTable() {
         expr: "$.id",
       });
     return cols.map((column) => {
+      const fieldName = column.label.toLowerCase().replace(/\s/g, "_");
       column.title = column.label;
-      column.field = column.label.toLowerCase().replace(/\s/g, "_");
-      column.emptyValue = "--";
+      column.field = fieldName;
+      column.emptyValue = () => <div datacolumn={`${column.label}`}>--</div>;
+      column.render = (rowData) => (
+        <div datacolumn={`${column.label}`}>{rowData[fieldName]}</div>
+      );
       return column;
     });
   };

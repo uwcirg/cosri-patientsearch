@@ -4,6 +4,7 @@ $color-success: green;
 $color-muted: #777;
 $color-muter: rgba(165, 158, 158, 0.64);
 $color-error: #c91616;
+$color-label: #525050;
 $input-icon-color: #686b6b;
 $base-font-size: 16px;
 $small-font-size: 14px;
@@ -321,14 +322,46 @@ only screen and (max-width: 736px),
     margin-top: 24px;
   }
 
-	/* Hide table headers (but not display: none;, for accessibility) */
-	thead tr {
-		position: absolute;
-		top: -9999px;
-		left: -9999px;
-	}
+  #patientList tbody td [dataColumn]:before {
+    content: attr(dataColumn);
+    display: inline-block;
+    margin-right: 12px;
+    font-weight: 400;
+    color: $color-label;
+    font-size: 0.8rem;
+  }
 
-	//tr { border: 1px solid #ccc; }
+  thead {
+    padding: 8px;
+    tr {
+      display: block !important;
+      border-bottom: 2px solid $color-muter;
+      padding-bottom: 24px;
+      &:before {
+        content: "Sort by";
+        padding: 16px 16px 8px;
+        font-weight: 500;
+        color: $color-label;
+        display: block;
+        font-size: 0.85rem;
+      }
+    }
+    th {
+      display: block !important;
+      background-color: #FFF !important;
+      width: 80% !important;
+      margin: auto;
+      &.MuiTableCell-paddingCheckbox {
+        padding: 0 !important;
+        line-height: 0 !important;
+        border-bottom: 0;
+      }
+      &:empty {
+        padding: 0 !important;
+        border-bottom: 0;
+      }
+    }
+  }
 
   tbody tr {
     min-height: 280px;
