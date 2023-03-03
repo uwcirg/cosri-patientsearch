@@ -232,10 +232,11 @@ export default function PatientListTable() {
       const fieldName = column.label.toLowerCase().replace(/\s/g, "_");
       column.title = column.label;
       column.field = fieldName;
-      column.emptyValue = () => <div datacolumn={`${column.label}`}>--</div>;
+      /* eslint-disable react/no-unknown-property */
+      column.emptyValue = () => <div dataColumn={`${column.label}`}>--</div>;
       column.render = (rowData) => (
-        /* eslint-disable react/react/no-unknown-property */
-        <div datacolumn={`${column.label}`}>{rowData[fieldName]}</div>
+        /* eslint-disable react/no-unknown-property */
+        <div dataColumn={`${column.label}`}>{rowData[fieldName]}</div>
       );
       return column;
     });
