@@ -234,6 +234,7 @@ export default function PatientListTable() {
       column.field = fieldName;
       column.emptyValue = () => <div datacolumn={`${column.label}`}>--</div>;
       column.render = (rowData) => (
+        /* eslint-disable react/react/no-unknown-property */
         <div datacolumn={`${column.label}`}>{rowData[fieldName]}</div>
       );
       return column;
