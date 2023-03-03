@@ -439,6 +439,7 @@ export function addMamotoTracking(siteId, userId) {
 export function getTimeAgoDisplay(objDate) {
   if (!objDate) return "";
   const today = new Date();
+  const total = today - objDate;
   const seconds = Math.round((today - objDate) / 1000);
   const minutes = Math.round(seconds / 60);
   const hours = Math.round(minutes / 60);
@@ -453,7 +454,7 @@ export function getTimeAgoDisplay(objDate) {
     return `${hours} hour${hours > 1 ? "s" : ""}`.trim();
   } else {
     if (days >= 1) {
-      const hoursRemain = hours % 24;
+      const hoursRemain = Math.floor((total / (1000 * 60 * 60)) % 24);
       return `${days} day${days > 1 ? "s" : ""} ${
         hoursRemain > 0
           ? hoursRemain + " hour" + (hoursRemain > 1 ? "s" : "")

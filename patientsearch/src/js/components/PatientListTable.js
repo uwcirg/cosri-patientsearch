@@ -25,6 +25,7 @@ import {
   addMamotoTracking,
   fetchData,
   getLocalDateTimeString,
+  getPreferredUserNameFromToken,
   getUrlParameter,
   getRolesFromToken,
   getClientsByRequiredRoles,
@@ -608,7 +609,14 @@ export default function PatientListTable() {
       const orderField = query.orderByCollection[0];
       const cols = getColumns();
       const orderByField = cols[orderField.orderBy]; // orderBy is the index of the column
-      if (orderByField) sortField = constants.fieldNameMaps[orderByField.field]; // translate to fhir field name
+      if (orderByField) {
+        const matchedColumn = cols.filter(
+          (col) => col.field === orderByField.field
+        );
+        if (matchedColumn.length && matchedColumn[0].sortBy) {
+          sortField = matchedColumn[0].sortBy;
+        } else sortField = constants.fieldNameMaps[orderByField.field]; // translate to fhir field name
+      }
       sortDirection = orderField.orderDirection;
     }
     if (!sortField) {
@@ -618,6 +626,7 @@ export default function PatientListTable() {
         : "_lastUpdated";
       sortDirection = returnObj ? returnObj.defaultSort : "desc";
     }
+
     if (!sortDirection) {
       sortDirection = "desc";
     }
