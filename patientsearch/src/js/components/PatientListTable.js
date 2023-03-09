@@ -291,11 +291,12 @@ export default function PatientListTable() {
     launchParams = launchParams || {};
     const baseURL = launchParams["launch_url"];
     const iss = getAppSettingByKey("SOF_HOST_FHIR_URL");
+    const needPatientBanner = getAppSettingByKey("NEED_PATIENT_BANNER");
     if (!baseURL || !iss) {
       console.log("Missing ISS launch base URL");
       return "";
     }
-    return `${baseURL}?patient=${patientId}&launch=${btoa(
+    return `${baseURL}?patient=${patientId}&need_patient_banner=${needPatientBanner}&launch=${btoa(
       JSON.stringify({ a: 1, b: patientId })
     )}&iss=${encodeURIComponent(iss)}`;
   };
