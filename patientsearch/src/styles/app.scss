@@ -4,6 +4,7 @@ $color-success: green;
 $color-muted: #777;
 $color-muter: rgba(165, 158, 158, 0.64);
 $color-error: #c91616;
+$color-label: #525050;
 $input-icon-color: #686b6b;
 $base-font-size: 16px;
 $small-font-size: 14px;
@@ -321,14 +322,46 @@ only screen and (max-width: 736px),
     margin-top: 24px;
   }
 
-	/* Hide table headers (but not display: none;, for accessibility) */
-	thead tr {
-		position: absolute;
-		top: -9999px;
-		left: -9999px;
-	}
+  #patientList tbody td [dataColumn]:before {
+    content: attr(dataColumn);
+    display: inline-block;
+    margin-right: 12px;
+    font-weight: 400;
+    color: $color-label;
+    font-size: 0.8rem;
+  }
 
-	//tr { border: 1px solid #ccc; }
+  thead {
+    padding: 8px;
+    tr {
+      display: block !important;
+      border-bottom: 2px solid $color-muter;
+      padding-bottom: 24px;
+      &:before {
+        content: "Sort by";
+        padding: 16px 16px 8px;
+        font-weight: 500;
+        color: $color-label;
+        display: block;
+        font-size: 0.85rem;
+      }
+    }
+    th {
+      display: block !important;
+      background-color: #FFF !important;
+      width: 80% !important;
+      margin: auto;
+      &.MuiTableCell-paddingCheckbox {
+        padding: 0 !important;
+        line-height: 0 !important;
+        border-bottom: 0;
+      }
+      &:empty {
+        padding: 0 !important;
+        border-bottom: 0;
+      }
+    }
+  }
 
   tbody tr {
     min-height: 280px;
@@ -375,15 +408,7 @@ only screen and (max-width: 736px),
 	/*
 	Label the data
 	*/
-	#patientList tbody td:nth-of-type(1):not(:last-of-type):before { content: "First Name"; }
-	#patientList tbody td:nth-of-type(2):before { content: "Last Name"; }
-	#patientList tbody td:nth-of-type(3):before { content: "Birth Date"; }
-  #patientList body td:not(:empty):nth-of-type(4):before { content: "Last updated";  text-align: left !important}
-  .history-table tbody td:nth-of-type(1):not(:last-of-type):before { content: "History" !important; top: 0}
-	.history-table tbody td:nth-of-type(2):before { content: "" !important; }
-	.history-table tbody td:nth-of-type(3):before { content: "" !important; }
-  .history-table body td:not(:empty):nth-of-type(4):before { content: "" !important;}
-  tbody td:not(:empty):nth-of-type(4) { text-align: left !important}
+  #patientList tbody td { font-weight: 500 !important; }
   tfoot .MuiTablePagination-toolbar {
     display: flex;
     flex-direction: column;

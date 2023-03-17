@@ -40,114 +40,118 @@ import {
 } from "../helpers/utility";
 import { useSettingContext } from "../context/SettingContextProvider";
 
-const useStyles = makeStyles((theme) => ({
-  container: {
-    paddingLeft: theme.spacing(3),
-    paddingRight: theme.spacing(3),
-    paddingTop: theme.spacing(1),
-  },
-  contentContainer: {
-    position: "relative",
-  },
-  addContainer: {
-    position: "relative",
-    marginBottom: theme.spacing(2),
-    padding: theme.spacing(2),
-  },
-  typeContainer: {
-    position: "relative",
-  },
-  textDisplay: {
-    marginTop: theme.spacing(3),
-  },
-  buttonsContainer: {
-    marginTop: theme.spacing(2.5),
-    position: "relative",
-  },
-  progressContainer: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    top: 0,
-    bottom: 0,
-    background: "hsl(0deg 0% 100% / 80%)",
-    zIndex: 500,
-    minHeight: theme.spacing(6),
-    boxShadow: "none",
-  },
-  progressIcon: {
-    position: "absolute",
-    top: "10%",
-    left: "10%",
-  },
-  historyContainer: {
-    position: "relative",
-    marginBottom: theme.spacing(2),
-    padding: theme.spacing(2),
-    minHeight: theme.spacing(9),
-  },
-  historyTitle: {
-    display: "inline-block",
-    fontWeight: 500,
-    color: theme.palette.dark.main,
-    borderBottom: `2px solid ${theme.palette.primary.lightest}`,
-    marginBottom: theme.spacing(1),
-  },
-  addTitle: {
-    display: "inline-block",
-    fontWeight: 500,
-    color: theme.palette.dark.main,
-    borderBottom: `2px solid ${theme.palette.primary.lightest}`,
-    marginBottom: theme.spacing(2.5),
-  },
-  addButton: {
-    marginRight: theme.spacing(1),
-  },
-  dateInput: {
-    minWidth: "248px",
-  },
-  selectFormControl: {
-    marginBottom: theme.spacing(1),
-  },
-  selectBox: {
-    minWidth: "248px",
-    fontSize: "14px",
-    marginRight: theme.spacing(0.5),
-  },
-  dateLabel: {
-    fontSize: "12px",
-    marginBottom: theme.spacing(0.25),
-  },
-  readonlyLabel: {
-    fontSize: "12px",
-    marginBottom: theme.spacing(0.5),
-  },
-  menuItem: {
-    fontSize: "14px",
-  },
-  editInput: {
-    width: theme.spacing(10),
-  },
-  errorContainer: {
-    maxWidth: "100%",
-    marginTop: theme.spacing(3),
-  },
-  expandIcon: {
-    marginLeft: theme.spacing(2),
-    verticalAlign: "middle",
-    fontSize: "12px",
-  },
-  endIcon: {
-    marginLeft: "-4px",
-    position: "relative",
-  },
-  tableContainer: {
-    position: "relative",
-  },
-  overDueContainer: {
-    marginBottom: theme.spacing(2),
-  },
-}));
+const useStyles = makeStyles((theme) => {
+  if (!theme) return null;
+  const palette = theme.palette;
+  return {
+    container: {
+      paddingLeft: theme.spacing(3),
+      paddingRight: theme.spacing(3),
+      paddingTop: theme.spacing(1),
+    },
+    contentContainer: {
+      position: "relative",
+    },
+    addContainer: {
+      position: "relative",
+      marginBottom: theme.spacing(2),
+      padding: theme.spacing(2),
+    },
+    typeContainer: {
+      position: "relative",
+    },
+    textDisplay: {
+      marginTop: theme.spacing(3),
+    },
+    buttonsContainer: {
+      marginTop: theme.spacing(2.5),
+      position: "relative",
+    },
+    progressContainer: {
+      position: "absolute",
+      left: 0,
+      right: 0,
+      top: 0,
+      bottom: 0,
+      background: "hsl(0deg 0% 100% / 80%)",
+      zIndex: 500,
+      minHeight: theme.spacing(6),
+      boxShadow: "none",
+    },
+    progressIcon: {
+      position: "absolute",
+      top: "10%",
+      left: "10%",
+    },
+    historyContainer: {
+      position: "relative",
+      marginBottom: theme.spacing(2),
+      padding: theme.spacing(2),
+      minHeight: theme.spacing(9),
+    },
+    historyTitle: {
+      display: "inline-block",
+      fontWeight: 500,
+      color: palette && palette.dark ? palette.dark.main : "#444",
+      borderBottom: `2px solid ${theme.palette.primary.lightest}`,
+      marginBottom: theme.spacing(1),
+    },
+    addTitle: {
+      display: "inline-block",
+      fontWeight: 500,
+      color: palette && palette.dark ? palette.dark.main : "#444",
+      borderBottom: `2px solid ${theme.palette.primary.lightest}`,
+      marginBottom: theme.spacing(2.5),
+    },
+    addButton: {
+      marginRight: theme.spacing(1),
+    },
+    dateInput: {
+      minWidth: "248px",
+    },
+    selectFormControl: {
+      marginBottom: theme.spacing(1),
+    },
+    selectBox: {
+      minWidth: "248px",
+      fontSize: "14px",
+      marginRight: theme.spacing(0.5),
+    },
+    dateLabel: {
+      fontSize: "12px",
+      marginBottom: theme.spacing(0.25),
+    },
+    readonlyLabel: {
+      fontSize: "12px",
+      marginBottom: theme.spacing(0.5),
+    },
+    menuItem: {
+      fontSize: "14px",
+    },
+    editInput: {
+      width: theme.spacing(10),
+    },
+    errorContainer: {
+      maxWidth: "100%",
+      marginTop: theme.spacing(3),
+    },
+    expandIcon: {
+      marginLeft: theme.spacing(2),
+      verticalAlign: "middle",
+      fontSize: "12px",
+    },
+    endIcon: {
+      marginLeft: "-4px",
+      position: "relative",
+    },
+    tableContainer: {
+      position: "relative",
+    },
+    overDueContainer: {
+      marginBottom: theme.spacing(2),
+    },
+  };
+});
 
 export default function UrineScreen(props) {
   const appCtx = useSettingContext();
@@ -586,7 +590,7 @@ export default function UrineScreen(props) {
     else return "";
   };
   const onlyOneUrineScreenType = React.useCallback(() => {
-    return urineScreenTypes.length === 1;
+    return urineScreenTypes && urineScreenTypes.length === 1;
   }, [urineScreenTypes]);
 
   const hasUrineScreenTypes = () => {
@@ -649,286 +653,298 @@ export default function UrineScreen(props) {
     }
     setSnackOpen(false);
   };
+  const renderTitle = () => (
+    <h3>{`Urine Drug Toxicology Screen for ${rowData.first_name} ${rowData.last_name}`}</h3>
+  );
+  const renderAddInProgressIndicator = () => {
+    if (!addInProgress) return null;
+    return (
+      <div className={classes.progressContainer}>
+        <CircularProgress
+          className={classes.progressIcon}
+          color="primary"
+          size={32}
+        />
+      </div>
+    );
+  };
+  const renderAddComponent = () => (
+    <Paper className={classes.addContainer} elevation={1}>
+      <Typography
+        variant="caption"
+        display="block"
+        className={classes.addTitle}
+      >
+        Add New
+      </Typography>
+      {/* urine screen date/datepicker */}
+      <div>
+        <MuiPickersUtilsProvider utils={DateFnsUtils}>
+          {/* order date field */}
+          <InputLabel className={classes.dateLabel}>Order Date</InputLabel>
+          <KeyboardDatePicker
+            autoOk={true}
+            variant="dialog"
+            openTo="year"
+            disableFuture
+            InputProps={{
+              startAdornment: (
+                <InputAdornment
+                  position="end"
+                  style={{ order: 1, marginLeft: 0 }}
+                >
+                  <IconButton
+                    onClick={() => {
+                      clearDate();
+                    }}
+                    style={{ order: 2, padding: 0 }}
+                    aria-label="Clear date"
+                    title="Clear date"
+                  >
+                    <ClearIcon color="primary" fontSize="small" />
+                  </IconButton>
+                </InputAdornment>
+              ),
+              className: classes.dateInput,
+            }}
+            format="yyyy-MM-dd"
+            minDate={new Date("1950-01-01")}
+            maxDateMessage="Date must not be in the future"
+            invalidDateMessage="Date must be in YYYY-MM-DD format, e.g. 1977-01-12"
+            placeholder="YYYY-MM-DD"
+            value={date}
+            orientation="landscape"
+            onChange={(event, dateString) => {
+              setDateInput(dateString);
+              if (!event || !isValid(event)) {
+                if (event && String(dateInput).replace(/[-_]/g, "").length >= 8)
+                  setDate(event);
+                return;
+              }
+              setDate(event);
+            }}
+            KeyboardButtonProps={{ color: "primary", title: "Date picker" }}
+            autoFocus
+          />
+        </MuiPickersUtilsProvider>
+      </div>
+      {/* urine screen type selector */}
+      {renderUrineTypeSelector()}
+      {!noUrineScreenTypes() && (
+        <div className={classes.buttonsContainer}>
+          <Button
+            variant="contained"
+            color="primary"
+            className={classes.addButton}
+            disabled={!hasValues()}
+            onClick={() => handleAdd()}
+          >
+            Add
+          </Button>
+          <Button
+            variant="outlined"
+            onClick={clearFields}
+            disabled={!hasValues()}
+          >
+            Clear
+          </Button>
+        </div>
+      )}
+    </Paper>
+  );
+  const renderUrineTypeSelector = () => (
+    <div className={classes.typeContainer}>
+      <div>
+        {onlyOneUrineScreenType() && (
+          <div className={classes.textDisplay}>
+            <InputLabel className={classes.readonlyLabel}>
+              {URINE_SCREEN_TYPE_LABEL}
+            </InputLabel>
+            <Typography variant="subtitle2">
+              {getOneUrineScreenDisplayText()}
+            </Typography>
+          </div>
+        )}
+        {hasUrineScreenTypes() && (
+          <FormControl className={classes.selectFormControl} variant="standard">
+            <InputLabel className={classes.label}>
+              {URINE_SCREEN_TYPE_LABEL}
+            </InputLabel>
+            <Select
+              value={type}
+              onChange={handleTypeChange}
+              className={classes.selectBox}
+              IconComponent={() => (
+                <ArrowDropDownIcon color="primary"></ArrowDropDownIcon>
+              )}
+            >
+              {getUrineScreenTypeSelectList()}
+            </Select>
+          </FormControl>
+        )}
+        {noUrineScreenTypes() && (
+          <div className={classes.errorContainer}>
+            <Error
+              message={"No urine drug screen type list is loaded."}
+            ></Error>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+  const renderUpdateInProgressIndicator = () => (
+    <div className={classes.progressContainer}>
+      <CircularProgress
+        color="primary"
+        size={32}
+        className={classes.progressIcon}
+      />
+    </div>
+  );
+  const renderMostRecentHistory = () => (
+    <React.Fragment>
+      <Typography
+        variant="caption"
+        display="block"
+        className={classes.historyTitle}
+      >
+        Last Urine Drug Screen
+      </Typography>
+      {!hasHistory() && <div>No previously recorded urine drug screen</div>}
+      {/* most recent entry */}
+      {hasHistory() && (
+        <React.Fragment>
+          <div>
+            {!editEntry.mode && (
+              <span
+                dangerouslySetInnerHTML={{
+                  __html: DOMPurify.sanitize(displayMostRecentEntry()),
+                }}
+              ></span>
+            )}
+            {editEntry.mode && displayEditHistoryByRow(0)}
+            <EditButtonGroup
+              onEnableEditMode={handleEnableEditMode}
+              onDisableEditMode={handleDisableEditMode}
+              isUpdateDisabled={!hasValidEditEntry()}
+              handleEditSave={() => handleEditSave()}
+              handleDelete={() => handleDelete()}
+              entryDescription={displayMostRecentEntry()}
+            ></EditButtonGroup>
+          </div>
+          {/* alerts */}
+          {isAdult(rowData.birth_date) && (
+            <div className={classes.overDueContainer}>
+              <OverdueAlert
+                date={lastEntry.date}
+                type="urine drug screen"
+              ></OverdueAlert>
+            </div>
+          )}
+        </React.Fragment>
+      )}
+    </React.Fragment>
+  );
+  const renderHistory = () => (
+    <Paper className={classes.historyContainer} elevation={1}>
+      <Typography
+        variant="caption"
+        display="block"
+        className={classes.historyTitle}
+      >
+        History
+      </Typography>
+      <div className={classes.totalEntriesContainer}>
+        <span>
+          <b>{history.length}</b> record(s)
+        </span>
+        {!expandHistory && (
+          <Button
+            arial-label="expand"
+            color="primary"
+            onClick={() => setExpandHistory(true)}
+            endIcon={
+              <ExpandMoreIcon className={classes.endIcon}></ExpandMoreIcon>
+            }
+            size="small"
+            className={classes.expandIcon}
+          >
+            View
+          </Button>
+        )}
+        {expandHistory && (
+          <Button
+            arial-label="collapse"
+            color="primary"
+            onClick={() => setExpandHistory(false)}
+            endIcon={
+              <ExpandLessIcon className={classes.endIcon}></ExpandLessIcon>
+            }
+            size="small"
+            className={classes.expandIcon}
+          >
+            Hide
+          </Button>
+        )}
+      </div>
+      <div className={classes.tableContainer}>
+        {expandHistory && (
+          <div className="history-table">
+            <HistoryTable
+              data={history}
+              columns={getColumns()}
+              APIURL="/fhir/ServiceRequest/"
+              submitDataFormatter={submitDataFormatter}
+              onRowUpdate={() => getHistory()}
+              onRowDelete={() => getHistory()}
+            ></HistoryTable>
+          </div>
+        )}
+      </div>
+    </Paper>
+  );
+  const renderFeedbackSnackbar = () => (
+    <Snackbar
+      open={snackOpen}
+      autoHideDuration={3000}
+      onClose={handleSnackClose}
+    >
+      <Alert
+        onClose={handleSnackClose}
+        severity="success"
+        message="Request processed successfully."
+      ></Alert>
+    </Snackbar>
+  );
+
+  const renderError = () => (
+    <div className={classes.errorContainer}>
+      {error && <Error message={error}></Error>}
+    </div>
+  );
+
   React.useEffect(() => {
     getHistory();
   }, [getHistory]);
 
   return (
     <div className={classes.container}>
-      <h3>{`Urine Drug Toxicology Screen for ${rowData.first_name} ${rowData.last_name}`}</h3>
+      {renderTitle()}
       <div className={classes.contentContainer}>
-        {addInProgress && (
-          <div className={classes.progressContainer}>
-            <CircularProgress
-              className={classes.progressIcon}
-              color="primary"
-              size={32}
-            />
-          </div>
-        )}
+        {renderAddInProgressIndicator()}
         {/* UI to add new */}
-        <Paper className={classes.addContainer} elevation={1}>
-          <Typography
-            variant="caption"
-            display="block"
-            className={classes.addTitle}
-          >
-            Add New
-          </Typography>
-          {/* urine screen date/datepicker */}
-          <div>
-            <MuiPickersUtilsProvider utils={DateFnsUtils}>
-              {/* order date field */}
-              <InputLabel className={classes.dateLabel}>Order Date</InputLabel>
-              <KeyboardDatePicker
-                autoOk={true}
-                variant="dialog"
-                openTo="year"
-                disableFuture
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment
-                      position="end"
-                      style={{ order: 1, marginLeft: 0 }}
-                    >
-                      <IconButton
-                        onClick={() => {
-                          clearDate();
-                        }}
-                        style={{ order: 2, padding: 0 }}
-                        aria-label="Clear date"
-                        title="Clear date"
-                      >
-                        <ClearIcon color="primary" fontSize="small" />
-                      </IconButton>
-                    </InputAdornment>
-                  ),
-                  className: classes.dateInput,
-                }}
-                format="yyyy-MM-dd"
-                minDate={new Date("1950-01-01")}
-                maxDateMessage="Date must not be in the future"
-                invalidDateMessage="Date must be in YYYY-MM-DD format, e.g. 1977-01-12"
-                placeholder="YYYY-MM-DD"
-                value={date}
-                orientation="landscape"
-                onChange={(event, dateString) => {
-                  setDateInput(dateString);
-                  if (!event || !isValid(event)) {
-                    if (
-                      event &&
-                      String(dateInput).replace(/[-_]/g, "").length >= 8
-                    )
-                      setDate(event);
-                    return;
-                  }
-                  setDate(event);
-                }}
-                KeyboardButtonProps={{ color: "primary", title: "Date picker" }}
-                autoFocus
-              />
-            </MuiPickersUtilsProvider>
-          </div>
-          {/* urine screen type selector */}
-          <div className={classes.typeContainer}>
-            <div>
-              {onlyOneUrineScreenType() && (
-                <div className={classes.textDisplay}>
-                  <InputLabel className={classes.readonlyLabel}>
-                    {URINE_SCREEN_TYPE_LABEL}
-                  </InputLabel>
-                  <Typography variant="subtitle2">
-                    {getOneUrineScreenDisplayText()}
-                  </Typography>
-                </div>
-              )}
-              {hasUrineScreenTypes() && (
-                <FormControl
-                  className={classes.selectFormControl}
-                  variant="standard"
-                >
-                  <InputLabel className={classes.label}>
-                    {URINE_SCREEN_TYPE_LABEL}
-                  </InputLabel>
-                  <Select
-                    value={type}
-                    onChange={handleTypeChange}
-                    className={classes.selectBox}
-                    IconComponent={() => (
-                      <ArrowDropDownIcon color="primary"></ArrowDropDownIcon>
-                    )}
-                  >
-                    {getUrineScreenTypeSelectList()}
-                  </Select>
-                </FormControl>
-              )}
-              {noUrineScreenTypes() && (
-                <div className={classes.errorContainer}>
-                  <Error
-                    message={"No urine drug screen type list is loaded."}
-                  ></Error>
-                </div>
-              )}
-            </div>
-          </div>
-          {!noUrineScreenTypes() && (
-            <div className={classes.buttonsContainer}>
-              <Button
-                variant="contained"
-                color="primary"
-                className={classes.addButton}
-                disabled={!hasValues()}
-                onClick={() => handleAdd()}
-              >
-                Add
-              </Button>
-              <Button
-                variant="outlined"
-                onClick={clearFields}
-                disabled={!hasValues()}
-              >
-                Clear
-              </Button>
-            </div>
-          )}
-        </Paper>
+        {renderAddComponent()}
         {/* history */}
         <Paper className={classes.historyContainer} elevation={1}>
-          {(!historyInitialized || updateInProgress) && (
-            <div className={classes.progressContainer}>
-              <CircularProgress
-                color="primary"
-                size={32}
-                className={classes.progressIcon}
-              />
-            </div>
-          )}
-          {historyInitialized && (
-            <React.Fragment>
-              <Typography
-                variant="caption"
-                display="block"
-                className={classes.historyTitle}
-              >
-                Last Urine Drug Screen
-              </Typography>
-              {!hasHistory() && (
-                <div>No previously recorded urine drug screen</div>
-              )}
-              {/* most recent entry */}
-              {hasHistory() && (
-                <React.Fragment>
-                  <div>
-                    {!editEntry.mode && (
-                      <span
-                        dangerouslySetInnerHTML={{
-                          __html: DOMPurify.sanitize(displayMostRecentEntry()),
-                        }}
-                      ></span>
-                    )}
-                    {editEntry.mode && displayEditHistoryByRow(0)}
-                    <EditButtonGroup
-                      onEnableEditMode={handleEnableEditMode}
-                      onDisableEditMode={handleDisableEditMode}
-                      isUpdateDisabled={!hasValidEditEntry()}
-                      handleEditSave={() => handleEditSave()}
-                      handleDelete={() => handleDelete()}
-                      entryDescription={displayMostRecentEntry()}
-                    ></EditButtonGroup>
-                  </div>
-                  {/* alerts */}
-                  {isAdult(rowData.birth_date) && (
-                    <div className={classes.overDueContainer}>
-                      <OverdueAlert
-                        date={lastEntry.date}
-                        type="urine drug screen"
-                      ></OverdueAlert>
-                    </div>
-                  )}
-                </React.Fragment>
-              )}
-              {/* history table */}
-              {hasHistory() && (
-                <Paper className={classes.historyContainer} elevation={1}>
-                  <Typography
-                    variant="caption"
-                    display="block"
-                    className={classes.historyTitle}
-                  >
-                    History
-                  </Typography>
-                  <div className={classes.totalEntriesContainer}>
-                    <span>
-                      <b>{history.length}</b> record(s)
-                    </span>
-                    {!expandHistory && (
-                      <Button
-                        arial-label="expand"
-                        color="primary"
-                        onClick={() => setExpandHistory(true)}
-                        endIcon={
-                          <ExpandMoreIcon
-                            className={classes.endIcon}
-                          ></ExpandMoreIcon>
-                        }
-                        size="small"
-                        className={classes.expandIcon}
-                      >
-                        View
-                      </Button>
-                    )}
-                    {expandHistory && (
-                      <Button
-                        arial-label="collapse"
-                        color="primary"
-                        onClick={() => setExpandHistory(false)}
-                        endIcon={
-                          <ExpandLessIcon
-                            className={classes.endIcon}
-                          ></ExpandLessIcon>
-                        }
-                        size="small"
-                        className={classes.expandIcon}
-                      >
-                        Hide
-                      </Button>
-                    )}
-                  </div>
-                  <div className={classes.tableContainer}>
-                    {expandHistory && (
-                      <div className="history-table">
-                        <HistoryTable
-                          data={history}
-                          columns={getColumns()}
-                          APIURL="/fhir/ServiceRequest/"
-                          submitDataFormatter={submitDataFormatter}
-                          onRowUpdate={() => getHistory()}
-                          onRowDelete={() => getHistory()}
-                        ></HistoryTable>
-                      </div>
-                    )}
-                  </div>
-                </Paper>
-              )}
-            </React.Fragment>
-          )}
+          {(!historyInitialized || updateInProgress) &&
+            renderUpdateInProgressIndicator()}
+          {historyInitialized && renderMostRecentHistory()}
+          {hasHistory() && renderHistory()}
         </Paper>
         {/* feedback snack popup */}
-        <Snackbar
-          open={snackOpen}
-          autoHideDuration={3000}
-          onClose={handleSnackClose}
-        >
-          <Alert
-            onClose={handleSnackClose}
-            severity="success"
-            message="Request processed successfully."
-          ></Alert>
-        </Snackbar>
+        {renderFeedbackSnackbar()}
         {/* error message UI */}
-        <div className={classes.errorContainer}>
-          {error && <Error message={error}></Error>}
-        </div>
+        {renderError()}
       </div>
     </div>
   );

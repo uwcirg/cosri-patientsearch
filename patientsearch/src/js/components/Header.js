@@ -9,7 +9,12 @@ import HowToRegIcon from "@material-ui/icons/HowToReg";
 import Toolbar from "@material-ui/core/Toolbar";
 import Typography from "@material-ui/core/Typography";
 import SiteLogo from "./SiteLogo";
-import { imageOK, sendRequest, setDocumentTitle, setFavicon } from "../helpers/utility";
+import {
+  imageOK,
+  sendRequest,
+  setDocumentTitle,
+  setFavicon,
+} from "../helpers/utility";
 import { useSettingContext } from "../context/SettingContextProvider";
 
 const useStyles = makeStyles((theme) => ({
@@ -133,6 +138,48 @@ export default function Header() {
     }
   };
 
+  const renderLogoutComponent = () => (
+    <div className={classes.buttonContainer}>
+      <Link
+        className={classes.linkText}
+        color="secondary"
+        variant="body1"
+        href={logoutURL}
+      >
+        Logout
+      </Link>
+      <Link color="secondary" variant="body1" href={logoutURL}>
+        <ExitToAppIcon
+          color="secondary"
+          fontSize="medium"
+          className={classes.linkIcon}
+        ></ExitToAppIcon>
+      </Link>
+    </div>
+  );
+
+  const renderUserInfoComponent = () => (
+    <div>
+      <Typography
+        component="h6"
+        variant="h6"
+        color="textPrimary"
+        noWrap
+        className={classes.welcomeText}
+      >
+        <Avatar className={classes.avatar}>
+          <HowToRegIcon />
+        </Avatar>
+        <span className={classes.avatarText}>Welcome</span>
+        {hasUserInfo() && (
+          <span className={classes.userinfo}>
+            {userInfo.name || userInfo.email}
+          </span>
+        )}
+      </Typography>
+    </div>
+  );
+
   React.useEffect(() => {
     /*
      * get logged in user information for displaying purpose
@@ -174,61 +221,35 @@ export default function Header() {
   return (
     <AppBar position="absolute" className={classes.appBar}>
       <Toolbar className={classes.topBar} disableGutters variant="dense">
-        <img src={getLogoURL()} alt="Logo" className={classes.logo} onLoad={handleImageLoaded} onError={handleImageLoadError}/>
+        <img
+          src={getLogoURL()}
+          alt="Logo"
+          className={classes.logo}
+          onLoad={handleImageLoaded}
+          onError={handleImageLoadError}
+        />
         <SiteLogo />
         {authorized && (
           <Box className={classes.welcomeContainer}>
-            <div>
-              <Typography
-                component="h6"
-                variant="h6"
-                color="textPrimary"
-                noWrap
-                className={classes.welcomeText}
-              >
-                <Avatar className={classes.avatar}>
-                  <HowToRegIcon />
-                </Avatar>
-                <span className={classes.avatarText}>Welcome</span>
-                {hasUserInfo() && (
-                  <span className={classes.userinfo}>
-                    {userInfo.name || userInfo.email}
-                  </span>
-                )}
-              </Typography>
-            </div>
-            <div className={classes.buttonContainer}>
-              <Link
-                className={classes.linkText}
-                color="secondary"
-                variant="body1"
-                href={logoutURL}
-              >
-                Logout
-              </Link>
-              <Link color="secondary" variant="body1" href={logoutURL}>
-                <ExitToAppIcon
-                  color="secondary"
-                  fontSize="medium"
-                  className={classes.linkIcon}
-                ></ExitToAppIcon>
-              </Link>
-            </div>
+            {renderUserInfoComponent()}
+            {renderLogoutComponent()}
           </Box>
         )}
       </Toolbar>
-      {appTitle && <Toolbar className={classes.toolbar} disableGutters variant="dense">
-        <Typography
-          component="h1"
-          variant="h5"
-          color="inherit"
-          noWrap
-          className={classes.title}
-          align="center"
-        >
-          {appTitle}
-        </Typography>
-      </Toolbar>}
+      {appTitle && (
+        <Toolbar className={classes.toolbar} disableGutters variant="dense">
+          <Typography
+            component="h1"
+            variant="h5"
+            color="inherit"
+            noWrap
+            className={classes.title}
+            align="center"
+          >
+            {appTitle}
+          </Typography>
+        </Toolbar>
+      )}
     </AppBar>
   );
 }

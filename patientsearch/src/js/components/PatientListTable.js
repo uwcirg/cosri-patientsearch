@@ -1,7 +1,7 @@
 import React from "react";
+import DOMPurify from "dompurify";
 import { makeStyles, useTheme } from "@material-ui/core/styles";
 import jsonpath from "jsonpath";
-import DOMPurify from "dompurify";
 import MaterialTable from "@material-table/core";
 import RefreshIcon from "@material-ui/icons/Refresh";
 import MoreHorizIcon from "@material-ui/icons/MoreHoriz";
@@ -20,15 +20,18 @@ import OverlayElement from "./OverlayElement";
 import UrineScreen from "./UrineScreen";
 import Agreement from "./Agreement";
 import { useSettingContext } from "../context/SettingContextProvider";
-import { tableIcons } from "../constants/consts";
+import * as constants from "../constants/consts";
 import {
+  addMamotoTracking,
   fetchData,
   getLocalDateTimeString,
   getUrlParameter,
   getRolesFromToken,
   getClientsByRequiredRoles,
+  getPreferredUserNameFromToken,
   isEmptyArray,
   isString,
+  putPatientData,
   validateToken,
 } from "../helpers/utility";
 const useStyles = makeStyles((theme) => ({
@@ -97,7 +100,7 @@ const useStyles = makeStyles((theme) => ({
     fill: theme.palette.primary.success,
   },
   muted: {
-    fill: theme.palette.muted.main,
+    fill: theme.palette.muted ? theme.palette.muted.main : "#777",
   },
   legend: {
     marginTop: theme.spacing(2.5),
@@ -142,21 +145,6 @@ export default function PatientListTable() {
   const appSettings = useSettingContext().appSettings;
   const [appClients, setAppClients] = React.useState(null);
   const [data, setData] = React.useState([]);
-  const defaultFilters = {
-    first_name: "",
-    last_name: "",
-    birth_date: "",
-  };
-  const defaultPagination = {
-    pageSize: 20,
-    pageNumber: 0,
-    prevPageNumber: 0,
-    disablePrevButton: true,
-    disableNextButton: true,
-    totalCount: 0,
-    nextPageURL: "",
-    prevPageURL: "",
-  };
   const paginationReducer = (state, action) => {
     if (action.type === "empty") {
       return {
@@ -185,9 +173,11 @@ export default function PatientListTable() {
   };
   const [pagination, paginationDispatch] = React.useReducer(
     paginationReducer,
-    defaultPagination
+    constants.defaultPagination
   );
-  const [currentFilters, setCurrentFilters] = React.useState(defaultFilters);
+  const [currentFilters, setCurrentFilters] = React.useState(
+    constants.defaultFilters
+  );
   const [openLoadingModal, setOpenLoadingModal] = React.useState(false);
   const [openLaunchInfoModal, setOpenLaunchInfoModal] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState("");
@@ -195,13 +185,11 @@ export default function PatientListTable() {
   const [anchorEl, setAnchorEl] = React.useState(false);
   const [selectedMenuItem, setSelectedMenuItem] = React.useState("");
   const [currentRow, setCurrentRow] = React.useState(null);
-  const [actionLabel, setActionLabel] = React.useState(LAUNCH_BUTTON_LABEL);
+  const [actionLabel, setActionLabel] = React.useState(
+    constants.LAUNCH_BUTTON_LABEL
+  );
   const [noDataText, setNoDataText] = React.useState("");
   const tableRef = React.useRef();
-  const LAUNCH_BUTTON_LABEL = "VIEW";
-  const CREATE_BUTTON_LABEL = "CREATE";
-  const MORE_MENU_KEY = "MORE_MENU";
-  const noCacheParam = { cache: "no-cache" };
   const menuItems = [
     {
       text: "Add Urine Tox Screen",
@@ -212,33 +200,6 @@ export default function PatientListTable() {
       text: "Add Controlled Substance Agreement",
       id: "CS_agreement",
       component: (rowData) => <Agreement rowData={rowData}></Agreement>,
-    },
-  ];
-  const FieldNameMaps = {
-    first_name: "given",
-    last_name: "family",
-    birth_date: "birthdate",
-    last_accessed: "_lastUpdated",
-    mrn: "identifier"
-  };
-  const default_columns = [
-    {
-      label: "First Name",
-      expr: "$.name[0].given[0]",
-    },
-    {
-      label: "Last Name",
-      expr: "$.name[0].family",
-    },
-    {
-      label: "Birth Date",
-      expr: "$.birthDate",
-    },
-    {
-      label: "Last Accessed",
-      defaultSort: "desc",
-      expr: "$.meta.lastUpdated",
-      dataType: "date",
     },
   ];
   const errorStyle = { display: errorMessage ? "block" : "none" };
@@ -254,7 +215,7 @@ export default function PatientListTable() {
   const getColumns = () => {
     const configColumns = getAppSettingByKey("DASHBOARD_COLUMNS");
     const isValidConfig = configColumns && Array.isArray(configColumns);
-    let cols = isValidConfig ? configColumns : default_columns;
+    let cols = isValidConfig ? configColumns : constants.defaultColumns;
     if (!isValidConfig) {
       console.log("invalid columns via config. Null or not an array.");
     }
@@ -267,13 +228,16 @@ export default function PatientListTable() {
         expr: "$.id",
       });
     return cols.map((column) => {
+      const fieldName = column.label.toLowerCase().replace(/\s/g, "_");
       column.title = column.label;
-      column.field = column.label.toLowerCase().replace(/\s/g, "_");
-      column.emptyValue = "--";
+      column.field = fieldName;
+      column.emptyValue = () => <div datacolumn={`${column.label}`}>--</div>;
+      column.render = (rowData) => (
+        <div datacolumn={`${column.label}`}>{rowData[fieldName]}</div>
+      );
       return column;
     });
   };
-  const columns = getColumns();
   const existsIndata = (rowData) => {
     if (!data || !rowData) return false;
     return (
@@ -404,7 +368,7 @@ export default function PatientListTable() {
           },
           body: searchBody,
         },
-        ...noCacheParam,
+        ...constants.noCacheParam,
       },
       (e) => handleErrorCallback(e)
     )
@@ -441,7 +405,7 @@ export default function PatientListTable() {
     return data && Array.isArray(data)
       ? data.map((item) => {
           const source = item.resource ? item.resource : item;
-          const cols = columns;
+          const cols = getColumns();
           let rowData = {
             id: jsonpath.value(source, "$.id"),
             resource: source,
@@ -468,7 +432,7 @@ export default function PatientListTable() {
           item.system === "https://github.com/uwcirg/script-fhir-facade" &&
           item.value
         );
-      }).length
+      }).length > 0
     );
   };
   const setNoPMPFlag = (data) => {
@@ -478,7 +442,9 @@ export default function PatientListTable() {
         return !inPDMP(rowData);
       }).length > 0;
     //legend will display if contain no pmp row flag is set
-    if (hasNoPMPRow) setContainNoPMPRow(true);
+    if (hasNoPMPRow) {
+      setContainNoPMPRow(true);
+    }
   };
   const containEmptyFilter = (filters) =>
     getNonEmptyFilters(filters).length === 0;
@@ -489,8 +455,8 @@ export default function PatientListTable() {
   const handleActionLabel = (filters) => {
     setActionLabel(
       getNonEmptyFilters(filters).length === 3
-        ? CREATE_BUTTON_LABEL
-        : LAUNCH_BUTTON_LABEL
+        ? constants.CREATE_BUTTON_LABEL
+        : constants.LAUNCH_BUTTON_LABEL
     );
   };
   const handleNoDataText = (filters) => {
@@ -499,7 +465,7 @@ export default function PatientListTable() {
     if (nonEmptyFilters.length < 3) {
       text += "Try entering all First name, Last name and Birth Date.";
     } else if (nonEmptyFilters.length === 3) {
-      text += `Click on ${CREATE_BUTTON_LABEL} button to create new patient`;
+      text += `Click on ${constants.CREATE_BUTTON_LABEL} button to create new patient`;
     }
     setNoDataText(text);
   };
@@ -563,7 +529,7 @@ export default function PatientListTable() {
     if (tableRef && tableRef.current) tableRef.current.onQueryChange();
   };
   const handleRefresh = () => {
-    setCurrentFilters(defaultFilters);
+    setCurrentFilters(constants.defaultFilters);
     resetPaging();
     if (tableRef && tableRef.current) tableRef.current.onQueryChange();
   };
@@ -591,13 +557,13 @@ export default function PatientListTable() {
   const shouldHideMoreMenu = () => {
     if (!hasAppSettings()) return true;
     return (
-      !appSettings[MORE_MENU_KEY] ||
-      appSettings[MORE_MENU_KEY].filter((item) => item && item !== "")
+      !appSettings[constants.MORE_MENU_KEY] ||
+      appSettings[constants.MORE_MENU_KEY].filter((item) => item && item !== "")
         .length === 0
     );
   };
   const shouldShowMenuItem = (id) => {
-    let arrMenu = getAppSettingByKey(MORE_MENU_KEY);
+    let arrMenu = getAppSettingByKey(constants.MORE_MENU_KEY);
     if (!Array.isArray(arrMenu)) return false;
     return (
       arrMenu.filter((item) => item.toLowerCase() === id.toLowerCase()).length >
@@ -623,19 +589,39 @@ export default function PatientListTable() {
       tableRef.current.props.detailPanel[0].render
     );
   };
+  const getDefaultSortColumn = () => {
+    const cols = getColumns();
+    if (!cols) return null;
+    const defaultSortFields = cols.filter((column) => column.defaultSort);
+    if (defaultSortFields.length) return defaultSortFields[0];
+    return null;
+  };
   const getPatientList = (query) => {
+    console.log("patient list query object ", query);
     let sortField =
       query.orderBy && query.orderBy.field
-        ? FieldNameMaps[query.orderBy.field]
+        ? constants.fieldNameMaps[query.orderBy.field]
+        : null;
+    let sortDirection;
+    if (!sortField) {
+      const returnObj = getDefaultSortColumn();
+      sortField = returnObj
+        ? constants.fieldNameMaps[returnObj.field]
         : "_lastUpdated";
-    let sortDirection = query.orderDirection ? query.orderDirection : "desc";
+      sortDirection = returnObj ? returnObj.defaultSort : "desc";
+    }
+    if (!sortDirection) {
+      sortDirection = query.orderDirection ? query.orderDirection : "desc";
+    }
     let sortMinus = sortDirection !== "asc" ? "-" : "";
     let filterBy = [];
 
     if (currentFilters && currentFilters.length) {
       currentFilters.forEach((item) => {
         if (item.value) {
-          filterBy.push(`${FieldNameMaps[item.field]}:contains=${item.value}`);
+          filterBy.push(
+            `${constants.fieldNameMaps[item.field]}:contains=${item.value}`
+          );
         }
       });
     }
@@ -667,7 +653,7 @@ export default function PatientListTable() {
      * get patient list
      */
     return new Promise((resolve) => {
-      fetchData(apiURL, noCacheParam, function (e) {
+      fetchData(apiURL, constants.noCacheParam, function (e) {
         paginationDispatch({ type: "empty" });
         handleErrorCallback(e);
         resolve(defaults);
@@ -678,8 +664,9 @@ export default function PatientListTable() {
             resolve(defaults);
             return;
           }
-
-          if (needExternalAPILookup()) setNoPMPFlag(responseData);
+          if (needExternalAPILookup()) {
+            setNoPMPFlag(response.entry);
+          }
           let responsePageoffset = 0;
           let responseSelfLink = response.link
             ? response.link.filter((item) => {
@@ -754,7 +741,7 @@ export default function PatientListTable() {
               `/fhir/${queryString}` +
                 (queryString.indexOf("?") !== -1 ? "&" : "?") +
                 `patient=${ids}&_count=1000`,
-              noCacheParam
+              constants.noCacheParam
             )
           );
           const queryResults = (async () => {
@@ -821,6 +808,265 @@ export default function PatientListTable() {
     setTimeout(() => setOpenLoadingModal(false), 500);
   };
 
+  const getTableActions = () => {
+    let actions = [];
+    if (!shouldHideMoreMenu()) {
+      actions = [
+        {
+          icon: () => (
+            <MoreHorizIcon
+              color="primary"
+              className={classes.moreIcon}
+            ></MoreHorizIcon>
+          ),
+          onClick: (event, rowData) => handleMenuClick(event, rowData),
+          tooltip: "More",
+        },
+      ];
+    }
+    if (!appClients || !appClients.length) return actions;
+    const appActions = appClients.map((client, index) => {
+      return {
+        icon: () => (
+          <span className={classes.button} key={`actionButton_${index}`}>
+            {client.label}
+          </span>
+        ),
+        onClick: (event, rowData) => {
+          event.stopPropagation();
+          const columns = getColumns();
+          const hasLastAccessedField =
+            columns.filter((column) => column.field === "last_accessed")
+              .length > 0;
+          // if last accessed field is present
+          if (hasLastAccessedField) {
+            // this will ensure that last accessed date, i.e. meta.lastUpdated, is being updated
+            putPatientData(
+              rowData.id,
+              rowData.resource,
+              handleErrorCallback,
+              () => handleLaunchApp(rowData, client)
+            );
+            return;
+          }
+          handleLaunchApp(rowData, client);
+        },
+        tooltip: `Launch ${client.id} application for the user`,
+      };
+    });
+    return [...appActions, ...actions];
+  };
+
+  const getTableOptions = () => ({
+    paginationTypestepped: "stepped",
+    showFirstLastPageButtons: false,
+    paging: false,
+    padding: "dense",
+    emptyRowsWhenPaging: false,
+    debounceInterval: 300,
+    detailPanelColumnAlignment: "right",
+    toolbar: false,
+    filtering: false,
+    sorting: true,
+    thirdSortClick: false,
+    search: false,
+    showTitle: false,
+    actionsColumnIndex: -1,
+    headerStyle: {
+      backgroundColor: theme.palette.primary.lightest,
+      padding: theme.spacing(1, 2, 1),
+    },
+    rowStyle: (rowData) => ({
+      backgroundColor:
+        needExternalAPILookup() && !inPDMP(rowData)
+          ? theme.palette.primary.disabled
+          : "#FFF",
+    }),
+    actionsCellStyle: {
+      paddingLeft: theme.spacing(1),
+      paddingRight: theme.spacing(1),
+      justifyContent: "center",
+    },
+  });
+
+  const getTableEditableOptions = () => ({
+    isDeleteHidden: () => !appSettings["ENABLE_PATIENT_DELETE"],
+    onRowDelete: (oldData) =>
+      fetchData("/fhir/Patient/" + oldData.id, {
+        method: "DELETE",
+      })
+        .then(() => {
+          setTimeout(() => {
+            const dataDelete = [...data];
+            const target = dataDelete.find((el) => el.id === oldData.id);
+            const index = dataDelete.indexOf(target);
+            dataDelete.splice(index, 1);
+            setData([...dataDelete]);
+            setErrorMessage("");
+          }, 500);
+        })
+        .catch(() => {
+          setErrorMessage("Unable to remove patient from the list.");
+        }),
+  });
+
+  const getTableRowEvent = (event, rowData) => {
+    event.stopPropagation();
+    if (!hasSoFClients()) return;
+    handleLaunchApp(rowData);
+  };
+
+  const getTableLocalizations = () => ({
+    header: {
+      actions: "",
+    },
+    pagination: {
+      labelRowsSelect: "rows",
+    },
+    body: {
+      deleteTooltip: "Remove from the list",
+      editRow: {
+        deleteText:
+          "Are you sure you want to remove this patient from the list? (You can add them back later by searching for them)",
+        saveTooltip: "OK",
+      },
+      emptyDataSourceMessage: (
+        <div
+          id="emptyDataContainer"
+          className={`${classes.flex} ${classes.warning}`}
+          dangerouslySetInnerHTML={{
+            __html: DOMPurify.sanitize(noDataText),
+          }}
+        ></div>
+      ),
+    },
+  });
+
+  const renderPatientSearchRow = () => (
+    <table className={classes.filterTable}>
+      <tbody>
+        <FilterRow
+          onFiltersDidChange={onFiltersDidChange}
+          launchFunc={handleSearch}
+          launchButtonLabel={actionLabel}
+        />
+      </tbody>
+    </table>
+  );
+
+  const renderLegend = () => {
+    if (containNoPMPRow)
+      return (
+        <div className={classes.legend}>
+          <span className={classes.legendIcon}></span> Not in PMP
+        </div>
+      );
+    return <div className={classes.spacer}></div>;
+  };
+
+  const renderRefreshButton = () => (
+    <div className={classes.refreshButtonContainer}>
+      <Tooltip title="Refresh the list">
+        <Button
+          variant="contained"
+          size="small"
+          startIcon={<RefreshIcon />}
+          onClick={() => {
+            location.reload();
+          }}
+        >
+          Refresh
+        </Button>
+      </Tooltip>
+    </div>
+  );
+
+  const renderTablePagination = () => (
+    <TablePagination
+      id="patientListPagination"
+      className={`${
+        pagination.totalCount === 0 ? "ghost" : classes.pagination
+      }`}
+      rowsPerPageOptions={[5, 10, 20, 50]}
+      onPageChange={handleChangePage}
+      page={pagination.pageNumber}
+      rowsPerPage={pagination.pageSize}
+      onRowsPerPageChange={handleChangeRowsPerPage}
+      count={pagination.totalCount}
+      size="small"
+      component="div"
+      nextIconButtonProps={{
+        disabled: pagination.disableNextButton,
+        color: "primary",
+      }}
+      backIconButtonProps={{
+        disabled: pagination.disablePrevButton,
+        color: "primary",
+      }}
+      SelectProps={{ variant: "outlined" }}
+    />
+  );
+
+  const renderLaunchDialog = () => (
+    <DialogBox
+      open={openLaunchInfoModal}
+      onClose={() => onLaunchDialogClose()}
+      title={
+        currentRow ? `${currentRow.last_name}, ${currentRow.first_name}` : ""
+      }
+      body={
+        <div className={classes.flex}>
+          {hasSoFClients() &&
+            appClients.map((appClient, index) => {
+              return (
+                <Button
+                  key={`launchButton_${index}`}
+                  color="primary"
+                  variant="contained"
+                  className={classes.flexButton}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleLaunchApp(currentRow, appClient);
+                  }}
+                >{`Launch ${appClient.id}`}</Button>
+              );
+            })}
+        </div>
+      }
+    ></DialogBox>
+  );
+
+  const renderDropdownMenu = () => {
+    if (shouldHideMoreMenu()) return null;
+    return (
+      <Dropdown
+        anchorEl={anchorEl}
+        handleMenuClose={handleMenuClose}
+        handleMenuSelect={handleMenuSelect}
+        menuItems={menuItems.filter((item) => shouldShowMenuItem(item.id))}
+      ></Dropdown>
+    );
+  };
+
+  const renderDetailedPanel = (data) => {
+    if (shouldHideMoreMenu()) return null;
+    return (
+      <DetailPanel>
+        {getSelectedItemComponent(selectedMenuItem, data.rowData)}
+        <Button
+          onClick={() => {
+            handleToggleDetailPanel(data.rowData);
+            handleMenuClose();
+          }}
+          className={classes.detailPanelCloseButton}
+          size="small"
+        >
+          Close X
+        </Button>
+      </DetailPanel>
+    );
+  };
+
   React.useEffect(() => {
     //when page unloads, remove loading indicator
     window.addEventListener("beforeunload", handlePageUnload);
@@ -832,6 +1078,11 @@ export default function PatientListTable() {
           return false;
         }
         if (appSettings) {
+          addMamotoTracking(
+            appSettings["MATOMO_SITE_ID"],
+            // use preferred_username from OIDC ID token as user id
+            getPreferredUserNameFromToken(token)
+          );
           const clients = getClientsByRequiredRoles(
             appSettings["SOF_CLIENTS"],
             getRolesFromToken(token)
@@ -858,20 +1109,13 @@ export default function PatientListTable() {
       <h2>Patient Search</h2>
       <Error message={errorMessage} style={errorStyle} />
       {/* patient search row */}
-      <table className={classes.filterTable}>
-        <tbody>
-          <FilterRow
-            onFiltersDidChange={onFiltersDidChange}
-            launchFunc={handleSearch}
-            launchButtonLabel={actionLabel}
-          />
-        </tbody>
-      </table>
+      {renderPatientSearchRow()}
       {/* patient list table */}
+
       <div className={`${classes.table} main`} aria-label="patient list table">
         <MaterialTable
           className={classes.table}
-          columns={columns}
+          columns={getColumns()}
           data={
             //any change in query will invoke this function
             (query) => getPatientList(query)
@@ -881,21 +1125,7 @@ export default function PatientListTable() {
           detailPanel={[
             {
               render: (data) => {
-                return (
-                  <DetailPanel>
-                    {getSelectedItemComponent(selectedMenuItem, data.rowData)}
-                    <Button
-                      onClick={() => {
-                        handleToggleDetailPanel(data.rowData);
-                        handleMenuClose();
-                      }}
-                      className={classes.detailPanelCloseButton}
-                      size="small"
-                    >
-                      Close X
-                    </Button>
-                  </DetailPanel>
-                );
+                return renderDetailedPanel(data);
               },
               isFreeAction: false,
             },
@@ -908,205 +1138,26 @@ export default function PatientListTable() {
               </OverlayElement>
             ),
           }}
-          actions={[
-            ...(appClients && appClients.length
-              ? appClients.map((client, index) => {
-                  return {
-                    icon: () => (
-                      <span
-                        className={classes.button}
-                        key={`actionButton_${index}`}
-                      >
-                        {client.label}
-                      </span>
-                    ),
-                    onClick: (event, rowData) => {
-                      event.stopPropagation();
-                      handleLaunchApp(rowData, client);
-                    },
-                    tooltip: `Launch ${client.id} application for the user`,
-                  };
-                })
-              : []),
-            {
-              icon: () =>
-                !shouldHideMoreMenu() && (
-                  <MoreHorizIcon
-                    color="primary"
-                    className={classes.moreIcon}
-                  ></MoreHorizIcon>
-                ),
-              onClick: (event, rowData) => handleMenuClick(event, rowData),
-              tooltip: shouldHideMoreMenu() ? "" : "More",
-            },
-          ]}
-          options={{
-            paginationTypestepped: "stepped",
-            showFirstLastPageButtons: false,
-            paging: false,
-            padding: "dense",
-            emptyRowsWhenPaging: false,
-            debounceInterval: 300,
-            detailPanelColumnAlignment: "right",
-            toolbar: false,
-            filtering: false,
-            sorting: true,
-            thirdSortClick: false,
-            search: false,
-            showTitle: false,
-            headerStyle: {
-              backgroundColor: theme.palette.primary.lightest,
-              padding: theme.spacing(1, 2, 1),
-            },
-            rowStyle: (rowData) => ({
-              backgroundColor:
-                needExternalAPILookup() && !inPDMP(rowData)
-                  ? theme.palette.primary.disabled
-                  : "#FFF",
-            }),
-            actionsCellStyle: {
-              paddingLeft: theme.spacing(1),
-              paddingRight: theme.spacing(1),
-              justifyContent: "center",
-            },
-            actionsColumnIndex: -1,
-          }}
-          icons={tableIcons}
+          actions={getTableActions()}
+          options={getTableOptions()}
+          icons={constants.tableIcons}
           onRowClick={(event, rowData) => {
-            event.stopPropagation();
-            if (!hasSoFClients()) return;
-            handleLaunchApp(rowData);
+            getTableRowEvent(event, rowData);
           }}
-          editable={{
-            onRowDelete: (oldData) =>
-              fetchData("/fhir/Patient/" + oldData.id, {
-                method: "DELETE",
-              })
-                .then(() => {
-                  setTimeout(() => {
-                    const dataDelete = [...data];
-                    const target = dataDelete.find(
-                      (el) => el.id === oldData.id
-                    );
-                    const index = dataDelete.indexOf(target);
-                    dataDelete.splice(index, 1);
-                    setData([...dataDelete]);
-                    setErrorMessage("");
-                  }, 500);
-                })
-                .catch(() => {
-                  setErrorMessage("Unable to remove patient from the list.");
-                }),
-          }}
-          localization={{
-            header: {
-              actions: "",
-            },
-            pagination: {
-              labelRowsSelect: "rows",
-            },
-            body: {
-              deleteTooltip: "Remove from the list",
-              editRow: {
-                deleteText:
-                  "Are you sure you want to remove this patient from the list? (You can add them back later by searching for them)",
-                saveTooltip: "OK",
-              },
-              emptyDataSourceMessage: (
-                <div
-                  id="emptyDataContainer"
-                  className={`${classes.flex} ${classes.warning}`}
-                  dangerouslySetInnerHTML={{
-                    __html: DOMPurify.sanitize(noDataText),
-                  }}
-                ></div>
-              ),
-            },
-          }}
+          editable={getTableEditableOptions()}
+          localization={getTableLocalizations()}
         />
       </div>
+      <LoadingModal open={openLoadingModal}></LoadingModal>
       <div className={classes.flexContainer}>
-        {containNoPMPRow && (
-          <div className={classes.legend}>
-            <span className={classes.legendIcon}></span> Not in PMP
-          </div>
-        )}
-        {!containNoPMPRow && <div className={classes.spacer}></div>}
+        {renderLegend()}
         <div>
-          <div className={classes.refreshButtonContainer}>
-            <Tooltip title="Refresh the list">
-              <Button
-                variant="contained"
-                size="small"
-                startIcon={<RefreshIcon />}
-                onClick={() => {
-                  location.reload();
-                }}
-              >
-                Refresh
-              </Button>
-            </Tooltip>
-          </div>
-          {data.length > 0 && (
-            <TablePagination
-              id="patientListPagination"
-              className={`${
-                pagination.totalCount === 0 ? "ghost" : classes.pagination
-              }`}
-              rowsPerPageOptions={[5, 10, 20, 50]}
-              onPageChange={handleChangePage}
-              page={pagination.pageNumber}
-              rowsPerPage={pagination.pageSize}
-              onRowsPerPageChange={handleChangeRowsPerPage}
-              count={pagination.totalCount}
-              size="small"
-              component="div"
-              nextIconButtonProps={{
-                disabled: pagination.disableNextButton,
-                color: "primary",
-              }}
-              backIconButtonProps={{
-                disabled: pagination.disablePrevButton,
-                color: "primary",
-              }}
-              SelectProps={{ variant: "outlined" }}
-            />
-          )}
+          {renderRefreshButton()}
+          {data.length > 0 && renderTablePagination()}
         </div>
       </div>
-      <LoadingModal open={openLoadingModal}></LoadingModal>
-      <DialogBox
-        open={openLaunchInfoModal}
-        onClose={() => onLaunchDialogClose()}
-        title={
-          currentRow ? `${currentRow.last_name}, ${currentRow.first_name}` : ""
-        }
-        body={
-          <div className={classes.flex}>
-            {hasSoFClients() &&
-              appClients.map((appClient, index) => {
-                return (
-                  <Button
-                    key={`launchButton_${index}`}
-                    color="primary"
-                    variant="contained"
-                    className={classes.flexButton}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleLaunchApp(currentRow, appClient);
-                    }}
-                  >{`Launch ${appClient.id}`}</Button>
-                );
-              })}
-          </div>
-        }
-      ></DialogBox>
-      <Dropdown
-        anchorEl={anchorEl}
-        handleMenuClose={handleMenuClose}
-        handleMenuSelect={handleMenuSelect}
-        menuItems={menuItems.filter((item) => shouldShowMenuItem(item.id))}
-      ></Dropdown>
+      {renderLaunchDialog()}
+      {renderDropdownMenu()}
     </Container>
   );
 }

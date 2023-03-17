@@ -21,6 +21,9 @@ APPLICATION_TITLE = os.getenv(
 ENABLE_INACTIVITY_TIMEOUT = (
     os.getenv("ENABLE_INACTIVITY_TIMEOUT", "true").lower() == "true"
 )
+
+ENABLE_PATIENT_DELETE = os.getenv("ENABLE_PATIENT_DELETE", "false").lower() == "true"
+
 FORBIDDEN_TEXT = os.getenv(
     "FORBIDDEN_TEXT",
     "Your account is not authorized for access, please contact an administrator",
@@ -59,6 +62,7 @@ LANDING_INTRO = os.getenv("LANDING_INTRO", "")
 LANDING_BUTTON_TEXT = os.getenv("LANDING_BUTTON_TEXT", "")
 LANDING_BODY = os.getenv("LANDING_BODY", "")
 MORE_MENU = os.getenv("MORE_MENU", "UDS,CS_Agreement").split(",")
+MATOMO_SITE_ID = os.getenv("MATOMO_SITE_ID")
 SERVER_NAME = os.getenv("SERVER_NAME")
 SECRET_KEY = os.getenv("SECRET_KEY")
 SYSTEM_TYPE = os.getenv("SYSTEM_TYPE", "development")

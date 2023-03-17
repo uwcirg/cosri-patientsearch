@@ -39,5 +39,50 @@ export const tableIcons = {
     </Delete>
   )),
 };
+export const defaultPagination = {
+  pageSize: 20,
+  pageNumber: 0,
+  prevPageNumber: 0,
+  disablePrevButton: true,
+  disableNextButton: true,
+  totalCount: 0,
+  nextPageURL: "",
+  prevPageURL: "",
+};
+export const defaultFilters = {
+  first_name: "",
+  last_name: "",
+  birth_date: "",
+};
+export const fieldNameMaps = {
+  first_name: "given",
+  last_name: "family",
+  birth_date: "birthdate",
+  last_accessed: "_lastUpdated",
+  mrn: "identifier",
+};
+export const defaultColumns = [
+  {
+    label: "First Name",
+    expr: "$.name[0].given[0]",
+  },
+  {
+    label: "Last Name",
+    expr: "$.name[0].family",
+  },
+  {
+    label: "Birth Date",
+    expr: "$.birthDate",
+  },
+  {
+    label: "Last Accessed",
+    defaultSort: "desc",
+    expr: "$.meta.lastUpdated",
+    dataType: "date",
+  },
+];
+export const noCacheParam = { cache: "no-cache" };
+export const LAUNCH_BUTTON_LABEL = "VIEW";
+export const CREATE_BUTTON_LABEL = "CREATE";
+export const MORE_MENU_KEY = "MORE_MENU";
 export const MAX_MAIN_TABLE_WIDTH = "1280px";
-
