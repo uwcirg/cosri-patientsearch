@@ -1,4 +1,4 @@
-import React from "react";
+import React, { lazy, Suspense } from "react";
 import DOMPurify from "dompurify";
 import { makeStyles, useTheme } from "@material-ui/core/styles";
 import jsonpath from "jsonpath";
@@ -17,8 +17,6 @@ import Error from "./Error";
 import FilterRow from "./FilterRow";
 import LoadingModal from "./LoadingModal";
 import OverlayElement from "./OverlayElement";
-import UrineScreen from "./UrineScreen";
-import Agreement from "./Agreement";
 import { useSettingContext } from "../context/SettingContextProvider";
 import * as constants from "../constants/consts";
 import {
@@ -190,16 +188,26 @@ export default function PatientListTable() {
   );
   const [noDataText, setNoDataText] = React.useState("");
   const tableRef = React.useRef();
+  const UrineScreenComponent = lazy(() => import("./UrineScreen"));
+  const AgreementComponent = lazy(() => import("./Agreement"));
   const menuItems = [
     {
       text: "Add Urine Tox Screen",
       id: "UDS",
-      component: (rowData) => <UrineScreen rowData={rowData}></UrineScreen>,
+      component: (rowData) => (
+        <Suspense fallback={<div>Loading...</div>}>
+          <UrineScreenComponent rowData={rowData}></UrineScreenComponent>
+        </Suspense>
+      ),
     },
     {
       text: "Add Controlled Substance Agreement",
       id: "CS_agreement",
-      component: (rowData) => <Agreement rowData={rowData}></Agreement>,
+      component: (rowData) => (
+        <Suspense fallback={<div>Loading...</div>}>
+          <AgreementComponent rowData={rowData}></AgreementComponent>
+        </Suspense>
+      ),
     },
   ];
   const errorStyle = { display: errorMessage ? "block" : "none" };
