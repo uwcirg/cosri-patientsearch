@@ -8,6 +8,7 @@ import {
   getPreferredUserNameFromToken,
   getRolesFromToken,
   getAccessToken,
+  isString,
   validateToken,
 } from "../helpers/utility";
 import { noCacheParam } from "../constants/consts";

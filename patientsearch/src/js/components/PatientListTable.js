@@ -1110,7 +1110,7 @@ export default function PatientListTable() {
     return () => {
       window.removeEventListener("beforeunload", handlePageUnload);
     };
-  }, [appSettings]); //retrieval of settings should occur prior to patient list being rendered/initialized
+  }, [user, appSettings]); //retrieval of settings should occur prior to patient list being rendered/initialized
 
   React.useEffect(
     () => tableRef.current.onQueryChange(),
