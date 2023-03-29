@@ -16,7 +16,9 @@ import Dropdown from "./Dropdown";
 import Error from "./Error";
 import FilterRow from "./FilterRow";
 import LoadingModal from "./LoadingModal";
+import MyPatientsCheckbox from "./MyPatientsCheckbox";
 import OverlayElement from "./OverlayElement";
+import { useUserContext } from "../context/UserContextProvider";
 import { useSettingContext } from "../context/SettingContextProvider";
 import * as constants from "../constants/consts";
 import {
@@ -24,13 +26,10 @@ import {
   fetchData,
   getLocalDateTimeString,
   getUrlParameter,
-  getRolesFromToken,
   getClientsByRequiredRoles,
-  getPreferredUserNameFromToken,
   isEmptyArray,
   isString,
   putPatientData,
-  validateToken,
 } from "../helpers/utility";
 const useStyles = makeStyles((theme) => ({
   container: {
@@ -85,20 +84,11 @@ const useStyles = makeStyles((theme) => ({
     textTransform: "uppercase",
     border: 0,
   },
-  bold: {
-    fontWeight: 500,
-  },
   warning: {
     color: theme.palette.primary.warning,
     marginTop: theme.spacing(3),
     marginBottom: theme.spacing(3),
     lineHeight: 1.7,
-  },
-  success: {
-    fill: theme.palette.primary.success,
-  },
-  muted: {
-    fill: theme.palette.muted ? theme.palette.muted.main : "#777",
   },
   legend: {
     marginTop: theme.spacing(2.5),
@@ -141,6 +131,7 @@ export default function PatientListTable() {
   const theme = useTheme();
   const classes = useStyles();
   const appSettings = useSettingContext().appSettings;
+  const { user } = useUserContext();
   const [appClients, setAppClients] = React.useState(null);
   const [data, setData] = React.useState([]);
   const paginationReducer = (state, action) => {
@@ -187,6 +178,7 @@ export default function PatientListTable() {
     constants.LAUNCH_BUTTON_LABEL
   );
   const [noDataText, setNoDataText] = React.useState("");
+  const [filterPatientsByProvider, setFilterPatientsByProvider] = React.useState(false);
   const tableRef = React.useRef();
   const UrineScreenComponent = lazy(() => import("./UrineScreen"));
   const AgreementComponent = lazy(() => import("./Agreement"));
@@ -239,8 +231,10 @@ export default function PatientListTable() {
       const fieldName = column.label.toLowerCase().replace(/\s/g, "_");
       column.title = column.label;
       column.field = fieldName;
+      /* eslint-disable react/no-unknown-property */
       column.emptyValue = () => <div datacolumn={`${column.label}`}>--</div>;
       column.render = (rowData) => (
+        /* eslint-disable react/no-unknown-property */
         <div datacolumn={`${column.label}`}>{rowData[fieldName]}</div>
       );
       return column;
@@ -288,11 +282,12 @@ export default function PatientListTable() {
     launchParams = launchParams || {};
     const baseURL = launchParams["launch_url"];
     const iss = getAppSettingByKey("SOF_HOST_FHIR_URL");
+    const needPatientBanner = getAppSettingByKey("NEED_PATIENT_BANNER");
     if (!baseURL || !iss) {
       console.log("Missing ISS launch base URL");
       return "";
     }
-    return `${baseURL}?patient=${patientId}&launch=${btoa(
+    return `${baseURL}?patient=${patientId}&need_patient_banner=${needPatientBanner}&launch=${btoa(
       JSON.stringify({ a: 1, b: patientId })
     )}&iss=${encodeURIComponent(iss)}`;
   };
@@ -640,18 +635,20 @@ export default function PatientListTable() {
       totalCount: 0,
     };
     let apiURL = `/fhir/Patient?_include=Patient:link&_total=accurate&_count=${pagination.pageSize}`;
-
-    if (
-      pagination.pageNumber > pagination.prevPageNumber &&
-      pagination.nextPageURL
-    ) {
-      apiURL = pagination.nextPageURL;
-    } else if (
-      pagination.pageNumber < pagination.prevPageNumber &&
-      pagination.prevPageURL
-    ) {
-      apiURL = pagination.prevPageURL;
+    if (user.practitionerId && filterPatientsByProvider) {
+      apiURL += `&general-practitioner=${user.practitionerId}`;
     }
+      if (
+        pagination.pageNumber > pagination.prevPageNumber &&
+        pagination.nextPageURL
+      ) {
+        apiURL = pagination.nextPageURL;
+      } else if (
+        pagination.pageNumber < pagination.prevPageNumber &&
+        pagination.prevPageURL
+      ) {
+        apiURL = pagination.prevPageURL;
+      }
     if (searchString && apiURL.indexOf("contains") === -1)
       apiURL += `&${searchString}`;
     if (sortField && apiURL.indexOf("sort") === -1)
@@ -1045,7 +1042,7 @@ export default function PatientListTable() {
   );
 
   const renderDropdownMenu = () => {
-    if (shouldHideMoreMenu()) return null;
+    if (shouldHideMoreMenu()) return false;
     return (
       <Dropdown
         anchorEl={anchorEl}
@@ -1057,7 +1054,7 @@ export default function PatientListTable() {
   };
 
   const renderDetailedPanel = (data) => {
-    if (shouldHideMoreMenu()) return null;
+    if (shouldHideMoreMenu()) return false;
     return (
       <DetailPanel>
         {getSelectedItemComponent(selectedMenuItem, data.rowData)}
@@ -1075,49 +1072,59 @@ export default function PatientListTable() {
     );
   };
 
+  // todo determine whether to precheck
+
+  const renderMyPatientsCheckbox = () => {
+    if (!getAppSettingByKey("ENABLE_PROVIDER_FILTER")) return false;
+    return (
+      <MyPatientsCheckbox
+        shouldCheck={filterPatientsByProvider}
+        changeEvent={(shouldCheck) => {
+          setFilterPatientsByProvider(shouldCheck);
+        }}
+      ></MyPatientsCheckbox>
+    );
+  };
+
   React.useEffect(() => {
     //when page unloads, remove loading indicator
     window.addEventListener("beforeunload", handlePageUnload);
-    validateToken().then(
-      (token) => {
-        if (!token) {
-          console.log("Redirecting...");
-          window.location = "/clear_session";
-          return false;
-        }
-        if (appSettings) {
-          addMamotoTracking(
-            appSettings["MATOMO_SITE_ID"],
-            // use preferred_username from OIDC ID token as user id
-            getPreferredUserNameFromToken(token)
-          );
-          const clients = getClientsByRequiredRoles(
-            appSettings["SOF_CLIENTS"],
-            getRolesFromToken(token)
-          );
-          if (!clients || !clients.length) {
-            setErrorMessage("No SoF client match the user role(s) found");
-          } else {
-            setAppClients(clients);
-          }
-        }
-      },
-      (e) => {
-        console.log("token validation error ", e);
-        handleErrorCallback(e);
+    if (!user) {
+      handleErrorCallback({ status: 401 });
+      return;
+    }
+    const { username, roles } = user;
+    if (appSettings) {
+      addMamotoTracking(appSettings["MATOMO_SITE_ID"], username);
+      const clients = getClientsByRequiredRoles(
+        appSettings["SOF_CLIENTS"],
+        roles
+      );
+      if (!clients || !clients.length) {
+        setErrorMessage("No SoF client match the user role(s) found");
+      } else {
+        setAppClients(clients);
       }
-    );
+    }
     return () => {
       window.removeEventListener("beforeunload", handlePageUnload);
     };
   }, [appSettings]); //retrieval of settings should occur prior to patient list being rendered/initialized
+  
+  React.useEffect(
+    () => tableRef.current.onQueryChange(),
+    [filterPatientsByProvider]
+  );
 
   return (
     <Container className={classes.container} id="patientList">
-      <h2>Patient Search</h2>
+      {/* <h2>Patient Search</h2> */}
       <Error message={errorMessage} style={errorStyle} />
-      {/* patient search row */}
-      {renderPatientSearchRow()}
+      <div className="flex">
+        {/* patient search row */}
+        {renderPatientSearchRow()}
+        {renderMyPatientsCheckbox()}
+      </div>
       {/* patient list table */}
 
       <div className={`${classes.table} main`} aria-label="patient list table">
