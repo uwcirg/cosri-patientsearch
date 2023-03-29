@@ -178,7 +178,8 @@ export default function PatientListTable() {
     constants.LAUNCH_BUTTON_LABEL
   );
   const [noDataText, setNoDataText] = React.useState("");
-  const [filterPatientsByProvider, setFilterPatientsByProvider] = React.useState(false);
+  const [filterPatientsByProvider, setFilterPatientsByProvider] =
+    React.useState(false);
   const tableRef = React.useRef();
   const UrineScreenComponent = lazy(() => import("./UrineScreen"));
   const AgreementComponent = lazy(() => import("./Agreement"));
@@ -638,17 +639,17 @@ export default function PatientListTable() {
     if (user.practitionerId && filterPatientsByProvider) {
       apiURL += `&general-practitioner=${user.practitionerId}`;
     }
-      if (
-        pagination.pageNumber > pagination.prevPageNumber &&
-        pagination.nextPageURL
-      ) {
-        apiURL = pagination.nextPageURL;
-      } else if (
-        pagination.pageNumber < pagination.prevPageNumber &&
-        pagination.prevPageURL
-      ) {
-        apiURL = pagination.prevPageURL;
-      }
+    if (
+      pagination.pageNumber > pagination.prevPageNumber &&
+      pagination.nextPageURL
+    ) {
+      apiURL = pagination.nextPageURL;
+    } else if (
+      pagination.pageNumber < pagination.prevPageNumber &&
+      pagination.prevPageURL
+    ) {
+      apiURL = pagination.prevPageURL;
+    }
     if (searchString && apiURL.indexOf("contains") === -1)
       apiURL += `&${searchString}`;
     if (sortField && apiURL.indexOf("sort") === -1)
@@ -1110,7 +1111,7 @@ export default function PatientListTable() {
       window.removeEventListener("beforeunload", handlePageUnload);
     };
   }, [appSettings]); //retrieval of settings should occur prior to patient list being rendered/initialized
-  
+
   React.useEffect(
     () => tableRef.current.onQueryChange(),
     [filterPatientsByProvider]
