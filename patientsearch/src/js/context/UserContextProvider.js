@@ -40,23 +40,25 @@ export default function UserContextProvider({ children }) {
         const userName = getPreferredUserNameFromToken(data);
         const accessToken = getAccessToken(data);
         let practitionerId = null;
-        console.log("roles ", roles);
-        console.log("emails ", email);
-        console.log("name ", userName);
-        //todo add practitioner info via lookup
+        //console.log("roles ", roles);
+        //console.log("emails ", email);
+        //console.log("name ", userName);
         if (email) {
-          const lookupResults = await fetchData("/fhir/Practitioner?email="+email, noCacheParam);
+          const lookupResults = await fetchData(
+            "/fhir/Practitioner?email=" + email,
+            noCacheParam
+          );
           if (lookupResults.entry && lookupResults.entry.length) {
             practitionerId = lookupResults.entry[0].resource.id;
           }
-          console.log("lookup results ", lookupResults)
+          //console.log("lookup results ", lookupResults);
         }
         setUser({
           roles: roles,
           email: email,
           username: userName,
           name: accessToken.name,
-          practitionerId: practitionerId
+          practitionerId: practitionerId,
         });
       },
       (e) => {
