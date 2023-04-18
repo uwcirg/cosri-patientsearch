@@ -950,6 +950,12 @@ export default function PatientListTable() {
     },
   });
 
+  const renderSearchTitle = () => {
+    const title = appSettings["SEARCH_TITLE_TEXT"] ? appSettings["SEARCH_TITLE_TEXT"] : null;
+    if (!title) return false;
+    return <h2>{title}</h2>;
+  }
+
   const renderPatientSearchRow = () => (
     <table className={classes.filterTable}>
       <tbody>
@@ -1114,7 +1120,7 @@ export default function PatientListTable() {
 
   return (
     <Container className={classes.container} id="patientList">
-      <h2>Patient Search</h2>
+      {renderSearchTitle()}
       <Error message={errorMessage} style={errorStyle} />
       {/* patient search row */}
       {renderPatientSearchRow()}
