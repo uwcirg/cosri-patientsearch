@@ -64,7 +64,7 @@ export default function HistoryTable(props) {
     emptyRowsWhenPaging: false,
     toolbar: false,
     filtering: false,
-    sorting: true,
+    maxColumnSort: 1,
     search: false,
     showTitle: false,
     pageSizeOptions: [5],
