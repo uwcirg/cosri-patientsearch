@@ -999,7 +999,7 @@ export default function PatientListTable() {
     const title = appSettings["SEARCH_TITLE_TEXT"] ? appSettings["SEARCH_TITLE_TEXT"] : null;
     if (!title) return false;
     return <h2>{title}</h2>;
-  }
+  };
 
   const renderPatientSearchRow = () => (
     <table className={classes.filterTable}>
