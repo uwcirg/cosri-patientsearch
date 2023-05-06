@@ -45,9 +45,8 @@ def audit_HAPI_change(
 
     if rt == "Patient":
         extra["patient"] = {"subject.id": resource_id}
-    elif resource:
+    if resource:
         extra["resource"] = resource
-
     if params:
         extra["params"] = params
     audit_entry(message=msg, extra=extra)
