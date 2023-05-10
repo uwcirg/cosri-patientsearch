@@ -424,7 +424,8 @@ export default function PatientListTable() {
           };
           cols.forEach((col) => {
             const dataType = String(col.dataType).toLowerCase();
-            let value = jsonpath.value(source, col.expr) || null;
+            let nodes = jsonpath.nodes(source, col.expr);
+            let value = nodes && nodes.length ? nodes[nodes.length-1].value : null;
             if (dataType === "date") {
               value = getLocalDateTimeString(value);
             }
