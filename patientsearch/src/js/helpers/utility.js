@@ -437,9 +437,11 @@ export function addMamotoTracking(siteId, userId) {
  * @returns text display of time ago as string e.g. < 50 seconds, < 1 hour, 1 day 2 hours, 3 hours, 3 days
  */
 export function getTimeAgoDisplay(objDate) {
-  if (!objDate || !isValid(objDate)) return "";
+  if (!objDate || !isValid(objDate)) return null;
   const today = new Date();
   const total = today - objDate;
+  // future date
+  if (total < 0) return null;
   const seconds = Math.round((today - objDate) / 1000);
   const minutes = Math.round(seconds / 60);
   const hours = Math.round(minutes / 60);
