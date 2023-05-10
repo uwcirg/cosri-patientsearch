@@ -250,10 +250,6 @@ def new_resource_hook(resource):
         # not a new resource, bail
         return resource
 
-    if not resource.get("gender"):
-        # just to prove mods here work  TODO remove
-        resource["gender"] = "unknown"
-
     if resource["resourceType"] == "Patient":
         np_extensions = current_app.config.get("NEW_PATIENT_EXTENSIONS")
         if np_extensions:
