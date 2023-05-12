@@ -4,6 +4,7 @@ import Header from "../components/Header";
 import SystemBanner from "../components/SystemBanner";
 import ProjectThemeProvider from "../context/ProjectThemeProvider";
 import SettingContextProvider from "../context/SettingContextProvider";
+import UserContextProvider from "../context/UserContextProvider";
 import "../../styles/app.scss";
 
 export default function Layout({children}) {
@@ -12,8 +13,10 @@ export default function Layout({children}) {
       <React.Fragment>
         <ProjectThemeProvider>
           <SystemBanner />
-          <Header />
-          {children}
+          <UserContextProvider>
+            <Header />
+            {children}
+          </UserContextProvider>
         </ProjectThemeProvider>
       </React.Fragment>
     </SettingContextProvider>

@@ -11,11 +11,11 @@ import Typography from "@material-ui/core/Typography";
 import SiteLogo from "./SiteLogo";
 import {
   imageOK,
-  sendRequest,
   setDocumentTitle,
   setFavicon,
 } from "../helpers/utility";
 import { useSettingContext } from "../context/SettingContextProvider";
+import { useUserContext } from "../context/UserContextProvider";
 
 const useStyles = makeStyles((theme) => ({
   toolbar: {
@@ -101,15 +101,13 @@ const useStyles = makeStyles((theme) => ({
 
 export default function Header() {
   const classes = useStyles();
-  const [userInfo, setUserInfo] = React.useState();
-  const [authorized, setAuthorized] = React.useState(false);
+  const appSettings = useSettingContext().appSettings;
+  const { user: userInfo, error: userError } = useUserContext();
   const [appTitle, setAppTitle] = React.useState("");
   const [projectName, setProjectName] = React.useState("");
   const hasUserInfo = () => {
     return userInfo && (userInfo.name || userInfo.email);
   };
-  const appSettings = useSettingContext().appSettings;
-
   const getLogoURL = () => {
     if (!projectName) return "";
     return `/static/app/img/${projectName}_logo.png`;
@@ -180,30 +178,6 @@ export default function Header() {
     </div>
   );
 
-  React.useEffect(() => {
-    /*
-     * get logged in user information for displaying purpose
-     */
-    sendRequest("./user_info").then(
-      (response) => {
-        let info = null;
-        try {
-          info = JSON.parse(response);
-        } catch (e) {
-          console.log("error parsing data ", e);
-        }
-        if (info) {
-          setUserInfo(info);
-        }
-        setAuthorized(true);
-      },
-      (error) => {
-        if (error.status === 401) setAuthorized(false);
-        console.log("Failed to retrieve data", error.statusText);
-      }
-    );
-  }, []);
-
   React.useLayoutEffect(() => {
     if (appSettings) {
       if (appSettings["APPLICATION_TITLE"])
@@ -229,7 +203,7 @@ export default function Header() {
           onError={handleImageLoadError}
         />
         <SiteLogo />
-        {authorized && (
+        {!userError && (
           <Box className={classes.welcomeContainer}>
             {renderUserInfoComponent()}
             {renderLogoutComponent()}

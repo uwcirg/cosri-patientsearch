@@ -24,6 +24,8 @@ ENABLE_INACTIVITY_TIMEOUT = (
 
 ENABLE_PATIENT_DELETE = os.getenv("ENABLE_PATIENT_DELETE", "false").lower() == "true"
 
+ENABLE_PROVIDER_FILTER = os.getenv("ENABLE_PROVIDER_FILTER", "false").lower() == "true"
+
 FORBIDDEN_TEXT = os.getenv(
     "FORBIDDEN_TEXT",
     "Your account is not authorized for access, please contact an administrator",

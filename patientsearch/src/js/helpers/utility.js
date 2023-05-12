@@ -1,5 +1,6 @@
 import differenceInMonths from "date-fns/differenceInMonths";
 import isValid from "date-fns/isValid";
+import { ACCESS_TOKEN_KEY, REALM_ACCESS_TOKEN_KEY } from "../constants/consts";
 
 export function sendRequest(url, params) {
   params = params || {};
@@ -308,13 +309,11 @@ export async function validateToken() {
   return tokenData;
 }
 
-export function getRolesFromToken(token) {
-  token = token || {};
+export function getRolesFromToken(tokenObj) {
+  const token = tokenObj || {};
   let roles = [];
-  const ACCESS_TOKEN_KEY = "access_token";
-  const REALM_ACCESS_KEY = "realm_access";
-  if (token[ACCESS_TOKEN_KEY] && token[ACCESS_TOKEN_KEY][REALM_ACCESS_KEY]) {
-    const realmAccessObj = token[ACCESS_TOKEN_KEY][REALM_ACCESS_KEY];
+  if (token[ACCESS_TOKEN_KEY] && token[ACCESS_TOKEN_KEY][REALM_ACCESS_TOKEN_KEY]) {
+    const realmAccessObj = token[ACCESS_TOKEN_KEY][REALM_ACCESS_TOKEN_KEY];
     if (realmAccessObj["roles"]) {
       roles = [...roles, ...realmAccessObj["roles"]];
     }
@@ -322,10 +321,20 @@ export function getRolesFromToken(token) {
   return roles;
 }
 
-export function getPreferredUserNameFromToken(token) {
-  return token["access_token"] && token["access_token"]["preferred_username"]
-    ? token["access_token"]["preferred_username"]
-    : null;
+export function getAccessToken(tokenObj) {
+  const token = tokenObj || {};
+  if (!token || !token[ACCESS_TOKEN_KEY]) return null;
+  return token[ACCESS_TOKEN_KEY];
+}
+
+export function getEmailFromToken(tokenObj) {
+  const token = getAccessToken(tokenObj) || {};
+  return token.email;
+}
+
+export function getPreferredUserNameFromToken(tokenObj) {
+  const token = getAccessToken(tokenObj) || {};
+  return token["preferred_username"];
 }
 
 export function getClientsByRequiredRoles(sofClients, currentRoles) {

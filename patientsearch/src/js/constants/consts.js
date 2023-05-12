@@ -85,4 +85,6 @@ export const noCacheParam = { cache: "no-cache" };
 export const LAUNCH_BUTTON_LABEL = "VIEW";
 export const CREATE_BUTTON_LABEL = "CREATE";
 export const MORE_MENU_KEY = "MORE_MENU";
+export const ACCESS_TOKEN_KEY = "access_token";
+export const REALM_ACCESS_TOKEN_KEY = "realm_access";
 export const MAX_MAIN_TABLE_WIDTH = "1280px";
