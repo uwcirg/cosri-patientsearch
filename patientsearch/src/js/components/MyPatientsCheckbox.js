@@ -53,6 +53,6 @@ export default function MyPatientsCheckbox({ shouldDisable, shouldCheck, changeE
 
 MyPatientsCheckbox.propTypes = {
   shouldCheck: PropTypes.bool,
-  shoudDisable: PropTypes.bool,
+  shouldDisable: PropTypes.bool,
   changeEvent: PropTypes.func,
 };
