@@ -42,25 +42,25 @@ export default function UserContextProvider({ children }) {
         const { family_name, given_name } = accessToken;
         let practitionerId = null;
         const baseURL = "/fhir/Practitioner";
-        const searchParams =
-          family_name && given_name
-            ? "family=" + family_name + "&given=" + given_name
-            : email
-            ? "email=" + email
-            : null;
-        //console.log("roles ", roles);
-        //console.log("emails ", email);
-        //console.log("name ", userName);
-
-        if (searchParams) {
-          const lookupResults = await fetchData(
-            `${baseURL}?` + searchParams,
-            noCacheParam
+        let requestURLs = [];
+        if (email) requestURLs.push(baseURL + "?email=" + email);
+        if (family_name && given_name)
+          requestURLs.push(
+            baseURL + "?family=" + family_name + "&given=" + given_name
           );
-          if (lookupResults.entry && lookupResults.entry.length) {
-            practitionerId = lookupResults.entry[0].resource.id;
+        // try looking up matched practitioner resource by name or email
+        if (requestURLs.length > 0) {
+          const allResults = await Promise.all(
+            requestURLs.map((item) => fetchData(item, noCacheParam))
+          );
+          if (allResults && allResults.length) {
+            const filteredResults = allResults.filter(
+                (item) => item.entry && item.entry.length > 0
+            );
+            if (filteredResults.length) {
+                practitionerId = filteredResults[0].entry[0].resource.id;
+            }
           }
-          //console.log("lookup results ", lookupResults);
         }
         setUser({
           roles: roles,
