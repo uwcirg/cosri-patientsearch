@@ -25,7 +25,6 @@ import {
   addMamotoTracking,
   fetchData,
   getLocalDateTimeString,
-  getPreferredUserNameFromToken,
   getUrlParameter,
   getClientsByRequiredRoles,
   getTimeAgoDisplay,

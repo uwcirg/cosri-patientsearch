@@ -40,7 +40,7 @@ export default function MyPatientsCheckbox({ shouldDisable, shouldCheck, changeE
           name="ckMyPatients"
           color="primary"
           size="small"
-      //    disabled={shouldDisable}
+          disabled={shouldDisable}
           classes={{
             root: checkboxClasses.root,
           }}
