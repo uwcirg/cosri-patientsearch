@@ -20,7 +20,7 @@ const formControlStyles = makeStyles((theme) => {
   };
 });
 
-export default function MyPatientsCheckbox({ shouldCheck, changeEvent }) {
+export default function MyPatientsCheckbox({ shouldDisable, shouldCheck, changeEvent }) {
   const checkboxClasses = checkBoxStyles();
   const formControlClasses = formControlStyles();
   const [state, setState] = useState(shouldCheck);
@@ -39,6 +39,8 @@ export default function MyPatientsCheckbox({ shouldCheck, changeEvent }) {
           onChange={handleChange}
           name="ckMyPatients"
           color="primary"
+          size="small"
+      //    disabled={shouldDisable}
           classes={{
             root: checkboxClasses.root,
           }}
@@ -51,5 +53,6 @@ export default function MyPatientsCheckbox({ shouldCheck, changeEvent }) {
 
 MyPatientsCheckbox.propTypes = {
   shouldCheck: PropTypes.bool,
+  shoudDisable: PropTypes.bool,
   changeEvent: PropTypes.func,
 };

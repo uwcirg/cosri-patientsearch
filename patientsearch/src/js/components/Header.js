@@ -184,7 +184,7 @@ export default function Header() {
         setAppTitle(appSettings["APPLICATION_TITLE"]);
       if (appSettings["PROJECT_NAME"]) {
         setProjectName(appSettings["PROJECT_NAME"]);
-        setDocumentTitle(`${appSettings["PROJECT_NAME"]} Patient Search`);
+        setDocumentTitle(`${appSettings["PROJECT_NAME"]} ${appSettings["SEARCH_TITLE_TEXT"]}`);
         setFavicon(`/static/${appSettings["PROJECT_NAME"]}_favicon.ico`);
       }
     }

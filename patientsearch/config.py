@@ -31,6 +31,8 @@ FORBIDDEN_TEXT = os.getenv(
     "Your account is not authorized for access, please contact an administrator",
 )
 
+SEARCH_TITLE_TEXT = os.getenv("SEARCH_TITLE_TEXT", "Patient Search")
+
 DASHBOARD_COLUMNS = json.loads(
     os.getenv(
         "DASHBOARD_COLUMNS",

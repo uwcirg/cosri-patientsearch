@@ -12,8 +12,8 @@ export default function Layout({children}) {
     <SettingContextProvider>
       <React.Fragment>
         <ProjectThemeProvider>
+          <SystemBanner />
           <UserContextProvider>
-            <SystemBanner />
             <Header />
             {children}
           </UserContextProvider>

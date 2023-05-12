@@ -25,8 +25,10 @@ import {
   addMamotoTracking,
   fetchData,
   getLocalDateTimeString,
+  getPreferredUserNameFromToken,
   getUrlParameter,
   getClientsByRequiredRoles,
+  getTimeAgoDisplay,
   isEmptyArray,
   isString,
   putPatientData,
@@ -177,7 +179,7 @@ export default function PatientListTable() {
   const [actionLabel, setActionLabel] = React.useState(
     constants.LAUNCH_BUTTON_LABEL
   );
-  const [noDataText, setNoDataText] = React.useState("");
+  const [noDataText, setNoDataText] = React.useState("No record found.");
   const [filterPatientsByProvider, setFilterPatientsByProvider] =
     React.useState(false);
   const tableRef = React.useRef();
@@ -233,10 +235,10 @@ export default function PatientListTable() {
       column.title = column.label;
       column.field = fieldName;
       /* eslint-disable react/no-unknown-property */
-      column.emptyValue = () => <div datacolumn={`${column.label}`}>--</div>;
+      column.emptyValue = () => <div dataColumn={`${column.label}`}>--</div>;
       column.render = (rowData) => (
         /* eslint-disable react/no-unknown-property */
-        <div datacolumn={`${column.label}`}>{rowData[fieldName]}</div>
+        <div dataColumn={`${column.label}`}>{rowData[fieldName]}</div>
       );
       return column;
     });
@@ -416,9 +418,14 @@ export default function PatientListTable() {
             identifier: jsonpath.value(source, "$.identifier") || [],
           };
           cols.forEach((col) => {
-            let value = jsonpath.value(source, col.expr) || null;
-            if (col.dataType === "date") {
+            const dataType = String(col.dataType).toLowerCase();
+            let nodes = jsonpath.nodes(source, col.expr);
+            let value = nodes && nodes.length ? nodes[nodes.length-1].value : null;
+            if (dataType === "date") {
               value = getLocalDateTimeString(value);
+            }
+            if (dataType === "timeago" && value) {
+              value = getTimeAgoDisplay(new Date(value));
             }
             rowData[col.field] = value;
           });
@@ -602,11 +609,22 @@ export default function PatientListTable() {
   };
   const getPatientList = (query) => {
     console.log("patient list query object ", query);
-    let sortField =
-      query.orderBy && query.orderBy.field
-        ? constants.fieldNameMaps[query.orderBy.field]
-        : null;
-    let sortDirection;
+    let sortField = null,
+      sortDirection = null;
+    if (query.orderByCollection && query.orderByCollection.length) {
+      const orderField = query.orderByCollection[0];
+      const cols = getColumns();
+      const orderByField = cols[orderField.orderBy]; // orderBy is the index of the column
+      if (orderByField) {
+        const matchedColumn = cols.filter(
+          (col) => col.field === orderByField.field
+        );
+        if (matchedColumn.length && matchedColumn[0].sortBy) {
+          sortField = matchedColumn[0].sortBy;
+        } else sortField = constants.fieldNameMaps[orderByField.field]; // translate to fhir field name
+      }
+      sortDirection = orderField.orderDirection;
+    }
     if (!sortField) {
       const returnObj = getDefaultSortColumn();
       sortField = returnObj
@@ -614,10 +632,11 @@ export default function PatientListTable() {
         : "_lastUpdated";
       sortDirection = returnObj ? returnObj.defaultSort : "desc";
     }
+
     if (!sortDirection) {
-      sortDirection = query.orderDirection ? query.orderDirection : "desc";
+      sortDirection = "desc";
     }
-    let sortMinus = sortDirection !== "asc" ? "-" : "";
+    let sortMinus = sortField && sortDirection !== "asc" ? "-" : "";
     let filterBy = [];
 
     if (currentFilters && currentFilters.length) {
@@ -636,8 +655,8 @@ export default function PatientListTable() {
       totalCount: 0,
     };
     let apiURL = `/fhir/Patient?_include=Patient:link&_total=accurate&_count=${pagination.pageSize}`;
-    if (user.practitionerId && filterPatientsByProvider) {
-      apiURL += `&general-practitioner=${user.practitionerId}`;
+    if (filterPatientsByProvider) {
+      apiURL += `&general-practitioner=${user.practitionerId||"-1"}`;
     }
     if (
       pagination.pageNumber > pagination.prevPageNumber &&
@@ -726,12 +745,17 @@ export default function PatientListTable() {
           const additionalParams = getAppSettingByKey(
             "FHIR_REST_EXTRA_PARAMS_LIST"
           );
+          const eligibleRequests = additionalParams.filter(
+            (request) =>
+              typeof request === "string" ||
+              (typeof request === "object" && request.resourceType)
+          );
           const resolvedData = {
             data: responseData,
             page: currentPage,
             totalCount: response.total,
           };
-          if (isEmptyArray(additionalParams)) {
+          if (isEmptyArray(eligibleRequests)) {
             setData(responseData);
             resolve(resolvedData);
             return;
@@ -742,14 +766,23 @@ export default function PatientListTable() {
             .map((item) => item.resource.id)
             .join(",");
           // FHIR resources request(s)
-          const requests = additionalParams.map((queryString) =>
-            fetchData(
-              `/fhir/${queryString}` +
-                (queryString.indexOf("?") !== -1 ? "&" : "?") +
-                `patient=${ids}&_count=1000`,
-              constants.noCacheParam
-            )
-          );
+          const requests = eligibleRequests.map((request) => {
+            let queryString = "";
+            let { resourceType, queryParams, referenceElement } = request;
+            if (!referenceElement) referenceElement = "patient";
+            let params = ["_count=1000", `${referenceElement}=${ids}`];
+            if (typeof request === "string")
+              queryString =
+                request +
+                (request.indexOf("?") !== -1 ? "" : "?") +
+                (request.indexOf("&") !== -1 ? "&" : "") +
+                `${params.join("&")}`;
+            else {
+              params = [...params, queryParams];
+              queryString = `${resourceType}?${params.join("&")}`;
+            }
+            return fetchData(`/fhir/${queryString}`, constants.noCacheParam);
+          });
           const queryResults = (async () => {
             const results = await Promise.all(requests).catch((e) => {
               throw new Error(e);
@@ -763,13 +796,25 @@ export default function PatientListTable() {
                 item.resource["resources"] = [
                   ...item.resource["resources"],
                   ...result.entry
-                    .filter(
-                      (o) =>
+                    .filter((o) => {
+                      const matchedResource = additionalParams.filter(
+                        (item) =>
+                          item.resourceType &&
+                          item.resourceType === o.resource.resourceType
+                      );
+                      const referenceElementName =
+                        matchedResource.length > 0
+                          ? matchedResource[0].referenceElement
+                          : "subject";
+                      return (
                         o.resource &&
-                        o.resource.subject &&
-                        o.resource.subject.reference &&
-                        o.resource.subject.reference.split("/")[1] === subjectId
-                    )
+                        o.resource[referenceElementName] &&
+                        o.resource[referenceElementName].reference &&
+                        o.resource[referenceElementName].reference.split(
+                          "/"
+                        )[1] === subjectId
+                      );
+                    })
                     .map((resourceItem) => resourceItem.resource),
                 ];
               });
@@ -873,7 +918,7 @@ export default function PatientListTable() {
     detailPanelColumnAlignment: "right",
     toolbar: false,
     filtering: false,
-    sorting: true,
+    maxColumnSort: 1,
     thirdSortClick: false,
     search: false,
     showTitle: false,
@@ -947,6 +992,12 @@ export default function PatientListTable() {
       ),
     },
   });
+
+  const renderSearchTitle = () => {
+    const title = appSettings["SEARCH_TITLE_TEXT"] ? appSettings["SEARCH_TITLE_TEXT"] : null;
+    if (!title) return false;
+    return <h2>{title}</h2>;
+  };
 
   const renderPatientSearchRow = () => (
     <table className={classes.filterTable}>
@@ -1119,7 +1170,7 @@ export default function PatientListTable() {
 
   return (
     <Container className={classes.container} id="patientList">
-      {/* <h2>Patient Search</h2> */}
+      {renderSearchTitle()}
       <Error message={errorMessage} style={errorStyle} />
       <div className="flex">
         {/* patient search row */}

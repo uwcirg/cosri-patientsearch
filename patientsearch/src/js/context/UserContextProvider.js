@@ -39,13 +39,22 @@ export default function UserContextProvider({ children }) {
         const email = getEmailFromToken(data);
         const userName = getPreferredUserNameFromToken(data);
         const accessToken = getAccessToken(data);
+        const { family_name, given_name } = accessToken;
         let practitionerId = null;
+        const baseURL = "/fhir/Practitioner";
+        const searchParams =
+          family_name && given_name
+            ? "family=" + family_name + "&given=" + given_name
+            : email
+            ? "email=" + email
+            : null;
         //console.log("roles ", roles);
         //console.log("emails ", email);
         //console.log("name ", userName);
-        if (email) {
+
+        if (searchParams) {
           const lookupResults = await fetchData(
-            "/fhir/Practitioner?email=" + email,
+            `${baseURL}?` + searchParams,
             noCacheParam
           );
           if (lookupResults.entry && lookupResults.entry.length) {
@@ -58,6 +67,8 @@ export default function UserContextProvider({ children }) {
           email: email,
           username: userName,
           name: accessToken.name,
+          familyName: family_name,
+          givenName: given_name,
           practitionerId: practitionerId,
         });
       },
