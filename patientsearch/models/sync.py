@@ -238,6 +238,27 @@ def internal_patient_search(token, patient):
     )
 
 
+def new_resource_hook(resource):
+    """Return modified version of resourse as per new resource rules
+
+    Products occasionally require customization of resources on creation.
+    This hook manages such, using environment to specialize.
+
+    :returns: modified resource
+    """
+    if resource.get("id"):
+        # not a new resource, bail
+        return resource
+
+    if resource["resourceType"] == "Patient":
+        np_extensions = current_app.config.get("NEW_PATIENT_EXTENSIONS")
+        if np_extensions:
+            if "extension" not in resource:
+                resource["extension"] = []
+            resource["extension"].extend(np_extensions)
+    return resource
+
+
 def sync_patient(token, patient):
     """Sync single patient resource - insert or update as needed"""
 
@@ -258,6 +279,7 @@ def sync_patient(token, patient):
         return merged_patient
 
     # No match, insert and return
+    patient = new_resource_hook(resource=patient)
     return HAPI_request(
         token=token, method="POST", resource_type="Patient", resource=patient
     )
