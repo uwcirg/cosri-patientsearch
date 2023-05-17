@@ -40,6 +40,18 @@ export default function UserContextProvider({ children }) {
         const userName = getPreferredUserNameFromToken(data);
         const accessToken = getAccessToken(data);
         const { family_name, given_name } = accessToken;
+        const userObj = {
+            roles: roles,
+            email: email,
+            username: userName,
+            name: accessToken.name,
+            familyName: family_name,
+            givenName: given_name,
+        };
+
+        setUser(userObj);
+
+        // get/set practitioner id
         let practitionerId = null;
         const baseURL = "/fhir/Practitioner";
         let requestURLs = [];
@@ -52,7 +64,10 @@ export default function UserContextProvider({ children }) {
         if (requestURLs.length > 0) {
           const allResults = await Promise.all(
             requestURLs.map((item) => fetchData(item, noCacheParam))
-          );
+          ).catch(e => {
+            console.log("fetch practitioner error ", e);
+            handleErrorCallback(e);
+          });
           if (allResults && allResults.length) {
             const filteredResults = allResults.filter(
                 (item) => item.entry && item.entry.length > 0
@@ -63,12 +78,7 @@ export default function UserContextProvider({ children }) {
           }
         }
         setUser({
-          roles: roles,
-          email: email,
-          username: userName,
-          name: accessToken.name,
-          familyName: family_name,
-          givenName: given_name,
+          ...userObj,
           practitionerId: practitionerId,
         });
       },
