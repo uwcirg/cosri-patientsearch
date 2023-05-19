@@ -55,10 +55,10 @@ export default function UserContextProvider({ children }) {
         let practitionerId = null;
         const baseURL = "/fhir/Practitioner";
         let requestURLs = [];
-        if (email) requestURLs.push(baseURL + "?email=" + email);
+        if (email) requestURLs.push(baseURL + "?telecom=" + encodeURIComponent(email));
         if (family_name && given_name)
           requestURLs.push(
-            baseURL + "?family=" + family_name + "&given=" + given_name
+            baseURL + "?family=" + encodeURIComponent(family_name) + "&given=" + encodeURIComponent(given_name)
           );
         // try looking up matched practitioner resource by name or email
         if (requestURLs.length > 0) {
