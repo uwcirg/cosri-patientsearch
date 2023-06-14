@@ -24,6 +24,7 @@ import * as constants from "../constants/consts";
 import {
   addMamotoTracking,
   fetchData,
+  getAppLaunchURL,
   getLocalDateTimeString,
   getUrlParameter,
   getClientsByRequiredRoles,
@@ -282,16 +283,7 @@ export default function PatientListTable() {
       return "";
     }
     launchParams = launchParams || {};
-    const baseURL = launchParams["launch_url"];
-    const iss = getAppSettingByKey("SOF_HOST_FHIR_URL");
-    const needPatientBanner = getAppSettingByKey("NEED_PATIENT_BANNER");
-    if (!baseURL || !iss) {
-      console.log("Missing ISS launch base URL");
-      return "";
-    }
-    return `${baseURL}?patient=${patientId}&need_patient_banner=${needPatientBanner}&launch=${btoa(
-      JSON.stringify({ a: 1, b: patientId })
-    )}&iss=${encodeURIComponent(iss)}`;
+    return getAppLaunchURL(patientId, launchParams["launch_url"], appSettings);
   };
   const hasSoFClients = () => {
     return appClients && appClients.length > 0;

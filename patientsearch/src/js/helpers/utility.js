@@ -475,3 +475,30 @@ export function getTimeAgoDisplay(objDate) {
     return `${minutes} minute${minutes > 1 ? "s" : ""} ago`;
   }
 }
+
+/*
+ * @param patientId, Id for the patient
+ * @param clientLaunchURL, URL for the client app
+ * @param settings, application settings 
+ * @return {string} url for launching the client app
+ */
+export const getAppLaunchURL = (patientId, clientLaunchURL, settings) => {
+  if (!patientId) {
+    console.log("Missing information: patient Id");
+    return "";
+  }
+  const appSettings = settings ? settings : {};
+  const iss = appSettings["SOF_HOST_FHIR_URL"];
+  const needPatientBanner = appSettings["NEED_PATIENT_BANNER"];
+  if (!clientLaunchURL || !iss) {
+    console.log("Missing ISS launch base URL");
+    return "";
+  }
+  const arrParams = [
+    `patient=${patientId}`,
+    `need_patient_banner=${needPatientBanner}`,
+    `launch=${btoa(JSON.stringify({ a: 1, b: patientId }))}`,
+    `iss=${encodeURIComponent(iss)}`,
+  ];
+  return `${clientLaunchURL}?${arrParams.join("&")}`;
+};

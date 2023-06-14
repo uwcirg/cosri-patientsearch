@@ -596,3 +596,16 @@ def main():
         "home.html",
         cache_timeout=-1,
     )
+
+
+@api_blueprint.route("/target", methods=["GET"])
+@oidc.require_login
+def target():
+    return send_from_directory(
+        safe_join(
+            current_app.config.get("STATIC_DIR") or current_app.static_folder,
+            "templates",
+        ),
+        "targetLaunch.html",
+        cache_timeout=-1,
+    )
