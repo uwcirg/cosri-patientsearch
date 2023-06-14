@@ -40,11 +40,11 @@ export default function ClientAppRedirect() {
   };
 
   useEffect(() => {
-    if (allowToLaunch) {
+    if (targetAppURL) {
       console.log("client app launch URL ", targetAppURL);
       setTimeout(() => (window.location = targetAppURL), 250);
     }
-  }, []);
+  }, [targetAppURL]);
 
   return (
     <div className="content-container">
