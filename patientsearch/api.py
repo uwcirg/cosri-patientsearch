@@ -597,6 +597,7 @@ def main():
         cache_timeout=-1,
     )
 
+
 @api_blueprint.route("/target", methods=["GET"])
 @oidc.require_login
 def target():
