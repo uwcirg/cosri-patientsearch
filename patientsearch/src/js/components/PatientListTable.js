@@ -1121,6 +1121,7 @@ export default function PatientListTable() {
     if (!getAppSettingByKey("ENABLE_PROVIDER_FILTER")) return false;
     return (
       <MyPatientsCheckbox
+        label={getAppSettingByKey("MY_PATIENTS_FILTER_LABEL")}
         shouldCheck={filterPatientsByProvider}
         changeEvent={(shouldCheck) => {
           setFilterPatientsByProvider(shouldCheck);
