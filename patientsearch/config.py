@@ -33,6 +33,8 @@ FORBIDDEN_TEXT = os.getenv(
 
 SEARCH_TITLE_TEXT = os.getenv("SEARCH_TITLE_TEXT", "Patient Search")
 
+MY_PATIENTS_FILTER_LABEL = os.getenv("MY_PATIENTS_FILTER_LABEL", "My Patients")
+
 DASHBOARD_COLUMNS = json.loads(
     os.getenv(
         "DASHBOARD_COLUMNS",
