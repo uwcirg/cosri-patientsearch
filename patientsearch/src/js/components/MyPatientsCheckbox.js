@@ -46,13 +46,13 @@ export default function MyPatientsCheckbox({ label, shouldDisable, shouldCheck, 
           }}
         />
       }
-      label={label || "My Patients"}
+      label={label}
     />
   );
 }
 
 MyPatientsCheckbox.propTypes = {
-  label: PropTypes.string,
+  label: PropTypes.string.isRequired,
   shouldCheck: PropTypes.bool,
   shouldDisable: PropTypes.bool,
   changeEvent: PropTypes.func,
