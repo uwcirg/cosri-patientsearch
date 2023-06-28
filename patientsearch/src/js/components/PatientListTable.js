@@ -386,7 +386,9 @@ export default function PatientListTable() {
           console.log("Error occurred adding row to table ", e);
         }
         handleRefresh();
-        handleLaunchApp(formatData(response)[0]);
+        // by default launch the first defined client application after account creation
+        // TODO use config variable? to enable / disable certain SoF clients dependent on FHIR state.
+        handleLaunchApp(formatData(response)[0], appClients && appClients.length ? appClients[0] : null);
       })
       .catch((e) => {
         //log error to console
