@@ -386,9 +386,16 @@ export default function PatientListTable() {
           console.log("Error occurred adding row to table ", e);
         }
         handleRefresh();
-        // by default launch the first defined client application after account creation
-        // TODO use config variable? to enable / disable certain SoF clients dependent on FHIR state.
-        handleLaunchApp(formatData(response)[0], appClients && appClients.length ? appClients[0] : null);
+        
+        //use config variable to determine whether to launch the first defined client application after account creation
+        handleLaunchApp(
+          formatData(response)[0],
+          getAppSettingByKey("LAUNCH_AFTER_PATIENT_CREATION")
+            ? appClients && appClients.length
+              ? appClients[0]
+              : null
+            : null
+        );
       })
       .catch((e) => {
         //log error to console

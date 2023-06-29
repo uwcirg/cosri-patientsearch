@@ -26,6 +26,10 @@ ENABLE_PATIENT_DELETE = os.getenv("ENABLE_PATIENT_DELETE", "false").lower() == "
 
 ENABLE_PROVIDER_FILTER = os.getenv("ENABLE_PROVIDER_FILTER", "false").lower() == "true"
 
+LAUNCH_AFTER_PATIENT_CREATION = (
+    os.getenv("LAUNCH_AFTER_PATIENT_CREATION", "false").lower() == "true"
+)
+
 FORBIDDEN_TEXT = os.getenv(
     "FORBIDDEN_TEXT",
     "Your account is not authorized for access, please contact an administrator",
