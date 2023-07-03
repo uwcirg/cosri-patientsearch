@@ -1125,6 +1125,7 @@ export default function PatientListTable() {
         shouldCheck={filterPatientsByProvider}
         changeEvent={(shouldCheck) => {
           setFilterPatientsByProvider(shouldCheck);
+          if (tableRef.current) tableRef.current.onQueryChange();
         }}
       ></MyPatientsCheckbox>
     );
@@ -1154,11 +1155,6 @@ export default function PatientListTable() {
       window.removeEventListener("beforeunload", handlePageUnload);
     };
   }, [user, appSettings]); //retrieval of settings should occur prior to patient list being rendered/initialized
-
-  React.useEffect(
-    () => tableRef.current.onQueryChange(),
-    [filterPatientsByProvider]
-  );
 
   return (
     <Container className={classes.container} id="patientList">
