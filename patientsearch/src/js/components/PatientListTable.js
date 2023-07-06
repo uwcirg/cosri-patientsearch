@@ -387,10 +387,11 @@ export default function PatientListTable() {
         }
         handleRefresh();
         
-        //use config variable to determine whether to launch the first defined client application after account creation
+        // use config variable to determine whether to launch the first defined client application after account creation
         handleLaunchApp(
           formatData(response)[0],
-          getAppSettingByKey("LAUNCH_AFTER_PATIENT_CREATION")
+          hasMultipleSoFClients() &&
+            getAppSettingByKey("LAUNCH_AFTER_PATIENT_CREATION")
             ? appClients && appClients.length
               ? appClients[0]
               : null
