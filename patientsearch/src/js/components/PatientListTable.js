@@ -386,7 +386,17 @@ export default function PatientListTable() {
           console.log("Error occurred adding row to table ", e);
         }
         handleRefresh();
-        handleLaunchApp(formatData(response)[0]);
+        
+        // use config variable to determine whether to launch the first defined client application after account creation
+        handleLaunchApp(
+          formatData(response)[0],
+          hasMultipleSoFClients() &&
+            getAppSettingByKey("LAUNCH_AFTER_PATIENT_CREATION")
+            ? appClients && appClients.length
+              ? appClients[0]
+              : null
+            : null
+        );
       })
       .catch((e) => {
         //log error to console
