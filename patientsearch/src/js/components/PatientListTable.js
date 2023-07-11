@@ -420,7 +420,13 @@ export default function PatientListTable() {
           };
           cols.forEach((col) => {
             const dataType = String(col.dataType).toLowerCase();
-            let nodes = jsonpath.nodes(source, col.expr);
+            let nodes;
+            try {
+              nodes = jsonpath.nodes(source, col.expr);
+            } catch(e) {
+              console.log("JSON path source ", source);
+              console.log("Error interpreting JSON path ", e);
+            }
             let value = nodes && nodes.length ? nodes[nodes.length-1].value : null;
             if (dataType === "date") {
               value = getLocalDateTimeString(value);
