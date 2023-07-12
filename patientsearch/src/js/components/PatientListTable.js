@@ -133,7 +133,7 @@ export default function PatientListTable() {
   const theme = useTheme();
   const classes = useStyles();
   const appSettings = useSettingContext().appSettings;
-  const { user } = useUserContext();
+  const { user, userError } = useUserContext();
   const [appClients, setAppClients] = React.useState(null);
   const [data, setData] = React.useState([]);
   const paginationReducer = (state, action) => {
@@ -1143,6 +1143,7 @@ export default function PatientListTable() {
           setFilterPatientsByProvider(shouldCheck);
           if (tableRef.current) tableRef.current.onQueryChange();
         }}
+        error={userError}
       ></MyPatientsCheckbox>
     );
   };
@@ -1150,11 +1151,11 @@ export default function PatientListTable() {
   React.useEffect(() => {
     //when page unloads, remove loading indicator
     window.addEventListener("beforeunload", handlePageUnload);
-    if (!user) {
+    if (parseInt(userError) === 401) {
       handleErrorCallback({ status: 401 });
       return;
     }
-    const { username, roles } = user;
+    const { username, roles } = user || {};
     if (appSettings) {
       addMamotoTracking(appSettings["MATOMO_SITE_ID"], username);
       const clients = getClientsByRequiredRoles(

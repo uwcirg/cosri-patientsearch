@@ -25,7 +25,7 @@ export default function UserContextProvider({ children }) {
         ? e
         : e && e.message
         ? e.message
-        : "Error occurred processing data"
+        : "Error occurred processing user data"
     );
   };
   useEffect(() => {
@@ -48,33 +48,32 @@ export default function UserContextProvider({ children }) {
             familyName: family_name,
             givenName: given_name,
         };
-
-        setUser(userObj);
-
         // get/set practitioner id
         let practitionerId = null;
         const baseURL = "/fhir/Practitioner";
         let requestURLs = [];
         if (email) requestURLs.push(baseURL + "?telecom=" + encodeURIComponent(email));
-        if (family_name && given_name)
+        if (family_name && given_name) {
           requestURLs.push(
             baseURL + "?family=" + encodeURIComponent(family_name) + "&given=" + encodeURIComponent(given_name)
           );
+        }
+        setUser(userObj);
         // try looking up matched practitioner resource by name or email
-        if (requestURLs.length > 0) {
-          const allResults = await Promise.all(
-            requestURLs.map((item) => fetchData(item, noCacheParam))
-          ).catch(e => {
-            console.log("fetch practitioner error ", e);
-            handleErrorCallback(e);
-          });
-          if (allResults && allResults.length) {
-            const filteredResults = allResults.filter(
-                (item) => item.entry && item.entry.length > 0
-            );
-            if (filteredResults.length) {
-                practitionerId = filteredResults[0].entry[0].resource.id;
-            }
+        const allResults = await Promise.all(
+          requestURLs.map((item) => fetchData(item, noCacheParam))
+        ).catch(e => {
+          console.log("fetch practitioner error ", e);
+          handleErrorCallback(e);
+        });
+        if (allResults && allResults.length) {
+          const filteredResults = allResults.filter(
+              (item) => item.entry && item.entry.length > 0
+          );
+          if (filteredResults.length) {
+              practitionerId = filteredResults[0].entry[0].resource.id;
+          } else {
+            handleErrorCallback("Practitioner resource lookup failed. We are not able to find you in the system.");
           }
         }
         setUser({
@@ -84,15 +83,15 @@ export default function UserContextProvider({ children }) {
       },
       (e) => {
         console.log("token validation error ", e);
-        handleErrorCallback(e);
+        handleErrorCallback(401);
       }
     );
   }, []);
   return (
-    <UserContext.Provider value={{ user: user, error: errorMessage }}>
+    <UserContext.Provider value={{ user: user, userError: errorMessage }}>
       <UserContext.Consumer>
-        {({ user, error }) => {
-          if (user || error) return children;
+        {({ user, userError }) => {
+          if (user || userError) return children;
           return (
             <div style={{ display: "flex", gap: "16px 16px", padding: "24px" }}>
               Loading ...
