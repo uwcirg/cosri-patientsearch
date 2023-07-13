@@ -133,8 +133,17 @@ export default function PatientListTable() {
   const theme = useTheme();
   const classes = useStyles();
   const appSettings = useSettingContext().appSettings;
-  const { user } = useUserContext();
-  const [appClients, setAppClients] = React.useState(null);
+  const { user, userError } = useUserContext();
+  const { userName, roles } = user || {};
+  const appClients = getClientsByRequiredRoles(
+    appSettings ? appSettings["SOF_CLIENTS"] : null,
+    roles
+  );
+  const [errorMessage, setErrorMessage] = React.useState(
+    !appClients || !appClients.length
+      ? "No SoF client match the user role(s) found"
+      : ""
+  );
   const [data, setData] = React.useState([]);
   const paginationReducer = (state, action) => {
     if (action.type === "empty") {
@@ -171,7 +180,6 @@ export default function PatientListTable() {
   );
   const [openLoadingModal, setOpenLoadingModal] = React.useState(false);
   const [openLaunchInfoModal, setOpenLaunchInfoModal] = React.useState(false);
-  const [errorMessage, setErrorMessage] = React.useState("");
   const [containNoPMPRow, setContainNoPMPRow] = React.useState(false);
   const [anchorEl, setAnchorEl] = React.useState(false);
   const [selectedMenuItem, setSelectedMenuItem] = React.useState("");
@@ -1143,6 +1151,7 @@ export default function PatientListTable() {
           setFilterPatientsByProvider(shouldCheck);
           if (tableRef.current) tableRef.current.onQueryChange();
         }}
+        error={userError}
       ></MyPatientsCheckbox>
     );
   };
@@ -1150,27 +1159,17 @@ export default function PatientListTable() {
   React.useEffect(() => {
     //when page unloads, remove loading indicator
     window.addEventListener("beforeunload", handlePageUnload);
-    if (!user) {
+    if (parseInt(userError) === 401) {
       handleErrorCallback({ status: 401 });
       return;
     }
-    const { username, roles } = user;
     if (appSettings) {
-      addMamotoTracking(appSettings["MATOMO_SITE_ID"], username);
-      const clients = getClientsByRequiredRoles(
-        appSettings["SOF_CLIENTS"],
-        roles
-      );
-      if (!clients || !clients.length) {
-        setErrorMessage("No SoF client match the user role(s) found");
-      } else {
-        setAppClients(clients);
-      }
+      addMamotoTracking(appSettings["MATOMO_SITE_ID"], userName);
     }
     return () => {
       window.removeEventListener("beforeunload", handlePageUnload);
     };
-  }, [user, appSettings]); //retrieval of settings should occur prior to patient list being rendered/initialized
+  }, [userError, user, appSettings]); //retrieval of settings should occur prior to patient list being rendered/initialized
 
   return (
     <Container className={classes.container} id="patientList">

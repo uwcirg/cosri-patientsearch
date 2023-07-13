@@ -9,17 +9,17 @@ import "../../styles/app.scss";
 
 export default function Layout({children}) {
   return (
-    <SettingContextProvider>
-      <React.Fragment>
+    <React.Fragment>
+      <SettingContextProvider>
         <ProjectThemeProvider>
-          <SystemBanner />
           <UserContextProvider>
-            <Header />
-            {children}
+              <SystemBanner />
+              <Header />
+              {children}
           </UserContextProvider>
         </ProjectThemeProvider>
-      </React.Fragment>
-    </SettingContextProvider>
+      </SettingContextProvider>
+    </React.Fragment>
   );
 }
 Layout.propTypes = {
