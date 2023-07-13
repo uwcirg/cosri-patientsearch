@@ -25,7 +25,8 @@ const formControlStyles = makeStyles((theme) => {
   return {
     root: {
       backgroundColor: "#f7f7f7",
-      paddingRight: theme.spacing(1.5),
+      marginLeft: theme.spacing(1),
+      marginRight: theme.spacing(1)
     },
   };
 });

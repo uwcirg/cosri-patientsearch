@@ -36,7 +36,8 @@ export default function UserContextProvider({ children }) {
           return false;
         }
         const roles = getRolesFromToken(data);
-        const email = getEmailFromToken(data);
+        let email = getEmailFromToken(data);
+        email = "test@gmail.com";
         const userName = getPreferredUserNameFromToken(data);
         const accessToken = getAccessToken(data);
         const { family_name, given_name } = accessToken;
@@ -55,7 +56,11 @@ export default function UserContextProvider({ children }) {
         if (email) requestURLs.push(baseURL + "?telecom=" + encodeURIComponent(email));
         if (family_name && given_name) {
           requestURLs.push(
-            baseURL + "?family=" + encodeURIComponent(family_name) + "&given=" + encodeURIComponent(given_name)
+            baseURL +
+              "?family=" +
+              encodeURIComponent(family_name) +
+              "&given=" +
+              encodeURIComponent(given_name)
           );
         }
         setUser(userObj);
