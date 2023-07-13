@@ -36,8 +36,7 @@ export default function UserContextProvider({ children }) {
           return false;
         }
         const roles = getRolesFromToken(data);
-        let email = getEmailFromToken(data);
-        email = "test@gmail.com";
+        const email = getEmailFromToken(data);
         const userName = getPreferredUserNameFromToken(data);
         const accessToken = getAccessToken(data);
         const { family_name, given_name } = accessToken;
