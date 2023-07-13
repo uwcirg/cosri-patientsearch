@@ -81,4 +81,5 @@ MyPatientsCheckbox.propTypes = {
   shouldCheck: PropTypes.bool,
   shouldDisable: PropTypes.bool,
   changeEvent: PropTypes.func,
+  error: PropTypes.string
 };
