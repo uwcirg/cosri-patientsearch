@@ -272,6 +272,7 @@ export default function PatientListTable() {
   const getPatientSearchURL = (data) => {
     if (needExternalAPILookup()) {
       const dataURL = "/external_search/Patient";
+      // remove leading/trailing spaces from first/last name data sent to patient search API
       const params = [
         `subject:Patient.name.given=${String(data.first_name).trim()}`,
         `subject:Patient.name.family=${String(data.last_name).trim()}`,
