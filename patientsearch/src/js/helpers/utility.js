@@ -1,6 +1,6 @@
 import differenceInMonths from "date-fns/differenceInMonths";
 import isValid from "date-fns/isValid";
-import { ACCESS_TOKEN_KEY, REALM_ACCESS_TOKEN_KEY } from "../constants/consts";
+import { ACCESS_TOKEN_KEY, REALM_ACCESS_TOKEN_KEY, noCacheParam } from "../constants/consts";
 
 export function sendRequest(url, params) {
   params = params || {};
@@ -502,3 +502,40 @@ export const getAppLaunchURL = (patientId, clientLaunchURL, settings) => {
   ];
   return `${clientLaunchURL}?${arrParams.join("&")}`;
 };
+
+/*
+ * look up care team resources containing the practitioner ID
+ * @param practitionerId practitioner id (as id from the Practitioner FHIR resource)
+ * @return {array<string> | null} array of patient ids or null
+ */
+export async function getPatientIdsByCareTeamParticipant(practitionerId) {
+  if (!practitionerId) return null;
+  const results = await fetchData(
+    `/fhir/CareTeam?participant=Practitioner/${practitionerId}`,
+    noCacheParam,
+    (error) => {
+      if (error) {
+        console.log("Error retrieving careteam by participant id ", error);
+        return null;
+      }
+    }
+  ).catch((e) => {
+    console.log("Error retrieving careteam partipant by id ", e);
+    return null;
+  });
+  console.log("care team participant result ", results);
+  if (results && results.entry.length) {
+    const matchedPatientIds = results.entry
+      .filter(
+        (o) => o.resource && o.resource.subject && o.resource.subject.reference
+      )
+      .map((o) => {
+        return o.resource.subject.reference.split("/")[1];
+      });
+    if (matchedPatientIds.length) {
+      return matchedPatientIds;
+    }
+    return null;
+  }
+  return null;
+}
