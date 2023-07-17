@@ -273,8 +273,8 @@ export default function PatientListTable() {
     if (needExternalAPILookup()) {
       const dataURL = "/external_search/Patient";
       const params = [
-        `subject:Patient.name.given=${data.first_name}`,
-        `subject:Patient.name.family=${data.last_name}`,
+        `subject:Patient.name.given=${String(data.first_name).trim()}`,
+        `subject:Patient.name.family=${String(data.last_name).trim()}`,
         `subject:Patient.birthdate=eq${data.birth_date}`,
       ];
       return `${dataURL}?${params.join("&")}`;
