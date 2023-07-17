@@ -26,6 +26,7 @@ import {
   fetchData,
   getAppLaunchURL,
   getLocalDateTimeString,
+  getPatientIdsByCareTeamParticipant,
   getUrlParameter,
   getClientsByRequiredRoles,
   getTimeAgoDisplay,
@@ -188,7 +189,7 @@ export default function PatientListTable() {
     constants.LAUNCH_BUTTON_LABEL
   );
   const [noDataText, setNoDataText] = React.useState("No record found.");
-  const [filterPatientsByProvider, setFilterPatientsByProvider] =
+  const [patientIdsByCareTeamParticipant, setPatientIdsByCareTeamParticipant] =
     React.useState(false);
   const tableRef = React.useRef();
   const UrineScreenComponent = lazy(() => import("./UrineScreen"));
@@ -671,8 +672,8 @@ export default function PatientListTable() {
       totalCount: 0,
     };
     let apiURL = `/fhir/Patient?_include=Patient:link&_total=accurate&_count=${pagination.pageSize}`;
-    if (filterPatientsByProvider) {
-      apiURL += `&general-practitioner=${user.practitionerId||"-1"}`;
+    if (patientIdsByCareTeamParticipant && patientIdsByCareTeamParticipant.length) {
+      apiURL += `&_id=${patientIdsByCareTeamParticipant.join(",")}`;
     }
     if (
       pagination.pageNumber > pagination.prevPageNumber &&
@@ -1147,10 +1148,25 @@ export default function PatientListTable() {
     return (
       <MyPatientsCheckbox
         label={getAppSettingByKey("MY_PATIENTS_FILTER_LABEL")}
-        shouldCheck={filterPatientsByProvider}
+        shouldCheck={
+          patientIdsByCareTeamParticipant &&
+          patientIdsByCareTeamParticipant.length
+        }
         changeEvent={(shouldCheck) => {
-          setFilterPatientsByProvider(shouldCheck);
-          if (tableRef.current) tableRef.current.onQueryChange();
+          if (!shouldCheck) {
+            setPatientIdsByCareTeamParticipant(null);
+            if (tableRef.current) tableRef.current.onQueryChange();
+            return;
+          }
+          // NOTE - retrieving id(s) of patients whose care team the practitioner is part of
+          getPatientIdsByCareTeamParticipant(
+            user ? user.practitionerId : null
+          ).then((result) => {
+            setPatientIdsByCareTeamParticipant(
+              result && result.length ? result : [-1]
+            );
+            if (tableRef.current) tableRef.current.onQueryChange();
+          });
         }}
         error={userError}
       ></MyPatientsCheckbox>
