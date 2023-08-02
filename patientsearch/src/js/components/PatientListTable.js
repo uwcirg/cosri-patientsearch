@@ -6,10 +6,8 @@ import MaterialTable from "@material-table/core";
 import RefreshIcon from "@material-ui/icons/Refresh";
 import MoreHorizIcon from "@material-ui/icons/MoreHoriz";
 import CircularProgress from "@material-ui/core/CircularProgress";
-import Checkbox from "@material-ui/core/Checkbox";
 import Container from "@material-ui/core/Container";
 import Button from "@material-ui/core/Button";
-import FormControlLabel from "@material-ui/core/FormControlLabel";
 import TablePagination from "@material-ui/core/TablePagination";
 import Tooltip from "@material-ui/core/Tooltip";
 import DetailPanel from "./DetailPanel";
@@ -1206,7 +1204,7 @@ export default function PatientListTable() {
     return () => {
       window.removeEventListener("beforeunload", handlePageUnload);
     };
-  }, [userError, user, appSettings]); //retrieval of settings should occur prior to patient list being rendered/initialized
+  }, [userError, userName, appSettings]); //retrieval of settings should occur prior to patient list being rendered/initialized
 
   return (
     <Container className={classes.container} id="patientList">

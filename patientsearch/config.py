@@ -28,8 +28,9 @@ ENABLE_PROVIDER_FILTER = os.getenv("ENABLE_PROVIDER_FILTER", "false").lower() ==
 FILTER_FOR_TEST_PATIENTS_LABEL =os.getenv(
     "FILTER_FOR_TEST_PATIENTS_LABEL", "Test patients"
 )
-ENABLE_FILTER_FOR_TEST_PATIENTS = os.getenv("ENABLE_FILTER_FOR_TEST_PATIENTS", "false").lower() == "true"
-
+ENABLE_FILTER_FOR_TEST_PATIENTS = (
+    os.getenv("ENABLE_FILTER_FOR_TEST_PATIENTS", "false").lower() == "true"
+)
 LAUNCH_AFTER_PATIENT_CREATION = (
     os.getenv("LAUNCH_AFTER_PATIENT_CREATION", "false").lower() == "true"
 )
@@ -65,7 +66,7 @@ DASHBOARD_COLUMNS = json.loads(
                     "defaultSort": "desc",
                     "expr": "$.meta.lastUpdated",
                     "dataType": "date",
-                }
+                },
             ],
         ),
     )
