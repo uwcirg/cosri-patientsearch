@@ -26,7 +26,7 @@ ENABLE_PATIENT_DELETE = os.getenv("ENABLE_PATIENT_DELETE", "false").lower() == "
 
 ENABLE_PROVIDER_FILTER = os.getenv("ENABLE_PROVIDER_FILTER", "false").lower() == "true"
 FILTER_FOR_TEST_PATIENTS_LABEL =os.getenv(
-    "FILTER_FOR_TEST_PATIENTS_LABEL", "Test Patients"
+    "FILTER_FOR_TEST_PATIENTS_LABEL", "Test patients"
 )
 ENABLE_FILTER_FOR_TEST_PATIENTS = os.getenv("ENABLE_FILTER_FOR_TEST_PATIENTS", "false").lower() == "true"
 
@@ -65,13 +65,6 @@ DASHBOARD_COLUMNS = json.loads(
                     "defaultSort": "desc",
                     "expr": "$.meta.lastUpdated",
                     "dataType": "date",
-                },
-                {
-                    "dataType": "timeAgo",
-                    "defaultSort": "asc",
-                    "expr": "$.extension[?(@.url=='http://isacc.app/time-of-last-unfollowedup-message')].valueDateTime",
-                    "label": "Time Since Reply",
-                    "sortBy": "time-of-last-unresponded-message"
                 }
             ],
         ),
