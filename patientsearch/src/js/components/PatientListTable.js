@@ -129,6 +129,9 @@ const useStyles = makeStyles((theme) => ({
   moreIcon: {
     marginRight: theme.spacing(1),
   },
+  tableOptionContainers: {
+    marginBottom: theme.spacing(2)
+  }
 }));
 let filterIntervalId = 0;
 export default function PatientListTable() {
@@ -678,7 +681,9 @@ export default function PatientListTable() {
       apiURL += `&_id=${patientIdsByCareTeamParticipant.join(",")}`;
     }
     if (getAppSettingByKey("ENABLE_FILTER_FOR_TEST_PATIENTS")) {
-      apiURL += `&_security${filterByTestPatients?"=": ":not="}HTEST`;
+      if (!filterByTestPatients) {
+        apiURL += `&_security:not=HTEST`;
+      }
     }
     if (
       pagination.pageNumber > pagination.prevPageNumber &&
@@ -1213,9 +1218,11 @@ export default function PatientListTable() {
       <div className="flex">
         {/* patient search row */}
         {renderPatientSearchRow()}
-        {renderMyPatientsCheckbox()}
+        <div className={classes.tableOptionContainers}>
+          {renderMyPatientsCheckbox()}
+          {renderFilterByTestPatientsCheckbox()}
+        </div>
       </div>
-      {renderFilterByTestPatientsCheckbox()}
       {/* patient list table */}
 
       <div className={`${classes.table} main`} aria-label="patient list table">

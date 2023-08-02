@@ -5,6 +5,7 @@ import FormControlLabel from "@material-ui/core/FormControlLabel";
 import Checkbox from "@material-ui/core/Checkbox";
 import ErrorIcon from '@material-ui/icons/ReportProblemOutlined';
 import Tooltip from "@material-ui/core/Tooltip";
+import Typography from "@material-ui/core/Typography";
 
 const checkBoxStyles = makeStyles((theme) => {
   return {
@@ -58,7 +59,7 @@ export default function MyPatientsCheckbox({ label, shouldDisable, shouldCheck, 
             }}
           />
         }
-        label={label}
+        label={<Typography variant="body2">{label}</Typography>}
       />
       {error && (
         <Tooltip

@@ -26,7 +26,7 @@ ENABLE_PATIENT_DELETE = os.getenv("ENABLE_PATIENT_DELETE", "false").lower() == "
 
 ENABLE_PROVIDER_FILTER = os.getenv("ENABLE_PROVIDER_FILTER", "false").lower() == "true"
 FILTER_FOR_TEST_PATIENTS_LABEL = os.getenv(
-    "FILTER_FOR_TEST_PATIENTS_LABEL", "Test patients"
+    "FILTER_FOR_TEST_PATIENTS_LABEL", "Include test patients"
 )
 ENABLE_FILTER_FOR_TEST_PATIENTS = (
     os.getenv("ENABLE_FILTER_FOR_TEST_PATIENTS", "false").lower() == "true"
