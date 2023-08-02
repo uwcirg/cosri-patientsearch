@@ -6,8 +6,10 @@ import MaterialTable from "@material-table/core";
 import RefreshIcon from "@material-ui/icons/Refresh";
 import MoreHorizIcon from "@material-ui/icons/MoreHoriz";
 import CircularProgress from "@material-ui/core/CircularProgress";
-import Button from "@material-ui/core/Button";
+import Checkbox from "@material-ui/core/Checkbox";
 import Container from "@material-ui/core/Container";
+import Button from "@material-ui/core/Button";
+import FormControlLabel from "@material-ui/core/FormControlLabel";
 import TablePagination from "@material-ui/core/TablePagination";
 import Tooltip from "@material-ui/core/Tooltip";
 import DetailPanel from "./DetailPanel";
@@ -18,6 +20,7 @@ import FilterRow from "./FilterRow";
 import LoadingModal from "./LoadingModal";
 import MyPatientsCheckbox from "./MyPatientsCheckbox";
 import OverlayElement from "./OverlayElement";
+import TestPatientsCheckbox from "./TestPatientsCheckbox";
 import { useUserContext } from "../context/UserContextProvider";
 import { useSettingContext } from "../context/SettingContextProvider";
 import * as constants from "../constants/consts";
@@ -191,6 +194,7 @@ export default function PatientListTable() {
   const [noDataText, setNoDataText] = React.useState("No record found.");
   const [patientIdsByCareTeamParticipant, setPatientIdsByCareTeamParticipant] =
     React.useState(false);
+  const [filterByTestPatients, setFilterByTestPatients] = React.useState(false);
   const tableRef = React.useRef();
   const UrineScreenComponent = lazy(() => import("./UrineScreen"));
   const AgreementComponent = lazy(() => import("./Agreement"));
@@ -674,6 +678,9 @@ export default function PatientListTable() {
     let apiURL = `/fhir/Patient?_include=Patient:link&_total=accurate&_count=${pagination.pageSize}`;
     if (patientIdsByCareTeamParticipant && patientIdsByCareTeamParticipant.length) {
       apiURL += `&_id=${patientIdsByCareTeamParticipant.join(",")}`;
+    }
+    if (getAppSettingByKey("ENABLE_FILTER_FOR_TEST_PATIENTS")) {
+      apiURL += `&_security${filterByTestPatients?"=": ":not="}HTEST`;
     }
     if (
       pagination.pageNumber > pagination.prevPageNumber &&
@@ -1173,6 +1180,19 @@ export default function PatientListTable() {
     );
   };
 
+  const renderFilterByTestPatientsCheckbox = () => {
+    if (!getAppSettingByKey("ENABLE_FILTER_FOR_TEST_PATIENTS")) return false;
+    return (
+      <TestPatientsCheckbox
+        label={getAppSettingByKey("FILTER_FOR_TEST_PATIENTS_LABEL")}
+        changeEvent={(checked) => {
+          setFilterByTestPatients(checked);
+          if (tableRef.current) tableRef.current.onQueryChange();
+        }}
+      ></TestPatientsCheckbox>
+    );
+  };
+
   React.useEffect(() => {
     //when page unloads, remove loading indicator
     window.addEventListener("beforeunload", handlePageUnload);
@@ -1197,6 +1217,7 @@ export default function PatientListTable() {
         {renderPatientSearchRow()}
         {renderMyPatientsCheckbox()}
       </div>
+      {renderFilterByTestPatientsCheckbox()}
       {/* patient list table */}
 
       <div className={`${classes.table} main`} aria-label="patient list table">

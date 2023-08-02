@@ -25,6 +25,10 @@ ENABLE_INACTIVITY_TIMEOUT = (
 ENABLE_PATIENT_DELETE = os.getenv("ENABLE_PATIENT_DELETE", "false").lower() == "true"
 
 ENABLE_PROVIDER_FILTER = os.getenv("ENABLE_PROVIDER_FILTER", "false").lower() == "true"
+FILTER_FOR_TEST_PATIENTS_LABEL =os.getenv(
+    "FILTER_FOR_TEST_PATIENTS_LABEL", "Test Patients"
+)
+ENABLE_FILTER_FOR_TEST_PATIENTS = os.getenv("ENABLE_FILTER_FOR_TEST_PATIENTS", "false").lower() == "true"
 
 LAUNCH_AFTER_PATIENT_CREATION = (
     os.getenv("LAUNCH_AFTER_PATIENT_CREATION", "false").lower() == "true"
@@ -62,6 +66,13 @@ DASHBOARD_COLUMNS = json.loads(
                     "expr": "$.meta.lastUpdated",
                     "dataType": "date",
                 },
+                {
+                    "dataType": "timeAgo",
+                    "defaultSort": "asc",
+                    "expr": "$.extension[?(@.url=='http://isacc.app/time-of-last-unfollowedup-message')].valueDateTime",
+                    "label": "Time Since Reply",
+                    "sortBy": "time-of-last-unresponded-message"
+                }
             ],
         ),
     )
