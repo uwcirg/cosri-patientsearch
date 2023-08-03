@@ -6,8 +6,8 @@ import MaterialTable from "@material-table/core";
 import RefreshIcon from "@material-ui/icons/Refresh";
 import MoreHorizIcon from "@material-ui/icons/MoreHoriz";
 import CircularProgress from "@material-ui/core/CircularProgress";
-import Button from "@material-ui/core/Button";
 import Container from "@material-ui/core/Container";
+import Button from "@material-ui/core/Button";
 import TablePagination from "@material-ui/core/TablePagination";
 import Tooltip from "@material-ui/core/Tooltip";
 import DetailPanel from "./DetailPanel";
@@ -18,6 +18,7 @@ import FilterRow from "./FilterRow";
 import LoadingModal from "./LoadingModal";
 import MyPatientsCheckbox from "./MyPatientsCheckbox";
 import OverlayElement from "./OverlayElement";
+import TestPatientsCheckbox from "./TestPatientsCheckbox";
 import { useUserContext } from "../context/UserContextProvider";
 import { useSettingContext } from "../context/SettingContextProvider";
 import * as constants from "../constants/consts";
@@ -128,6 +129,9 @@ const useStyles = makeStyles((theme) => ({
   moreIcon: {
     marginRight: theme.spacing(1),
   },
+  tableOptionContainers: {
+    marginBottom: theme.spacing(2)
+  }
 }));
 let filterIntervalId = 0;
 export default function PatientListTable() {
@@ -191,6 +195,7 @@ export default function PatientListTable() {
   const [noDataText, setNoDataText] = React.useState("No record found.");
   const [patientIdsByCareTeamParticipant, setPatientIdsByCareTeamParticipant] =
     React.useState(false);
+  const [filterByTestPatients, setFilterByTestPatients] = React.useState(false);
   const tableRef = React.useRef();
   const UrineScreenComponent = lazy(() => import("./UrineScreen"));
   const AgreementComponent = lazy(() => import("./Agreement"));
@@ -674,6 +679,11 @@ export default function PatientListTable() {
     let apiURL = `/fhir/Patient?_include=Patient:link&_total=accurate&_count=${pagination.pageSize}`;
     if (patientIdsByCareTeamParticipant && patientIdsByCareTeamParticipant.length) {
       apiURL += `&_id=${patientIdsByCareTeamParticipant.join(",")}`;
+    }
+    if (getAppSettingByKey("ENABLE_FILTER_FOR_TEST_PATIENTS")) {
+      if (!filterByTestPatients) {
+        apiURL += `&_security:not=HTEST`;
+      }
     }
     if (
       pagination.pageNumber > pagination.prevPageNumber &&
@@ -1173,6 +1183,19 @@ export default function PatientListTable() {
     );
   };
 
+  const renderFilterByTestPatientsCheckbox = () => {
+    if (!getAppSettingByKey("ENABLE_FILTER_FOR_TEST_PATIENTS")) return false;
+    return (
+      <TestPatientsCheckbox
+        label={getAppSettingByKey("FILTER_FOR_TEST_PATIENTS_LABEL")}
+        changeEvent={(checked) => {
+          setFilterByTestPatients(checked);
+          if (tableRef.current) tableRef.current.onQueryChange();
+        }}
+      ></TestPatientsCheckbox>
+    );
+  };
+
   React.useEffect(() => {
     //when page unloads, remove loading indicator
     window.addEventListener("beforeunload", handlePageUnload);
@@ -1186,7 +1209,7 @@ export default function PatientListTable() {
     return () => {
       window.removeEventListener("beforeunload", handlePageUnload);
     };
-  }, [userError, user, appSettings]); //retrieval of settings should occur prior to patient list being rendered/initialized
+  }, [userError, userName, appSettings]); //retrieval of settings should occur prior to patient list being rendered/initialized
 
   return (
     <Container className={classes.container} id="patientList">
@@ -1195,7 +1218,10 @@ export default function PatientListTable() {
       <div className="flex">
         {/* patient search row */}
         {renderPatientSearchRow()}
-        {renderMyPatientsCheckbox()}
+        <div className={classes.tableOptionContainers}>
+          {renderMyPatientsCheckbox()}
+          {renderFilterByTestPatientsCheckbox()}
+        </div>
       </div>
       {/* patient list table */}
 
