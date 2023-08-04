@@ -444,7 +444,7 @@ export default function PatientListTable() {
             }
             let value = nodes && nodes.length ? nodes[nodes.length-1].value : null;
             if (dataType === "date") {
-              value = getLocalDateTimeString(value);
+              value = value ? getLocalDateTimeString(value) : "--";
             }
             if (dataType === "timeago" && value) {
               value = getTimeAgoDisplay(new Date(value));

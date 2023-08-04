@@ -185,6 +185,7 @@ export function getLocalDateTimeString(utcDateString, shortFormat) {
   //note javascript Date object automatically convert UTC date/time to locate date/time, no need to parse and convert
   let dateObj =
     utcDateString instanceof Date ? utcDateString : new Date(utcDateString);
+  if (!isValid(dateObj)) return utcDateString;
   let year = dateObj.getFullYear();
   let month = pad(dateObj.getMonth() + 1);
   let day = pad(dateObj.getDate());
