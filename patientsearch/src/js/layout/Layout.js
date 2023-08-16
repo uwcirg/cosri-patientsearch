@@ -4,19 +4,22 @@ import Header from "../components/Header";
 import SystemBanner from "../components/SystemBanner";
 import ProjectThemeProvider from "../context/ProjectThemeProvider";
 import SettingContextProvider from "../context/SettingContextProvider";
+import UserContextProvider from "../context/UserContextProvider";
 import "../../styles/app.scss";
 
 export default function Layout({children}) {
   return (
-    <SettingContextProvider>
-      <React.Fragment>
+    <React.Fragment>
+      <SettingContextProvider>
         <ProjectThemeProvider>
-          <SystemBanner />
-          <Header />
-          {children}
+          <UserContextProvider>
+              <SystemBanner />
+              <Header />
+              {children}
+          </UserContextProvider>
         </ProjectThemeProvider>
-      </React.Fragment>
-    </SettingContextProvider>
+      </SettingContextProvider>
+    </React.Fragment>
   );
 }
 Layout.propTypes = {

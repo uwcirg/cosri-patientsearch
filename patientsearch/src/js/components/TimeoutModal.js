@@ -243,6 +243,7 @@ export default function TimeoutModal() {
     setDisabled(appSettings["ENABLE_INACTIVITY_TIMEOUT"] ? false : true);
     initTimeoutTracking();
     return () => clearExpiredIntervalId();
+    /* eslint-disable react-hooks/exhaustive-deps */
   }, [appSettings]);
 
   return (

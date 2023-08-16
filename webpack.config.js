@@ -23,7 +23,8 @@ module.exports = function(_env, argv) {
     entry:  {
       "index" : ["whatwg-fetch", path.join(__dirname, "/patientsearch/src/js/containers/Entry.js")],
       "info": ["whatwg-fetch", path.join(__dirname, "/patientsearch/src/js/containers/Landing.js")],
-      "logout": ["whatwg-fetch", path.join(__dirname, "/patientsearch/src/js/containers/Logout.js")]
+      "logout": ["whatwg-fetch", path.join(__dirname, "/patientsearch/src/js/containers/Logout.js")],
+      "targetLaunch": ["whatwg-fetch", path.join(__dirname, "/patientsearch/src/js/containers/TargetLaunch.js")]
     },
     watchOptions: {
       aggregateTimeout: 300,
@@ -100,6 +101,12 @@ module.exports = function(_env, argv) {
         template: templateFilePath,
         filename: path.join(__dirname, `${templateDirectory}/logout.html`),
         chunks: ["logout"]
+      }),
+      new HtmlWebpackPlugin({
+        title: appTitle,
+        template: templateFilePath,
+        filename: path.join(__dirname, `${templateDirectory}/targetLaunch.html`),
+        chunks: ["targetLaunch"]
       }),
       new webpack.ProvidePlugin({
         React: "react",

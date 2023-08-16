@@ -56,9 +56,8 @@ export default function FilterRow(props) {
   const [lastName, setLastName] = React.useState("");
   const [date, setDate] = React.useState(null);
   const [dateInput, setDateInput] = React.useState(null);
-  const trimFilterValue = (val) => (!val ? "" : val.trim());
   const handleFirstNameChange = (event) => {
-    let targetValue = trimFilterValue(event.target.value);
+    let targetValue = event.target.value;
     setFirstName(targetValue);
     props.onFiltersDidChange([
       {
@@ -76,7 +75,7 @@ export default function FilterRow(props) {
     ]);
   };
   const handleLastNameChange = (event) => {
-    let targetValue = trimFilterValue(event.target.value);
+    let targetValue = event.target.value;
     setLastName(targetValue);
     props.onFiltersDidChange([
       {
@@ -143,7 +142,11 @@ export default function FilterRow(props) {
       : LAUNCH_BUTTON_LABEL;
   };
   const handleKeyDown = (e) => {
-    if (String(e.key).toLowerCase() === "enter") {
+    const pressedKey = String(e.key).toLowerCase();
+    if (pressedKey === "spacebar") {
+      e.stopPropagation();
+    }
+    if (pressedKey === "enter") {
       props.launchFunc(getFilterData());
       return;
     }

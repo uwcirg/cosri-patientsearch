@@ -6,8 +6,8 @@ import MaterialTable from "@material-table/core";
 import RefreshIcon from "@material-ui/icons/Refresh";
 import MoreHorizIcon from "@material-ui/icons/MoreHoriz";
 import CircularProgress from "@material-ui/core/CircularProgress";
-import Button from "@material-ui/core/Button";
 import Container from "@material-ui/core/Container";
+import Button from "@material-ui/core/Button";
 import TablePagination from "@material-ui/core/TablePagination";
 import Tooltip from "@material-ui/core/Tooltip";
 import DetailPanel from "./DetailPanel";
@@ -16,22 +16,24 @@ import Dropdown from "./Dropdown";
 import Error from "./Error";
 import FilterRow from "./FilterRow";
 import LoadingModal from "./LoadingModal";
+import MyPatientsCheckbox from "./MyPatientsCheckbox";
 import OverlayElement from "./OverlayElement";
+import TestPatientsCheckbox from "./TestPatientsCheckbox";
+import { useUserContext } from "../context/UserContextProvider";
 import { useSettingContext } from "../context/SettingContextProvider";
 import * as constants from "../constants/consts";
 import {
   addMamotoTracking,
   fetchData,
+  getAppLaunchURL,
   getLocalDateTimeString,
-  getPreferredUserNameFromToken,
+  getPatientIdsByCareTeamParticipant,
   getUrlParameter,
-  getRolesFromToken,
   getClientsByRequiredRoles,
   getTimeAgoDisplay,
   isEmptyArray,
   isString,
   putPatientData,
-  validateToken,
 } from "../helpers/utility";
 const useStyles = makeStyles((theme) => ({
   container: {
@@ -86,20 +88,11 @@ const useStyles = makeStyles((theme) => ({
     textTransform: "uppercase",
     border: 0,
   },
-  bold: {
-    fontWeight: 500,
-  },
   warning: {
     color: theme.palette.primary.warning,
     marginTop: theme.spacing(3),
     marginBottom: theme.spacing(3),
     lineHeight: 1.7,
-  },
-  success: {
-    fill: theme.palette.primary.success,
-  },
-  muted: {
-    fill: theme.palette.muted ? theme.palette.muted.main : "#777",
   },
   legend: {
     marginTop: theme.spacing(2.5),
@@ -136,13 +129,26 @@ const useStyles = makeStyles((theme) => ({
   moreIcon: {
     marginRight: theme.spacing(1),
   },
+  tableOptionContainers: {
+    marginBottom: theme.spacing(2)
+  }
 }));
 let filterIntervalId = 0;
 export default function PatientListTable() {
   const theme = useTheme();
   const classes = useStyles();
   const appSettings = useSettingContext().appSettings;
-  const [appClients, setAppClients] = React.useState(null);
+  const { user, userError } = useUserContext();
+  const { userName, roles } = user || {};
+  const appClients = getClientsByRequiredRoles(
+    appSettings ? appSettings["SOF_CLIENTS"] : null,
+    roles
+  );
+  const [errorMessage, setErrorMessage] = React.useState(
+    !appClients || !appClients.length
+      ? "No SoF client match the user role(s) found"
+      : ""
+  );
   const [data, setData] = React.useState([]);
   const paginationReducer = (state, action) => {
     if (action.type === "empty") {
@@ -179,7 +185,6 @@ export default function PatientListTable() {
   );
   const [openLoadingModal, setOpenLoadingModal] = React.useState(false);
   const [openLaunchInfoModal, setOpenLaunchInfoModal] = React.useState(false);
-  const [errorMessage, setErrorMessage] = React.useState("");
   const [containNoPMPRow, setContainNoPMPRow] = React.useState(false);
   const [anchorEl, setAnchorEl] = React.useState(false);
   const [selectedMenuItem, setSelectedMenuItem] = React.useState("");
@@ -187,7 +192,10 @@ export default function PatientListTable() {
   const [actionLabel, setActionLabel] = React.useState(
     constants.LAUNCH_BUTTON_LABEL
   );
-  const [noDataText, setNoDataText] = React.useState("");
+  const [noDataText, setNoDataText] = React.useState("No record found.");
+  const [patientIdsByCareTeamParticipant, setPatientIdsByCareTeamParticipant] =
+    React.useState(false);
+  const [filterByTestPatients, setFilterByTestPatients] = React.useState(false);
   const tableRef = React.useRef();
   const UrineScreenComponent = lazy(() => import("./UrineScreen"));
   const AgreementComponent = lazy(() => import("./Agreement"));
@@ -270,9 +278,10 @@ export default function PatientListTable() {
   const getPatientSearchURL = (data) => {
     if (needExternalAPILookup()) {
       const dataURL = "/external_search/Patient";
+      // remove leading/trailing spaces from first/last name data sent to patient search API
       const params = [
-        `subject:Patient.name.given=${data.first_name}`,
-        `subject:Patient.name.family=${data.last_name}`,
+        `subject:Patient.name.given=${String(data.first_name).trim()}`,
+        `subject:Patient.name.family=${String(data.last_name).trim()}`,
         `subject:Patient.birthdate=eq${data.birth_date}`,
       ];
       return `${dataURL}?${params.join("&")}`;
@@ -289,16 +298,7 @@ export default function PatientListTable() {
       return "";
     }
     launchParams = launchParams || {};
-    const baseURL = launchParams["launch_url"];
-    const iss = getAppSettingByKey("SOF_HOST_FHIR_URL");
-    const needPatientBanner = getAppSettingByKey("NEED_PATIENT_BANNER");
-    if (!baseURL || !iss) {
-      console.log("Missing ISS launch base URL");
-      return "";
-    }
-    return `${baseURL}?patient=${patientId}&need_patient_banner=${needPatientBanner}&launch=${btoa(
-      JSON.stringify({ a: 1, b: patientId })
-    )}&iss=${encodeURIComponent(iss)}`;
+    return getAppLaunchURL(patientId, launchParams["launch_url"], appSettings);
   };
   const hasSoFClients = () => {
     return appClients && appClients.length > 0;
@@ -401,7 +401,17 @@ export default function PatientListTable() {
           console.log("Error occurred adding row to table ", e);
         }
         handleRefresh();
-        handleLaunchApp(formatData(response)[0]);
+        
+        // use config variable to determine whether to launch the first defined client application after account creation
+        handleLaunchApp(
+          formatData(response)[0],
+          hasMultipleSoFClients() &&
+            getAppSettingByKey("LAUNCH_AFTER_PATIENT_CREATION")
+            ? appClients && appClients.length
+              ? appClients[0]
+              : null
+            : null
+        );
       })
       .catch((e) => {
         //log error to console
@@ -425,10 +435,16 @@ export default function PatientListTable() {
           };
           cols.forEach((col) => {
             const dataType = String(col.dataType).toLowerCase();
-            let nodes = jsonpath.nodes(source, col.expr);
+            let nodes;
+            try {
+              nodes = jsonpath.nodes(source, col.expr);
+            } catch(e) {
+              console.log("JSON path source ", source);
+              console.log("Error interpreting JSON path ", e);
+            }
             let value = nodes && nodes.length ? nodes[nodes.length-1].value : null;
             if (dataType === "date") {
-              value = getLocalDateTimeString(value);
+              value = value ? getLocalDateTimeString(value) : "--";
             }
             if (dataType === "timeago" && value) {
               value = getTimeAgoDisplay(new Date(value));
@@ -661,7 +677,14 @@ export default function PatientListTable() {
       totalCount: 0,
     };
     let apiURL = `/fhir/Patient?_include=Patient:link&_total=accurate&_count=${pagination.pageSize}`;
-
+    if (patientIdsByCareTeamParticipant && patientIdsByCareTeamParticipant.length) {
+      apiURL += `&_id=${patientIdsByCareTeamParticipant.join(",")}`;
+    }
+    if (getAppSettingByKey("ENABLE_FILTER_FOR_TEST_PATIENTS")) {
+      if (!filterByTestPatients) {
+        apiURL += `&_security:not=HTEST`;
+      }
+    }
     if (
       pagination.pageNumber > pagination.prevPageNumber &&
       pagination.nextPageURL
@@ -1098,7 +1121,7 @@ export default function PatientListTable() {
   );
 
   const renderDropdownMenu = () => {
-    if (shouldHideMoreMenu()) return null;
+    if (shouldHideMoreMenu()) return false;
     return (
       <Dropdown
         anchorEl={anchorEl}
@@ -1110,7 +1133,7 @@ export default function PatientListTable() {
   };
 
   const renderDetailedPanel = (data) => {
-    if (shouldHideMoreMenu()) return null;
+    if (shouldHideMoreMenu()) return false;
     return (
       <DetailPanel>
         {getSelectedItemComponent(selectedMenuItem, data.rowData)}
@@ -1128,49 +1151,78 @@ export default function PatientListTable() {
     );
   };
 
+  // todo determine whether to precheck
+
+  const renderMyPatientsCheckbox = () => {
+    if (!getAppSettingByKey("ENABLE_PROVIDER_FILTER")) return false;
+    return (
+      <MyPatientsCheckbox
+        label={getAppSettingByKey("MY_PATIENTS_FILTER_LABEL")}
+        shouldCheck={
+          patientIdsByCareTeamParticipant &&
+          patientIdsByCareTeamParticipant.length
+        }
+        changeEvent={(shouldCheck) => {
+          if (!shouldCheck) {
+            setPatientIdsByCareTeamParticipant(null);
+            if (tableRef.current) tableRef.current.onQueryChange();
+            return;
+          }
+          // NOTE - retrieving id(s) of patients whose care team the practitioner is part of
+          getPatientIdsByCareTeamParticipant(
+            user ? user.practitionerId : null
+          ).then((result) => {
+            setPatientIdsByCareTeamParticipant(
+              result && result.length ? result : [-1]
+            );
+            if (tableRef.current) tableRef.current.onQueryChange();
+          });
+        }}
+        error={userError}
+      ></MyPatientsCheckbox>
+    );
+  };
+
+  const renderFilterByTestPatientsCheckbox = () => {
+    if (!getAppSettingByKey("ENABLE_FILTER_FOR_TEST_PATIENTS")) return false;
+    return (
+      <TestPatientsCheckbox
+        label={getAppSettingByKey("FILTER_FOR_TEST_PATIENTS_LABEL")}
+        changeEvent={(checked) => {
+          setFilterByTestPatients(checked);
+          if (tableRef.current) tableRef.current.onQueryChange();
+        }}
+      ></TestPatientsCheckbox>
+    );
+  };
+
   React.useEffect(() => {
     //when page unloads, remove loading indicator
     window.addEventListener("beforeunload", handlePageUnload);
-    validateToken().then(
-      (token) => {
-        if (!token) {
-          console.log("Redirecting...");
-          window.location = "/clear_session";
-          return false;
-        }
-        if (appSettings) {
-          addMamotoTracking(
-            appSettings["MATOMO_SITE_ID"],
-            // use preferred_username from OIDC ID token as user id
-            getPreferredUserNameFromToken(token)
-          );
-          const clients = getClientsByRequiredRoles(
-            appSettings["SOF_CLIENTS"],
-            getRolesFromToken(token)
-          );
-          if (!clients || !clients.length) {
-            setErrorMessage("No SoF client match the user role(s) found");
-          } else {
-            setAppClients(clients);
-          }
-        }
-      },
-      (e) => {
-        console.log("token validation error ", e);
-        handleErrorCallback(e);
-      }
-    );
+    if (parseInt(userError) === 401) {
+      handleErrorCallback({ status: 401 });
+      return;
+    }
+    if (appSettings) {
+      addMamotoTracking(appSettings["MATOMO_SITE_ID"], userName);
+    }
     return () => {
       window.removeEventListener("beforeunload", handlePageUnload);
     };
-  }, [appSettings]); //retrieval of settings should occur prior to patient list being rendered/initialized
+  }, [userError, userName, appSettings]); //retrieval of settings should occur prior to patient list being rendered/initialized
 
   return (
     <Container className={classes.container} id="patientList">
       {renderSearchTitle()}
       <Error message={errorMessage} style={errorStyle} />
-      {/* patient search row */}
-      {renderPatientSearchRow()}
+      <div className="flex">
+        {/* patient search row */}
+        {renderPatientSearchRow()}
+        <div className={classes.tableOptionContainers}>
+          {renderMyPatientsCheckbox()}
+          {renderFilterByTestPatientsCheckbox()}
+        </div>
+      </div>
       {/* patient list table */}
 
       <div className={`${classes.table} main`} aria-label="patient list table">

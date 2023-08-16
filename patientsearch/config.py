@@ -24,12 +24,25 @@ ENABLE_INACTIVITY_TIMEOUT = (
 
 ENABLE_PATIENT_DELETE = os.getenv("ENABLE_PATIENT_DELETE", "false").lower() == "true"
 
+ENABLE_PROVIDER_FILTER = os.getenv("ENABLE_PROVIDER_FILTER", "false").lower() == "true"
+FILTER_FOR_TEST_PATIENTS_LABEL = os.getenv(
+    "FILTER_FOR_TEST_PATIENTS_LABEL", "Include test patients"
+)
+ENABLE_FILTER_FOR_TEST_PATIENTS = (
+    os.getenv("ENABLE_FILTER_FOR_TEST_PATIENTS", "false").lower() == "true"
+)
+LAUNCH_AFTER_PATIENT_CREATION = (
+    os.getenv("LAUNCH_AFTER_PATIENT_CREATION", "false").lower() == "true"
+)
+
 FORBIDDEN_TEXT = os.getenv(
     "FORBIDDEN_TEXT",
     "Your account is not authorized for access, please contact an administrator",
 )
 
 SEARCH_TITLE_TEXT = os.getenv("SEARCH_TITLE_TEXT", "Patient Search")
+
+MY_PATIENTS_FILTER_LABEL = os.getenv("MY_PATIENTS_FILTER_LABEL", "My Patients")
 
 DASHBOARD_COLUMNS = json.loads(
     os.getenv(

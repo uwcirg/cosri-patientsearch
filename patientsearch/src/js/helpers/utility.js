@@ -1,5 +1,6 @@
 import differenceInMonths from "date-fns/differenceInMonths";
 import isValid from "date-fns/isValid";
+import { ACCESS_TOKEN_KEY, REALM_ACCESS_TOKEN_KEY, noCacheParam } from "../constants/consts";
 
 export function sendRequest(url, params) {
   params = params || {};
@@ -184,6 +185,7 @@ export function getLocalDateTimeString(utcDateString, shortFormat) {
   //note javascript Date object automatically convert UTC date/time to locate date/time, no need to parse and convert
   let dateObj =
     utcDateString instanceof Date ? utcDateString : new Date(utcDateString);
+  if (!isValid(dateObj)) return utcDateString;
   let year = dateObj.getFullYear();
   let month = pad(dateObj.getMonth() + 1);
   let day = pad(dateObj.getDate());
@@ -308,13 +310,11 @@ export async function validateToken() {
   return tokenData;
 }
 
-export function getRolesFromToken(token) {
-  token = token || {};
+export function getRolesFromToken(tokenObj) {
+  const token = tokenObj || {};
   let roles = [];
-  const ACCESS_TOKEN_KEY = "access_token";
-  const REALM_ACCESS_KEY = "realm_access";
-  if (token[ACCESS_TOKEN_KEY] && token[ACCESS_TOKEN_KEY][REALM_ACCESS_KEY]) {
-    const realmAccessObj = token[ACCESS_TOKEN_KEY][REALM_ACCESS_KEY];
+  if (token[ACCESS_TOKEN_KEY] && token[ACCESS_TOKEN_KEY][REALM_ACCESS_TOKEN_KEY]) {
+    const realmAccessObj = token[ACCESS_TOKEN_KEY][REALM_ACCESS_TOKEN_KEY];
     if (realmAccessObj["roles"]) {
       roles = [...roles, ...realmAccessObj["roles"]];
     }
@@ -322,10 +322,20 @@ export function getRolesFromToken(token) {
   return roles;
 }
 
-export function getPreferredUserNameFromToken(token) {
-  return token["access_token"] && token["access_token"]["preferred_username"]
-    ? token["access_token"]["preferred_username"]
-    : null;
+export function getAccessToken(tokenObj) {
+  const token = tokenObj || {};
+  if (!token || !token[ACCESS_TOKEN_KEY]) return null;
+  return token[ACCESS_TOKEN_KEY];
+}
+
+export function getEmailFromToken(tokenObj) {
+  const token = getAccessToken(tokenObj) || {};
+  return token.email;
+}
+
+export function getPreferredUserNameFromToken(tokenObj) {
+  const token = getAccessToken(tokenObj) || {};
+  return token["preferred_username"];
 }
 
 export function getClientsByRequiredRoles(sofClients, currentRoles) {
@@ -465,4 +475,68 @@ export function getTimeAgoDisplay(objDate) {
     }
     return `${minutes} minute${minutes > 1 ? "s" : ""} ago`;
   }
+}
+
+/*
+ * @param patientId, Id for the patient
+ * @param clientLaunchURL, URL for the client app
+ * @param settings, application settings 
+ * @return {string} url for launching the client app
+ */
+export const getAppLaunchURL = (patientId, clientLaunchURL, settings) => {
+  if (!patientId) {
+    console.log("Missing information: patient Id");
+    return "";
+  }
+  const appSettings = settings ? settings : {};
+  const iss = appSettings["SOF_HOST_FHIR_URL"];
+  const needPatientBanner = appSettings["NEED_PATIENT_BANNER"];
+  if (!clientLaunchURL || !iss) {
+    console.log("Missing ISS launch base URL");
+    return "";
+  }
+  const arrParams = [
+    `patient=${patientId}`,
+    `need_patient_banner=${needPatientBanner}`,
+    `launch=${btoa(JSON.stringify({ a: 1, b: patientId }))}`,
+    `iss=${encodeURIComponent(iss)}`,
+  ];
+  return `${clientLaunchURL}?${arrParams.join("&")}`;
+};
+
+/*
+ * look up care team resources containing the practitioner ID
+ * @param practitionerId practitioner id (as id from the Practitioner FHIR resource)
+ * @return {array<string> | null} array of patient ids or null
+ */
+export async function getPatientIdsByCareTeamParticipant(practitionerId) {
+  if (!practitionerId) return null;
+  const results = await fetchData(
+    `/fhir/CareTeam?participant=Practitioner/${practitionerId}`,
+    noCacheParam,
+    (error) => {
+      if (error) {
+        console.log("Error retrieving careteam by participant id ", error);
+        return null;
+      }
+    }
+  ).catch((e) => {
+    console.log("Error retrieving careteam partipant by id ", e);
+    return null;
+  });
+  console.log("care team participant result ", results);
+  if (results && results.entry.length) {
+    const matchedPatientIds = results.entry
+      .filter(
+        (o) => o.resource && o.resource.subject && o.resource.subject.reference
+      )
+      .map((o) => {
+        return o.resource.subject.reference.split("/")[1];
+      });
+    if (matchedPatientIds.length) {
+      return matchedPatientIds;
+    }
+    return null;
+  }
+  return null;
 }
