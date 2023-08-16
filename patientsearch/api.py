@@ -22,6 +22,7 @@ from patientsearch.models import (
     add_identifier_to_resource_type,
     external_request,
     internal_patient_search,
+    new_resource_hook,
     sync_bundle,
 )
 from patientsearch.extensions import oidc
@@ -275,6 +276,7 @@ def post_resource(resource_type):
                 f"{resource['resourceType']} != {resource_type}"
             )
 
+        resource = new_resource_hook(resource)
         method = request.method
         audit_HAPI_change(
             user_info=current_user_info(token),
@@ -510,6 +512,7 @@ def external_search(resource_type):
     if not local_fhir_patient:
         # Add at this time in the local (HAPI) store
         try:
+            patient = new_resource_hook(patient)
             method = "POST"
             resource_type = "Patient"
             audit_HAPI_change(
