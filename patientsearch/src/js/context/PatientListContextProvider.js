@@ -26,6 +26,7 @@ const PatientListContext = React.createContext({});
 let filterIntervalId = 0;
 export default function PatientListContextProvider({ children }) {
   const settingsCxt = useSettingContext();
+  /* eslint-disable react/react/prop-types */
   const appSettings = settingsCxt ? settingsCxt.appSettings : {};
   const { user, userError } = useUserContext();
   const { userName, roles } = user || {};
@@ -998,8 +999,8 @@ export default function PatientListContextProvider({ children }) {
       }}
     >
       <PatientListContext.Consumer>
-        {(props) => {
-          if (Object.keys(props.appSettings).length > 0) return children;
+        {(settings) => {
+          if (Object.keys(settings.appSettings).length > 0) return children;
           return (
             <div style={{ display: "flex", gap: "16px 16px", padding: "24px" }}>
               Loading... <CircularProgress color="primary"></CircularProgress>
