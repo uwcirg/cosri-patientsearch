@@ -10,7 +10,10 @@ export default function DropdownMenu() {
     shouldHideMoreMenu,
     shouldShowMenuItem,
   } = usePatientListContext();
-  if (!shouldHideMoreMenu) shouldHideMoreMenu = function () { return true };
+  if (!shouldHideMoreMenu)
+    shouldHideMoreMenu = function () {
+      return true;
+    };
   if (shouldHideMoreMenu()) return false;
   return (
     <Dropdown

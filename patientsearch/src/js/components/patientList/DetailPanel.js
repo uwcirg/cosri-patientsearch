@@ -5,19 +5,31 @@ import Paper from "@material-ui/core/Paper";
 import useStyles from "../../../styles/patientListStyle";
 import { usePatientListContext } from "../../context/PatientListContextProvider";
 
-export default function DetailPanel({data}) {
+export default function DetailPanel({ data }) {
   const classes = useStyles();
   let {
     selectedMenuItem,
     getSelectedItemComponent,
     handleMenuClose,
     handleToggleDetailPanel,
-    shouldHideMoreMenu
+    shouldHideMoreMenu,
   } = usePatientListContext();
-  if (!shouldHideMoreMenu) shouldHideMoreMenu = function() { return true};
-  if (!handleToggleDetailPanel) shouldHideMoreMenu = function() { return true};
-  if (!handleMenuClose) handleMenuClose = function() { return true};
-  if (!getSelectedItemComponent) getSelectedItemComponent = function() { return null};
+  if (!shouldHideMoreMenu)
+    shouldHideMoreMenu = function () {
+      return true;
+    };
+  if (!handleToggleDetailPanel)
+    shouldHideMoreMenu = function () {
+      return true;
+    };
+  if (!handleMenuClose)
+    handleMenuClose = function () {
+      return true;
+    };
+  if (!getSelectedItemComponent)
+    getSelectedItemComponent = function () {
+      return null;
+    };
   if (shouldHideMoreMenu()) return false;
   return (
     <div className={classes.detailPanelWrapper}>

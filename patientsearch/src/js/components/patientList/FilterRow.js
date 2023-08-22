@@ -49,7 +49,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default function FilterRow(props) {
+export default function FilterRow() {
   let {
     //methods
     handleSearch,

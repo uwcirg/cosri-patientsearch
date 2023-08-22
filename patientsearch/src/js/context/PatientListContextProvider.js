@@ -25,7 +25,8 @@ const PatientListContext = React.createContext({});
  */
 let filterIntervalId = 0;
 export default function PatientListContextProvider({ children }) {
-  const appSettings = useSettingContext().appSettings;
+  const settingsCxt = useSettingContext();
+  const appSettings = settingsCxt ? settingsCxt.appSettings : {};
   const { user, userError } = useUserContext();
   const { userName, roles } = user || {};
   const appClients = getClientsByRequiredRoles(
