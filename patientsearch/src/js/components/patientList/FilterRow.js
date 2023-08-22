@@ -1,5 +1,4 @@
 import React from "react";
-import PropTypes from "prop-types";
 import { makeStyles } from "@material-ui/core/styles";
 import DateFnsUtils from "@date-io/date-fns";
 import isValid from "date-fns/isValid";
@@ -14,6 +13,7 @@ import {
   MuiPickersUtilsProvider,
   KeyboardDatePicker,
 } from "@material-ui/pickers";
+import { usePatientListContext } from "../../context/PatientListContextProvider";
 
 const useStyles = makeStyles((theme) => ({
   row: {
@@ -50,6 +50,21 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export default function FilterRow(props) {
+  let {
+    //methods
+    handleSearch,
+    onFiltersDidChange,
+    //states/set state methods
+    actionLabel,
+  } = usePatientListContext();
+  if (!handleSearch)
+    handleSearch = function () {
+      console.log("handleSearch is not defined.  Unable to search.");
+    };
+  if (!onFiltersDidChange)
+    onFiltersDidChange = function () {
+      console.log("onFiltersDidChange is not defined.");
+    };
   const classes = useStyles();
   const LAUNCH_BUTTON_LABEL = "VIEW";
   const [firstName, setFirstName] = React.useState("");
@@ -59,7 +74,7 @@ export default function FilterRow(props) {
   const handleFirstNameChange = (event) => {
     let targetValue = event.target.value;
     setFirstName(targetValue);
-    props.onFiltersDidChange([
+    onFiltersDidChange([
       {
         field: "first_name",
         value: targetValue,
@@ -77,7 +92,7 @@ export default function FilterRow(props) {
   const handleLastNameChange = (event) => {
     let targetValue = event.target.value;
     setLastName(targetValue);
-    props.onFiltersDidChange([
+    onFiltersDidChange([
       {
         field: "last_name",
         value: targetValue,
@@ -112,7 +127,7 @@ export default function FilterRow(props) {
   const clearDate = () => {
     setDateInput("");
     setDate(null);
-    props.onFiltersDidChange([
+    onFiltersDidChange([
       {
         field: "first_name",
         value: firstName,
@@ -129,7 +144,7 @@ export default function FilterRow(props) {
   };
   const handleClear = () => {
     clearFields();
-    props.onFiltersDidChange(null);
+    onFiltersDidChange(null);
   };
   const clearFields = () => {
     setFirstName("");
@@ -137,9 +152,7 @@ export default function FilterRow(props) {
     clearDate();
   };
   const getLaunchButtonLabel = () => {
-    return props.launchButtonLabel
-      ? props.launchButtonLabel
-      : LAUNCH_BUTTON_LABEL;
+    return actionLabel ? actionLabel : LAUNCH_BUTTON_LABEL;
   };
   const handleKeyDown = (e) => {
     const pressedKey = String(e.key).toLowerCase();
@@ -147,7 +160,7 @@ export default function FilterRow(props) {
       e.stopPropagation();
     }
     if (pressedKey === "enter") {
-      props.launchFunc(getFilterData());
+      handleSearch(getFilterData());
       return;
     }
     return false;
@@ -234,7 +247,7 @@ export default function FilterRow(props) {
           if (!event || !isValid(event)) {
             if (event && String(dateInput).replace(/[-_]/g, "").length >= 8)
               setDate(event);
-            props.onFiltersDidChange([
+            onFiltersDidChange([
               {
                 field: "first_name",
                 value: firstName,
@@ -251,7 +264,7 @@ export default function FilterRow(props) {
             return;
           }
           setDate(event);
-          props.onFiltersDidChange([
+          onFiltersDidChange([
             {
               field: "first_name",
               value: firstName,
@@ -278,7 +291,7 @@ export default function FilterRow(props) {
       color="primary"
       size="small"
       variant="contained"
-      onClick={() => props.launchFunc(getFilterData())}
+      onClick={() => handleSearch(getFilterData())}
     >
       {getLaunchButtonLabel()}
     </Button>
@@ -316,9 +329,3 @@ export default function FilterRow(props) {
     </tr>
   );
 }
-
-FilterRow.propTypes = {
-  onFiltersDidChange: PropTypes.func.isRequired,
-  launchButtonLabel: PropTypes.string,
-  launchFunc: PropTypes.func,
-};

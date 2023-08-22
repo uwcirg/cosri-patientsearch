@@ -3,6 +3,7 @@ import PropTypes from "prop-types";
 import FormControlLabel from "@material-ui/core/FormControlLabel";
 import Checkbox from "@material-ui/core/Checkbox";
 import Typography from "@material-ui/core/Typography";
+import { usePatientListContext } from "../../context/PatientListContextProvider";
 
 const checkBoxStyles = makeStyles((theme) => {
   return {
@@ -16,15 +17,21 @@ const formControlStyles = makeStyles((theme) => {
     root: {
       backgroundColor: "#f7f7f7",
       marginLeft: theme.spacing(1),
-      marginRight: theme.spacing(1)
+      marginRight: theme.spacing(1),
     },
   };
 });
 
 export default function TestPatientsCheckbox({ label, changeEvent }) {
+  const { getAppSettingByKey, setFilterByTestPatients, tableRef } =
+    usePatientListContext();
+  if (!getAppSettingByKey("ENABLE_FILTER_FOR_TEST_PATIENTS")) return false;
+
   const checkboxClasses = checkBoxStyles();
   const formControlClasses = formControlStyles();
   const handleChange = (event) => {
+    setFilterByTestPatients(event.target.checked);
+    if (tableRef.current) tableRef.current.onQueryChange();
     if (changeEvent) changeEvent(event.target.checked);
   };
   return (
@@ -43,12 +50,16 @@ export default function TestPatientsCheckbox({ label, changeEvent }) {
           }}
         />
       }
-      label={<Typography variant="body2">{label}</Typography>}
+      label={
+        <Typography variant="body2">
+          {label || getAppSettingByKey("FILTER_FOR_TEST_PATIENTS_LABEL")}
+        </Typography>
+      }
     />
   );
 }
 
 TestPatientsCheckbox.propTypes = {
-  label: PropTypes.string.isRequired,
+  label: PropTypes.string,
   changeEvent: PropTypes.func,
 };

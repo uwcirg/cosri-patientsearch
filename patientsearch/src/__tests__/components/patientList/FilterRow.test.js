@@ -1,6 +1,6 @@
 import { shallow } from "enzyme";
 import React from "react";
-import FilterRow from "../../js/components/FilterRow";
+import FilterRow from "../../../js/components/patientList/FilterRow";
 
 describe("FilterRow", () => {
   it("FilterRow component renders without crashing", () => {
