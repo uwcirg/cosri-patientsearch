@@ -39,9 +39,9 @@ const formControlStyles = makeStyles((theme) => {
 export default function MyPatientsCheckbox({
   shouldDisable,
   changeEvent,
+  label
 }) {
   const {
-    getAppSettingByKey = function() { return null;},
     setPatientIdsByCareTeamParticipant = function() {},
     user,
     userError,
@@ -69,7 +69,6 @@ export default function MyPatientsCheckbox({
       }
     );
   };
-  if (!getAppSettingByKey("ENABLE_PROVIDER_FILTER")) return false;
   return (
     <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
       <FormControlLabel
@@ -91,7 +90,7 @@ export default function MyPatientsCheckbox({
         }
         label={
           <Typography variant="body2">
-            {getAppSettingByKey("MY_PATIENTS_FILTER_LABEL")}
+            {label}
           </Typography>
         }
       />
@@ -117,4 +116,5 @@ export default function MyPatientsCheckbox({
 MyPatientsCheckbox.propTypes = {
   shouldDisable: PropTypes.bool,
   changeEvent: PropTypes.func,
+  label: PropTypes.string
 };

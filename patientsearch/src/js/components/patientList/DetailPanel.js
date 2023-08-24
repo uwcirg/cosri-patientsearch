@@ -10,12 +10,8 @@ export default function DetailPanel({ data }) {
   let {
     getDetailPanelContent = function () {},
     onDetailPanelClose = function () {},
-    shouldHideMoreMenu = function () {
-      return true;
-    },
   } = usePatientListContext();
 
-  if (shouldHideMoreMenu()) return false;
   return (
     <div className={classes.detailPanelWrapper}>
       <Paper

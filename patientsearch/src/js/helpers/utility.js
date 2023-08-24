@@ -2,6 +2,10 @@ import differenceInMonths from "date-fns/differenceInMonths";
 import isValid from "date-fns/isValid";
 import { ACCESS_TOKEN_KEY, REALM_ACCESS_TOKEN_KEY, noCacheParam } from "../constants/consts";
 
+export function toTop () {
+  window.scrollTo(0, 0);
+};
+
 export function sendRequest(url, params) {
   params = params || {};
   // Return a new promise.
@@ -479,19 +483,21 @@ export function getTimeAgoDisplay(objDate) {
 
 /*
  * @param patientId, Id for the patient
- * @param clientLaunchURL, URL for the client app
- * @param settings, application settings 
+ * @param params, parameters required for launching an app
  * @return {string} url for launching the client app
  */
-export const getAppLaunchURL = (patientId, clientLaunchURL, settings) => {
+export const getAppLaunchURL = (patientId, params) => {
   if (!patientId) {
     console.log("Missing information: patient Id");
     return "";
   }
-  const appSettings = settings ? settings : {};
-  const iss = appSettings["SOF_HOST_FHIR_URL"];
-  const needPatientBanner = appSettings["NEED_PATIENT_BANNER"];
-  if (!clientLaunchURL || !iss) {
+  const launchParams = params ? params : {};
+  const iss = launchParams["SOF_HOST_FHIR_URL"];
+  const needPatientBanner = launchParams["NEED_PATIENT_BANNER"];
+  const launchURL = launchParams["launch_url"];
+  // const iss = appSettings["SOF_HOST_FHIR_URL"];
+  // const needPatientBanner = appSettings["NEED_PATIENT_BANNER"];
+  if (!launchURL || !iss) {
     console.log("Missing ISS launch base URL");
     return "";
   }
@@ -501,7 +507,7 @@ export const getAppLaunchURL = (patientId, clientLaunchURL, settings) => {
     `launch=${btoa(JSON.stringify({ a: 1, b: patientId }))}`,
     `iss=${encodeURIComponent(iss)}`,
   ];
-  return `${clientLaunchURL}?${arrParams.join("&")}`;
+  return `${launchURL}?${arrParams.join("&")}`;
 };
 
 /*

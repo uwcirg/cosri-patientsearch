@@ -12,7 +12,6 @@ import FilterRow from "./FilterRow";
 import LaunchDialog from "./LaunchDialog";
 import Legend from "./Legend";
 import RefreshButton from "./RefreshButton";
-import Title from "./Title";
 import LoadingModal from "../LoadingModal";
 import MyPatientsCheckbox from "./MyPatientsCheckbox";
 import Pagination from "./Pagination";
@@ -34,10 +33,9 @@ export default function PatientListTable() {
     userName,
     userError,
     tableRef,
-
     //methods
     handleErrorCallback,
-    handlePageUnload,
+    getAppSettingByKey,
     getColumns,
     getPatientList,
     getTableActions,
@@ -45,10 +43,20 @@ export default function PatientListTable() {
     getTableEditableOptions,
     getTableLocalizations,
     getTableOptions,
+    shouldHideMoreMenu,
+    shouldShowLegend,
     //states
     errorMessage,
     openLoadingModal,
   } = usePatientListContext();
+
+  const renderTitle = () => {
+    const title = appSettings["SEARCH_TITLE_TEXT"]
+      ? appSettings["SEARCH_TITLE_TEXT"]
+      : null;
+    if (!title) return false;
+    return <h2>{title}</h2>;
+  };
 
   const renderPatientSearchRow = () => (
     <table className={classes.filterTable}>
@@ -58,9 +66,30 @@ export default function PatientListTable() {
     </table>
   );
 
+  const renderTestPatientsCheckbox = () => {
+    if (!getAppSettingByKey("ENABLE_FILTER_FOR_TEST_PATIENTS")) return false;
+    return (
+      <TestPatientsCheckbox
+        label={getAppSettingByKey("FILTER_FOR_TEST_PATIENTS_LABEL")}
+      ></TestPatientsCheckbox>
+    );
+  };
+
+  const renderMyPatientCheckbox = () => {
+    if (!getAppSettingByKey("ENABLE_PROVIDER_FILTER")) return false;
+    return (
+      <MyPatientsCheckbox
+        label={getAppSettingByKey("MY_PATIENTS_FILTER_LABEL")}
+      ></MyPatientsCheckbox>
+    );
+  };
+
+  const renderDropdownMenu = () => {
+    if (shouldHideMoreMenu()) return false;
+    return <DropdownMenu></DropdownMenu>;
+  };
+
   React.useEffect(() => {
-    //when page unloads, remove loading indicator
-    window.addEventListener("beforeunload", handlePageUnload);
     if (parseInt(userError) === 401) {
       handleErrorCallback({ status: 401 });
       return;
@@ -68,21 +97,18 @@ export default function PatientListTable() {
     if (appSettings) {
       addMamotoTracking(appSettings["MATOMO_SITE_ID"], userName);
     }
-    return () => {
-      window.removeEventListener("beforeunload", handlePageUnload);
-    };
   }, [userError, userName, appSettings]); //retrieval of settings should occur prior to patient list being rendered/initialized
 
   return (
     <Container className={classes.container} id="patientList">
-      <Title></Title>
+      {renderTitle()}
       <Error message={errorMessage} style={errorStyle} />
       <div className="flex">
         {/* patient search row */}
         {renderPatientSearchRow()}
         <div className={classes.tableOptionContainers}>
-          <MyPatientsCheckbox></MyPatientsCheckbox>
-          <TestPatientsCheckbox></TestPatientsCheckbox>
+          {renderMyPatientCheckbox()}
+          {renderTestPatientsCheckbox()}
         </div>
       </div>
       {/* patient list table */}
@@ -99,6 +125,7 @@ export default function PatientListTable() {
           detailPanel={[
             {
               render: (data) => {
+                if (shouldHideMoreMenu()) return false;
                 return <DetailPanel data={data}></DetailPanel>;
               },
               isFreeAction: false,
@@ -124,14 +151,14 @@ export default function PatientListTable() {
       </div>
       <LoadingModal open={openLoadingModal}></LoadingModal>
       <div className={classes.flexContainer}>
-        <Legend></Legend>
+        <Legend show={shouldShowLegend()}></Legend>
         <div>
           <RefreshButton></RefreshButton>
           <Pagination></Pagination>
         </div>
       </div>
       <LaunchDialog></LaunchDialog>
-      <DropdownMenu></DropdownMenu>
+      {renderDropdownMenu()}
     </Container>
   );
 }

@@ -1,10 +1,9 @@
 import useStyles from "../../../styles/patientListStyle";
-import { usePatientListContext } from "../../context/PatientListContextProvider";
+import PropTypes from "prop-types";
 
-export default function Legend() {
+export default function Legend({ show }) {
   const classes = useStyles();
-  const { containNoPMPRow } = usePatientListContext();
-  if (containNoPMPRow)
+  if (show)
     return (
       <div className={classes.legend}>
         <span className={classes.legendIcon}></span> Not in PMP
@@ -12,3 +11,7 @@ export default function Legend() {
     );
   return <div className={classes.spacer}></div>;
 }
+
+Legend.propTypes = {
+  show: PropTypes.bool,
+};

@@ -24,7 +24,7 @@ export default function LaunchDialog() {
     <DialogBox
       open={openLaunchInfoModal}
       onClose={() => onLaunchDialogClose()}
-      title={`Launch for ${
+      title={`${
         currentRow ? `${currentRow.last_name}, ${currentRow.first_name}` : ""
       }`}
       body={
