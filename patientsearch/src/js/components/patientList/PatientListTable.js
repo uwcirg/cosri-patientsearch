@@ -23,8 +23,6 @@ import { addMamotoTracking } from "../../helpers/utility";
 
 export default function PatientListTable() {
   const patientListCtx = usePatientListContext();
-  if (Object.keys(patientListCtx).length === 0)
-    return <Error message="patient context error"></Error>;
   const theme = useTheme();
   const classes = useStyles();
   const {
@@ -72,7 +70,9 @@ export default function PatientListTable() {
       window.removeEventListener("beforeunload", handlePageUnload);
     };
   }, [userError, userName, appSettings]); //retrieval of settings should occur prior to patient list being rendered/initialized
-
+  
+  if (Object.keys(patientListCtx).length === 0)
+    return <Error message="patient context error"></Error>;
   return (
     <Container className={classes.container} id="patientList">
       <Title></Title>
