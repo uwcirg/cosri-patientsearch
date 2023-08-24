@@ -400,7 +400,8 @@ export default function PatientListContextProvider({ children }) {
             if (dataType === "timeago" && value) {
               value = value ? getTimeAgoDisplay(new Date(value)) : "--";
             }
-            rowData[col.field] = value;
+            if (col.field)
+              rowData[col.field] = value;
           });
           return rowData;
         })
@@ -623,17 +624,22 @@ export default function PatientListContextProvider({ children }) {
         } catch (e) {
           console.log("Error occurred adding row to table ", e);
         }
-        _handleRefresh();
-        // use config variable to determine whether to launch the first defined client application after account creation
-        handleLaunchApp(
-          _formatData(response)[0],
-          hasMultipleSoFClients() &&
-            getAppSettingByKey("LAUNCH_AFTER_PATIENT_CREATION")
-            ? appClients && appClients.length
-              ? appClients[0]
-              : null
-            : null
-        );
+        const shouldLaunchApp =
+          appClients &&
+          appClients.length > 0 &&
+          (appClients.length === 1 ||
+            (hasMultipleSoFClients() &&
+              getAppSettingByKey("LAUNCH_AFTER_PATIENT_CREATION")));
+        
+        if (shouldLaunchApp()) {
+          // use config variable to determine whether to launch the first defined client application after account creation
+          handleLaunchApp(
+            _formatData(response)[0],
+            appClients[0]
+          );
+        } else {
+            _handleRefresh();
+        }
       })
       .catch((e) => {
         //log error to console
@@ -868,7 +874,7 @@ export default function PatientListContextProvider({ children }) {
               resolve({
                 data: resultData,
                 page: currentPage,
-                totalCount: response.total,
+                totalCount: response ? response.total : 0,
               });
             })
             .catch((e) => {

@@ -62,6 +62,8 @@ export async function fetchData(url, params, errorCallback) {
   let json = null;
   let results = await Promise.race([fetch(url, params), timeoutPromise]).catch(
     (e) => {
+      console.log("url ", url);
+      console.log("params ", params)
       console.log("error retrieving data ", e);
       errorCallback(e);
       throw e;
@@ -189,7 +191,7 @@ export function getLocalDateTimeString(utcDateString, shortFormat) {
   //note javascript Date object automatically convert UTC date/time to locate date/time, no need to parse and convert
   let dateObj =
     utcDateString instanceof Date ? utcDateString : new Date(utcDateString);
-  if (!isValid(dateObj)) return utcDateString;
+  if (!isValid(dateObj) || isNaN(dateObj)) return utcDateString;
   let year = dateObj.getFullYear();
   let month = pad(dateObj.getMonth() + 1);
   let day = pad(dateObj.getDate());
