@@ -1,8 +1,12 @@
 import differenceInMonths from "date-fns/differenceInMonths";
 import isValid from "date-fns/isValid";
-import { ACCESS_TOKEN_KEY, REALM_ACCESS_TOKEN_KEY, noCacheParam } from "../constants/consts";
+import {
+  ACCESS_TOKEN_KEY,
+  REALM_ACCESS_TOKEN_KEY,
+  noCacheParam,
+} from "../constants/consts";
 
-export function toTop () {
+export function toTop() {
   window.scrollTo(0, 0);
 }
 
@@ -63,7 +67,7 @@ export async function fetchData(url, params, errorCallback) {
   let results = await Promise.race([fetch(url, params), timeoutPromise]).catch(
     (e) => {
       console.log("url ", url);
-      console.log("params ", params)
+      console.log("params ", params);
       console.log("error retrieving data ", e);
       errorCallback(e);
       throw e;
@@ -319,7 +323,10 @@ export async function validateToken() {
 export function getRolesFromToken(tokenObj) {
   const token = tokenObj || {};
   let roles = [];
-  if (token[ACCESS_TOKEN_KEY] && token[ACCESS_TOKEN_KEY][REALM_ACCESS_TOKEN_KEY]) {
+  if (
+    token[ACCESS_TOKEN_KEY] &&
+    token[ACCESS_TOKEN_KEY][REALM_ACCESS_TOKEN_KEY]
+  ) {
     const realmAccessObj = token[ACCESS_TOKEN_KEY][REALM_ACCESS_TOKEN_KEY];
     if (realmAccessObj["roles"]) {
       roles = [...roles, ...realmAccessObj["roles"]];
