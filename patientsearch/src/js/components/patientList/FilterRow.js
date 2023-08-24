@@ -52,19 +52,16 @@ const useStyles = makeStyles((theme) => ({
 export default function FilterRow() {
   let {
     //methods
-    handleSearch,
-    onFiltersDidChange,
+    handleSearch = function () {
+      console.log("handleSearch is not defined.  Unable to search.");
+    },
+    onFiltersDidChange = function () {
+      console.log("onFiltersDidChange is not defined.");
+    },
     //states/set state methods
     actionLabel,
   } = usePatientListContext();
-  if (!handleSearch)
-    handleSearch = function () {
-      console.log("handleSearch is not defined.  Unable to search.");
-    };
-  if (!onFiltersDidChange)
-    onFiltersDidChange = function () {
-      console.log("onFiltersDidChange is not defined.");
-    };
+
   const classes = useStyles();
   const LAUNCH_BUTTON_LABEL = "VIEW";
   const [firstName, setFirstName] = React.useState("");

@@ -262,38 +262,6 @@ export default function PatientListContextProvider({ children }) {
     handleRefresh();
   };
 
-  const getTableOptions = (theme) => ({
-    paginationTypestepped: "stepped",
-    showFirstLastPageButtons: false,
-    paging: false,
-    padding: "dense",
-    emptyRowsWhenPaging: false,
-    debounceInterval: 300,
-    detailPanelColumnAlignment: "right",
-    toolbar: false,
-    filtering: false,
-    maxColumnSort: 1,
-    thirdSortClick: false,
-    search: false,
-    showTitle: false,
-    actionsColumnIndex: -1,
-    headerStyle: {
-      backgroundColor: theme.palette.primary.lightest,
-      padding: theme.spacing(1, 2, 1),
-    },
-    rowStyle: (rowData) => ({
-      backgroundColor:
-        needExternalAPILookup() && !inPDMP(rowData)
-          ? theme.palette.primary.disabled
-          : "#FFF",
-    }),
-    actionsCellStyle: {
-      paddingLeft: theme.spacing(1),
-      paddingRight: theme.spacing(1),
-      justifyContent: "center",
-    },
-  });
-
   const formatData = (data) => {
     if (!data) return false;
     if (!Array.isArray(data)) {
@@ -425,6 +393,12 @@ export default function PatientListContextProvider({ children }) {
       handleToggleDetailPanel(currentRow);
     }, 200);
   };
+  const getDetailPanelContent = (data) =>
+    getSelectedItemComponent(selectedMenuItem, data.rowData);
+  const onDetailPanelClose = (data) => {
+    handleToggleDetailPanel(data.rowData);
+    handleMenuClose();
+  };
   const shouldHideMoreMenu = () => {
     if (!hasAppSettings()) return true;
     return (
@@ -471,6 +445,43 @@ export default function PatientListContextProvider({ children }) {
   const handlePageUnload = () => {
     setTimeout(() => setOpenLoadingModal(false), 500);
   };
+
+  const onTestPatientsCheckboxChange = (event) => {
+    setFilterByTestPatients(event.target.checked);
+    if (tableRef.current) tableRef.current.onQueryChange();
+  };
+
+  const getTableOptions = (theme) => ({
+    paginationTypestepped: "stepped",
+    showFirstLastPageButtons: false,
+    paging: false,
+    padding: "dense",
+    emptyRowsWhenPaging: false,
+    debounceInterval: 300,
+    detailPanelColumnAlignment: "right",
+    toolbar: false,
+    filtering: false,
+    maxColumnSort: 1,
+    thirdSortClick: false,
+    search: false,
+    showTitle: false,
+    actionsColumnIndex: -1,
+    headerStyle: {
+      backgroundColor: theme.palette.primary.lightest,
+      padding: theme.spacing(1, 2, 1),
+    },
+    rowStyle: (rowData) => ({
+      backgroundColor:
+        needExternalAPILookup() && !inPDMP(rowData)
+          ? theme.palette.primary.disabled
+          : "#FFF",
+    }),
+    actionsCellStyle: {
+      paddingLeft: theme.spacing(1),
+      paddingRight: theme.spacing(1),
+      justifyContent: "center",
+    },
+  });
 
   const getTableActions = () => {
     let actions = [];
@@ -946,6 +957,7 @@ export default function PatientListContextProvider({ children }) {
         getAppSettingByKey,
         getColumns,
         getDefaultSortColumn,
+        getDetailPanelContent,
         getPatientList,
         getLaunchURL,
         getNonEmptyFilters,
@@ -958,8 +970,10 @@ export default function PatientListContextProvider({ children }) {
         getTableOptions,
         inPDMP,
         needExternalAPILookup,
+        onDetailPanelClose,
         onFiltersDidChange,
         onLaunchDialogClose,
+        onTestPatientsCheckboxChange,
         resetPaging,
         setNoPMPFlag,
         shouldHideMoreMenu,

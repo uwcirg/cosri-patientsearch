@@ -22,9 +22,12 @@ import * as constants from "../../constants/consts";
 import { addMamotoTracking } from "../../helpers/utility";
 
 export default function PatientListTable() {
+  const patientListCtx = usePatientListContext();
+  if (Object.keys(patientListCtx).length === 0)
+    return <Error message="patient context error"></Error>;
   const theme = useTheme();
   const classes = useStyles();
-  let {
+  const {
     // constants
     appSettings,
     errorStyle,
@@ -46,22 +49,6 @@ export default function PatientListTable() {
     errorMessage,
     openLoadingModal,
   } = usePatientListContext();
-
-  if (!handleErrorCallback) handleErrorCallback = function () {};
-  if (!handlePageUnload) handlePageUnload = function () {};
-  if (!getColumns)
-    getColumns = function () {
-      return [];
-    };
-  if (!getPatientList)
-    getPatientList = function () {
-      return [];
-    };
-  if (!getTableActions) getTableActions = function () {};
-  if (!getTableRowEvent) getTableRowEvent = function () {};
-  if (!getTableEditableOptions) getTableEditableOptions = function () {};
-  if (!getTableLocalizations) getTableLocalizations = function () {};
-  if (!getTableOptions) getTableOptions = function () {};
 
   const renderPatientSearchRow = () => (
     <table className={classes.filterTable}>

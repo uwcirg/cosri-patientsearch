@@ -1,10 +1,15 @@
 import useStyles from "../../../styles/patientListStyle";
 import TablePagination from "@material-ui/core/TablePagination";
-import {usePatientListContext} from "../../context/PatientListContextProvider";
+import { usePatientListContext } from "../../context/PatientListContextProvider";
 
 export default function Pagination() {
   const classes = useStyles();
-  const { data, pagination, paginationDispatch, tableRef } = usePatientListContext();
+  const {
+    data,
+    pagination,
+    paginationDispatch = function () {},
+    tableRef,
+  } = usePatientListContext();
   const handleChangePage = (event, newPage) => {
     paginationDispatch({
       payload: {
@@ -29,9 +34,7 @@ export default function Pagination() {
   return (
     <TablePagination
       id="patientListPagination"
-      className={`${
-        pagination.totalCount === 0 ? "ghost" : classes.pagination
-      }`}
+      className={classes.pagination}
       rowsPerPageOptions={[5, 10, 20, 50]}
       onPageChange={handleChangePage}
       page={pagination.pageNumber}

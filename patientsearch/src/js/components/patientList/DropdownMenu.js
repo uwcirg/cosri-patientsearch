@@ -5,15 +5,11 @@ export default function DropdownMenu() {
   let {
     anchorEl,
     menuItems,
-    handleMenuClose,
-    handleMenuSelect,
-    shouldHideMoreMenu,
-    shouldShowMenuItem,
+    handleMenuClose = function() {},
+    handleMenuSelect = function() {},
+    shouldHideMoreMenu = function() {},
+    shouldShowMenuItem = function() {},
   } = usePatientListContext();
-  if (!shouldHideMoreMenu)
-    shouldHideMoreMenu = function () {
-      return true;
-    };
   if (shouldHideMoreMenu()) return false;
   return (
     <Dropdown

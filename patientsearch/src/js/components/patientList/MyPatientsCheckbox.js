@@ -41,18 +41,15 @@ export default function MyPatientsCheckbox({
   changeEvent,
 }) {
   const {
-    getAppSettingByKey,
-    patientIdsByCareTeamParticipant,
-    setPatientIdsByCareTeamParticipant,
+    getAppSettingByKey = function() { return null;},
+    setPatientIdsByCareTeamParticipant = function() {},
     user,
     userError,
     tableRef
   } = usePatientListContext();
   const checkboxClasses = checkBoxStyles();
   const formControlClasses = formControlStyles();
-  const [state, setState] = useState(
-    patientIdsByCareTeamParticipant && patientIdsByCareTeamParticipant.length
-  );
+  const [state, setState] = useState(false);
   const handleChange = (event) => {
     setState(event.target.checked);
     if (!event.target.checked) {

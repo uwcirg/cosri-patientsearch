@@ -11,26 +11,22 @@ export default function LaunchDialog() {
     currentRow,
     openLaunchInfoModal,
     //methods
-    handleLaunchApp,
-    hasSoFClients,
-    onLaunchDialogClose,
-  } = usePatientListContext();
-  if (!handleLaunchApp)
     handleLaunchApp = function () {
       console.log("handleLaunchApp is not defined.  Unable to launch app.");
-    };
-  if (!hasSoFClients)
+    },
     hasSoFClients = function () {
       console.log("hasSoFClients is not defined. Unable to check.");
-    };
-  if (!onLaunchDialogClose) onLaunchDialogClose = function () {};
+      return false;
+    },
+    onLaunchDialogClose = function () {},
+  } = usePatientListContext();
   return (
     <DialogBox
       open={openLaunchInfoModal}
       onClose={() => onLaunchDialogClose()}
-      title={
+      title={`Launch for ${
         currentRow ? `${currentRow.last_name}, ${currentRow.first_name}` : ""
-      }
+      }`}
       body={
         <div className={classes.flex}>
           {!hasSoFClients() && <div>No client application is defined.</div>}

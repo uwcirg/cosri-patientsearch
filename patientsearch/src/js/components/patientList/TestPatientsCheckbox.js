@@ -23,15 +23,14 @@ const formControlStyles = makeStyles((theme) => {
 });
 
 export default function TestPatientsCheckbox({ label, changeEvent }) {
-  const { getAppSettingByKey, setFilterByTestPatients, tableRef } =
+  const { getAppSettingByKey, onTestPatientsCheckboxChange } =
     usePatientListContext();
   if (!getAppSettingByKey("ENABLE_FILTER_FOR_TEST_PATIENTS")) return false;
 
   const checkboxClasses = checkBoxStyles();
   const formControlClasses = formControlStyles();
   const handleChange = (event) => {
-    setFilterByTestPatients(event.target.checked);
-    if (tableRef.current) tableRef.current.onQueryChange();
+    if (onTestPatientsCheckboxChange) onTestPatientsCheckboxChange(event);
     if (changeEvent) changeEvent(event.target.checked);
   };
   return (

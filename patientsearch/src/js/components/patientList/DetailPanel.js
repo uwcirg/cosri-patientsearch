@@ -8,28 +8,13 @@ import { usePatientListContext } from "../../context/PatientListContextProvider"
 export default function DetailPanel({ data }) {
   const classes = useStyles();
   let {
-    selectedMenuItem,
-    getSelectedItemComponent,
-    handleMenuClose,
-    handleToggleDetailPanel,
-    shouldHideMoreMenu,
+    getDetailPanelContent = function () {},
+    onDetailPanelClose = function () {},
+    shouldHideMoreMenu = function () {
+      return true;
+    },
   } = usePatientListContext();
-  if (!shouldHideMoreMenu)
-    shouldHideMoreMenu = function () {
-      return true;
-    };
-  if (!handleToggleDetailPanel)
-    shouldHideMoreMenu = function () {
-      return true;
-    };
-  if (!handleMenuClose)
-    handleMenuClose = function () {
-      return true;
-    };
-  if (!getSelectedItemComponent)
-    getSelectedItemComponent = function () {
-      return null;
-    };
+
   if (shouldHideMoreMenu()) return false;
   return (
     <div className={classes.detailPanelWrapper}>
@@ -38,11 +23,10 @@ export default function DetailPanel({ data }) {
         variant="outlined"
         className={classes.detailPanelContainer}
       >
-        {getSelectedItemComponent(selectedMenuItem, data.rowData)}
+        {getDetailPanelContent(data)}
         <Button
           onClick={() => {
-            handleToggleDetailPanel(data.rowData);
-            handleMenuClose();
+            onDetailPanelClose(data);
           }}
           className={classes.detailPanelCloseButton}
           size="small"

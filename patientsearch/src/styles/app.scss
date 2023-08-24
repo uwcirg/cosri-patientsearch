@@ -328,8 +328,8 @@ only screen and (max-width: 736px),
 		display: block;
 	}
 
-  #patientList {
-    margin-top: 24px;
+  header + #patientList {
+    margin-top: 140px;
   }
 
   #patientList tbody td [dataColumn]:before {

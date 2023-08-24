@@ -8,10 +8,6 @@ export default makeStyles((theme) => ({
   },
   filterTable: {
     marginBottom: theme.spacing(1),
-    marginTop: theme.spacing(20),
-    ["@media (min-width:639px)"]: {
-      marginTop: 0,
-    },
   },
   table: {
     minWidth: 320,
