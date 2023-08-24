@@ -23,7 +23,7 @@ const formControlStyles = makeStyles((theme) => {
 });
 
 export default function TestPatientsCheckbox({ label, changeEvent }) {
-  const { getAppSettingByKey, onTestPatientsCheckboxChange } =
+  const { onTestPatientsCheckboxChange } =
     usePatientListContext();
   const checkboxClasses = checkBoxStyles();
   const formControlClasses = formControlStyles();

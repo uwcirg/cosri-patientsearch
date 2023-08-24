@@ -4,7 +4,7 @@ import { ACCESS_TOKEN_KEY, REALM_ACCESS_TOKEN_KEY, noCacheParam } from "../const
 
 export function toTop () {
   window.scrollTo(0, 0);
-};
+}
 
 export function sendRequest(url, params) {
   params = params || {};
@@ -495,8 +495,6 @@ export const getAppLaunchURL = (patientId, params) => {
   const iss = launchParams["SOF_HOST_FHIR_URL"];
   const needPatientBanner = launchParams["NEED_PATIENT_BANNER"];
   const launchURL = launchParams["launch_url"];
-  // const iss = appSettings["SOF_HOST_FHIR_URL"];
-  // const needPatientBanner = appSettings["NEED_PATIENT_BANNER"];
   if (!launchURL || !iss) {
     console.log("Missing ISS launch base URL");
     return "";
