@@ -7,9 +7,6 @@ import ErrorIcon from "@material-ui/icons/ReportProblemOutlined";
 import Tooltip from "@material-ui/core/Tooltip";
 import Typography from "@material-ui/core/Typography";
 import {usePatientListContext} from "../../context/PatientListContextProvider";
-import {
-  getPatientIdsByCareTeamParticipant,
-} from "../../helpers/utility";
 
 const checkBoxStyles = makeStyles((theme) => {
   return {
@@ -42,32 +39,15 @@ export default function MyPatientsCheckbox({
   label
 }) {
   const {
-    setPatientIdsByCareTeamParticipant = function() {},
-    user,
+    onMyPatientsCheckboxChange,
     userError,
-    tableRef
   } = usePatientListContext();
   const checkboxClasses = checkBoxStyles();
   const formControlClasses = formControlStyles();
   const [state, setState] = useState(false);
   const handleChange = (event) => {
     setState(event.target.checked);
-    if (!event.target.checked) {
-      setPatientIdsByCareTeamParticipant(null);
-      if (tableRef.current) tableRef.current.onQueryChange();
-      if (changeEvent) changeEvent();
-      return;
-    }
-    // NOTE - retrieving id(s) of patients whose care team the practitioner is part of
-    getPatientIdsByCareTeamParticipant(user ? user.practitionerId : null).then(
-      (result) => {
-        setPatientIdsByCareTeamParticipant(
-          result && result.length ? result : [-1]
-        );
-        if (tableRef.current) tableRef.current.onQueryChange();
-        if (changeEvent) changeEvent();
-      }
-    );
+    onMyPatientsCheckboxChange(event, changeEvent);
   };
   return (
     <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>

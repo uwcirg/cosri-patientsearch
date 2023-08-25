@@ -13,6 +13,7 @@ import {
   getAppLaunchURL,
   getLocalDateTimeString,
   getClientsByRequiredRoles,
+  getPatientIdsByCareTeamParticipant,
   getTimeAgoDisplay,
   isString,
   putPatientData,
@@ -180,7 +181,7 @@ export default function PatientListContextProvider({ children }) {
     // open a dialog here so user can select which one to launch?
     if (!launchParams && hasMultipleSoFClients()) {
       setCurrentRow(rowData);
-      setOpenLoadingModal(false);
+      // setOpenLoadingModal(false);
       setOpenLaunchInfoModal(true);
       return;
     }
@@ -197,13 +198,11 @@ export default function PatientListContextProvider({ children }) {
   };
   const handleLaunchError = (message) => {
     setErrorMessage(message || "Unable to launch application.");
-    setOpenLoadingModal(false);
     toTop();
     return false;
   };
   const onLaunchDialogClose = () => {
     setOpenLaunchInfoModal(false);
-    _handleRefresh();
   };
   const onFiltersDidChange = (filters) => {
     clearTimeout(filterIntervalId);
@@ -273,11 +272,8 @@ export default function PatientListContextProvider({ children }) {
   const handleMenuSelect = (event) => {
     event.stopPropagation();
     const selectedTarget = event.target.getAttribute("datatopic");
+    if (!selectedTarget) return;
     setSelectedMenuItem(selectedTarget);
-    if (!selectedTarget) {
-      handleMenuClose();
-      return;
-    }
     setTimeout(function () {
       currentRow.tableData.showDetailPanel = true;
       handleToggleDetailPanel(currentRow);
@@ -318,6 +314,24 @@ export default function PatientListContextProvider({ children }) {
   const onTestPatientsCheckboxChange = (event) => {
     setFilterByTestPatients(event.target.checked);
     if (tableRef.current) tableRef.current.onQueryChange();
+  };
+  const onMyPatientsCheckboxChange = (event, changeEvent) => {
+    if (!event.target.checked) {
+      setPatientIdsByCareTeamParticipant(null);
+      if (tableRef.current) tableRef.current.onQueryChange();
+      if (changeEvent) changeEvent();
+      return;
+    }
+    // NOTE - retrieving id(s) of patients whose care team the practitioner is part of
+    getPatientIdsByCareTeamParticipant(user ? user.practitionerId : null).then(
+      (result) => {
+        setPatientIdsByCareTeamParticipant(
+          result && result.length ? result : [-1]
+        );
+        if (tableRef.current) tableRef.current.onQueryChange();
+        if (changeEvent) changeEvent();
+      }
+    );
   };
   const shouldShowLegend = () => containNoPMPRow;
   const _getSelectedItemComponent = (selectedMenuItem, rowData) => {
@@ -400,8 +414,7 @@ export default function PatientListContextProvider({ children }) {
             if (dataType === "timeago" && value) {
               value = value ? getTimeAgoDisplay(new Date(value)) : "--";
             }
-            if (col.field)
-              rowData[col.field] = value;
+            if (col.field) rowData[col.field] = value;
           });
           return rowData;
         })
@@ -609,6 +622,7 @@ export default function PatientListContextProvider({ children }) {
       (e) => handleErrorCallback(e)
     )
       .then((result) => {
+        setOpenLoadingModal(false);
         let response = result;
         if (result && result.entry && result.entry[0]) {
           response = result.entry[0];
@@ -630,20 +644,18 @@ export default function PatientListContextProvider({ children }) {
           (appClients.length === 1 ||
             (hasMultipleSoFClients() &&
               getAppSettingByKey("LAUNCH_AFTER_PATIENT_CREATION")));
-        
-        if (shouldLaunchApp()) {
+
+        if (shouldLaunchApp) {
           // use config variable to determine whether to launch the first defined client application after account creation
-          handleLaunchApp(
-            _formatData(response)[0],
-            appClients[0]
-          );
+          handleLaunchApp(_formatData(response)[0], appClients[0]);
         } else {
-            _handleRefresh();
+          _handleRefresh();
         }
       })
       .catch((e) => {
         //log error to console
         console.log(`Patient search error: ${e}`);
+        setOpenLoadingModal(false);
         handleLaunchError(fetchErrorMessage + `<p>See console for detail.</p>`);
       });
   };
@@ -916,11 +928,9 @@ export default function PatientListContextProvider({ children }) {
         handleErrorCallback,
         handleLaunchApp,
         handleLaunchError,
-        handleMenuClick,
         handleMenuClose,
         handleMenuSelect,
         handleSearch,
-        handleToggleDetailPanel,
         hasMultipleSoFClients,
         hasSoFClients,
         getAppSettingByKey,
@@ -937,6 +947,7 @@ export default function PatientListContextProvider({ children }) {
         onDetailPanelClose,
         onFiltersDidChange,
         onLaunchDialogClose,
+        onMyPatientsCheckboxChange,
         onTestPatientsCheckboxChange,
         shouldShowLegend,
         shouldHideMoreMenu,
@@ -947,8 +958,6 @@ export default function PatientListContextProvider({ children }) {
         currentRow,
         data,
         errorMessage,
-        filterByTestPatients,
-        setFilterByTestPatients,
         openLoadingModal,
         openLaunchInfoModal,
         pagination,

@@ -1,5 +1,5 @@
 import PatientListContextProvider from "../../context/PatientListContextProvider";
-import PatientListTable from "./PatientListTable";
+import PatientListTable from "./PatientList";
 
 export default function MainContent() {
   return (
