@@ -3,7 +3,6 @@ import { useTheme } from "@material-ui/core/styles";
 import MaterialTable from "@material-table/core";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import Container from "@material-ui/core/Container";
-import useStyles from "../../../styles/patientListStyle";
 import { usePatientListContext } from "../../context/PatientListContextProvider";
 import DetailPanel from "./DetailPanel";
 import DropdownMenu from "./DropdownMenu";
@@ -23,7 +22,7 @@ import { addMamotoTracking } from "../../helpers/utility";
 export default function PatientListTable() {
   const patientListCtx = usePatientListContext();
   const theme = useTheme();
-  const classes = useStyles();
+  //const classes = useStyles();
   const {
     // constants
     appSettings,
@@ -57,7 +56,7 @@ export default function PatientListTable() {
   };
 
   const renderPatientSearchRow = () => (
-    <table className={classes.filterTable}>
+    <table className="bottom-gap">
       <tbody>
         <FilterRow />
       </tbody>
@@ -96,25 +95,24 @@ export default function PatientListTable() {
       addMamotoTracking(appSettings["MATOMO_SITE_ID"], userName);
     }
   }, [userError, userName, appSettings]); //retrieval of settings should occur prior to patient list being rendered/initialized
-  
+
   if (Object.keys(patientListCtx).length === 0)
     return <Error message="patient context error"></Error>;
   return (
-    <Container className={classes.container} id="patientList">
+    <Container className="container" id="patientList">
       {renderTitle()}
       <Error message={errorMessage} style={errorStyle} />
       <div className="flex">
         {/* patient search row */}
         {renderPatientSearchRow()}
-        <div className={classes.tableOptionContainers}>
+        <div className="bottom-gap-2x">
           {renderMyPatientCheckbox()}
           {renderTestPatientsCheckbox()}
         </div>
       </div>
       {/* patient list table */}
-      <div className={`${classes.table} main`} aria-label="patient list table">
+      <div className={`table main`} aria-label="patient list table">
         <MaterialTable
-          className={classes.table}
           columns={getColumns()}
           data={
             //any change in query will invoke this function
@@ -150,7 +148,7 @@ export default function PatientListTable() {
         />
       </div>
       <LoadingModal open={openLoadingModal}></LoadingModal>
-      <div className={classes.flexContainer}>
+      <div className="flex-align-start">
         <Legend show={shouldShowLegend()}></Legend>
         <div>
           <RefreshButton></RefreshButton>

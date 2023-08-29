@@ -2,9 +2,9 @@ import React, { useContext, lazy, Suspense } from "react";
 import jsonpath from "jsonpath";
 import DOMPurify from "dompurify";
 import PropTypes from "prop-types";
+import { useTheme } from "@material-ui/core/styles";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import MoreHorizIcon from "@material-ui/icons/MoreHoriz";
-import useStyles from "../../styles/patientListStyle";
 import { useSettingContext } from "./SettingContextProvider";
 import { useUserContext } from "./UserContextProvider";
 import * as constants from "../constants/consts";
@@ -28,6 +28,7 @@ const PatientListContext = React.createContext({});
 let filterIntervalId = 0;
 export default function PatientListContextProvider({ children }) {
   const settingsCxt = useSettingContext();
+  const theme = useTheme();
   const appSettings = settingsCxt ? settingsCxt.appSettings : {};
   const { user, userError } = useUserContext();
   const { userName, roles } = user || {};
@@ -35,7 +36,7 @@ export default function PatientListContextProvider({ children }) {
     appSettings ? appSettings["SOF_CLIENTS"] : null,
     roles
   );
-  const classes = useStyles();
+  //const classes = useStyles();
   const tableRef = React.useRef();
   const UrineScreenComponent = lazy(() => import("../components/UrineScreen"));
   const AgreementComponent = lazy(() => import("../components/Agreement"));
@@ -489,7 +490,6 @@ export default function PatientListContextProvider({ children }) {
           icon: () => (
             <MoreHorizIcon
               color="primary"
-              className={classes.moreIcon}
             ></MoreHorizIcon>
           ),
           onClick: (event, rowData) => handleMenuClick(event, rowData),
@@ -501,7 +501,9 @@ export default function PatientListContextProvider({ children }) {
     const appActions = appClients.map((client, index) => {
       return {
         icon: () => (
-          <span className={classes.button} key={`actionButton_${index}`}>
+          <span className="action-button" key={`actionButton_${index}`} style={{
+            background: theme.palette.primary.main,
+          }}>
             {client.label}
           </span>
         ),
@@ -571,7 +573,7 @@ export default function PatientListContextProvider({ children }) {
       emptyDataSourceMessage: (
         <div
           id="emptyDataContainer"
-          className={`${classes.flex} ${classes.warning}`}
+          className="flex-center warning notice"
           dangerouslySetInnerHTML={{
             __html: DOMPurify.sanitize(noDataText),
           }}

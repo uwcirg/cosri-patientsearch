@@ -43,9 +43,11 @@ export default function Dropdown(props) {
     "& .MuiPaper-root": {
       borderRadius: 0,
       marginTop: theme.spacing(3),
+      overflow: "hidden",
       minWidth: 180,
       "& .MuiMenu-list": {
         padding: "32px 0 8px",
+        overflow: "hidden"
       },
       "& .MuiMenuItem-root": {
         paddingBottom: theme.spacing(0.5),

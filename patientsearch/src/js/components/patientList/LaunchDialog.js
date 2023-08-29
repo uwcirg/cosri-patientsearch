@@ -1,7 +1,19 @@
 import { Button } from "@material-ui/core";
-import useStyles from "../../../styles/patientListStyle";
+import { makeStyles } from "@material-ui/core/styles";
 import DialogBox from "../DialogBox";
 import { usePatientListContext } from "../../context/PatientListContextProvider";
+
+const useStyles = makeStyles((theme) => ({
+  flex: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    flexWrap: "wrap",
+  },
+  flexButton: {
+    marginRight: theme.spacing(1),
+  },
+}));
 
 export default function LaunchDialog() {
   const classes = useStyles();

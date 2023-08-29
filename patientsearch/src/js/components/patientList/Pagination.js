@@ -1,6 +1,14 @@
-import useStyles from "../../../styles/patientListStyle";
+import { makeStyles } from "@material-ui/core/styles";
 import TablePagination from "@material-ui/core/TablePagination";
 import { usePatientListContext } from "../../context/PatientListContextProvider";
+
+const useStyles = makeStyles((theme) => ({
+  pagination: {
+    marginTop: theme.spacing(1),
+    display: "inline-block",
+    border: "2px solid #ececec",
+  },
+}));
 
 export default function Pagination() {
   const classes = useStyles();

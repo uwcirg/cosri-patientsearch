@@ -1,6 +1,7 @@
 $color-blue: #00838f;
 $color-blue-light: #46777f;
 $color-success: green;
+$color-warning: #9a4d0d;
 $color-muted: #777;
 $color-muter: rgba(165, 158, 158, 0.64);
 $color-error: #c91616;
@@ -18,6 +19,12 @@ body {
 html {
   scroll-behavior: smooth;
 }
+.container {
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 16px;
+  margin-top: 148px;
+}
 .content-container {
   margin-top: 138px;
   padding: 24px;
@@ -32,10 +39,37 @@ html {
     margin-top: 24px;
   }
 }
+.table {
+  min-width: 320px;
+  max-width: 100%;
+}
+.bottom-gap {
+  margin-bottom: 8px;
+}
+.bottom-gap-2x {
+  margin-bottom: 16px;
+}
 .flex {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+}
+.flex-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.notice {
+  margin-top: 24px;
+  margin-bottom: 24px;
+  line-height: 1.7;
+}
+.flex-align-start {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
   flex-wrap: wrap;
 }
 .success {
@@ -43,6 +77,9 @@ html {
 }
 .muted {
   color: $color-muted;
+}
+.warning {
+  color: $color-warning;
 }
 .invisible {
   visibility: hidden;
@@ -53,6 +90,16 @@ html {
   width: 0;
   height: 0;
   overflow: hidden;
+}
+.action-button {
+  padding: 8px 16px 8px;
+  color: #FFF;
+  font-size: 12px;
+  border-radius: 4px;
+  font-weight: 600;
+  text-transform: uppercase;
+  border: 0;
+  box-shadow: none;
 }
 .landing {
   display: flex;
@@ -123,20 +170,12 @@ img[disabled] {
     }
   }
 }
-#patientList tr:empty {
+tr:empty {
   height: 0 !important;
 }
-#rowMenu {
-  .MuiMenu-list {
-    padding-top: 32px;
-    padding-bottom: 8px;
-  }
-}
-.menu-icon {
-  margin-left: 8px;
-}
-#dropdownMenu {
-  overflow: hidden;
+td:empty {
+  padding: 0;
+  margin: 0;
 }
 
 .muted-text {
@@ -164,14 +203,12 @@ img[disabled] {
   align-items: center;
   flex-direction: column;
 }
-#timeout-modal-description {
-  .buttons-container {
-      display: flex;
-      margin-top: 16px;
-      justify-content: center;
-      button {
-          margin: 8px;
-      }
+.buttons-container {
+  display: flex;
+  margin-top: 16px;
+  justify-content: center;
+  button {
+      margin: 8px;
   }
 }
 .icon-container {
@@ -295,16 +332,6 @@ button.disabled:focus,
   }
   .MuiSelect-select.MuiSelect-select {
     padding-right: 4px !important;
-  }
-}
-#toolbarGoButton {
-  text-align: center;
-  padding-left: 8px;
-  padding-right: 8px;
-  min-width: 80px;
-  button {
-    padding: 4px 16px;
-    min-width: 120px;
   }
 }
 

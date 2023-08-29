@@ -1,6 +1,15 @@
-import useStyles from "../../../styles/patientListStyle";
+import { makeStyles } from "@material-ui/core/styles";
 import { Button, Tooltip } from "@material-ui/core";
 import RefreshIcon from "@material-ui/icons/Refresh";
+
+const useStyles = makeStyles((theme) => ({
+  refreshButtonContainer: {
+    display: "inline-block",
+    verticalAlign: "top",
+    marginTop: theme.spacing(2.5),
+    marginRight: theme.spacing(2),
+  },
+}));
 
 export default function RefreshButton() {
   const classes = useStyles();
