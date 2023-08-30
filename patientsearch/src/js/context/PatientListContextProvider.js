@@ -1,4 +1,4 @@
-import React, { useContext, lazy, Suspense } from "react";
+import React, { useContext } from "react";
 import jsonpath from "jsonpath";
 import DOMPurify from "dompurify";
 import PropTypes from "prop-types";
