@@ -8,6 +8,12 @@ const SettingContext = React.createContext({});
  */
 export default function SettingContextProvider({children}) {
     const [appSettings, setAppSettings] = useState(null);
+    const hasAppSettings = () =>
+      appSettings && Object.keys(appSettings).length > 0;
+    const getAppSettingByKey = (key) => {
+      if (!hasAppSettings()) return "";
+      return appSettings[key];
+    };
     useEffect(() => {
         getSettings((data) => {
             if (data && !data.error) {
@@ -15,20 +21,32 @@ export default function SettingContextProvider({children}) {
             }
         });
     }, []);
-    return <SettingContext.Provider
-                value={React.useMemo(() => ({appSettings, setAppSettings}), [
-                    appSettings,
-                    setAppSettings
-                ])}>
-                <SettingContext.Consumer>{({appSettings}) => {
-                    if (appSettings) return children;
-                    return (
-                      <div style={{ display: "flex", gap: "16px 16px", padding: "24px" }}>
-                        Loading... <CircularProgress color="primary"></CircularProgress>
-                      </div>
-                    );
-                }}</SettingContext.Consumer>
-            </SettingContext.Provider>;
+    return (
+      <SettingContext.Provider
+        value={React.useMemo(
+          () => ({
+            appSettings,
+            setAppSettings,
+            hasAppSettings,
+            getAppSettingByKey,
+          }),
+          [appSettings, setAppSettings, hasAppSettings, getAppSettingByKey]
+        )}
+      >
+        <SettingContext.Consumer>
+          {({ appSettings, hasAppSettings, getAppSettingByKey }) => {
+            if (appSettings) return children;
+            return (
+              <div
+                style={{ display: "flex", gap: "16px 16px", padding: "24px" }}
+              >
+                Loading... <CircularProgress color="primary"></CircularProgress>
+              </div>
+            );
+          }}
+        </SettingContext.Consumer>
+      </SettingContext.Provider>
+    );
 }
 SettingContextProvider.propTypes = {
     children: PropTypes.oneOfType([PropTypes.array, PropTypes.element])

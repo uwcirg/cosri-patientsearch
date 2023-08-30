@@ -1,4 +1,4 @@
-import { forwardRef } from "react";
+import { forwardRef, lazy, Suspense } from "react";
 import ArrowDownward from "@material-ui/icons/ArrowDownward";
 import Check from "@material-ui/icons/Check";
 import ChevronLeft from "@material-ui/icons/ChevronLeft";
@@ -38,6 +38,22 @@ export const tableIcons = {
       Remove
     </Delete>
   )),
+};
+export const defaultTableOptions = {
+  paginationTypestepped: "stepped",
+  showFirstLastPageButtons: false,
+  paging: false,
+  padding: "dense",
+  emptyRowsWhenPaging: false,
+  debounceInterval: 300,
+  detailPanelColumnAlignment: "right",
+  toolbar: false,
+  filtering: false,
+  maxColumnSort: 1,
+  thirdSortClick: false,
+  search: false,
+  showTitle: false,
+  actionsColumnIndex: -1,
 };
 export const defaultPagination = {
   pageSize: 20,
@@ -81,6 +97,31 @@ export const defaultColumns = [
     dataType: "date",
   },
 ];
+const UrineScreenComponent = lazy(() => import("../components/UrineScreen"));
+const AgreementComponent = lazy(() => import("../components/Agreement"));
+export const defaultMenuItems = [
+  {
+    text: "Add Urine Tox Screen",
+    id: "UDS",
+    component: (rowData) => (
+      <Suspense fallback={<div>Loading...</div>}>
+        <UrineScreenComponent rowData={rowData}></UrineScreenComponent>
+      </Suspense>
+    ),
+  },
+  {
+    text: "Add Controlled Substance Agreement",
+    id: "CS_agreement",
+    component: (rowData) => (
+      <Suspense fallback={<div>Loading...</div>}>
+        <AgreementComponent rowData={rowData}></AgreementComponent>
+      </Suspense>
+    ),
+  },
+];
+export const PDMP_SYSTEM_IDENTIFIER = "https://github.com/uwcirg/script-fhir-facade";
+export const NON_PDMP_RESULT_MESSAGE = "<div>The patient was not found in the PMP. This could be due to:</div><ul><li>No previous controlled substance medications dispensed</li><li>Incorrect spelling of name or incorrect date of birth.</li></ul><div>Please double check name spelling and date of birth.</div>";
+export const PDMP_SYSTEM_ERROR_MESSAGE = "<p>COSRI is unable to return PMP information. This may be due to PMP system being down or a problem with the COSRI connection to PMP.</p>";
 export const noCacheParam = { cache: "no-cache" };
 export const LAUNCH_BUTTON_LABEL = "VIEW";
 export const CREATE_BUTTON_LABEL = "CREATE";

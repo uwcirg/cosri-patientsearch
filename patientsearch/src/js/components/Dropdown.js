@@ -108,9 +108,10 @@ export default function Dropdown(props) {
             key={`menuItem${index}`}
             onClick={(event) => handleMenuSelect(event)}
             dense
+            datatopic={item.id}
           >
             <ListItemIcon className={classes.menuIcon} datatopic={item.id}>
-              <AddCircleOutlineIcon fontSize="small" />
+              <AddCircleOutlineIcon fontSize="small"/>
             </ListItemIcon>
             <Typography variant="subtitle2" datatopic={item.id}>
               {item.text}

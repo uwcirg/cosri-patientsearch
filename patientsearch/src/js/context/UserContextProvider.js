@@ -20,6 +20,11 @@ export default function UserContextProvider({ children }) {
   const [user, setUser] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");
   const handleErrorCallback = (e) => {
+    if (parseInt(e) === 401) {
+      setErrorMessage("Unauthorized");
+      window.location = "/logout?unauthorized=true";
+      return;
+    }
     setErrorMessage(
       isString(e)
         ? e

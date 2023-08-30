@@ -8,6 +8,7 @@ import MoreHorizIcon from "@material-ui/icons/MoreHoriz";
 import { useSettingContext } from "./SettingContextProvider";
 import { useUserContext } from "./UserContextProvider";
 import * as constants from "../constants/consts";
+import DetailPanel from "../components/patientList/DetailPanel";
 import {
   fetchData,
   getAppLaunchURL,
@@ -29,37 +30,17 @@ let filterIntervalId = 0;
 export default function PatientListContextProvider({ children }) {
   const settingsCxt = useSettingContext();
   const theme = useTheme();
-  const appSettings = settingsCxt ? settingsCxt.appSettings : {};
+  const { appSettings, hasAppSettings, getAppSettingByKey } = settingsCxt
+    ? settingsCxt
+    : {};
   const { user, userError } = useUserContext();
   const { userName, roles } = user || {};
   const appClients = getClientsByRequiredRoles(
     appSettings ? appSettings["SOF_CLIENTS"] : null,
     roles
   );
-  //const classes = useStyles();
   const tableRef = React.useRef();
-  const UrineScreenComponent = lazy(() => import("../components/UrineScreen"));
-  const AgreementComponent = lazy(() => import("../components/Agreement"));
-  const menuItems = [
-    {
-      text: "Add Urine Tox Screen",
-      id: "UDS",
-      component: (rowData) => (
-        <Suspense fallback={<div>Loading...</div>}>
-          <UrineScreenComponent rowData={rowData}></UrineScreenComponent>
-        </Suspense>
-      ),
-    },
-    {
-      text: "Add Controlled Substance Agreement",
-      id: "CS_agreement",
-      component: (rowData) => (
-        <Suspense fallback={<div>Loading...</div>}>
-          <AgreementComponent rowData={rowData}></AgreementComponent>
-        </Suspense>
-      ),
-    },
-  ];
+  const menuItems = constants.defaultMenuItems;
   const [data, setData] = React.useState([]);
   const [patientIdsByCareTeamParticipant, setPatientIdsByCareTeamParticipant] =
     React.useState(false);
@@ -101,7 +82,6 @@ export default function PatientListContextProvider({ children }) {
       ? "No SoF client match the user role(s) found"
       : ""
   );
-  const errorStyle = { display: errorMessage ? "block" : "none" };
   const [openLoadingModal, setOpenLoadingModal] = React.useState(false);
   const [openLaunchInfoModal, setOpenLaunchInfoModal] = React.useState(false);
   const [containNoPMPRow, setContainNoPMPRow] = React.useState(false);
@@ -113,13 +93,6 @@ export default function PatientListContextProvider({ children }) {
   );
   const [noDataText, setNoDataText] = React.useState("No record found.");
   const [filterByTestPatients, setFilterByTestPatients] = React.useState(false);
-
-  const hasAppSettings = () =>
-    appSettings && Object.keys(appSettings).length > 0;
-  const getAppSettingByKey = (key) => {
-    if (!hasAppSettings()) return "";
-    return appSettings[key];
-  };
   const existsIndata = (rowData) => {
     if (!data || !rowData) return false;
     return (
@@ -182,7 +155,6 @@ export default function PatientListContextProvider({ children }) {
     // open a dialog here so user can select which one to launch?
     if (!launchParams && hasMultipleSoFClients()) {
       setCurrentRow(rowData);
-      // setOpenLoadingModal(false);
       setOpenLaunchInfoModal(true);
       return;
     }
@@ -272,9 +244,10 @@ export default function PatientListContextProvider({ children }) {
   };
   const handleMenuSelect = (event) => {
     event.stopPropagation();
-    const selectedTarget = event.target.getAttribute("datatopic");
+    const selectedTarget = event.currentTarget.getAttribute("datatopic");
     if (!selectedTarget) return;
     setSelectedMenuItem(selectedTarget);
+    if (!currentRow) return;
     setTimeout(function () {
       currentRow.tableData.showDetailPanel = true;
       handleToggleDetailPanel(currentRow);
@@ -433,10 +406,7 @@ export default function PatientListContextProvider({ children }) {
       rowData.identifier &&
       Array.isArray(rowData.identifier) &&
       rowData.identifier.filter((item) => {
-        return (
-          item.system === "https://github.com/uwcirg/script-fhir-facade" &&
-          item.value
-        );
+        return item.system === constants.PDMP_SYSTEM_IDENTIFIER && item.value;
       }).length > 0
     );
   };
@@ -451,21 +421,123 @@ export default function PatientListContextProvider({ children }) {
       setContainNoPMPRow(true);
     }
   };
+  const _getSortDirectives = (orderByCollection) => {
+    let sortField = null,
+      sortDirection = null;
+    if (orderByCollection && orderByCollection.length) {
+      const orderField = orderByCollection[0];
+      const cols = getColumns();
+      const orderByField = cols[orderField.orderBy]; // orderBy is the index of the column
+      if (orderByField) {
+        const matchedColumn = cols.filter(
+          (col) => col.field === orderByField.field
+        );
+        if (matchedColumn.length && matchedColumn[0].sortBy) {
+          sortField = matchedColumn[0].sortBy;
+        } else sortField = constants.fieldNameMaps[orderByField.field]; // translate to fhir field name
+        if (sortField) sortDirection = orderField.orderDirection;
+      }
+    }
+    if (!sortField) {
+      const returnObj = _getDefaultSortColumn();
+      sortField = returnObj
+        ? constants.fieldNameMaps[returnObj.field]
+        : "_lastUpdated";
+      sortDirection = returnObj ? returnObj.defaultSort : "desc";
+    }
+    if (!sortDirection) {
+      sortDirection = "desc";
+    }
+    return {
+      sortField,
+      sortDirection,
+    };
+  };
+  const _getSearchString = () => {
+    let filterBy = [];
+    if (currentFilters && currentFilters.length) {
+      currentFilters.forEach((item) => {
+        if (item.value) {
+          filterBy.push(
+            `${constants.fieldNameMaps[item.field]}:contains=${item.value}`
+          );
+        }
+      });
+    }
+    return filterBy.length ? filterBy.join("&") : "";
+  };
+  const _getPatientListQueryURL = (query) => {
+    const { sortField, sortDirection } = _getSortDirectives(
+      query.orderByCollection
+    );
+    const sortMinus = sortField && sortDirection !== "asc" ? "-" : "";
+    const searchString = _getSearchString();
+    let apiURL = `/fhir/Patient?_include=Patient:link&_total=accurate&_count=${pagination.pageSize}`;
+    if (
+      patientIdsByCareTeamParticipant &&
+      patientIdsByCareTeamParticipant.length
+    ) {
+      apiURL += `&_id=${patientIdsByCareTeamParticipant.join(",")}`;
+    }
+    if (getAppSettingByKey("ENABLE_FILTER_FOR_TEST_PATIENTS")) {
+      if (!filterByTestPatients) {
+        apiURL += `&_security:not=HTEST`;
+      }
+    }
+    if (
+      pagination.pageNumber > pagination.prevPageNumber &&
+      pagination.nextPageURL
+    ) {
+      apiURL = pagination.nextPageURL;
+    } else if (
+      pagination.pageNumber < pagination.prevPageNumber &&
+      pagination.prevPageURL
+    ) {
+      apiURL = pagination.prevPageURL;
+    }
+    if (searchString && apiURL.indexOf("contains") === -1)
+      apiURL += `&${searchString}`;
+    if (sortField && apiURL.indexOf("sort") === -1)
+      apiURL += `&_sort=${sortMinus}${sortField}`;
+    return apiURL;
+  };
+  const _getLinksFromResponse = (response) => {
+    if (!response) return {};
+    let responseSelfLink = response.link
+      ? response.link.filter((item) => {
+          return item.relation === "self";
+        })
+      : 0;
+    let responseNextLink = response.link
+      ? response.link.filter((item) => {
+          return item.relation === "next";
+        })
+      : 0;
+    let responsePrevLink = response.link
+      ? response.link.filter((item) => {
+          return item.relation === "previous";
+        })
+      : 0;
+    let hasSelfLink = responseSelfLink && responseSelfLink.length;
+    let hasNextLink = responseNextLink && responseNextLink.length;
+    let hasPrevLink = responsePrevLink && responsePrevLink.length;
+    let newNextURL = hasNextLink ? responseNextLink[0].url : "";
+    let newPrevURL = hasPrevLink
+      ? responsePrevLink[0].url
+      : hasSelfLink
+      ? responseSelfLink[0].url
+      : "";
+    return {
+      nextURL: newNextURL,
+      previouURL: newPrevURL,
+      selfURL:
+        responseSelfLink && responseSelfLink.length
+          ? responseSelfLink[0].url
+          : "",
+    };
+  };
   const getTableOptions = (theme) => ({
-    paginationTypestepped: "stepped",
-    showFirstLastPageButtons: false,
-    paging: false,
-    padding: "dense",
-    emptyRowsWhenPaging: false,
-    debounceInterval: 300,
-    detailPanelColumnAlignment: "right",
-    toolbar: false,
-    filtering: false,
-    maxColumnSort: 1,
-    thirdSortClick: false,
-    search: false,
-    showTitle: false,
-    actionsColumnIndex: -1,
+    ...constants.defaultTableOptions,
     headerStyle: {
       backgroundColor: theme.palette.primary.lightest,
       padding: theme.spacing(1, 2, 1),
@@ -487,11 +559,7 @@ export default function PatientListContextProvider({ children }) {
     if (!shouldHideMoreMenu()) {
       actions = [
         {
-          icon: () => (
-            <MoreHorizIcon
-              color="primary"
-            ></MoreHorizIcon>
-          ),
+          icon: () => <MoreHorizIcon color="primary"></MoreHorizIcon>,
           onClick: (event, rowData) => handleMenuClick(event, rowData),
           tooltip: "More",
         },
@@ -501,9 +569,13 @@ export default function PatientListContextProvider({ children }) {
     const appActions = appClients.map((client, index) => {
       return {
         icon: () => (
-          <span className="action-button" key={`actionButton_${index}`} style={{
-            background: theme.palette.primary.main,
-          }}>
+          <span
+            className="action-button"
+            key={`actionButton_${index}`}
+            style={{
+              background: theme.palette.primary.main,
+            }}
+          >
             {client.label}
           </span>
         ),
@@ -566,8 +638,9 @@ export default function PatientListContextProvider({ children }) {
     body: {
       deleteTooltip: "Remove from the list",
       editRow: {
-        deleteText:
-          "Are you sure you want to remove this patient from the list? (You can add them back later by searching for them)",
+        deleteText: needExternalAPILookup()
+          ? "Are you sure you want to remove this patient from the list? (You can add them back later by searching for them)"
+          : "Are you sure you want to remove this patient from the list?",
         saveTooltip: "OK",
       },
       emptyDataSourceMessage: (
@@ -601,11 +674,11 @@ export default function PatientListContextProvider({ children }) {
         });
     // error message when no result returned
     const noResultErrorMessage = needExternalAPILookup()
-      ? "<div>The patient was not found in the PMP. This could be due to:</div><ul><li>No previous controlled substance medications dispensed</li><li>Incorrect spelling of name or incorrect date of birth.</li></ul><div>Please double check name spelling and date of birth.</div>"
+      ? constants.NON_PDMP_RESULT_MESSAGE
       : "No matched patient found";
     // error message for API error
     const fetchErrorMessage = needExternalAPILookup()
-      ? "<p>COSRI is unable to return PMP information. This may be due to PMP system being down or a problem with the COSRI connection to PMP.</p>"
+      ? constants.PDMP_SYSTEM_ERROR_MESSAGE
       : "Server error when looking up patient";
     setOpenLoadingModal(true);
     fetchData(
@@ -663,85 +736,22 @@ export default function PatientListContextProvider({ children }) {
   };
   const getPatientList = (query) => {
     console.log("patient list query object ", query);
-    let sortField = null,
-      sortDirection = null;
-    if (query.orderByCollection && query.orderByCollection.length) {
-      const orderField = query.orderByCollection[0];
-      const cols = getColumns();
-      const orderByField = cols[orderField.orderBy]; // orderBy is the index of the column
-      if (orderByField) {
-        const matchedColumn = cols.filter(
-          (col) => col.field === orderByField.field
-        );
-        if (matchedColumn.length && matchedColumn[0].sortBy) {
-          sortField = matchedColumn[0].sortBy;
-        } else sortField = constants.fieldNameMaps[orderByField.field]; // translate to fhir field name
-      }
-      sortDirection = orderField.orderDirection;
-    }
-    if (!sortField) {
-      const returnObj = _getDefaultSortColumn();
-      sortField = returnObj
-        ? constants.fieldNameMaps[returnObj.field]
-        : "_lastUpdated";
-      sortDirection = returnObj ? returnObj.defaultSort : "desc";
-    }
-
-    if (!sortDirection) {
-      sortDirection = "desc";
-    }
-    let sortMinus = sortField && sortDirection !== "asc" ? "-" : "";
-    let filterBy = [];
-
-    if (currentFilters && currentFilters.length) {
-      currentFilters.forEach((item) => {
-        if (item.value) {
-          filterBy.push(
-            `${constants.fieldNameMaps[item.field]}:contains=${item.value}`
-          );
-        }
-      });
-    }
-    let searchString = filterBy.length ? filterBy.join("&") : "";
-    let defaults = {
+    const defaults = {
       data: [],
       page: 0,
       totalCount: 0,
     };
-    let apiURL = `/fhir/Patient?_include=Patient:link&_total=accurate&_count=${pagination.pageSize}`;
-    if (
-      patientIdsByCareTeamParticipant &&
-      patientIdsByCareTeamParticipant.length
-    ) {
-      apiURL += `&_id=${patientIdsByCareTeamParticipant.join(",")}`;
-    }
-    if (getAppSettingByKey("ENABLE_FILTER_FOR_TEST_PATIENTS")) {
-      if (!filterByTestPatients) {
-        apiURL += `&_security:not=HTEST`;
-      }
-    }
-    if (
-      pagination.pageNumber > pagination.prevPageNumber &&
-      pagination.nextPageURL
-    ) {
-      apiURL = pagination.nextPageURL;
-    } else if (
-      pagination.pageNumber < pagination.prevPageNumber &&
-      pagination.prevPageURL
-    ) {
-      apiURL = pagination.prevPageURL;
-    }
-    if (searchString && apiURL.indexOf("contains") === -1)
-      apiURL += `&${searchString}`;
-    if (sortField && apiURL.indexOf("sort") === -1)
-      apiURL += `&_sort=${sortMinus}${sortField}`;
     // return patient data
     return new Promise((resolve) => {
-      fetchData(apiURL, constants.noCacheParam, function (e) {
-        paginationDispatch({ type: "empty" });
-        handleErrorCallback(e);
-        resolve(defaults);
-      })
+      fetchData(
+        _getPatientListQueryURL(query),
+        constants.noCacheParam,
+        function (e) {
+          paginationDispatch({ type: "empty" });
+          handleErrorCallback(e);
+          resolve(defaults);
+        }
+      )
         .then((response) => {
           if (!response || !response.entry || !response.entry.length) {
             paginationDispatch({ type: "empty" });
@@ -751,50 +761,27 @@ export default function PatientListContextProvider({ children }) {
           if (needExternalAPILookup()) {
             _setNoPMPFlag(response.entry);
           }
+          const { nextURL, previouURL, selfURL } =
+            _getLinksFromResponse(response);
           let responsePageoffset = 0;
-          let responseSelfLink = response.link
-            ? response.link.filter((item) => {
-                return item.relation === "self";
-              })
-            : 0;
-          let responseNextLink = response.link
-            ? response.link.filter((item) => {
-                return item.relation === "next";
-              })
-            : 0;
-          let responsePrevLink = response.link
-            ? response.link.filter((item) => {
-                return item.relation === "previous";
-              })
-            : 0;
-          let hasSelfLink = responseSelfLink && responseSelfLink.length;
-          if (hasSelfLink) {
+          if (selfURL) {
             responsePageoffset = getUrlParameter(
               "_getpagesoffset",
-              new URL(responseSelfLink[0].url)
+              new URL(selfURL)
             );
           }
           let currentPage = responsePageoffset
             ? responsePageoffset / pagination.pageSize
             : 0;
-          let hasNextLink = responseNextLink && responseNextLink.length;
-          let hasPrevLink = responsePrevLink && responsePrevLink.length;
-          let newNextURL = hasNextLink ? responseNextLink[0].url : "";
-          let newPrevURL = hasPrevLink
-            ? responsePrevLink[0].url
-            : hasSelfLink
-            ? responseSelfLink[0].url
-            : "";
           paginationDispatch({
             payload: {
-              nextPageURL: newNextURL,
-              prevPageURL: newPrevURL,
-              disableNextButton: !hasNextLink,
+              nextPageURL: nextURL,
+              prevPageURL: previouURL,
+              disableNextButton: !nextURL,
               disablePrevButton: pagination.pageNumber === 0,
               totalCount: response.total,
             },
           });
-
           let patientResources = response.entry.filter(
             (item) => item.resource && item.resource.resourceType === "Patient"
           );
@@ -842,7 +829,7 @@ export default function PatientListContextProvider({ children }) {
             }
             return fetchData(`/fhir/${queryString}`, constants.noCacheParam);
           });
-          const queryResults = (async () => {
+          const patientFHIRResourceQueryResults = (async () => {
             const results = await Promise.all(requests).catch((e) => {
               throw new Error(e);
             });
@@ -880,7 +867,7 @@ export default function PatientListContextProvider({ children }) {
               return item;
             });
           })();
-          queryResults
+          patientFHIRResourceQueryResults
             .then((data) => {
               console.log("query result data ", data);
               const resultData = _formatData(data);
@@ -913,19 +900,38 @@ export default function PatientListContextProvider({ children }) {
         });
     });
   };
-
   return (
     <PatientListContext.Provider
       value={{
         // exposed constants
         appClients,
         appSettings,
-        errorStyle,
         menuItems,
         user,
         userName,
         userError,
         tableRef,
+        // table props
+        tableProps: {
+          columns: getColumns(),
+          detailPanel: [
+            {
+              render: (data) => {
+                if (shouldHideMoreMenu()) return false;
+                return <DetailPanel data={data}></DetailPanel>;
+              },
+              isFreeAction: false,
+            },
+          ],
+          actions: getTableActions(),
+          editable: getTableEditableOptions(),
+          localization: getTableLocalizations(),
+          options: getTableOptions(theme),
+          onRowClick: (event, rowData) => {
+            getTableRowEvent(event, rowData);
+          },
+          tableRef: tableRef,
+        },
         // exposed methods
         handleErrorCallback,
         handleLaunchApp,
@@ -940,11 +946,6 @@ export default function PatientListContextProvider({ children }) {
         getDetailPanelContent,
         getPatientList,
         getMenuItems,
-        getTableActions,
-        getTableRowEvent,
-        getTableEditableOptions,
-        getTableLocalizations,
-        getTableOptions,
         needExternalAPILookup,
         onDetailPanelClose,
         onFiltersDidChange,

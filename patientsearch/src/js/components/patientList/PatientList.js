@@ -1,10 +1,8 @@
 import React from "react";
-import { useTheme } from "@material-ui/core/styles";
 import MaterialTable from "@material-table/core";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import Container from "@material-ui/core/Container";
 import { usePatientListContext } from "../../context/PatientListContextProvider";
-import DetailPanel from "./DetailPanel";
 import DropdownMenu from "./DropdownMenu";
 import Error from "../Error";
 import FilterRow from "./FilterRow";
@@ -21,25 +19,15 @@ import { addMamotoTracking } from "../../helpers/utility";
 
 export default function PatientListTable() {
   const patientListCtx = usePatientListContext();
-  const theme = useTheme();
-  //const classes = useStyles();
   const {
     // constants
     appSettings,
-    errorStyle,
     userName,
-    userError,
-    tableRef,
+    // table props
+    tableProps,
     //methods
-    handleErrorCallback,
     getAppSettingByKey,
-    getColumns,
     getPatientList,
-    getTableActions,
-    getTableRowEvent,
-    getTableEditableOptions,
-    getTableLocalizations,
-    getTableOptions,
     shouldHideMoreMenu,
     shouldShowLegend,
     //states
@@ -87,21 +75,17 @@ export default function PatientListTable() {
   };
 
   React.useEffect(() => {
-    if (parseInt(userError) === 401) {
-      handleErrorCallback({ status: 401 });
-      return;
-    }
     if (appSettings) {
       addMamotoTracking(appSettings["MATOMO_SITE_ID"], userName);
     }
-  }, [userError, userName, appSettings]); //retrieval of settings should occur prior to patient list being rendered/initialized
+  }, [userName, appSettings]); //retrieval of settings should occur prior to patient list being rendered/initialized
 
   if (Object.keys(patientListCtx).length === 0)
     return <Error message="patient context error"></Error>;
   return (
     <Container className="container" id="patientList">
       {renderTitle()}
-      <Error message={errorMessage} style={errorStyle} />
+      <Error message={errorMessage} />
       <div className="flex">
         {/* patient search row */}
         {renderPatientSearchRow()}
@@ -113,22 +97,11 @@ export default function PatientListTable() {
       {/* patient list table */}
       <div className={`table main`} aria-label="patient list table">
         <MaterialTable
-          columns={getColumns()}
           data={
             //any change in query will invoke this function
             (query) => getPatientList(query)
           }
-          tableRef={tableRef}
           hideSortIcon={false}
-          detailPanel={[
-            {
-              render: (data) => {
-                if (shouldHideMoreMenu()) return false;
-                return <DetailPanel data={data}></DetailPanel>;
-              },
-              isFreeAction: false,
-            },
-          ]}
           //overlay
           components={{
             OverlayLoading: () => (
@@ -137,14 +110,8 @@ export default function PatientListTable() {
               </OverlayElement>
             ),
           }}
-          actions={getTableActions()}
-          options={getTableOptions(theme)}
           icons={constants.tableIcons}
-          onRowClick={(event, rowData) => {
-            getTableRowEvent(event, rowData);
-          }}
-          editable={getTableEditableOptions()}
-          localization={getTableLocalizations()}
+          {...tableProps}
         />
       </div>
       <LoadingModal open={openLoadingModal}></LoadingModal>
