@@ -17,7 +17,7 @@ export default function SettingContextProvider({ children }) {
       if (!hasAppSettings()) return "";
       return appSettings[key];
     },
-    [appSettings]
+    [appSettings, hasAppSettings]
   );
   useEffect(() => {
     getSettings((data) => {
