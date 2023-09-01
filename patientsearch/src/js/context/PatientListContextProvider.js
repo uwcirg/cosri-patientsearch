@@ -123,7 +123,7 @@ export default function PatientListContextProvider({ children }) {
         hidden: true,
         expr: "$.id",
       });
-    return cols.map((column) => {
+    let returnColumns = cols.map((column) => {
       const fieldName = column.label.toLowerCase().replace(/\s/g, "_");
       column.title = column.label;
       column.field = fieldName;
@@ -135,6 +135,24 @@ export default function PatientListContextProvider({ children }) {
       );
       return column;
     });
+    const sortByQueryString = getUrlParameter("sort_by");
+    const sortDirectionQueryString = getUrlParameter("sort_direction");
+    const matchedColumn = returnColumns.find(
+      (column) => column.field === sortByQueryString
+    );
+    if (matchedColumn) {
+      returnColumns = returnColumns.map((column) => {
+        if (column.field === matchedColumn.field) {
+          column.defaultSort = sortDirectionQueryString
+            ? sortDirectionQueryString
+            : "asc";
+        } else {
+          column.defaultSort = null;
+        }
+        return column;
+      });
+    }
+    return returnColumns;
   };
   const needExternalAPILookup = () => {
     return getAppSettingByKey("EXTERNAL_FHIR_API");
@@ -425,8 +443,8 @@ export default function PatientListContextProvider({ children }) {
     let sortField = null,
       sortDirection = null;
     if (orderByCollection && orderByCollection.length) {
-      const orderField = orderByCollection[0];
       const cols = getColumns();
+      const orderField = orderByCollection[0];
       const orderByField = cols[orderField.orderBy]; // orderBy is the index of the column
       if (orderByField) {
         const matchedColumn = cols.filter(
