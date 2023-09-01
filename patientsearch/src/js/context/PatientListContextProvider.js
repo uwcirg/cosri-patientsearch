@@ -137,14 +137,20 @@ export default function PatientListContextProvider({ children }) {
     });
     const sortByQueryString = getUrlParameter("sort_by");
     const sortDirectionQueryString = getUrlParameter("sort_direction");
+    // see if a column matched the sort field name specified by URL query string
     const matchedColumn = returnColumns.find(
       (column) => column.field === sortByQueryString
     );
     if (matchedColumn) {
+      // if matched column found, set it as the default sort column
       returnColumns = returnColumns.map((column) => {
         if (column.field === matchedColumn.field) {
+          // set sort direction if specified via URL query string
+          // otherwise use the column's default sort if available (otherwise 'asc' by default)
           column.defaultSort = sortDirectionQueryString
             ? sortDirectionQueryString
+            : column.defaultSort
+            ? column.defaultSort
             : "asc";
         } else {
           column.defaultSort = null;
