@@ -1,5 +1,4 @@
 import { forwardRef, lazy, Suspense } from "react";
-import ArrowDownward from "@material-ui/icons/ArrowDownward";
 import Check from "@material-ui/icons/Check";
 import ChevronLeft from "@material-ui/icons/ChevronLeft";
 import ChevronRight from "@material-ui/icons/ChevronRight";
@@ -7,6 +6,8 @@ import ClearIcon from "@material-ui/icons/Clear";
 import Delete from "@material-ui/icons/Delete";
 import Edit from "@material-ui/icons/Edit";
 import FirstPage from "@material-ui/icons/FirstPage";
+import ArrowDownIcon from '@material-ui/icons/ArrowDropUp';
+import ArrowUpIcon from '@material-ui/icons/ArrowDropDown';
 import LastPage from "@material-ui/icons/LastPage";
 import Search from "@material-ui/icons/Search";
 
@@ -31,7 +32,10 @@ export const tableIcons = {
     <ChevronLeft {...props} ref={ref} />
   )),
   SortArrow: forwardRef((props, ref) => (
-    <ArrowDownward {...props} ref={ref} color="primary" />
+    <div style={{display: "flex", flexDirection:"column"}} {...props} ref={ref} color="primary">
+      <ArrowDownIcon size="small" className="down"></ArrowDownIcon>
+      <ArrowUpIcon size="small" className="up"></ArrowUpIcon>
+    </div>
   )),
   Delete: forwardRef((props, ref) => (
     <Delete {...props} ref={ref} size="small" className="muted">

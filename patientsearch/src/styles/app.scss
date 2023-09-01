@@ -2,7 +2,8 @@ $color-blue: #00838f;
 $color-blue-light: #46777f;
 $color-success: green;
 $color-warning: #9a4d0d;
-$color-muted: #777;
+$color-less-muted: rgba(0, 0, 0, 0.8);
+$color-muted: rgba(0, 0, 0, 0.54);
 $color-muter: rgba(165, 158, 158, 0.64);
 $color-error: #c91616;
 $color-label: #525050;
@@ -55,6 +56,10 @@ html {
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
+}
+.flex-column {
+  display: flex;
+  flex-direction: column;
 }
 .flex-center {
   display: flex;
@@ -160,23 +165,6 @@ html {
 img[disabled] {
   display: none;
 }
-.MuiTypography-h6 {
-  font-size: 1.02rem !important;
-}
-.MuiTableCell-body {
-  .MuiTypography-h6 {
-    width: 100%;
-    max-width: 100%;
-  }
-}
-@media (min-width: 699px) {
-  .MuiTableCell-body {
-    .MuiTypography-h6 {
-      width: 448px;
-      max-width: 100%;
-    }
-  }
-}
 tr:empty {
   height: 0 !important;
 }
@@ -214,6 +202,98 @@ button.disabled:focus,
     color: #FFF;
   }
 }
+.MuiTypography-h6 {
+  font-size: 1.02rem !important;
+}
+.MuiTableCell-body {
+  .MuiTypography-h6 {
+    width: 100%;
+    max-width: 100%;
+  }
+}
+@media (min-width: 699px) {
+  .MuiTableCell-body {
+    .MuiTypography-h6 {
+      width: 448px;
+      max-width: 100%;
+    }
+  }
+}
+/* Make both ascending and descending sort arrows always visible */
+//.MuiTableSortLabel-iconDirectionAsc ascending class
+//.MuiTableSortLabel-iconDirectionDesc descending class
+
+.MuiTableSortLabel-icon {
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform: none !important;
+  svg {
+    &:first-of-type {
+      position: relative;
+      top: 8px;
+    }
+    &:last-of-type {
+      position: relative;
+      top: -8px;
+    }
+  }
+}
+.MuiTableSortLabel-root.MuiTableSortLabel-active {
+  .MuiTableSortLabel-iconDirectionAsc {
+    .up {
+      fill: $color-muter !important;
+    }
+    .down {
+      fill: $color-less-muted !important;
+    }
+
+  }
+  .MuiTableSortLabel-iconDirectionDesc {
+    .down {
+      fill: $color-muter !important;
+    }
+    .up {
+      fill: $color-less-muted !important;
+    }
+  }
+}
+
+#patientList {
+  input,
+  .MuiInputLabel-formControl {
+    font-size: $small-font-size;
+  }
+  .main {
+    tr {
+      td:last-child {
+        min-width: 96px;
+      }
+    }
+  }
+  table {
+    position: relative;
+    overflow: hidden;
+  }
+}
+#patientListPagination {
+  .MuiSelect-root {
+    min-width: 32px;
+  }
+  .MuiSelect-icon {
+    right: 20px;
+  }
+  .MuiSelect-select.MuiSelect-select {
+    padding-right: 4px !important;
+  }
+}
+
+/*
+ * hide the Lage Page arrow on patient list table
+ */
+.MuiTableRow-footer [title='Last Page'] {
+  display: none !important;
+}
+
 .spinner {
   position: fixed;
   left: 0;
@@ -280,42 +360,6 @@ button.disabled:focus,
 .bounce2 {
   -webkit-animation-delay: -0.16s;
   animation-delay: -0.16s;
-}
-
-#patientList {
-  input,
-  .MuiInputLabel-formControl {
-    font-size: $small-font-size;
-  }
-  .main {
-    tr {
-      td:last-child {
-        min-width: 96px;
-      }
-    }
-  }
-  table {
-    position: relative;
-    overflow: hidden;
-  }
-}
-#patientListPagination {
-  .MuiSelect-root {
-    min-width: 32px;
-  }
-  .MuiSelect-icon {
-    right: 20px;
-  }
-  .MuiSelect-select.MuiSelect-select {
-    padding-right: 4px !important;
-  }
-}
-
-/*
- * hide the Lage Page arrow on patient list table
- */
-.MuiTableRow-footer [title='Last Page'] {
-  display: none !important;
 }
 
 /*
