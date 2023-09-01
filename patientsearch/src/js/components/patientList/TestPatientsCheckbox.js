@@ -3,6 +3,7 @@ import PropTypes from "prop-types";
 import FormControlLabel from "@material-ui/core/FormControlLabel";
 import Checkbox from "@material-ui/core/Checkbox";
 import Typography from "@material-ui/core/Typography";
+import { usePatientListContext } from "../../context/PatientListContextProvider";
 
 const checkBoxStyles = makeStyles((theme) => {
   return {
@@ -16,15 +17,18 @@ const formControlStyles = makeStyles((theme) => {
     root: {
       backgroundColor: "#f7f7f7",
       marginLeft: theme.spacing(1),
-      marginRight: theme.spacing(1)
+      marginRight: theme.spacing(1),
     },
   };
 });
 
 export default function TestPatientsCheckbox({ label, changeEvent }) {
+  const { onTestPatientsCheckboxChange } =
+    usePatientListContext();
   const checkboxClasses = checkBoxStyles();
   const formControlClasses = formControlStyles();
   const handleChange = (event) => {
+    if (onTestPatientsCheckboxChange) onTestPatientsCheckboxChange(event);
     if (changeEvent) changeEvent(event.target.checked);
   };
   return (
@@ -43,12 +47,16 @@ export default function TestPatientsCheckbox({ label, changeEvent }) {
           }}
         />
       }
-      label={<Typography variant="body2">{label}</Typography>}
+      label={
+        <Typography variant="body2">
+          {label}
+        </Typography>
+      }
     />
   );
 }
 
 TestPatientsCheckbox.propTypes = {
-  label: PropTypes.string.isRequired,
+  label: PropTypes.string,
   changeEvent: PropTypes.func,
 };

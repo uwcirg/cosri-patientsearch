@@ -23,6 +23,23 @@ const useStyles = makeStyles((theme) => ({
   delYesButton: {
     marginRight: theme.spacing(0.5),
   },
+  modalBody: {
+    display: "flex",
+    width: "100%",
+    height: "100%",
+    justifyContent: "center",
+    alignItems: "center",
+    flexDirection: "column"
+  },
+  modalContent: {
+    background: "#FFF",
+    padding: theme.spacing(0, 2, 2, 2),
+    border: "2px solid #c37707",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    flexDirection: "column"
+  }
 }));
 // button group: Edit, Update, Delete and Cancel buttons
 export default function EditButtonGroup(props) {
@@ -104,8 +121,8 @@ export default function EditButtonGroup(props) {
       aria-labelledby="Delete Entry Modal"
       aria-describedby="Prompt for deleting entry"
     >
-      <div className="warning-modal-body">
-        <div className="warning-modal-content">
+      <div className={classes.modalBody}>
+        <div className={classes.modalContent}>
           <h3>Are you sure you want to remove this entry?</h3>
           {props.entryDescription && (
             <div

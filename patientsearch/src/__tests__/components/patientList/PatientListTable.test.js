@@ -1,6 +1,6 @@
 import { shallow } from "enzyme";
 import React from "react";
-import PatientListTable from "../../js/components/PatientListTable";
+import PatientListTable from "../../../js/components/patientList/PatientListTable";
 
 describe("PatientListTable", () => {
   it("Patient list renders without crashing", () => {
