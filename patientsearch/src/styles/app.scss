@@ -264,9 +264,15 @@ button.disabled:focus,
     font-size: $small-font-size;
   }
   .main {
-    tr {
-      td:last-child {
-        min-width: 96px;
+    tbody {
+      tr {
+        position: relative;
+        &:hover {
+          filter: brightness(1.2);
+        }
+        td:last-child {
+          min-width: 96px;
+        }
       }
     }
   }
