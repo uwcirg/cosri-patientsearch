@@ -60,7 +60,7 @@ def configure_logging(app):
         extra={"tags": ["testing", "logging", "app"]},
     )
 
-    if not app.config["LOGSERVER_URL"] and not app.config["LOGSERVER_TOKEN"]:
+    if not app.config["LOGSERVER_URL"] or not app.config["LOGSERVER_TOKEN"]:
         return
 
     audit_log_init(app)
