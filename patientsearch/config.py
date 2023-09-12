@@ -78,6 +78,7 @@ LANDING_BUTTON_TEXT = os.getenv("LANDING_BUTTON_TEXT", "")
 LANDING_BODY = os.getenv("LANDING_BODY", "")
 MORE_MENU = os.getenv("MORE_MENU", "UDS,CS_Agreement").split(",")
 MATOMO_SITE_ID = os.getenv("MATOMO_SITE_ID")
+NEED_PATIENT_BANNER = os.getenv("NEED_PATIENT_BANNER", "false").lower() == "true"
 NEW_PATIENT_EXTENSIONS = json.loads(os.getenv("NEW_PATIENT_EXTENSIONS", "[]"))
 SERVER_NAME = os.getenv("SERVER_NAME")
 SECRET_KEY = os.getenv("SECRET_KEY")

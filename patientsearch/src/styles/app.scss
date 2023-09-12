@@ -1,6 +1,7 @@
 $color-blue: #00838f;
 $color-blue-light: #46777f;
 $color-success: green;
+$color-warning: #9a4d0d;
 $color-muted: #777;
 $color-muter: rgba(165, 158, 158, 0.64);
 $color-error: #c91616;
@@ -18,6 +19,12 @@ body {
 html {
   scroll-behavior: smooth;
 }
+.container {
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 16px;
+  margin-top: 148px;
+}
 .content-container {
   margin-top: 138px;
   padding: 24px;
@@ -30,7 +37,18 @@ html {
   }
   .buttons-container {
     margin-top: 24px;
+    justify-content: flex-start;
   }
+}
+.table {
+  min-width: 320px;
+  max-width: 100%;
+}
+.bottom-gap {
+  margin-bottom: 8px;
+}
+.bottom-gap-2x {
+  margin-bottom: 16px;
 }
 .flex {
   display: flex;
@@ -38,11 +56,37 @@ html {
   align-items: center;
   flex-wrap: wrap;
 }
+.flex-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.notice {
+  margin-top: 24px;
+  margin-bottom: 24px;
+  line-height: 1.7;
+}
+.flex-align-start {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
 .success {
   color: $color-success;
 }
 .muted {
   color: $color-muted;
+}
+.warning {
+  color: $color-warning;
+}
+.muted-text {
+  color: $color-muted;
+}
+.text-right {
+  text-align: right;
 }
 .invisible {
   visibility: hidden;
@@ -53,6 +97,16 @@ html {
   width: 0;
   height: 0;
   overflow: hidden;
+}
+.action-button {
+  padding: 8px 16px 8px;
+  color: #FFF;
+  font-size: 12px;
+  border-radius: 4px;
+  font-weight: 600;
+  text-transform: uppercase;
+  border: 0;
+  box-shadow: none;
 }
 .landing {
   display: flex;
@@ -123,60 +177,19 @@ img[disabled] {
     }
   }
 }
-#patientList tr:empty {
+tr:empty {
   height: 0 !important;
 }
-#rowMenu {
-  .MuiMenu-list {
-    padding-top: 32px;
-    padding-bottom: 8px;
-  }
+td:empty {
+  padding: 0;
+  margin: 0;
 }
-.menu-icon {
-  margin-left: 8px;
-}
-#dropdownMenu {
-  overflow: hidden;
-}
-
-.muted-text {
-  color: $color-muted;
-}
-.text-right {
-  text-align: right;
-}
-.warning-modal-body {
+.buttons-container {
   display: flex;
-  width: 100%;
-  height: 100%;
+  margin-top: 16px;
   justify-content: center;
-  align-items: center;
-  flex-direction: column;
-}
-.warning-modal-content {
-  background: #FFF;
-  padding-left: 16px;
-  padding-right: 16px;
-  padding-bottom: 16px;
-  border: 2px solid #c37707;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-direction: column;
-}
-#timeout-modal-description {
-  .buttons-container {
-      display: flex;
-      margin-top: 16px;
-      justify-content: center;
-      button {
-          margin: 8px;
-      }
-  }
-}
-.icon-container {
-  svg {
-    fill: $color-blue;
+  button {
+      margin: 8px;
   }
 }
 
@@ -297,16 +310,6 @@ button.disabled:focus,
     padding-right: 4px !important;
   }
 }
-#toolbarGoButton {
-  text-align: center;
-  padding-left: 8px;
-  padding-right: 8px;
-  min-width: 80px;
-  button {
-    padding: 4px 16px;
-    min-width: 120px;
-  }
-}
 
 /*
  * hide the Lage Page arrow on patient list table
@@ -328,8 +331,8 @@ only screen and (max-width: 736px),
 		display: block;
 	}
 
-  #patientList {
-    margin-top: 24px;
+  header + #patientList {
+    margin-top: 140px;
   }
 
   #patientList tbody td [dataColumn]:before {
