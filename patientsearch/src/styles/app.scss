@@ -278,7 +278,7 @@ button.disabled:focus,
       tr {
         position: relative;
         &:hover {
-          filter: brightness(1.2);
+          filter: brightness(0.99);
         }
         td:last-child {
           min-width: 96px;
