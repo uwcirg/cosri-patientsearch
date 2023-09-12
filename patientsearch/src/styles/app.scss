@@ -228,6 +228,10 @@ button.disabled:focus,
   visibility: visible !important;
   transform: none !important;
   svg {
+    opacity: 0.6;
+    &:hover {
+      opacity: 1 !important;
+    }
     &:first-of-type {
       position: relative;
       top: 8px;
@@ -236,6 +240,12 @@ button.disabled:focus,
       position: relative;
       top: -8px;
     }
+  }
+}
+.MuiTableSortLabel-root {
+  &:hover {
+    opacity: 1 !important;
+    color: #444 !important;
   }
 }
 .MuiTableSortLabel-root.MuiTableSortLabel-active {

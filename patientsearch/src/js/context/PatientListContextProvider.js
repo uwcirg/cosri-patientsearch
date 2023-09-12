@@ -986,6 +986,7 @@ export default function PatientListContextProvider({ children }) {
         data,
         errorMessage,
         openLoadingModal,
+        setOpenLoadingModal,
         openLaunchInfoModal,
         pagination,
         paginationDispatch,
