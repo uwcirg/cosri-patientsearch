@@ -164,7 +164,7 @@ export default function Header() {
   const handleHambagaMenuClick = (event) => {
     setAnchorEl(event.currentTarget);
     setOpenPopper((prev) => !prev);
-  } 
+  };
 
   const renderLogoutComponent = () => (
     <div className={classes.buttonContainer}>
@@ -218,7 +218,7 @@ export default function Header() {
         setFavicon(`/static/${appSettings["PROJECT_NAME"]}_favicon.ico`);
       }
     }
-    window.addEventListener("resize", () => setOpenPopper(false))
+    window.addEventListener("resize", () => setOpenPopper(false));
   }, [appSettings]);
 
   const logoutURL = "/logout?user_initiated=true";

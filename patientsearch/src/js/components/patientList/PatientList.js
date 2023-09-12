@@ -80,7 +80,7 @@ export default function PatientListTable() {
       addMamotoTracking(appSettings["MATOMO_SITE_ID"], userName);
     }
     window.addEventListener("unload", () => setOpenLoadingModal(false));
-  }, [userName, appSettings]); //retrieval of settings should occur prior to patient list being rendered/initialized
+  }, [userName, appSettings, setOpenLoadingModal]); //retrieval of settings should occur prior to patient list being rendered/initialized
 
   if (Object.keys(patientListCtx).length === 0)
     return <Error message="patient context error"></Error>;
