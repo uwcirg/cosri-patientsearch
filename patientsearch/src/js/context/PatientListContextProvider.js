@@ -123,7 +123,7 @@ export default function PatientListContextProvider({ children }) {
         hidden: true,
         expr: "$.id",
       });
-    return cols.map((column) => {
+    let returnColumns = cols.map((column) => {
       const fieldName = column.label.toLowerCase().replace(/\s/g, "_");
       column.title = column.label;
       column.field = fieldName;
@@ -135,6 +135,30 @@ export default function PatientListContextProvider({ children }) {
       );
       return column;
     });
+    const sortByQueryString = getUrlParameter("sort_by");
+    const sortDirectionQueryString = getUrlParameter("sort_direction");
+    // see if a column matched the sort field name specified by URL query string
+    const matchedColumn = returnColumns.find(
+      (column) => column.field === sortByQueryString
+    );
+    if (matchedColumn) {
+      // if matched column found, set it as the default sort column
+      returnColumns = returnColumns.map((column) => {
+        if (column.field === matchedColumn.field) {
+          // set sort direction if specified via URL query string
+          // otherwise use the column's default sort if available (otherwise 'asc' by default)
+          column.defaultSort = sortDirectionQueryString
+            ? sortDirectionQueryString
+            : column.defaultSort
+            ? column.defaultSort
+            : "asc";
+        } else {
+          column.defaultSort = null;
+        }
+        return column;
+      });
+    }
+    return returnColumns;
   };
   const needExternalAPILookup = () => {
     return getAppSettingByKey("EXTERNAL_FHIR_API");
@@ -425,8 +449,8 @@ export default function PatientListContextProvider({ children }) {
     let sortField = null,
       sortDirection = null;
     if (orderByCollection && orderByCollection.length) {
-      const orderField = orderByCollection[0];
       const cols = getColumns();
+      const orderField = orderByCollection[0];
       const orderByField = cols[orderField.orderBy]; // orderBy is the index of the column
       if (orderByField) {
         const matchedColumn = cols.filter(
@@ -962,6 +986,7 @@ export default function PatientListContextProvider({ children }) {
         data,
         errorMessage,
         openLoadingModal,
+        setOpenLoadingModal,
         openLaunchInfoModal,
         pagination,
         paginationDispatch,

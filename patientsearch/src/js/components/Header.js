@@ -1,11 +1,16 @@
 import React from "react";
 import { makeStyles } from "@material-ui/core/styles";
+import ExitToAppIcon from "@material-ui/icons/ExitToApp";
+import HowToRegIcon from "@material-ui/icons/HowToReg";
+import MenuIcon from "@material-ui/icons/Menu";
 import AppBar from "@material-ui/core/AppBar";
+import Button from "@material-ui/core/Button";
 import Avatar from "@material-ui/core/Avatar";
 import Box from "@material-ui/core/Box";
-import ExitToAppIcon from "@material-ui/icons/ExitToApp";
+import Fade from "@material-ui/core/Fade";
 import Link from "@material-ui/core/Link";
-import HowToRegIcon from "@material-ui/icons/HowToReg";
+import Popper from "@material-ui/core/Popper";
+import Paper from "@material-ui/core/Paper";
 import Toolbar from "@material-ui/core/Toolbar";
 import Typography from "@material-ui/core/Typography";
 import SiteLogo from "./SiteLogo";
@@ -57,6 +62,24 @@ const useStyles = makeStyles((theme) => ({
     alignItems: "center",
     marginRight: theme.spacing(4),
     marginLeft: theme.spacing(4),
+    [theme.breakpoints.down('sm')]: {
+      display: "none",
+    },
+  },
+  mobileWelcomeContainer: {
+    display: "flex",
+    position: "relative",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: theme.spacing(4),
+    marginLeft: theme.spacing(4),
+    [theme.breakpoints.up('md')]: {
+      display: "none",
+    },
+  },
+  menuContainer: {
+    padding: theme.spacing(2)
   },
   welcomeText: {
     marginTop: theme.spacing(0.5),
@@ -105,6 +128,8 @@ export default function Header() {
   const { user: userInfo, error: userError } = useUserContext();
   const [appTitle, setAppTitle] = React.useState("");
   const [projectName, setProjectName] = React.useState("");
+  const [anchorEl, setAnchorEl] = React.useState(null);
+  const [openPopper, setOpenPopper] = React.useState(false);
   const hasUserInfo = () => {
     return userInfo && (userInfo.name || userInfo.email);
   };
@@ -134,6 +159,11 @@ export default function Header() {
       e.target.classList.add("ghost");
       return;
     }
+  };
+
+  const handleHambagaMenuClick = (event) => {
+    setAnchorEl(event.currentTarget);
+    setOpenPopper((prev) => !prev);
   };
 
   const renderLogoutComponent = () => (
@@ -188,6 +218,7 @@ export default function Header() {
         setFavicon(`/static/${appSettings["PROJECT_NAME"]}_favicon.ico`);
       }
     }
+    window.addEventListener("resize", () => setOpenPopper(false));
   }, [appSettings]);
 
   const logoutURL = "/logout?user_initiated=true";
@@ -207,6 +238,21 @@ export default function Header() {
           <Box className={classes.welcomeContainer}>
             {renderUserInfoComponent()}
             {renderLogoutComponent()}
+          </Box>
+        )}
+        {!userError && (
+          <Box className={classes.mobileWelcomeContainer}>
+              <Button onClick={handleHambagaMenuClick}><MenuIcon fontSize="large"></MenuIcon></Button>
+              <Popper open={openPopper} anchorEl={anchorEl} placement={"bottom-start"} transition style={{zIndex: 100000}}>
+                {({ TransitionProps }) => (
+                  <Fade {...TransitionProps} timeout={350}>
+                    <Paper className={classes.menuContainer} variant="outlined" square={true}>
+                    {renderUserInfoComponent()}
+                    {renderLogoutComponent()}
+                    </Paper>
+                  </Fade>
+                )}
+              </Popper>
           </Box>
         )}
       </Toolbar>

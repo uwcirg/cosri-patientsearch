@@ -48,5 +48,5 @@ export default function LoadingModal(props) {
 }
 
 LoadingModal.propTypes = {
-    open: PropTypes.bool
+  open: PropTypes.bool,
 };
