@@ -31,8 +31,10 @@ export default function ClientAppRedirect() {
   };
   const targetAppURL = getAppLaunchURL(
     patientId,
-    getTargetClientLaunchURL(),
-    appSettings
+    {
+      ...appSettings,
+      "launch_url": getTargetClientLaunchURL()
+    }
   );
   const allowToLaunch = patientId && targetAppURL;
   const renderError = (message) => {
