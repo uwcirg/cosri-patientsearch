@@ -1,5 +1,6 @@
 import React from "react";
 import { makeStyles } from "@material-ui/core/styles";
+import ClickAwayListener from "@material-ui/core/ClickAwayListener";
 import ExitToAppIcon from "@material-ui/icons/ExitToApp";
 import HowToRegIcon from "@material-ui/icons/HowToReg";
 import MenuIcon from "@material-ui/icons/Menu";
@@ -14,11 +15,7 @@ import Paper from "@material-ui/core/Paper";
 import Toolbar from "@material-ui/core/Toolbar";
 import Typography from "@material-ui/core/Typography";
 import SiteLogo from "./SiteLogo";
-import {
-  imageOK,
-  setDocumentTitle,
-  setFavicon,
-} from "../helpers/utility";
+import { imageOK, setDocumentTitle, setFavicon } from "../helpers/utility";
 import { useSettingContext } from "../context/SettingContextProvider";
 import { useUserContext } from "../context/UserContextProvider";
 
@@ -62,7 +59,7 @@ const useStyles = makeStyles((theme) => ({
     alignItems: "center",
     marginRight: theme.spacing(4),
     marginLeft: theme.spacing(4),
-    [theme.breakpoints.down('sm')]: {
+    [theme.breakpoints.down("sm")]: {
       display: "none",
     },
   },
@@ -74,12 +71,12 @@ const useStyles = makeStyles((theme) => ({
     justifyContent: "center",
     marginRight: theme.spacing(4),
     marginLeft: theme.spacing(4),
-    [theme.breakpoints.up('md')]: {
+    [theme.breakpoints.up("md")]: {
       display: "none",
     },
   },
   menuContainer: {
-    padding: theme.spacing(2)
+    padding: theme.spacing(2),
   },
   welcomeText: {
     marginTop: theme.spacing(0.5),
@@ -161,6 +158,10 @@ export default function Header() {
     }
   };
 
+  const handleClickAway = () => {
+    setOpenPopper(false);
+  };
+
   const handleHambagaMenuClick = (event) => {
     setAnchorEl(event.currentTarget);
     setOpenPopper((prev) => !prev);
@@ -214,7 +215,9 @@ export default function Header() {
         setAppTitle(appSettings["APPLICATION_TITLE"]);
       if (appSettings["PROJECT_NAME"]) {
         setProjectName(appSettings["PROJECT_NAME"]);
-        setDocumentTitle(`${appSettings["PROJECT_NAME"]} ${appSettings["SEARCH_TITLE_TEXT"]}`);
+        setDocumentTitle(
+          `${appSettings["PROJECT_NAME"]} ${appSettings["SEARCH_TITLE_TEXT"]}`
+        );
         setFavicon(`/static/${appSettings["PROJECT_NAME"]}_favicon.ico`);
       }
     }
@@ -237,23 +240,37 @@ export default function Header() {
         {!userError && (
           <Box className={classes.welcomeContainer}>
             {renderUserInfoComponent()}
-            {renderLogoutComponent()}
+            {hasUserInfo() && renderLogoutComponent()}
           </Box>
         )}
         {!userError && (
-          <Box className={classes.mobileWelcomeContainer}>
-              <Button onClick={handleHambagaMenuClick}><MenuIcon fontSize="large"></MenuIcon></Button>
-              <Popper open={openPopper} anchorEl={anchorEl} placement={"bottom-start"} transition style={{zIndex: 100000}}>
+          <ClickAwayListener onClickAway={handleClickAway}>
+            <Box className={classes.mobileWelcomeContainer}>
+              <Button onClick={handleHambagaMenuClick}>
+                <MenuIcon fontSize="large"></MenuIcon>
+              </Button>
+              <Popper
+                open={openPopper}
+                anchorEl={anchorEl}
+                placement={"bottom-start"}
+                transition
+                style={{ zIndex: 100000 }}
+              >
                 {({ TransitionProps }) => (
                   <Fade {...TransitionProps} timeout={350}>
-                    <Paper className={classes.menuContainer} variant="outlined" square={true}>
-                    {renderUserInfoComponent()}
-                    {renderLogoutComponent()}
+                    <Paper
+                      className={classes.menuContainer}
+                      variant="outlined"
+                      square={true}
+                    >
+                      {renderUserInfoComponent()}
+                      {hasUserInfo() && renderLogoutComponent()}
                     </Paper>
                   </Fade>
                 )}
               </Popper>
-          </Box>
+            </Box>
+          </ClickAwayListener>
         )}
       </Toolbar>
       {appTitle && (
