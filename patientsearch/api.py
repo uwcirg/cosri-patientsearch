@@ -298,7 +298,7 @@ def post_resource(resource_type):
         return jsonify_abort(status_code=400, message=str(error))
 
 
-@api_blueprint.route("/fhir/<string:resource_type>/<int:resource_id>", methods=["PUT"])
+@api_blueprint.route("/fhir/<string:resource_type>/<string:resource_id>", methods=["PUT"])
 def update_resource_by_id(resource_type, resource_id):
     """Update individual resource within HAPI; return JSON result
 
@@ -359,7 +359,7 @@ def update_resource_by_id(resource_type, resource_id):
 
 
 @api_blueprint.route(
-    "/fhir/<string:resource_type>/<int:resource_id>", methods=["DELETE"]
+    "/fhir/<string:resource_type>/<string:resource_id>", methods=["DELETE"]
 )
 def delete_resource_by_id(resource_type, resource_id):
     """Delete individual resource from HAPI; return JSON result
@@ -389,7 +389,7 @@ def delete_resource_by_id(resource_type, resource_id):
         return jsonify_abort(status_code=400, message=str(error))
 
 
-@api_blueprint.route("/fhir/<string:resource_type>/<int:resource_id>", methods=["GET"])
+@api_blueprint.route("/fhir/<string:resource_type>/<string:resource_id>", methods=["GET"])
 def resource_by_id(resource_type, resource_id):
     """Query HAPI for individual resource; return JSON FHIR Resource
 
