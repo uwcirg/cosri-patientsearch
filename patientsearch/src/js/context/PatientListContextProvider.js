@@ -414,7 +414,8 @@ export default function PatientListContextProvider({ children }) {
             if (dataType === "timeago" && value) {
               value = value ? getTimeAgoDisplay(new Date(value)) : "--";
             }
-            if (dataType === "nextscheduleddate") {
+            if (col.field === "next_message") {
+              // TODO maybe a specific data type to handle not displaying past message?
               value = isInPast(value) ? "--": getLocalDateTimeString(value);
             }
             if (col.field) rowData[col.field] = value;
