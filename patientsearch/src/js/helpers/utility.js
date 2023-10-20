@@ -456,6 +456,18 @@ export function addMamotoTracking(siteId, userId) {
 }
 
 /*
+ * @param dateString of type String
+ * @returns true if supplied dateString is determined to be less than today's date otherwise false 
+ */
+export function isInPast(dateString) {
+  if (!dateString) return false;
+  const today = new Date();
+  const targetDate = new Date(dateString);
+  if (!isValid(targetDate)) return false;
+  return targetDate < today;
+}
+
+/*
  * @param objDate of type Date object
  * @returns text display of time ago as string e.g. < 50 seconds, < 1 hour, 1 day 2 hours, 3 hours, 3 days
  */

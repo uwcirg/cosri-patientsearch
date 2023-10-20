@@ -16,6 +16,7 @@ import {
   getClientsByRequiredRoles,
   getPatientIdsByCareTeamParticipant,
   getTimeAgoDisplay,
+  isInPast,
   isString,
   putPatientData,
   getUrlParameter,
@@ -406,11 +407,16 @@ export default function PatientListContextProvider({ children }) {
             }
             let value =
               nodes && nodes.length ? nodes[nodes.length - 1].value : null;
+
             if (dataType === "date") {
               value = value ? getLocalDateTimeString(value) : "--";
             }
             if (dataType === "timeago" && value) {
               value = value ? getTimeAgoDisplay(new Date(value)) : "--";
+            }
+            if (col.field === "next_message") {
+              // TODO maybe a specific data type to handle not displaying past message?
+              value = isInPast(value) ? "--": getLocalDateTimeString(value);
             }
             if (col.field) rowData[col.field] = value;
           });
