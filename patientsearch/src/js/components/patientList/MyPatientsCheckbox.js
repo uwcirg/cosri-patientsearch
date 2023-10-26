@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import PropTypes from "prop-types";
 import FormControlLabel from "@material-ui/core/FormControlLabel";
@@ -47,11 +47,6 @@ export default function MyPatientsCheckbox({
     setState(event.target.checked);
     onMyPatientsCheckboxChange(event, changeEvent);
   };
-  useEffect(() => {
-    if (!user) return;
-    if (checked) onMyPatientsCheckboxChange(null, changeEvent);
-    /* eslint-disable react-hooks/exhaustive-deps */
-  }, [user, checked]);
   return (
     <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
       <FormControlLabel

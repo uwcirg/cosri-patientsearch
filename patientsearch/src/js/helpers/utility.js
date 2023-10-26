@@ -565,3 +565,10 @@ export async function getPatientIdsByCareTeamParticipant(practitionerId) {
   }
   return null;
 }
+
+export function hasFlagForCheckbox (flagId) {
+  const flagQueryString = getUrlParameter("flags");
+  if (!flagQueryString) return false;
+  if (!flagId) return false;
+  return flagQueryString === flagId;
+};

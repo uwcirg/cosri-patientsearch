@@ -14,8 +14,8 @@ import {
   getAppLaunchURL,
   getLocalDateTimeString,
   getClientsByRequiredRoles,
-  getPatientIdsByCareTeamParticipant,
   getTimeAgoDisplay,
+  hasFlagForCheckbox,
   isInPast,
   isString,
   putPatientData,
@@ -44,7 +44,13 @@ export default function PatientListContextProvider({ children }) {
   const menuItems = constants.defaultMenuItems;
   const [data, setData] = React.useState([]);
   const [patientIdsByCareTeamParticipant, setPatientIdsByCareTeamParticipant] =
-    React.useState(false);
+    React.useState(
+      hasFlagForCheckbox(constants.FOLLOWING_FLAG)
+        ? user && user.followingPatientIds
+          ? user.followingPatientIds
+          : null
+        : null
+    );
   const paginationReducer = (state, action) => {
     if (action.type === "empty") {
       return {
@@ -94,6 +100,7 @@ export default function PatientListContextProvider({ children }) {
   );
   const [noDataText, setNoDataText] = React.useState("No record found.");
   const [filterByTestPatients, setFilterByTestPatients] = React.useState(false);
+
   const existsIndata = (rowData) => {
     if (!data || !rowData) return false;
     return (
@@ -321,16 +328,11 @@ export default function PatientListContextProvider({ children }) {
       if (changeEvent) changeEvent();
       return;
     }
-    // NOTE - retrieving id(s) of patients whose care team the practitioner is part of
-    getPatientIdsByCareTeamParticipant(user ? user.practitionerId : null).then(
-      (result) => {
-        setPatientIdsByCareTeamParticipant(
-          result && result.length ? result : [-1]
-        );
-        if (tableRef.current) tableRef.current.onQueryChange();
-        if (changeEvent) changeEvent();
-      }
-    );
+    if (user && user.followingPatientIds) {
+      setPatientIdsByCareTeamParticipant(user.followingPatientIds);
+      if (tableRef.current) tableRef.current.onQueryChange();
+      if (changeEvent) changeEvent();
+    }
   };
   const shouldShowLegend = () => containNoPMPRow;
   const _getSelectedItemComponent = (selectedMenuItem, rowData) => {
