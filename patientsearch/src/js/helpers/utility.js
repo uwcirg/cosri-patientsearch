@@ -565,3 +565,15 @@ export async function getPatientIdsByCareTeamParticipant(practitionerId) {
   }
   return null;
 }
+
+/*
+ * return true if queryString URL contains specified flag, e.g. flags=[flagId]
+ * @param flagId, value for the query string, flags
+ * @return boolean
+ */
+export function hasFlagForCheckbox (flagId) {
+  const flagQueryString = getUrlParameter("flags");
+  if (!flagQueryString) return false;
+  if (!flagId) return false;
+  return flagQueryString === flagId;
+}

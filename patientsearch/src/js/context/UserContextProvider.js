@@ -5,6 +5,7 @@ import Error from "../components/Error";
 import {
   fetchData,
   getEmailFromToken,
+  getPatientIdsByCareTeamParticipant,
   getPreferredUserNameFromToken,
   getRolesFromToken,
   getAccessToken,
@@ -67,28 +68,40 @@ export default function UserContextProvider({ children }) {
               encodeURIComponent(given_name)
           );
         }
-        setUser(userObj);
         // try looking up matched practitioner resource by name or email
         const allResults = await Promise.all(
           requestURLs.map((item) => fetchData(item, noCacheParam))
         ).catch(e => {
           console.log("fetch practitioner error ", e);
+          setUser(userObj);
           handleErrorCallback(e);
         });
-        if (allResults && allResults.length) {
-          const filteredResults = allResults.filter(
-              (item) => item.entry && item.entry.length > 0
-          );
-          if (filteredResults.length) {
-              practitionerId = filteredResults[0].entry[0].resource.id;
-          } else {
-            handleErrorCallback("Practitioner resource lookup failed. We are not able to find you in the system.");
-          }
+        if (!allResults || !allResults.length) {
+          setUser(userObj);
+          return;
         }
-        setUser({
-          ...userObj,
-          practitionerId: practitionerId,
-        });
+        const filteredResults = allResults.filter(
+            (item) => item.entry && item.entry.length > 0
+        );
+        if (filteredResults.length) {
+            practitionerId = filteredResults[0].entry[0].resource.id;
+            // NOTE - retrieving id(s) of patients whose care team the practitioner is part of
+            getPatientIdsByCareTeamParticipant(practitionerId).then(
+              (result) => {
+                setUser({
+                  ...userObj,
+                  practitionerId: practitionerId,
+                  followingPatientIds: result && result.length ? result : null
+                });
+              }
+            ).catch((e) => {
+              setUser(userObj);
+              handleErrorCallback(e);
+            });
+        } else {
+          setUser(userObj);
+          handleErrorCallback("Practitioner resource lookup failed. We are not able to find you in the system.");
+        }
       },
       (e) => {
         console.log("token validation error ", e);
