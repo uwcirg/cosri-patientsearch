@@ -315,7 +315,7 @@ export default function PatientListContextProvider({ children }) {
     if (tableRef.current) tableRef.current.onQueryChange();
   };
   const onMyPatientsCheckboxChange = (event, changeEvent) => {
-    if (!event.target.checked) {
+    if (event && event.target && !event.target.checked) {
       setPatientIdsByCareTeamParticipant(null);
       if (tableRef.current) tableRef.current.onQueryChange();
       if (changeEvent) changeEvent();

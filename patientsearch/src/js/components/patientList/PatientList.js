@@ -15,7 +15,7 @@ import Pagination from "./Pagination";
 import OverlayElement from "../OverlayElement";
 import TestPatientsCheckbox from "./TestPatientsCheckbox";
 import * as constants from "../../constants/consts";
-import { addMamotoTracking } from "../../helpers/utility";
+import { addMamotoTracking, getUrlParameter } from "../../helpers/utility";
 
 export default function PatientListTable() {
   const patientListCtx = usePatientListContext();
@@ -35,6 +35,13 @@ export default function PatientListTable() {
     openLoadingModal,
     setOpenLoadingModal
   } = usePatientListContext();
+
+  const hasFlagForCheckbox = (flagId) => {
+    const flagQueryString = getUrlParameter("flags");
+    if (!flagQueryString) return false;
+    if (!flagId) return false;
+    return flagQueryString === flagId;
+  }
 
   const renderTitle = () => {
     const title = appSettings["SEARCH_TITLE_TEXT"]
@@ -66,6 +73,7 @@ export default function PatientListTable() {
     return (
       <MyPatientsCheckbox
         label={getAppSettingByKey("MY_PATIENTS_FILTER_LABEL")}
+        checked={hasFlagForCheckbox("following")}
       ></MyPatientsCheckbox>
     );
   };
