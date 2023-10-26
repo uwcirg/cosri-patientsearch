@@ -41,7 +41,7 @@ export default function PatientListTable() {
     if (!flagQueryString) return false;
     if (!flagId) return false;
     return flagQueryString === flagId;
-  }
+  };
 
   const renderTitle = () => {
     const title = appSettings["SEARCH_TITLE_TEXT"]

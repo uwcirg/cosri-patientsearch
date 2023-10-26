@@ -50,6 +50,7 @@ export default function MyPatientsCheckbox({
   useEffect(() => {
     if (!user) return;
     if (checked) onMyPatientsCheckboxChange(null, changeEvent);
+    /* eslint-disable react-hooks/exhaustive-deps */
   }, [user, checked]);
   return (
     <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
