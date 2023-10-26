@@ -15,7 +15,7 @@ import Pagination from "./Pagination";
 import OverlayElement from "../OverlayElement";
 import TestPatientsCheckbox from "./TestPatientsCheckbox";
 import * as constants from "../../constants/consts";
-import { addMamotoTracking, getUrlParameter, hasFlagForCheckbox } from "../../helpers/utility";
+import { addMamotoTracking, hasFlagForCheckbox } from "../../helpers/utility";
 
 export default function PatientListTable() {
   const patientListCtx = usePatientListContext();

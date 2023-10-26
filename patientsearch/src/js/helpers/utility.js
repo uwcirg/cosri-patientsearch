@@ -571,4 +571,4 @@ export function hasFlagForCheckbox (flagId) {
   if (!flagQueryString) return false;
   if (!flagId) return false;
   return flagQueryString === flagId;
-};
+}

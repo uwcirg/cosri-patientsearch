@@ -39,7 +39,7 @@ export default function MyPatientsCheckbox({
   label,
   checked,
 }) {
-  const { onMyPatientsCheckboxChange, user, userError } = usePatientListContext();
+  const { onMyPatientsCheckboxChange, userError } = usePatientListContext();
   const checkboxClasses = checkBoxStyles();
   const formControlClasses = formControlStyles();
   const [state, setState] = useState(checked);
