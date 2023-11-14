@@ -477,10 +477,10 @@ export function getTimeAgoDisplay(objDate) {
   const total = today - objDate;
   // future date
   if (total < 0) return null;
-  const seconds = Math.round((today - objDate) / 1000);
-  const minutes = Math.round(seconds / 60);
-  const hours = Math.round(minutes / 60);
-  const days = Math.round(hours / 24);
+  const seconds = Math.floor((today - objDate) / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
   if (seconds < 5) {
     return "now";
   } else if (seconds < 60) {
