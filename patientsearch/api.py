@@ -278,10 +278,12 @@ def post_resource(resource_type):
 
         resource = new_resource_hook(resource)
         method = request.method
+        params = request.args
+        # params["active"] = True
         audit_HAPI_change(
             user_info=current_user_info(token),
             method=method,
-            params=request.args,
+            params=params,
             resource=resource,
             resource_type=resource_type,
         )
@@ -289,7 +291,7 @@ def post_resource(resource_type):
             HAPI_request(
                 token=token,
                 method=method,
-                params=request.args,
+                params=params,
                 resource_type=resource_type,
                 resource=resource,
             )
@@ -500,7 +502,7 @@ def external_search(resource_type):
         # See if local match already exists
         patient = resource_from_args(resource_type, request.args)
         try:
-            internal_bundle = internal_patient_search(token, patient)
+            internal_bundle = internal_patient_search(token, patient, True)
         except (RuntimeError, ValueError) as error:
             return jsonify_abort(status_code=400, message=str(error))
         local_fhir_patient = None
@@ -526,8 +528,9 @@ def external_search(resource_type):
                 resource=patient,
             )
             local_fhir_patient = HAPI_request(
-                token=token, method=method, resource_type="Patient", resource=patient
-            )
+                token=token, method=method, resource_type="Patient", resource=patient, params={
+            "active": True
+            })
         except (RuntimeError, ValueError) as error:
             return jsonify_abort(status_code=400, message=str(error))
         audit_entry(

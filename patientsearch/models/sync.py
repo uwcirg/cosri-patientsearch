@@ -128,6 +128,8 @@ def external_request(token, resource_type, params):
     if "DEA" not in user:
         raise ValueError("DEA not found")
     search_params = dict(deepcopy(params))  # Necessary on ImmutableMultiDict
+    # Only working with active external patients
+    search_params["active"] = True
     search_params["DEA"] = user.get("DEA")
     url = current_app.config.get("EXTERNAL_FHIR_API") + resource_type
     resp = requests.get(url, auth=BearerAuth(token), params=search_params, timeout=30)
@@ -179,6 +181,8 @@ def _merge_patient(src_patient, internal_patient, token):
 
     def different(src, dest):
         """returns true if details of interest found to be different"""
+        if not dest.get("active"):
+            return True
         if src == dest:
             return False
         if src.get("identifier") is None:
@@ -198,6 +202,8 @@ def _merge_patient(src_patient, internal_patient, token):
     else:
         internal_patient["identifier"] = src_patient["identifier"]
         params = patient_as_search_params(internal_patient)
+        # Ensure the internal patient is active now
+        params["active"] = True
         return HAPI_request(
             token=token,
             method="PUT",
@@ -208,7 +214,7 @@ def _merge_patient(src_patient, internal_patient, token):
         )
 
 
-def patient_as_search_params(patient):
+def patient_as_search_params(patient, active_only = False):
     """Generate HAPI search params from patient resource"""
 
     # Use same parameters sent to external src looking for existing Patient
@@ -221,6 +227,17 @@ def patient_as_search_params(patient):
         ("name[0].given[0]", "given", ""),
         ("birthDate", "birthdate", "eq"),
     )
+    if active_only:
+        search_map = (
+            ("name.family", "family", ""),
+            ("name[0].family", "family", ""),
+            ("name.given", "given", ""),
+            ("name.given[0]", "given", ""),
+            ("name[0].given[0]", "given", ""),
+            ("birthDate", "birthdate", "eq"),
+            ("active", "True", "eq"),
+        )
+        
     search_params = {}
 
     for path, queryterm, compstr in search_map:
@@ -230,9 +247,10 @@ def patient_as_search_params(patient):
     return search_params
 
 
-def internal_patient_search(token, patient):
+def internal_patient_search(token, patient, active_only = False):
     """Look up given patient from "internal" HAPI store, returns bundle"""
-    params = patient_as_search_params(patient)
+    params = patient_as_search_params(patient, active_only)
+
     return HAPI_request(
         token=token, method="GET", resource_type="Patient", params=params
     )
@@ -273,6 +291,7 @@ def sync_patient(token, patient):
             )
 
         internal_patient = internal_search["entry"][0]["resource"]
+        #TODO: ask whether they prefer to merge and update active value or to start a new Patient for each sync attempt toward a non-active patient. 
         merged_patient = _merge_patient(
             src_patient=patient, internal_patient=internal_patient, token=token
         )
@@ -281,5 +300,7 @@ def sync_patient(token, patient):
     # No match, insert and return
     patient = new_resource_hook(resource=patient)
     return HAPI_request(
-        token=token, method="POST", resource_type="Patient", resource=patient
+        token=token, method="POST", resource_type="Patient", resource=patient, params={
+            "active": True
+        }
     )
