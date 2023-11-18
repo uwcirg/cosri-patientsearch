@@ -181,8 +181,6 @@ def _merge_patient(src_patient, internal_patient, token):
 
     def different(src, dest):
         """returns true if details of interest found to be different"""
-        if not dest.get("active"):
-            return True
         if src == dest:
             return False
         if src.get("identifier") is None:
@@ -198,11 +196,25 @@ def _merge_patient(src_patient, internal_patient, token):
         return True
 
     if not different(src_patient, internal_patient):
-        return internal_patient
+        # If patient is active, proceed. If not, re-activate
+        if internal_patient.get("active") is True:
+            return internal_patient
+        
+        params = patient_as_search_params(internal_patient)
+        # Ensure it is active
+        params["active"] = True
+        return HAPI_request(
+            token=token,
+            method="PUT",
+            params=params,
+            resource_type="Patient",
+            resource=internal_patient,
+            resource_id=internal_patient["id"],
+        )
     else:
         internal_patient["identifier"] = src_patient["identifier"]
         params = patient_as_search_params(internal_patient)
-        # Ensure the internal patient is active now
+        # Ensure it is active
         params["active"] = True
         return HAPI_request(
             token=token,
