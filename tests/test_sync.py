@@ -32,6 +32,13 @@ class mock_response:
 def external_patient_search(datadir):
     return load_json(datadir, "external_patient_search.json")
 
+@fixture
+def external_patient_search_active(datadir):
+    return load_json(datadir, "external_patient_search_active.json")
+
+@fixture
+def external_patient_search_non_active(datadir):
+    return load_json(datadir, "external_patient_search_non_active.json")
 
 @fixture
 def new_patient(datadir):
