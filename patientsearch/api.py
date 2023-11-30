@@ -464,10 +464,10 @@ def external_search(resource_type):
       as additional search criteria.
       i.e. /Patient?subject:Patient.name.given=luke&subject:Patient.birthdate=eq1977-01-12
 
-    """    
+    """
     token = validate_auth()
 
-    reinstate_patient: bool = request.args[-1]
+    reinstate_patient = False
     # Tag any matching results with identifier naming source
     try:
         external_search_bundle = add_identifier_to_resource_type(
