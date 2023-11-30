@@ -316,3 +316,16 @@ def sync_patient(token, patient):
             "active": True
         }
     )
+
+
+def restore_patient(token, patient):
+    """Restore single internal patient resource"""
+
+    return HAPI_request(
+        token=token,
+        method="PUT",
+        params={"active": True},
+        resource_type="Patient",
+        resource=patient,
+        resource_id=patient["id"],
+    )

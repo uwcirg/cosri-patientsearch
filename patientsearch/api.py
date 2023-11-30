@@ -24,6 +24,7 @@ from patientsearch.models import (
     internal_patient_search,
     new_resource_hook,
     sync_bundle,
+    restore_patient
 )
 from patientsearch.extensions import oidc
 from patientsearch.jsonify_abort import jsonify_abort
@@ -463,8 +464,10 @@ def external_search(resource_type):
       as additional search criteria.
       i.e. /Patient?subject:Patient.name.given=luke&subject:Patient.birthdate=eq1977-01-12
 
-    """
+    """    
     token = validate_auth()
+
+    reinstate_patient: bool = request.args[-1]
     # Tag any matching results with identifier naming source
     try:
         external_search_bundle = add_identifier_to_resource_type(
@@ -502,12 +505,15 @@ def external_search(resource_type):
         # See if local match already exists
         patient = resource_from_args(resource_type, request.args)
         try:
-            internal_bundle = internal_patient_search(token, patient, True)
+            internal_bundle = internal_patient_search(token, patient, not reinstate_patient)
         except (RuntimeError, ValueError) as error:
             return jsonify_abort(status_code=400, message=str(error))
         local_fhir_patient = None
         if internal_bundle["total"] > 0:
             local_fhir_patient = internal_bundle["entry"][0]["resource"]
+            if reinstate_patient:
+                local_fhir_patient = restore_patient(token, local_fhir_patient)
+
         if internal_bundle["total"] > 1:
             audit_entry(
                 f"found multiple internal matches ({patient}), return first",
