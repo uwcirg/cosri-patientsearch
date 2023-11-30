@@ -197,7 +197,7 @@ def _merge_patient(src_patient, internal_patient, token):
 
     if not different(src_patient, internal_patient):
         # If patient is active, proceed. If not, re-activate
-        if internal_patient.get("active") is True:
+        if internal_patient.get("active") is not False:
             return internal_patient
         
         params = patient_as_search_params(internal_patient)
