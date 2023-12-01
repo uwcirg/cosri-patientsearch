@@ -280,7 +280,7 @@ def post_resource(resource_type):
         resource = new_resource_hook(resource)
         method = request.method
         params = request.args
-        # params["active"] = True
+
         audit_HAPI_change(
             user_info=current_user_info(token),
             method=method,
@@ -533,10 +533,9 @@ def external_search(resource_type):
                 resource_type=resource_type,
                 resource=patient,
             )
+            patient["active"] = True
             local_fhir_patient = HAPI_request(
-                token=token, method=method, resource_type="Patient", resource=patient, params={
-            "active": True
-            })
+                token=token, method=method, resource_type="Patient", resource=patient)
         except (RuntimeError, ValueError) as error:
             return jsonify_abort(status_code=400, message=str(error))
         audit_entry(

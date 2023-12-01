@@ -202,7 +202,7 @@ def _merge_patient(src_patient, internal_patient, token):
         
         params = patient_as_search_params(internal_patient)
         # Ensure it is active
-        params["active"] = True
+        internal_patient["active"] = True
         return HAPI_request(
             token=token,
             method="PUT",
@@ -215,7 +215,7 @@ def _merge_patient(src_patient, internal_patient, token):
         internal_patient["identifier"] = src_patient["identifier"]
         params = patient_as_search_params(internal_patient)
         # Ensure it is active
-        params["active"] = True
+        internal_patient["active"] = True
         return HAPI_request(
             token=token,
             method="PUT",
@@ -311,20 +311,20 @@ def sync_patient(token, patient):
 
     # No match, insert and return
     patient = new_resource_hook(resource=patient)
+    patient["active"] = True
     return HAPI_request(
-        token=token, method="POST", resource_type="Patient", resource=patient, params={
-            "active": True
-        }
+        token=token, method="POST", resource_type="Patient", resource=patient,
     )
 
 
 def restore_patient(token, patient):
     """Restore single internal patient resource"""
+    # Set patient to active
+    patient["active"] = True
 
     return HAPI_request(
         token=token,
         method="PUT",
-        params={"active": True},
         resource_type="Patient",
         resource=patient,
         resource_id=patient["id"],
