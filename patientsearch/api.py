@@ -533,7 +533,7 @@ def external_search(resource_type):
                 resource_type=resource_type,
                 resource=patient,
             )
-            patient["active"] = "true"
+            patient["active"] = True
             local_fhir_patient = HAPI_request(
                 token=token, method=method, resource_type="Patient", resource=patient)
         except (RuntimeError, ValueError) as error:
