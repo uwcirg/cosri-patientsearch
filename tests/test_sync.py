@@ -42,6 +42,9 @@ def external_patient_search_active(datadir):
 def new_patient(datadir):
     return load_json(datadir, "new_patient_result.json")
 
+@fixture
+def new_patient_active(datadir):
+    return load_json(datadir, "new_patient_result_active.json")
 
 @fixture
 def internal_patient_miss(datadir):
@@ -85,8 +88,8 @@ def test_new_upsert(
     external_patient_search_active,
     internal_patient_miss,
     new_patient,
-    internal_patient_inactive_match
-):
+    new_patient_active
+    ):
     """Without finding a matching patient, should insert new and return"""
 
     # Mock HAPI search failing to find a matching patient
@@ -107,21 +110,14 @@ def test_new_upsert(
 
     """Finding inactive patient, user specified to not restore, should insert new and return"""
 
-    # Mock HAPI search finding an inactive matching patient
-    mocker.patch(
-        "patientsearch.models.sync.requests.get",
-        return_value=mock_response(internal_patient_inactive_match),
-    )
-
     # Mock POST to generate new patient on HAPI
     mocker.patch(
         "patientsearch.models.sync.requests.post",
-        return_value=mock_response(new_patient),
+        return_value=mock_response(new_patient_active),
     )
 
     result = sync_bundle(faux_token, external_patient_search_active)
-    assert result == new_patient
-
+    assert result == new_patient_active
 
 
 def test_adding_identifier(external_patient_search):
