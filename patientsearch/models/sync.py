@@ -129,7 +129,7 @@ def external_request(token, resource_type, params):
         raise ValueError("DEA not found")
     search_params = dict(deepcopy(params))  # Necessary on ImmutableMultiDict
     # Only working with active external patients
-    search_params["active"] = "true"
+    search_params["active"] = True
     search_params["DEA"] = user.get("DEA")
     url = current_app.config.get("EXTERNAL_FHIR_API") + resource_type
     resp = requests.get(url, auth=BearerAuth(token), params=search_params, timeout=30)
@@ -197,12 +197,12 @@ def _merge_patient(src_patient, internal_patient, token):
 
     if not different(src_patient, internal_patient):
         # If patient is active, proceed. If not, re-activate
-        if internal_patient.get("active") != "true":
+        if internal_patient.get("active") != True:
             return internal_patient
         
         params = patient_as_search_params(internal_patient)
         # Ensure it is active
-        internal_patient["active"] = "true"
+        internal_patient["active"] = True
         return HAPI_request(
             token=token,
             method="PUT",
@@ -215,7 +215,7 @@ def _merge_patient(src_patient, internal_patient, token):
         internal_patient["identifier"] = src_patient["identifier"]
         params = patient_as_search_params(internal_patient)
         # Ensure it is active
-        internal_patient["active"] = "true"
+        internal_patient["active"] = True
         return HAPI_request(
             token=token,
             method="PUT",
@@ -247,7 +247,7 @@ def patient_as_search_params(patient, active_only = False):
             ("name.given[0]", "given", ""),
             ("name[0].given[0]", "given", ""),
             ("birthDate", "birthdate", "eq"),
-            ("active", "true", "eq"),
+            ("active", True, "eq"),
         )
         
     search_params = {}
@@ -311,7 +311,7 @@ def sync_patient(token, patient):
 
     # No match, insert and return
     patient = new_resource_hook(resource=patient)
-    patient["active"] = "true"
+    patient["active"] = True
     return HAPI_request(
         token=token, method="POST", resource_type="Patient", resource=patient,
     )
@@ -320,7 +320,7 @@ def sync_patient(token, patient):
 def restore_patient(token, patient):
     """Restore single internal patient resource"""
     # Set patient to active
-    patient["active"] = "true"
+    patient["active"] = True
 
     return HAPI_request(
         token=token,
