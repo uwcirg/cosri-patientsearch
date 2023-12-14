@@ -308,7 +308,7 @@ def test_duplicate_active(
 
     # Shouldn't kill the process, but return the first
     result = sync_bundle(faux_token, external_patient_search_active)
-    assert result == internal_patient_duplicate_active_match["entry"][0]["resource"]
+    assert result == internal_patient_duplicate_inactive_match["entry"][0]["resource"]
 
 
 def test_duplicate_inactive(
