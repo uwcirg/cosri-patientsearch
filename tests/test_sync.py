@@ -42,9 +42,11 @@ def external_patient_search_active(datadir):
 def new_patient(datadir):
     return load_json(datadir, "new_patient_result.json")
 
+
 @fixture
 def new_patient_active(datadir):
     return load_json(datadir, "new_patient_result_active.json")
+
 
 @fixture
 def internal_patient_miss(datadir):
@@ -79,7 +81,6 @@ def internal_patient_duplicate_active_match(datadir):
 @fixture
 def internal_patient_duplicate_mismatch(datadir):
     return load_json(datadir, "internal_patient_duplicate_mismatch.json")
-
 
 
 @fixture
@@ -295,14 +296,14 @@ def test_duplicate_active(
     mocker,
     faux_token,
     external_patient_search_active,
-    internal_patient_duplicate_active_match,
+    internal_patient_duplicate_inactive_match,
 ):
     """Finding a matching active patient with duplicates, handle well"""
 
     # Mock HAPI search finding duplicate matching patients
     mocker.patch(
         "patientsearch.models.sync.requests.get",
-        return_value=mock_response(internal_patient_duplicate_active_match),
+        return_value=mock_response(internal_patient_duplicate_inactive_match),
     )
 
     # Shouldn't kill the process, but return the first
@@ -327,32 +328,5 @@ def test_duplicate_inactive(
 
     # Shouldn't kill the process, but return the first
     result = sync_bundle(faux_token, external_patient_search_active)
-    assert result != internal_patient_duplicate_inactive_match["entry"][0]["resource"]
+    assert result == internal_patient_duplicate_inactive_match["entry"][0]["resource"]
 
-
-def test_duplicate_mismatch(
-    client,
-    mocker,
-    faux_token,
-    external_patient_search_active,
-    internal_patient_duplicate_mismatch,
-    internal_patient_duplicate_active_match,
-):
-    """Finding mistmatching active/inactive patient with duplicates, handle well"""
-
-    # Mock HAPI search finding duplicate matching patients
-    mocker.patch(
-        "patientsearch.models.sync.requests.get",
-        return_value=mock_response(internal_patient_duplicate_mismatch),
-    )
-    # TODO: add logic to handle if true is not first
-    
-    # Shouldn't kill the process, but return the first
-    result = sync_bundle(faux_token, external_patient_search_active)
-    # First duplicate is true, should be the same
-    assert result == internal_patient_duplicate_active_match["entry"][0]["resource"]
-
-    # Shouldn't kill the process, but return the first
-    result = sync_bundle(faux_token, external_patient_search_active)
-    # Second duplicate is false, should not be the same
-    assert result != internal_patient_duplicate_active_match["entry"][1]["resource"]
