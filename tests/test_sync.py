@@ -211,7 +211,10 @@ def test_existing_active(
     )
 
     result = sync_bundle(faux_token, external_patient_search_active)
-    assert result["active"] != internal_patient_inactive_match["entry"][0]["resource"]["active"]
+    assert (
+        result["active"]
+        == internal_patient_inactive_match["entry"][0]["resource"]["active"]
+    )
 
 
 def test_existing_inactive(
