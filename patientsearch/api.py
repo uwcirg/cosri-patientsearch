@@ -24,7 +24,7 @@ from patientsearch.models import (
     internal_patient_search,
     new_resource_hook,
     sync_bundle,
-    restore_patient
+    restore_patient,
 )
 from patientsearch.extensions import oidc
 from patientsearch.jsonify_abort import jsonify_abort
@@ -505,7 +505,9 @@ def external_search(resource_type):
         # See if local match already exists
         patient = resource_from_args(resource_type, request.args)
         try:
-            internal_bundle = internal_patient_search(token, patient, not reinstate_patient)
+            internal_bundle = internal_patient_search(
+                token, patient, not reinstate_patient
+            )
         except (RuntimeError, ValueError) as error:
             return jsonify_abort(status_code=400, message=str(error))
         local_fhir_patient = None
@@ -535,7 +537,8 @@ def external_search(resource_type):
             )
             patient["active"] = True
             local_fhir_patient = HAPI_request(
-                token=token, method=method, resource_type="Patient", resource=patient)
+                token=token, method=method, resource_type="Patient", resource=patient
+            )
         except (RuntimeError, ValueError) as error:
             return jsonify_abort(status_code=400, message=str(error))
         audit_entry(

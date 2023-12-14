@@ -17,5 +17,5 @@ __all__ = [
     "internal_patient_search",
     "new_resource_hook",
     "sync_bundle",
-    "restore_patient"
+    "restore_patient",
 ]

@@ -197,9 +197,9 @@ def _merge_patient(src_patient, internal_patient, token):
 
     if not different(src_patient, internal_patient):
         # If patient is active, proceed. If not, re-activate
-        if internal_patient.get("active") != True:
+        if internal_patient.get("active") is not True:
             return internal_patient
-        
+
         params = patient_as_search_params(internal_patient)
         # Ensure it is active
         internal_patient["active"] = True
@@ -226,7 +226,7 @@ def _merge_patient(src_patient, internal_patient, token):
         )
 
 
-def patient_as_search_params(patient, active_only = False):
+def patient_as_search_params(patient, active_only=False):
     """Generate HAPI search params from patient resource"""
 
     # Use same parameters sent to external src looking for existing Patient
@@ -249,7 +249,7 @@ def patient_as_search_params(patient, active_only = False):
             ("birthDate", "birthdate", "eq"),
             ("active", True, "eq"),
         )
-        
+
     search_params = {}
 
     for path, queryterm, compstr in search_map:
@@ -259,12 +259,15 @@ def patient_as_search_params(patient, active_only = False):
     return search_params
 
 
-def internal_patient_search(token, patient, active_only = False):
+def internal_patient_search(token, patient, active_only=False):
     """Look up given patient from "internal" HAPI store, returns bundle"""
     params = patient_as_search_params(patient, active_only)
 
     return HAPI_request(
-        token=token, method="GET", resource_type="Patient", params=params
+        token=token,
+        method="GET",
+        resource_type="Patient",
+        params=params
     )
 
 
@@ -303,7 +306,6 @@ def sync_patient(token, patient):
             )
 
         internal_patient = internal_search["entry"][0]["resource"]
-        #TODO: ask whether they prefer to merge and update active value or to start a new Patient for each sync attempt toward a non-active patient. 
         merged_patient = _merge_patient(
             src_patient=patient, internal_patient=internal_patient, token=token
         )
