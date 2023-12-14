@@ -199,18 +199,18 @@ def test_existing_active(
     mocker, 
     faux_token, 
     external_patient_search_active,
-    internal_patient_active_match, 
+    internal_patient_inactive_match, 
 ):
     """Finding a matching active patient from active external search, return existing"""
 
     # Mock HAPI search finding a matching active patient
     mocker.patch(
         "patientsearch.models.sync.requests.get",
-        return_value=mock_response(internal_patient_active_match),
+        return_value=mock_response(internal_patient_inactive_match),
     )
 
     result = sync_bundle(faux_token, external_patient_search_active)
-    assert result == internal_patient_active_match["entry"][0]["resource"]
+    assert result == internal_patient_inactive_match["entry"][0]["resource"]
 
 
 def test_existing_inactive(
@@ -269,7 +269,6 @@ def test_existing_modified(
     result = sync_bundle(faux_token, external_patient_search_w_identifier)
     assert result == identified_internal
     assert result["identifier"] == [found_identifier]
-
 
 def test_duplicate(
     client,
