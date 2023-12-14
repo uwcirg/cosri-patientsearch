@@ -264,10 +264,7 @@ def internal_patient_search(token, patient, active_only=False):
     params = patient_as_search_params(patient, active_only)
 
     return HAPI_request(
-        token=token,
-        method="GET",
-        resource_type="Patient",
-        params=params
+        token=token, method="GET", resource_type="Patient", params=params
     )
 
 
@@ -315,7 +312,10 @@ def sync_patient(token, patient):
     patient = new_resource_hook(resource=patient)
     patient["active"] = True
     return HAPI_request(
-        token=token, method="POST", resource_type="Patient", resource=patient,
+        token=token,
+        method="POST",
+        resource_type="Patient",
+        resource=patient,
     )
 
 

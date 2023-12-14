@@ -146,7 +146,7 @@ def test_upsert_inactive(
     faux_token,
     external_patient_search_active,
     internal_patient_miss,
-    new_patient_active
+    new_patient_active,
 ):
     """Finding a matching inactive patient, user chose to generate new patient"""
 
@@ -200,19 +200,19 @@ def test_existing_active(
     mocker,
     faux_token,
     external_patient_search_active,
-    internal_patient_active_match,
+    internal_patient_inactive_match,
 ):
     """Finding a matching active patient from active external search, return existing"""
 
     # Mock HAPI search finding a matching active patient
     mocker.patch(
         "patientsearch.models.sync.requests.get",
-        return_value=mock_response(internal_patient_active_match),
+        return_value=mock_response(internal_patient_inactive_match),
     )
 
     result = sync_bundle(faux_token, external_patient_search_active)
-    assert result != internal_patient_active_match["entry"][0]["resource"]
- 
+    assert result["active"] != internal_patient_inactive_match["entry"][0]["resource"]["active"]
+
 
 def test_existing_inactive(
     client,
@@ -223,7 +223,7 @@ def test_existing_inactive(
 ):
     """Finding a matching inactive patient from active external search, return existing restored"""
 
-    # Mock HAPI search finding a matching inactive patient 
+    # Mock HAPI search finding a matching inactive patient
     # when the service is called for the patient to be restored
     mocker.patch(
         "patientsearch.models.sync.requests.get",
