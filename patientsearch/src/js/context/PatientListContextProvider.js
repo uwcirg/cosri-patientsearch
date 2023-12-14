@@ -703,6 +703,7 @@ export default function PatientListContextProvider({ children }) {
             },
           ],
           birthDate: rowData.birth_date,
+          active: true
         });
     // error message when no result returned
     const noResultErrorMessage = needExternalAPILookup()
@@ -815,7 +816,7 @@ export default function PatientListContextProvider({ children }) {
             },
           });
           let patientResources = response.entry.filter(
-            (item) => item.resource && item.resource.resourceType === "Patient"
+            (item) => item.resource && item.resource.resourceType === "Patient" && item.resource.active == true
           );
           let responseData = _formatData(patientResources) || [];
           const additionalParams = getAppSettingByKey(
