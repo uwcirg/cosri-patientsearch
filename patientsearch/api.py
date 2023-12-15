@@ -467,7 +467,8 @@ def external_search(resource_type):
     """
     token = validate_auth()
 
-    reinstate_patient = False
+    active_patient_flag = current_app.config.get("ACTIVE_PATIENT_FLAG")
+    reactivate_patient = current_app.config.get("REACTIVATE_PATIENT")
     # Tag any matching results with identifier naming source
     try:
         external_search_bundle = add_identifier_to_resource_type(
@@ -506,14 +507,14 @@ def external_search(resource_type):
         patient = resource_from_args(resource_type, request.args)
         try:
             internal_bundle = internal_patient_search(
-                token, patient, not reinstate_patient
+                token, patient, not reactivate_patient
             )
         except (RuntimeError, ValueError) as error:
             return jsonify_abort(status_code=400, message=str(error))
         local_fhir_patient = None
         if internal_bundle["total"] > 0:
             local_fhir_patient = internal_bundle["entry"][0]["resource"]
-            if reinstate_patient:
+            if reactivate_patient:
                 local_fhir_patient = restore_patient(token, local_fhir_patient)
 
         if internal_bundle["total"] > 1:
