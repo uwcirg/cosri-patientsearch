@@ -128,7 +128,6 @@ def external_request(token, resource_type, params):
     if "DEA" not in user:
         raise ValueError("DEA not found")
     search_params = dict(deepcopy(params))  # Necessary on ImmutableMultiDict
-    # Only working with active external patients
     search_params["DEA"] = user.get("DEA")
     url = current_app.config.get("EXTERNAL_FHIR_API") + resource_type
     resp = requests.get(url, auth=BearerAuth(token), params=search_params, timeout=30)
