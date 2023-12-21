@@ -469,6 +469,9 @@ def external_search(resource_type):
 
     active_patient_flag = current_app.config.get("ACTIVE_PATIENT_FLAG")
     reactivate_patient = current_app.config.get("REACTIVATE_PATIENT")
+    if active_patient_flag:
+        # Add default behavior for when the active consideration is disabled
+        reactivate_patient = True
     # Tag any matching results with identifier naming source
     try:
         external_search_bundle = add_identifier_to_resource_type(
@@ -497,7 +500,7 @@ def external_search(resource_type):
     if external_match_count:
         # Merge result details with internal resources
         try:
-            local_fhir_patient = sync_bundle(token, external_search_bundle)
+            local_fhir_patient = sync_bundle(token, external_search_bundle, active_patient_flag)
         except ValueError:
             return jsonify_abort(message="Error in local sync", status_code=400)
         if local_fhir_patient:
@@ -514,7 +517,7 @@ def external_search(resource_type):
         local_fhir_patient = None
         if internal_bundle["total"] > 0:
             local_fhir_patient = internal_bundle["entry"][0]["resource"]
-            if reactivate_patient:
+            if active_patient_flag and reactivate_patient:
                 local_fhir_patient = restore_patient(token, local_fhir_patient)
 
         if internal_bundle["total"] > 1:
@@ -536,7 +539,8 @@ def external_search(resource_type):
                 resource_type=resource_type,
                 resource=patient,
             )
-            patient["active"] = True
+            if active_patient_flag:
+                patient["active"] = True
             local_fhir_patient = HAPI_request(
                 token=token, method=method, resource_type="Patient", resource=patient
             )
