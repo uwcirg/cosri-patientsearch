@@ -139,6 +139,5 @@ OIDC_SCOPES = ["email", "openid", "roles"]
 PROJECT_NAME = os.getenv("PROJECT_NAME", "COSRI")
 REQUIRED_ROLES = json.loads(os.getenv("REQUIRED_ROLES", "[]"))
 UDS_LAB_TYPES = json.loads(os.getenv("UDS_LAB_TYPES", "[]"))
-
-ACTIVE_PATIENT_FLAG = os.getenv("ACTIVE_PATIENT_FLAG") 
+ACTIVE_PATIENT_FLAG = os.getenv("ACTIVE_PATIENT_FLAG")
 REACTIVATE_PATIENT = os.getenv("REACTIVATE_PATIENT")
