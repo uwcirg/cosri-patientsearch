@@ -45,7 +45,7 @@ export default function TimeoutModal() {
   const [modalStyle] = React.useState(getModalStyle);
   const [open, setOpen] = React.useState(false);
   const [disabled, setDisabled] = React.useState(false);
-  const trackInterval = 150;
+  const trackInterval = 15000;
   const appCtx = useSettingContext();
   const appSettings = appCtx.appSettings;
 

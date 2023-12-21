@@ -816,7 +816,7 @@ export default function PatientListContextProvider({ children }) {
             },
           });
           let patientResources = response.entry.filter(
-            (item) => item.resource && item.resource.resourceType === "Patient" && item.resource.active == true
+            (item) => item.resource && item.resource.resourceType === "Patient" && (item.resource.active === true || !item.resource.active)
           );
           let responseData = _formatData(patientResources) || [];
           const additionalParams = getAppSettingByKey(
