@@ -703,6 +703,7 @@ export default function PatientListContextProvider({ children }) {
             },
           ],
           birthDate: rowData.birth_date,
+          active: false
         });
     // error message when no result returned
     const noResultErrorMessage = needExternalAPILookup()
