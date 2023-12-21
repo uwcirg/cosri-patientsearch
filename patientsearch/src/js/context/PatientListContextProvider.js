@@ -714,7 +714,6 @@ export default function PatientListContextProvider({ children }) {
       ? constants.PDMP_SYSTEM_ERROR_MESSAGE
       : "Server error when looking up patient";
     setOpenLoadingModal(true);
-    console.log("Modal set to Open");
     fetchData(
       _getPatientSearchURL(rowData),
       {
@@ -732,7 +731,6 @@ export default function PatientListContextProvider({ children }) {
     )
       .then((result) => {
         setOpenLoadingModal(false);
-        console.log("Modal Opened");
         let response = result;
         if (result && result.entry && result.entry[0]) {
           response = result.entry[0];
