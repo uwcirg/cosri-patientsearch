@@ -243,6 +243,8 @@ def resource_bundle(resource_type):
 
     """
     token = validate_auth()
+    # Check for the user's configurations
+    active_patient_flag = current_app.config.get("ACTIVE_PATIENT_FLAG")
     params = request.args
     search_params = dict(deepcopy(params))  # Necessary on ImmutableMultiDict
 
@@ -261,9 +263,6 @@ def resource_bundle(resource_type):
             return jsonify_abort(status_code=400, message=str(error))
 
     if resource_type == "Patient":
-        # Check for the user's configurations
-        active_patient_flag = True
-
         full_sequence = all(
             [
                 params.get("subject:Patient.name.given", False),
@@ -308,8 +307,8 @@ def post_resource(resource_type):
 
     """
     token = validate_auth()
-    active_patient_flag = True
-    reactivate_patient = False
+    active_patient_flag = current_app.config.get("ACTIVE_PATIENT_FLAG")
+    reactivate_patient = current_app.config.get("REACTIVATE_PATIENT")
 
     try:
         resource = request.get_json()
@@ -327,7 +326,9 @@ def post_resource(resource_type):
         method = request.method
         params = request.args
         if active_patient_flag:
+            if not reactivate_patient and resource.get("active", True) is False:
             # Ensure it is active
+                method = "POST"
             resource["active"] = True
 
         audit_HAPI_change(
