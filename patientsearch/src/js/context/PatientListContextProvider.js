@@ -768,7 +768,7 @@ export default function PatientListContextProvider({ children }) {
       });
   };
   const getPatientList = (query) => {
-    console.log("patient list query objects ", query);
+    console.log("patient list query object ", query);
     const defaults = {
       data: [],
       page: 0,

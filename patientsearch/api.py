@@ -256,34 +256,35 @@ def resource_bundle(resource_type):
             )
         except (RuntimeError, ValueError) as error:
             return jsonify_abort(status_code=400, message=str(error))
-        
-    if resource_type == "Patient":
-        total_length = len(params.get("subject:Patient.name.given", "")) + \
-            len(params.get("subject:Patient.name.family", "")) + \
-                len(params.get("subject:Patient.birthdate", "").split("eq"))
 
+    if resource_type == "Patient":
+        total_length = (
+            len(params.get("subject:Patient.name.given", ""))
+            + len(params.get("subject:Patient.name.family", ""))
+            + len(params.get("subject:Patient.birthdate", "").split("eq"))
+        )
         # Check for the user's configurations
         active_patient_flag = current_app.config.get("ACTIVE_PATIENT_FLAG")
         try:
             if total_length != 4 or not active_patient_flag:
-                return jsonify(
-                    HAPI_request(
+                patient = HAPI_request(
                         token=token,
                         method="GET",
                         resource_type=resource_type,
                         params=params,
                     )
-                )
+
+                return jsonify(patient)
             else:
                 params["active"] = "true"
-                return jsonify(
-                    HAPI_request(
+                patient = HAPI_request(
                         token=token,
                         method="GET",
                         resource_type=resource_type,
                         params=params,
                     )
-                )
+
+                return jsonify(patient)
         except (RuntimeError, ValueError) as error:
             return jsonify_abort(status_code=400, message=str(error))
 
