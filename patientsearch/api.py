@@ -276,7 +276,7 @@ def resource_bundle(resource_type):
 
                 return jsonify(patient)
             else:
-                params["active"] = "true"
+                params["active"] = True
                 patient = HAPI_request(
                     token=token,
                     method="GET",
