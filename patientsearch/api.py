@@ -246,7 +246,7 @@ def resource_bundle(resource_type):
     reactivate_patient = current_app.config.get("REACTIVATE_PATIENT")
     try:
         if not active_patient_flag:
-            params=request.args
+            params = request.args
             return jsonify(
                 HAPI_request(
                     token=token,
@@ -256,7 +256,7 @@ def resource_bundle(resource_type):
                 )
             )
         else:
-            params=request.args
+            params = request.args
             params["active"] = "true"
             return jsonify(
                 HAPI_request(

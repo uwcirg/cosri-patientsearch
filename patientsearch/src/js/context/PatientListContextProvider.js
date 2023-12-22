@@ -714,7 +714,6 @@ export default function PatientListContextProvider({ children }) {
       ? constants.PDMP_SYSTEM_ERROR_MESSAGE
       : "Server error when looking up patient";
     setOpenLoadingModal(true);
-    console.log(searchBody);
     fetchData(
       _getPatientSearchURL(rowData),
       {
@@ -770,6 +769,7 @@ export default function PatientListContextProvider({ children }) {
   };
   const getPatientList = (query) => {
     console.log("patient list query objects ", query);
+    console.log("search body ", searchBody);
     const defaults = {
       data: [],
       page: 0,
