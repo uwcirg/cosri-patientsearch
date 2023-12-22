@@ -264,7 +264,7 @@ def resource_bundle(resource_type):
             + len(params.get("subject:Patient.birthdate", "").split("eq"))
         )
         # Check for the user's configurations
-        active_patient_flag = True
+        active_patient_flag = False
         try:
             if total_length == 4 or not active_patient_flag:
                 patient = HAPI_request(
@@ -276,7 +276,7 @@ def resource_bundle(resource_type):
 
                 return jsonify(patient)
             else:
-                params["active"] = True
+                params["active"] = "true"
                 patient = HAPI_request(
                     token=token,
                     method="GET",
