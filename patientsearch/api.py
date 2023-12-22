@@ -258,35 +258,47 @@ def resource_bundle(resource_type):
             return jsonify_abort(status_code=400, message=str(error))
 
     if resource_type == "Patient":
-        total_length = (
-            len(params.get("subject:Patient.name.given", ""))
-            + len(params.get("subject:Patient.name.family", ""))
-            + len(params.get("subject:Patient.birthdate", "").split("eq"))
-        )
         # Check for the user's configurations
         active_patient_flag = current_app.config.get("ACTIVE_PATIENT_FLAG")
+
+        patient = resource_from_args(resource_type, request.args)
         try:
-            if total_length == 4 or not active_patient_flag:
-                patient = HAPI_request(
-                    token=token,
-                    method="GET",
-                    resource_type=resource_type,
-                    params=params,
-                )
-
-                return jsonify(patient)
-            else:
-                params["active"] = "true"
-                patient = HAPI_request(
-                    token=token,
-                    method="GET",
-                    resource_type=resource_type,
-                    params=params,
-                )
-
-                return jsonify(patient)
+            internal_bundle = internal_patient_search(
+                token, patient, active_patient_flag
+            )
+            patient = internal_bundle["entry"][0]["resource"]
+            return jsonify(patient)
         except (RuntimeError, ValueError) as error:
             return jsonify_abort(status_code=400, message=str(error))
+
+        # full_sequence = all(
+        #     params.get("subject:Patient.name.given")
+        #     and params.get("subject:Patient.name.family")
+        #     and len(params.get("subject:Patient.birthdate", "").split("eq")) > 1
+        # )
+
+        # try:
+        #     if full_sequence or not active_patient_flag:
+        #         patient = HAPI_request(
+        #             token=token,
+        #             method="GET",
+        #             resource_type=resource_type,
+        #             params=params,
+        #         )
+
+        #         return jsonify(patient)
+        #     else:
+        #         params["active"] = "true"
+        #         patient = HAPI_request(
+        #             token=token,
+        #             method="GET",
+        #             resource_type=resource_type,
+        #             params=params,
+        #         )
+
+        #         return jsonify(patient)
+        # except (RuntimeError, ValueError) as error:
+        #     return jsonify_abort(status_code=400, message=str(error))
 
 
 @api_blueprint.route("/fhir/<string:resource_type>", methods=["POST", "PUT"])
