@@ -262,7 +262,7 @@ def resource_bundle(resource_type):
 
     if resource_type == "Patient":
         # Check for the user's configurations
-        active_patient_flag = current_app.config.get("ACTIVE_PATIENT_FLAG")
+        active_patient_flag = True
 
         full_sequence = all(
             [
@@ -308,7 +308,7 @@ def post_resource(resource_type):
 
     """
     token = validate_auth()
-    active_patient_flag = False
+    active_patient_flag = True
     reactivate_patient = False
 
     try:
@@ -321,13 +321,15 @@ def post_resource(resource_type):
                 f"{resource['resourceType']} != {resource_type}"
             )
         if resource_type == "Patient" and active_patient_flag:
-            current_app.logger.debug(f"active, restore: {resource.get('active')} and type: {type(resource.get('active'))}")
             resource = new_resource_hook(resource, active_patient_flag, reactivate_patient)
         else:
             resource = new_resource_hook(resource)
         method = request.method
         params = request.args
-        
+        if active_patient_flag:
+            # Ensure it is active
+            resource["active"] = True
+
         audit_HAPI_change(
             user_info=current_user_info(token),
             method=method,
