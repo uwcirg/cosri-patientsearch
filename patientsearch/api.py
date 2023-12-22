@@ -267,7 +267,7 @@ def resource_bundle(resource_type):
             [
                 params.get("subject:Patient.name.given", False),
                 params.get("subject:Patient.name.family", False),
-                len(params.get("subject:Patient.birthdate", "").split("eq")) > 1
+                len(params.get("subject:Patient.birthdate", "").split("eq")) > 1,
             ]
         )
 
@@ -320,14 +320,16 @@ def post_resource(resource_type):
                 f"{resource['resourceType']} != {resource_type}"
             )
         if resource_type == "Patient" and active_patient_flag:
-            resource = new_resource_hook(resource, active_patient_flag, reactivate_patient)
+            resource = new_resource_hook(
+                resource, active_patient_flag, reactivate_patient
+            )
         else:
             resource = new_resource_hook(resource)
         method = request.method
         params = request.args
         if active_patient_flag:
             if not reactivate_patient and resource.get("active", True) is False:
-            # Ensure it is active
+                # Ensure it is active
                 method = "POST"
             resource["active"] = True
 
