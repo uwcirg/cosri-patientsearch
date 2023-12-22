@@ -264,7 +264,7 @@ def resource_bundle(resource_type):
             + len(params.get("subject:Patient.birthdate", "").split("eq"))
         )
         # Check for the user's configurations
-        active_patient_flag = current_app.config.get("ACTIVE_PATIENT_FLAG")
+        active_patient_flag = True
         try:
             if total_length == 4 or not active_patient_flag:
                 patient = HAPI_request(
