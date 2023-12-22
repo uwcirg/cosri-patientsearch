@@ -243,6 +243,10 @@ def resource_bundle(resource_type):
     """
     token = validate_auth()
     params = request.args
+    raise ValueError(
+        "params updated "
+        f"{params}"
+    )
     # If the resource is not a patient, proceed with the GET
     if resource_type != "Patient":
         try:
@@ -277,6 +281,7 @@ def resource_bundle(resource_type):
             and len(params.get("subject:Patient.birthdate", "").split("eq")) > 1
         )
 
+
         try:
             if full_sequence or not active_patient_flag:
                 patient = HAPI_request(
@@ -288,7 +293,7 @@ def resource_bundle(resource_type):
 
                 return jsonify(patient)
             else:
-                params.append("&active=true")
+                # params.append("&active=true")
                 patient = HAPI_request(
                     token=token,
                     method="GET",
