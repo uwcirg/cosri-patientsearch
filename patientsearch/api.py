@@ -308,7 +308,8 @@ def post_resource(resource_type):
 
     """
     token = validate_auth()
-    current_app.logger.debug(f"POST/PUT, following args: {request.args}")
+    active_patient_flag = False
+    reactivate_patient = False
 
     try:
         resource = request.get_json()
@@ -319,11 +320,14 @@ def post_resource(resource_type):
                 "type mismatch - POSTed resource type "
                 f"{resource['resourceType']} != {resource_type}"
             )
-
-        resource = new_resource_hook(resource)
+        if resource_type == "Patient" and active_patient_flag:
+            current_app.logger.debug(f"active, restore: {resource.get('active')} and type: {type(resource.get('active'))}")
+            resource = new_resource_hook(resource, active_patient_flag, reactivate_patient)
+        else:
+            resource = new_resource_hook(resource)
         method = request.method
         params = request.args
-
+        
         audit_HAPI_change(
             user_info=current_user_info(token),
             method=method,
@@ -357,7 +361,6 @@ def update_resource_by_id(resource_type, resource_id):
     redirect.  Client should watch for 401 and redirect appropriately.
     """
     token = validate_auth()
-    current_app.logger.debug(f"PUT, following args: {request.args}")
 
     try:
         resource = request.get_json()

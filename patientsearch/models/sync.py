@@ -271,7 +271,7 @@ def internal_patient_search(token, patient, active_only=False):
     )
 
 
-def new_resource_hook(resource):
+def new_resource_hook(resource, consider_active=False, reactivate_patient=False):
     """Return modified version of resourse as per new resource rules
 
     Products occasionally require customization of resources on creation.
@@ -279,9 +279,17 @@ def new_resource_hook(resource):
 
     :returns: modified resource
     """
-    if resource.get("id"):
-        # not a new resource, bail
-        return resource
+    if consider_active:
+        if reactivate_patient:
+            if resource.get("id"):
+                return resource
+        else:
+            if resource.get("id") and resource.get("active") is True:
+                return resource
+    else:
+        if resource.get("id"):
+            # not a new resource, bail
+            return resource
 
     if resource["resourceType"] == "Patient":
         np_extensions = current_app.config.get("NEW_PATIENT_EXTENSIONS")
