@@ -266,23 +266,23 @@ def resource_bundle(resource_type):
         # Check for the user's configurations
         active_patient_flag = current_app.config.get("ACTIVE_PATIENT_FLAG")
         try:
-            if total_length != 4 or not active_patient_flag:
+            if total_length == 4 or not active_patient_flag:
                 patient = HAPI_request(
-                        token=token,
-                        method="GET",
-                        resource_type=resource_type,
-                        params=params,
-                    )
+                    token=token,
+                    method="GET",
+                    resource_type=resource_type,
+                    params=params,
+                )
 
                 return jsonify(patient)
             else:
                 params["active"] = "true"
                 patient = HAPI_request(
-                        token=token,
-                        method="GET",
-                        resource_type=resource_type,
-                        params=params,
-                    )
+                    token=token,
+                    method="GET",
+                    resource_type=resource_type,
+                    params=params,
+                )
 
                 return jsonify(patient)
         except (RuntimeError, ValueError) as error:
