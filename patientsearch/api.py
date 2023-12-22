@@ -263,13 +263,14 @@ def resource_bundle(resource_type):
     if resource_type == "Patient":
         # Check for the user's configurations
         active_patient_flag = current_app.config.get("ACTIVE_PATIENT_FLAG")
-        
-        full_sequence = all([
-            params.get("subject:Patient.name.given", False),
-            params.get("subject:Patient.name.family", False),
-            len(params.get("subject:Patient.birthdate", "").split("eq")) > 1
-        ])
 
+        full_sequence = all(
+            [
+                params.get("subject:Patient.name.given", False),
+                params.get("subject:Patient.name.family", False),
+                len(params.get("subject:Patient.birthdate", "").split("eq")) > 1
+            ]
+        )
 
         try:
             if full_sequence or not active_patient_flag:
@@ -307,6 +308,8 @@ def post_resource(resource_type):
 
     """
     token = validate_auth()
+    current_app.logger.debug(f"POST/PUT, following args: {request.args}")
+
     try:
         resource = request.get_json()
         if not resource:
@@ -354,6 +357,7 @@ def update_resource_by_id(resource_type, resource_id):
     redirect.  Client should watch for 401 and redirect appropriately.
     """
     token = validate_auth()
+    current_app.logger.debug(f"PUT, following args: {request.args}")
 
     try:
         resource = request.get_json()
