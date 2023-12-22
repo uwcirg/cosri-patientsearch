@@ -14,6 +14,7 @@ from flask.json import JSONEncoder
 import jwt
 import requests
 from werkzeug.exceptions import Unauthorized, Forbidden
+from copy import deepcopy
 
 from patientsearch.audit import audit_entry, audit_HAPI_change
 from patientsearch.models import (
@@ -243,7 +244,8 @@ def resource_bundle(resource_type):
     """
     token = validate_auth()
     params = request.args
-    current_app.logger.debug(f"params updated: {params} and type is {type(params)}")
+    search_params = dict(deepcopy(params))  # Necessary on ImmutableMultiDict
+
     # If the resource is not a patient, proceed with the GET
     if resource_type != "Patient":
         try:
@@ -261,22 +263,12 @@ def resource_bundle(resource_type):
     if resource_type == "Patient":
         # Check for the user's configurations
         active_patient_flag = current_app.config.get("ACTIVE_PATIENT_FLAG")
-
-        # patient = resource_from_args(resource_type, request.args)
-        # try:
-        #     internal_bundle = internal_patient_search(
-        #         token, patient, active_patient_flag
-        #     )
-        #     patient = internal_bundle["entry"][0]["resource"]
-        #     return jsonify(patient)
-        # except (RuntimeError, ValueError) as error:
-        #     return jsonify_abort(status_code=400, message=str(error))
-
-        full_sequence = all(
-            params.get("subject:Patient.name.given")
-            and params.get("subject:Patient.name.family")
-            and len(params.get("subject:Patient.birthdate", "").split("eq")) > 1
-        )
+        
+        full_sequence = all([
+            params.get("subject:Patient.name.given", False),
+            params.get("subject:Patient.name.family", False),
+            len(params.get("subject:Patient.birthdate", "").split("eq")) > 1
+        ])
 
 
         try:
@@ -290,12 +282,12 @@ def resource_bundle(resource_type):
 
                 return jsonify(patient)
             else:
-                # params.append("&active=true")
+                search_params["active"] = "true"
                 patient = HAPI_request(
                     token=token,
                     method="GET",
                     resource_type=resource_type,
-                    params=params,
+                    params=search_params,
                 )
 
                 return jsonify(patient)
