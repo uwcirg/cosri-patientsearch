@@ -243,10 +243,7 @@ def resource_bundle(resource_type):
     """
     token = validate_auth()
     params = request.args
-    raise ValueError(
-        "params updated "
-        f"{params}"
-    )
+    current_app.logger.debug(f"params updated: {params} and type is {type(params)}")
     # If the resource is not a patient, proceed with the GET
     if resource_type != "Patient":
         try:
