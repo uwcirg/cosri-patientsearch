@@ -200,20 +200,20 @@ def test_existing_active(
     mocker,
     faux_token,
     external_patient_search_active,
-    internal_patient_inactive_match,
+    internal_patient_active_match,
 ):
     """Finding a matching active patient from active external search, return existing"""
 
     # Mock HAPI search finding a matching active patient
     mocker.patch(
         "patientsearch.models.sync.requests.get",
-        return_value=mock_response(internal_patient_inactive_match),
+        return_value=mock_response(internal_patient_active_match),
     )
 
     result = sync_bundle(faux_token, external_patient_search_active)
     assert (
         result["active"]
-        == internal_patient_inactive_match["entry"][0]["resource"]["active"]
+        == internal_patient_active_match["entry"][0]["resource"]["active"]
     )
 
 
@@ -296,19 +296,19 @@ def test_duplicate_active(
     mocker,
     faux_token,
     external_patient_search_active,
-    internal_patient_duplicate_inactive_match,
+    internal_patient_duplicate_active_match,
 ):
     """Finding a matching active patient with duplicates, handle well"""
 
     # Mock HAPI search finding duplicate matching patients
     mocker.patch(
         "patientsearch.models.sync.requests.get",
-        return_value=mock_response(internal_patient_duplicate_inactive_match),
+        return_value=mock_response(internal_patient_duplicate_active_match),
     )
 
     # Shouldn't kill the process, but return the first
     result = sync_bundle(faux_token, external_patient_search_active)
-    assert result == internal_patient_duplicate_inactive_match["entry"][0]["resource"]
+    assert result == internal_patient_duplicate_active_match["entry"][0]["resource"]
 
 
 def test_duplicate_inactive(

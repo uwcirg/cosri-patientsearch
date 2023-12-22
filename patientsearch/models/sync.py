@@ -146,7 +146,7 @@ def external_request(token, resource_type, params):
     return resp.json()
 
 
-def sync_bundle(token, bundle, consider_active = False):
+def sync_bundle(token, bundle, consider_active=False):
     """Given FHIR bundle, insert or update all contained resources
 
     :param token: valid JWT token for use in auth calls
@@ -173,7 +173,7 @@ def sync_bundle(token, bundle, consider_active = False):
         return patient
 
 
-def _merge_patient(src_patient, internal_patient, token, consider_active = False):
+def _merge_patient(src_patient, internal_patient, token, consider_active=False):
     """Helper used to push details from src into internal patient"""
     # TODO consider additional patient attributes beyond identifiers
 
@@ -245,12 +245,12 @@ def patient_as_search_params(patient, active_only=False):
         )
     else:
         search_map = (
-        ("name.family", "family", ""),
-        ("name[0].family", "family", ""),
-        ("name.given", "given", ""),
-        ("name.given[0]", "given", ""),
-        ("name[0].given[0]", "given", ""),
-        ("birthDate", "birthdate", "eq"),
+            ("name.family", "family", ""),
+            ("name[0].family", "family", ""),
+            ("name.given", "given", ""),
+            ("name.given[0]", "given", ""),
+            ("name[0].given[0]", "given", ""),
+            ("birthDate", "birthdate", "eq"),
         )
 
     search_params = {}
@@ -292,7 +292,7 @@ def new_resource_hook(resource):
     return resource
 
 
-def sync_patient(token, patient, consider_active = False):
+def sync_patient(token, patient, consider_active=False):
     """Sync single patient resource - insert or update as needed"""
 
     internal_search = internal_patient_search(token, patient)
@@ -307,7 +307,10 @@ def sync_patient(token, patient, consider_active = False):
 
         internal_patient = internal_search["entry"][0]["resource"]
         merged_patient = _merge_patient(
-            src_patient=patient, internal_patient=internal_patient, token=token, consider_active=consider_active,
+            src_patient=patient,
+            internal_patient=internal_patient,
+            token=token,
+            consider_active=consider_active,
         )
         return merged_patient
 

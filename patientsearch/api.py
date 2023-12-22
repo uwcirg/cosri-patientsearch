@@ -242,15 +242,30 @@ def resource_bundle(resource_type):
 
     """
     token = validate_auth()
+    active_patient_flag = current_app.config.get("ACTIVE_PATIENT_FLAG")
+    reactivate_patient = current_app.config.get("REACTIVATE_PATIENT")
     try:
-        return jsonify(
-            HAPI_request(
-                token=token,
-                method="GET",
-                resource_type=resource_type,
-                params=request.args,
+        if not active_patient_flag:
+            params=request.args
+            return jsonify(
+                HAPI_request(
+                    token=token,
+                    method="GET",
+                    resource_type=resource_type,
+                    params=params,
+                )
             )
-        )
+        else:
+            params=request.args
+            params["active"] = "true"
+            return jsonify(
+                HAPI_request(
+                    token=token,
+                    method="GET",
+                    resource_type=resource_type,
+                    params=params,
+                )
+            )
     except (RuntimeError, ValueError) as error:
         return jsonify_abort(status_code=400, message=str(error))
 
@@ -500,7 +515,9 @@ def external_search(resource_type):
     if external_match_count:
         # Merge result details with internal resources
         try:
-            local_fhir_patient = sync_bundle(token, external_search_bundle, active_patient_flag)
+            local_fhir_patient = sync_bundle(
+                token, external_search_bundle, active_patient_flag
+            )
         except ValueError:
             return jsonify_abort(message="Error in local sync", status_code=400)
         if local_fhir_patient:
