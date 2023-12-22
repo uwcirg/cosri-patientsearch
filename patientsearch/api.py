@@ -328,7 +328,7 @@ def post_resource(resource_type):
         method = request.method
         params = request.args
         if active_patient_flag:
-            if not reactivate_patient and resource.get("active", True) is False:
+            if not reactivate_patient:
                 # Ensure it is active
                 method = "POST"
             resource["active"] = True
