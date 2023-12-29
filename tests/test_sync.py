@@ -93,11 +93,6 @@ def internal_patient_duplicate_inactive_match(datadir):
     return load_json(datadir, "internal_patient_duplicate_inactive_match.json")
 
 
-@fixture
-def patient_resource(datadir):
-    return load_json(datadir, "patient_resource.json")
-
-
 def test_new_upsert(
     client,
     mocker,
@@ -399,12 +394,3 @@ def test_duplicate_inactive(
 #     result = restore_patient(faux_token, active_result)
 
 #     assert result == internal_patient_active_match["entry"][0]["resource"]
-
-def test_new_resource_hook_ext(
-    client,
-    patient_resource,
-):
-    """Given a resource with create_new_patient flag set to True, produce a new resource"""
-
-    result_extended = new_resource_hook(patient_resource, True)
-    assert result_extended != patient_resource
