@@ -210,6 +210,9 @@ export default function PatientListContextProvider({ children }) {
   const onLaunchDialogClose = () => {
     setOpenLaunchInfoModal(false);
   };
+  const onReactivatingModalClose = (createNew) => {
+    setOpenReactivatingModal(false);
+  };
   const onFiltersDidChange = (filters) => {
     clearTimeout(filterIntervalId);
     filterIntervalId = setTimeout(function () {
@@ -620,6 +623,7 @@ export default function PatientListContextProvider({ children }) {
               .length > 0;
           // if last accessed field is present
           if (hasLastAccessedField) {
+            console.log("Updating the time");
             // this will ensure that last accessed date, i.e. meta.lastUpdated, is being updated
             putPatientData(
               rowData.id,
@@ -687,12 +691,15 @@ export default function PatientListContextProvider({ children }) {
       ),
     },
   });
+  console.log("I am not handling a search!");
   const handleSearch = (rowData) => {
+    console.log("I am in a search!");
     if (!rowData) {
       handleLaunchError("No patient data to proceed.");
       return false;
     }
     // search parameters
+    console.log("Before defining searchBody!");
     const searchBody = rowData.resource
       ? JSON.stringify(rowData.resource)
       : JSON.stringify({
@@ -705,6 +712,7 @@ export default function PatientListContextProvider({ children }) {
           ],
           birthDate: rowData.birth_date,
         });
+    console.log("Before defining searchBody!");
     // error message when no result returned
     const noResultErrorMessage = needExternalAPILookup()
       ? constants.NON_PDMP_RESULT_MESSAGE
@@ -714,9 +722,9 @@ export default function PatientListContextProvider({ children }) {
       ? constants.PDMP_SYSTEM_ERROR_MESSAGE
       : "Server error when looking up patient";
     setOpenLoadingModal(true);
-    console.log("I am opening a modal!")
+    console.log("I am opening a modal!");
     setOpenReactivatingModal(true);
-    console.log("I am finished with the modal!")
+    console.log("I am finished with the modal!");
     fetchData(
       _getPatientSearchURL(rowData),
       {
@@ -733,6 +741,8 @@ export default function PatientListContextProvider({ children }) {
       (e) => handleErrorCallback(e)
     )
       .then((result) => {
+        console.log("I have a result!");
+        console.log(result)
         setOpenLoadingModal(false);
         let response = result;
         if (result && result.entry && result.entry[0]) {
@@ -986,6 +996,7 @@ export default function PatientListContextProvider({ children }) {
         onDetailPanelClose,
         onFiltersDidChange,
         onLaunchDialogClose,
+        onReactivatingModalClose,
         onMyPatientsCheckboxChange,
         onTestPatientsCheckboxChange,
         shouldShowLegend,

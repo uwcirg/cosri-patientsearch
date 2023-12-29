@@ -3,6 +3,7 @@ import PropTypes from "prop-types";
 import Modal from "@material-ui/core/Modal";
 import { makeStyles } from "@material-ui/core/styles";
 import Button from "@material-ui/core/Button";
+import { usePatientListContext } from "../../context/PatientListContextProvider";
 
 const useStyles = makeStyles((theme) => ({
   flex: {
@@ -33,25 +34,26 @@ const useStyles = makeStyles((theme) => ({
 
 export default function ConfirmationModal(props) {
   const classes = useStyles();
-  const [open, setOpen] = React.useState(false);
+  let {
+    //consts
+    openReactivatingModal,
+    //methods
+    hasSoFClients = function () {
+      console.log("hasSoFClients is not defined. Unable to check.");
+      return false;
+    },
+    onReactivatingModalClose = function () {},
+  } = usePatientListContext();
 
-  React.useEffect(() => {
-    setOpen(props.open);
-  }, [props.open]);
-
-  const handleRestoreClick = () => {
-    onCreateNewClick(false); // Inform the parent that the user does not want to create a new object
-    onClose(); // Close the modal
-  };
-
-  const handleCreateNewClick = () => {
-    onCreateNewClick(true); // Inform the parent that the user wants to create a new object
-    onClose(); // Close the modal
-  };
+  // const onRecreateClick = (createNew) => {
+  //   onCreateNewClick(createNew); // Inform the parent that the user does not want to create a new object
+  //   onClose(); // Close the modal
+  // };
 
   return (
     <Modal
-      open={open}
+      open={openReactivatingModal}
+      onClose={() => onReactivatingModalClose()}
       aria-labelledby="confirmation-modal"
       aria-describedby="confirmation-modal"
       disableAutoFocus
@@ -67,14 +69,14 @@ export default function ConfirmationModal(props) {
             variant="contained"
             color="primary"
             className={classes.button}
-            onClick={handleRestoreClick}
+            onClick={() => onRecreateClick(false)}
           >
             Restore
           </Button>
           <Button
             variant="contained"
             color="primary"
-            onClick={handleCreateNewClick}
+            onClick={() => onRecreateClick(true)}
           >
             Create New
           </Button>

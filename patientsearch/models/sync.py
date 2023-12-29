@@ -282,7 +282,6 @@ def new_resource_hook(resource, create_new_patient = False):
     if resource.get("id") and not create_new_patient:
         # not a new resource, bail
         return resource
-    
 
     if resource["resourceType"] == "Patient":
         np_extensions = current_app.config.get("NEW_PATIENT_EXTENSIONS")
