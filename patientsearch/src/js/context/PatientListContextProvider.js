@@ -623,7 +623,7 @@ export default function PatientListContextProvider({ children }) {
               .length > 0;
           // if last accessed field is present
           if (hasLastAccessedField) {
-            console.log("Updating the time");
+            console.log("I am updating the time");
             // this will ensure that last accessed date, i.e. meta.lastUpdated, is being updated
             putPatientData(
               rowData.id,
@@ -699,7 +699,7 @@ export default function PatientListContextProvider({ children }) {
       return false;
     }
     // search parameters
-    console.log("Before defining searchBody!");
+    console.log("I am before defining searchBody!");
     const searchBody = rowData.resource
       ? JSON.stringify(rowData.resource)
       : JSON.stringify({
@@ -712,7 +712,7 @@ export default function PatientListContextProvider({ children }) {
           ],
           birthDate: rowData.birth_date,
         });
-    console.log("Before defining searchBody!");
+    console.log("I am after defining searchBody!");
     // error message when no result returned
     const noResultErrorMessage = needExternalAPILookup()
       ? constants.NON_PDMP_RESULT_MESSAGE
@@ -741,9 +741,9 @@ export default function PatientListContextProvider({ children }) {
       (e) => handleErrorCallback(e)
     )
       .then((result) => {
-        console.log("I have a result!");
-        console.log(result)
+        console.log("I have the result", result);
         setOpenLoadingModal(false);
+        setOpenReactivatingModal(false);
         let response = result;
         if (result && result.entry && result.entry[0]) {
           response = result.entry[0];
@@ -782,11 +782,13 @@ export default function PatientListContextProvider({ children }) {
   };
   const getPatientList = (query) => {
     console.log("patient list query object ", query);
+    setOpenReactivatingModal(true);
     const defaults = {
       data: [],
       page: 0,
       totalCount: 0,
     };
+    setOpenReactivatingModal(false);
     // return patient data
     return new Promise((resolve) => {
       fetchData(
