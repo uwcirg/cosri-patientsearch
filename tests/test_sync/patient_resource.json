@@ -1,0 +1,12 @@
+{
+  "resourceType": "Patient",
+  "name": [
+    {
+      "family": "skywalker",
+      "given": [
+        "luke"
+      ]
+    }
+  ],
+  "birthDate": "2023-12-29"
+}
