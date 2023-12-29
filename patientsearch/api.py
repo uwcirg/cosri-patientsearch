@@ -245,14 +245,12 @@ def resource_bundle(resource_type):
     token = validate_auth()
     # Check for the user's configurations
     active_patient_flag = current_app.config.get("ACTIVE_PATIENT_FLAG")
-    params = request.args
-    search_params = dict(deepcopy(params))  # Necessary on ImmutableMultiDict
+    params = dict(deepcopy(request.args))  # Necessary on ImmutableMultiDict
 
     # Override if the search is specifically for inactive objects, only occurs
     # when working on reactivating a patient
     if request.args.get("inactive_search", False):
-        active_patient_flag = False
-        del search_params["inactive_search"]
+        active_patient_flag = params.pop("inactive_search", False)
 
     # If the resource is not a patient, proceed with the GET
     if resource_type != "Patient":
@@ -271,7 +269,7 @@ def resource_bundle(resource_type):
     if resource_type == "Patient":
         try:
             if active_patient_flag:
-                search_params["active"] = "true"
+                params["active"] = "true"
                 patient = HAPI_request(
                     token=token,
                     method="GET",
@@ -285,7 +283,7 @@ def resource_bundle(resource_type):
                     token=token,
                     method="GET",
                     resource_type=resource_type,
-                    params=search_params,
+                    params=params,
                 )
 
                 return jsonify(patient)
@@ -307,8 +305,10 @@ def post_resource(resource_type):
     token = validate_auth()
     active_patient_flag = current_app.config.get("ACTIVE_PATIENT_FLAG")
     reactivate_patient = current_app.config.get("REACTIVATE_PATIENT")
+    params = dict(deepcopy(request.args))  # Necessary on ImmutableMultiDict
+
     if active_patient_flag and reactivate_patient:
-        create_new_patient = request.args.get("create_new", False)
+        create_new_patient = params.pop("create_new", False)
     else:
         create_new_patient = False
 
@@ -324,7 +324,6 @@ def post_resource(resource_type):
 
         resource = new_resource_hook(resource, create_new_patient)
         method = request.method
-        params = request.args
         if active_patient_flag:
             if create_new_patient:
                 # Ensure it is a new active patient
