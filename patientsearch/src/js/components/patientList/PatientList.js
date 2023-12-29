@@ -33,7 +33,9 @@ export default function PatientListTable() {
     //states
     errorMessage,
     openLoadingModal,
-    setOpenLoadingModal
+    setOpenLoadingModal,
+    openReactivatingModal,
+    setOpenReactivatingModal
   } = usePatientListContext();
 
   const renderTitle = () => {

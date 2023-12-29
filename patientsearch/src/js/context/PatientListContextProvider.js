@@ -90,6 +90,7 @@ export default function PatientListContextProvider({ children }) {
       : ""
   );
   const [openLoadingModal, setOpenLoadingModal] = React.useState(false);
+  const [openReactivatingModal, setOpenReactivatingModal] = React.useState(false);
   const [openLaunchInfoModal, setOpenLaunchInfoModal] = React.useState(false);
   const [containNoPMPRow, setContainNoPMPRow] = React.useState(false);
   const [anchorEl, setAnchorEl] = React.useState(false);
@@ -713,6 +714,9 @@ export default function PatientListContextProvider({ children }) {
       ? constants.PDMP_SYSTEM_ERROR_MESSAGE
       : "Server error when looking up patient";
     setOpenLoadingModal(true);
+    console.log("I am opening a modal!")
+    setOpenReactivatingModal(true);
+    console.log("I am finished with the modal!")
     fetchData(
       _getPatientSearchURL(rowData),
       {
@@ -995,6 +999,8 @@ export default function PatientListContextProvider({ children }) {
         errorMessage,
         openLoadingModal,
         setOpenLoadingModal,
+        openReactivatingModal,
+        setOpenReactivatingModal,
         openLaunchInfoModal,
         pagination,
         paginationDispatch,

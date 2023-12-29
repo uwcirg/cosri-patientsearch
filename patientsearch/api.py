@@ -248,6 +248,12 @@ def resource_bundle(resource_type):
     params = request.args
     search_params = dict(deepcopy(params))  # Necessary on ImmutableMultiDict
 
+    # Override if the search is specifically for inactive objects, only occurs
+    # when working on reactivating a patient
+    if request.args.get("inactive_search", False):
+        active_patient_flag = False
+        del search_params["inactive_search"]
+
     # If the resource is not a patient, proceed with the GET
     if resource_type != "Patient":
         try:
@@ -263,16 +269,9 @@ def resource_bundle(resource_type):
             return jsonify_abort(status_code=400, message=str(error))
 
     if resource_type == "Patient":
-        full_sequence = all(
-            [
-                params.get("subject:Patient.name.given", False),
-                params.get("subject:Patient.name.family", False),
-                len(params.get("subject:Patient.birthdate", "").split("eq")) > 1,
-            ]
-        )
-
         try:
-            if full_sequence or not active_patient_flag:
+            if active_patient_flag:
+                search_params["active"] = "true"
                 patient = HAPI_request(
                     token=token,
                     method="GET",
@@ -282,7 +281,6 @@ def resource_bundle(resource_type):
 
                 return jsonify(patient)
             else:
-                search_params["active"] = "true"
                 patient = HAPI_request(
                     token=token,
                     method="GET",
@@ -309,6 +307,10 @@ def post_resource(resource_type):
     token = validate_auth()
     active_patient_flag = current_app.config.get("ACTIVE_PATIENT_FLAG")
     reactivate_patient = current_app.config.get("REACTIVATE_PATIENT")
+    if active_patient_flag and reactivate_patient:
+        create_new_patient = request.args.get("create_new", False)
+    else:
+        create_new_patient = False
 
     try:
         resource = request.get_json()
@@ -319,17 +321,13 @@ def post_resource(resource_type):
                 "type mismatch - POSTed resource type "
                 f"{resource['resourceType']} != {resource_type}"
             )
-        if resource_type == "Patient" and active_patient_flag:
-            resource = new_resource_hook(
-                resource, active_patient_flag, reactivate_patient
-            )
-        else:
-            resource = new_resource_hook(resource)
+
+        resource = new_resource_hook(resource, create_new_patient)
         method = request.method
         params = request.args
         if active_patient_flag:
-            if not reactivate_patient:
-                # Ensure it is active
+            if create_new_patient:
+                # Ensure it is a new active patient
                 method = "POST"
             resource["active"] = True
 
