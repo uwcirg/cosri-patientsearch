@@ -3,7 +3,11 @@ import json
 from pytest import fixture
 import os
 
-from patientsearch.models import add_identifier_to_resource_type, sync_bundle, restore_patient
+from patientsearch.models import (
+    add_identifier_to_resource_type, 
+    sync_bundle, 
+    restore_patient,
+)
 
 
 def load_json(datadir, filename):

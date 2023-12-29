@@ -271,7 +271,7 @@ def internal_patient_search(token, patient, active_only=False):
     )
 
 
-def new_resource_hook(resource, create_new_patient = False):
+def new_resource_hook(resource, create_new_patient=False):
     """Return modified version of resourse as per new resource rules
 
     Products occasionally require customization of resources on creation.
