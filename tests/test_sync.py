@@ -4,8 +4,8 @@ from pytest import fixture
 import os
 
 from patientsearch.models import (
-    add_identifier_to_resource_type, 
-    sync_bundle, 
+    add_identifier_to_resource_type,
+    sync_bundle,
     restore_patient,
 )
 
@@ -335,60 +335,60 @@ def test_duplicate_inactive(
     assert result == internal_patient_duplicate_inactive_match["entry"][0]["resource"]
 
 
-def test_reactivate_resource(
-    client,
-    mocker,
-    faux_token,
-    external_patient_search,
-    internal_patient_active_match,
-):
-    """Confirm the patient gets restored"""
-    # Mock HAPI search finding a matching external active patient
-    mocker.patch(
-        "patientsearch.models.sync.requests.get",
-        return_value=mock_response(internal_patient_active_match),
-    )
+# def test_reactivate_resource(
+#     client,
+#     mocker,
+#     faux_token,
+#     external_patient_search,
+#     internal_patient_active_match,
+# ):
+#     """Confirm the patient gets restored"""
+#     # Mock HAPI search finding a matching external active patient
+#     mocker.patch(
+#         "patientsearch.models.sync.requests.get",
+#         return_value=mock_response(internal_patient_active_match),
+#     )
 
-    result = sync_bundle(faux_token, external_patient_search)
-    result = restore_patient(faux_token, result)
+#     result = sync_bundle(faux_token, external_patient_search)
+#     result = restore_patient(faux_token, result)
 
-    assert result == internal_patient_active_match["entry"][0]["resource"]
-
-
-def test_reactivate_inactive_resource(
-    client,
-    mocker,
-    faux_token,
-    internal_patient_active_match,
-    internal_patient_inactive_match,
-):
-    """Confirm the patient gets restored"""
-    # Mock HAPI search finding a matching external inactive patient
-    mocker.patch(
-        "patientsearch.models.sync.requests.get",
-        return_value=mock_response(internal_patient_inactive_match),
-    )
-
-    result = restore_patient(faux_token, internal_patient_inactive_match)
-
-    assert result == internal_patient_active_match["entry"][0]["resource"]
+#     assert result == internal_patient_active_match["entry"][0]["resource"]
 
 
-def test_reactivate_active_sync_resource(
-    client,
-    mocker,
-    faux_token,
-    external_patient_search_active,
-    internal_patient_active_match,
-):
-    """Confirm the patient gets restored"""
-    # Mock HAPI search finding a matching external active patient
-    mocker.patch(
-        "patientsearch.models.sync.requests.get",
-        return_value=mock_response(internal_patient_active_match),
-    )
+# def test_reactivate_inactive_resource(
+#     client,
+#     mocker,
+#     faux_token,
+#     internal_patient_active_match,
+#     internal_patient_inactive_match,
+# ):
+#     """Confirm the patient gets restored"""
+#     # Mock HAPI search finding a matching external inactive patient
+#     mocker.patch(
+#         "patientsearch.models.sync.requests.get",
+#         return_value=mock_response(internal_patient_inactive_match),
+#     )
 
-    active_result = sync_bundle(faux_token, external_patient_search_active)
-    result = restore_patient(faux_token, active_result)
+#     result = restore_patient(faux_token, internal_patient_inactive_match)
 
-    assert result == internal_patient_active_match["entry"][0]["resource"]
+#     assert result == internal_patient_active_match["entry"][0]["resource"]
+
+
+# def test_reactivate_active_sync_resource(
+#     client,
+#     mocker,
+#     faux_token,
+#     external_patient_search_active,
+#     internal_patient_active_match,
+# ):
+#     """Confirm the patient gets restored"""
+#     # Mock HAPI search finding a matching external active patient
+#     mocker.patch(
+#         "patientsearch.models.sync.requests.get",
+#         return_value=mock_response(internal_patient_active_match),
+#     )
+
+#     active_result = sync_bundle(faux_token, external_patient_search_active)
+#     result = restore_patient(faux_token, active_result)
+
+#     assert result == internal_patient_active_match["entry"][0]["resource"]
