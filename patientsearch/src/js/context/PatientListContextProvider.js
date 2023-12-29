@@ -691,7 +691,6 @@ export default function PatientListContextProvider({ children }) {
       ),
     },
   });
-  console.log("I am not handling a search!");
   const handleSearch = (rowData) => {
     console.log("I am in a search!");
     if (!rowData) {

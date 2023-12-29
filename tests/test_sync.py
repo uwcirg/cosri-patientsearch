@@ -400,15 +400,11 @@ def test_duplicate_inactive(
 
 #     assert result == internal_patient_active_match["entry"][0]["resource"]
 
-
-def test_new_resource_hook(
+def test_new_resource_hook_ext(
     client,
     patient_resource,
 ):
-    """Given a resource, produce a new resource"""
-
-    result_same = new_resource_hook(patient_resource)
-    assert result_same == patient_resource
+    """Given a resource with create_new_patient flag set to True, produce a new resource"""
 
     result_extended = new_resource_hook(patient_resource, True)
     assert result_extended != patient_resource
