@@ -30,8 +30,8 @@ class RowData {
     return null;
   }
   set activeFlag(value) {
-    if (!this.data) return null;
-    this.data["active"] = value;
+    if (this.data)
+      this.data["active"] = value;
   }
   getFhirData() {
     if (!this.data) return null;

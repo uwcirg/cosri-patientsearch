@@ -255,6 +255,7 @@ def resource_bundle(resource_type):
         is_inactive_search = inactive_search_param.lower() in {"true", "1"}
     if is_inactive_search:
         active_patient_flag = False
+    
     # need to remove this param 
     # as unknown name/key error will be raised when passed to HAPI_request
     if inactive_search_param is not None:

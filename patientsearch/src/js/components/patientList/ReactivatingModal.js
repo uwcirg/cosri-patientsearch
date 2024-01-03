@@ -4,27 +4,27 @@ import Modal from "@material-ui/core/Modal";
 import { makeStyles } from "@material-ui/core/styles";
 import Button from "@material-ui/core/Button";
 import Box from "@material-ui/core/Box";
-import { Alert } from '@material-ui/lab';
+import { Alert } from "@material-ui/lab";
 import { usePatientListContext } from "../../context/PatientListContextProvider";
 import RowData from "../../models/RowData";
 
 const useStyles = makeStyles((theme) => ({
-    container: {
-      backgroundColor: "#FFF",
-      margin: "auto",
-      padding: theme.spacing(2),
-      position: "absolute",
-      top: "25%",
-      width: "480px",
-      left: "calc(50% - 240px)"
-    },
-    buttonsContainer: {
-      padding: theme.spacing(2),
-      display: "flex",
-      justifyContent: "center",
-      alignItems: "center",
-      gap: theme.spacing(1)
-    }
+  container: {
+    backgroundColor: "#FFF",
+    margin: "auto",
+    padding: theme.spacing(2),
+    position: "absolute",
+    top: "25%",
+    width: "480px",
+    left: "calc(50% - 240px)",
+  },
+  buttonsContainer: {
+    padding: theme.spacing(2),
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: theme.spacing(1),
+  },
 }));
 
 export default function ReactivatingModal() {
@@ -33,7 +33,7 @@ export default function ReactivatingModal() {
     //consts
     openReactivatingModal,
     currentRow,
-    handleSearch
+    handleSearch,
   } = usePatientListContext();
 
   const [open, setOpen] = React.useState(openReactivatingModal);
@@ -41,8 +41,8 @@ export default function ReactivatingModal() {
   const onReactivate = () => {
     handleSearch({
       ...getPatientDataFromFilters(),
-      active: true
-    })
+      active: true,
+    });
     setOpen(false);
   };
   const onClose = () => {
@@ -60,7 +60,7 @@ export default function ReactivatingModal() {
 
   React.useEffect(() => {
     setOpen(openReactivatingModal);
-  }, [openReactivatingModal])
+  }, [openReactivatingModal]);
 
   return (
     <Modal
@@ -71,8 +71,8 @@ export default function ReactivatingModal() {
     >
       <Box className={classes.container}>
         <Alert severity="warning">
-          The account for <strong>{getPatientNameFromFilters()}</strong> was previously
-          deactivated. Do you want to re-activate it?
+          The account for <strong>{getPatientNameFromFilters()}</strong> was
+          previously deactivated. Do you want to re-activate it?
         </Alert>
         <div className={classes.buttonsContainer}>
           <Button
@@ -83,11 +83,7 @@ export default function ReactivatingModal() {
           >
             Yes, Reactivate
           </Button>
-          <Button
-            variant="outlined"
-            color="primary"
-            onClick={onClose}
-          >
+          <Button variant="outlined" color="primary" onClick={onClose}>
             Cancel
           </Button>
         </div>
