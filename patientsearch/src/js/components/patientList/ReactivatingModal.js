@@ -1,5 +1,4 @@
 import React from "react";
-//import PropTypes from "prop-types";
 import Modal from "@material-ui/core/Modal";
 import { makeStyles } from "@material-ui/core/styles";
 import Button from "@material-ui/core/Button";
@@ -31,6 +30,7 @@ export default function ReactivatingModal() {
   const classes = useStyles();
   let {
     //consts
+    getAppSettingByKey,
     openReactivatingModal,
     currentRow,
     handleSearch,
@@ -40,22 +40,33 @@ export default function ReactivatingModal() {
 
   const onReactivate = () => {
     handleSearch({
-      ...getPatientDataFromFilters(),
+      ...getSubjectDataFromFilters(),
       active: true,
     });
     setOpen(false);
   };
-  const onClose = () => {
+  const onClose = (event, reason) => {
+    if (reason && reason === "backdropClick") 
+        return;
     setOpen(false);
+    setTimeout(() => window.location.reload(), 0);
   };
-  const getPatientDataFromFilters = () => {
+  const getSubjectReferenceText = () =>
+    String(getAppSettingByKey("MY_PATIENTS_FILTER_LABEL"))
+      .toLowerCase()
+      .includes("recipient")
+      ? "recipient"
+      : "patient";
+  const getSubjectDataFromFilters = () => {
     const oData = new RowData(currentRow);
     return oData.data;
   };
-  const getPatientNameFromFilters = () => {
+  const getSubjectInfoFromFilters = () => {
     const oData = new RowData(currentRow);
     if (!oData.lastName || !oData.lastName) return "patient";
-    return [oData.lastName, oData.firstName].join(", ");
+    const name = [oData.lastName, oData.firstName].join(", ");
+    const dob = oData.birthDate ? oData.birthDate : "";
+    return [name, dob].join(" ");
   };
 
   React.useEffect(() => {
@@ -71,9 +82,13 @@ export default function ReactivatingModal() {
     >
       <Box className={classes.container}>
         <Alert severity="warning">
-          The account for <strong>{getPatientNameFromFilters()}</strong> was
-          previously deactivated. Do you want to re-activate it?
+          There is a deactivated {getSubjectReferenceText()} record in the
+          system that matches this name and birthdate ({" "}
+          <strong>{getSubjectInfoFromFilters()}</strong> ). Do you want to
+          restore that record?
         </Alert>
+        {/* TODO: implement create new */}
+        {/* Note, need to consider implication where there are multiple patient records of the same name and dob, which one to reactivate if there are multiple inactive ones? */}
         <div className={classes.buttonsContainer}>
           <Button
             variant="contained"
@@ -81,7 +96,7 @@ export default function ReactivatingModal() {
             className={classes.button}
             onClick={onReactivate}
           >
-            Yes, Reactivate
+            Restore
           </Button>
           <Button variant="outlined" color="primary" onClick={onClose}>
             Cancel
