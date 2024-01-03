@@ -457,7 +457,7 @@ export function addMamotoTracking(siteId, userId) {
 
 /*
  * @param dateString of type String
- * @returns true if supplied dateString is determined to be less than today's date otherwise false 
+ * @returns true if supplied dateString is determined to be less than today's date otherwise false
  */
 export function isInPast(dateString) {
   if (!dateString) return false;
@@ -571,9 +571,42 @@ export async function getPatientIdsByCareTeamParticipant(practitionerId) {
  * @param flagId, value for the query string, flags
  * @return boolean
  */
-export function hasFlagForCheckbox (flagId) {
+export function hasFlagForCheckbox(flagId) {
   const flagQueryString = getUrlParameter("flags");
   if (!flagQueryString) return false;
   if (!flagId) return false;
   return flagQueryString === flagId;
+}
+
+/*
+ * return first resource in a bundled FHIR resource data
+ * @param FHIR resource bundle
+ * @return FHIR object
+ */
+export function getFirstResourceFromFhirBundle(bundle) {
+  if (!bundle) return null;
+  if (!bundle.entry) {
+    if (Array.isArray(bundle)) return bundle[0];
+    if (bundle.resource) return bundle.resource;
+    return bundle;
+  }
+  const firstEntry = Array.isArray(bundle.entry)
+    ? bundle.entry[0]
+    : bundle.entry;
+  if (firstEntry.resource) return firstEntry.resource;
+  return firstEntry;
+}
+
+/*
+ * return error text from diagnostic element in a FHIR response data
+ * @param FHIR response data
+ * @return string
+ */
+export function getErrorDiagnosticTextFromResponse(response) {
+  const issue =
+    response &&
+    response.issue &&
+    Array.isArray(response.issue) &&
+    response.issue.find((item) => item.severity === "error");
+  return issue && issue.diagnostics ? issue.diagnostics : "";
 }

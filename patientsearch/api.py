@@ -249,8 +249,16 @@ def resource_bundle(resource_type):
 
     # Override if the search is specifically for inactive objects, only occurs
     # when working on reactivating a patient
-    if request.args.get("inactive_search", False):
-        active_patient_flag = params.pop("inactive_search", False)
+    inactive_search_param = request.args.get("inactive_search")
+    is_inactive_search = False
+    if inactive_search_param:
+        is_inactive_search = inactive_search_param.lower() in {"true", "1"}
+    if is_inactive_search:
+        active_patient_flag = False
+    # need to remove this param 
+    # as unknown name/key error will be raised when passed to HAPI_request
+    if inactive_search_param is not None:
+        del params["inactive_search"]
 
     # If the resource is not a patient, proceed with the GET
     if resource_type != "Patient":
