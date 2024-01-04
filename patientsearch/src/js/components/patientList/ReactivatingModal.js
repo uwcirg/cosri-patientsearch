@@ -44,6 +44,12 @@ export default function ReactivatingModal() {
     });
     setOpen(false);
   };
+  const onCreate = () => {
+    handleSearch(getSubjectDataFromFilters(), {
+      createNew: true,
+    });
+    setOpen(false);
+  };
   const onClose = (event, reason) => {
     if (reason && reason === "backdropClick") return;
     setOpen(false);
@@ -83,7 +89,7 @@ export default function ReactivatingModal() {
           There is a deactivated {getSubjectReferenceText()} record in the
           system that matches this name and birthdate ({" "}
           <strong>{getSubjectInfoFromFilters()}</strong> ). Do you want to
-          restore that record?
+          restore that record or create a new one?
         </Alert>
         {/* TODO: implement create new */}
         {/* Note, need to consider implication where there are multiple patient records of the same name and dob, which one to reactivate if there are multiple inactive ones? */}
@@ -95,6 +101,14 @@ export default function ReactivatingModal() {
             onClick={onReactivate}
           >
             Restore
+          </Button>
+          <Button
+            variant="contained"
+            color="primary"
+            className={classes.button}
+            onClick={onCreate}
+          >
+            Create New
           </Button>
           <Button variant="outlined" color="primary" onClick={onClose}>
             Cancel

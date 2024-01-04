@@ -376,7 +376,7 @@ export default function PatientListContextProvider({ children }) {
     launchParams = launchParams || {};
     return getAppLaunchURL(patientId, { ...launchParams, ...appSettings });
   };
-  const _getPatientSearchURL = (data, searchInactive) => {
+  const _getPatientSearchURL = (data, params) => {
     const oData = new RowData(data);
     const fName = String(oData.firstName).trim();
     const lName = String(oData.lastName).trim();
@@ -391,9 +391,19 @@ export default function PatientListContextProvider({ children }) {
       ];
       return `${dataURL}?${params.join("&")}`;
     }
+    const searchInactive = params && params.searchInactive;
+    const useActiveFlag = params && params.useActiveFlag;
+    const isUpdate = params && params.isUpdate;
+    if (isUpdate && data.id) {
+      return `/fhir/Patient/${data.id}`;
+    }
     let url = `/fhir/Patient?given=${fName}&family=${lName}&birthdate=${birthDate}`;
     if (searchInactive) {
       url += `&inactive_search=true`;
+    } else {
+      if (useActiveFlag) {
+        url += `&active=true`;
+      }
     }
     return url;
   };
@@ -632,7 +642,6 @@ export default function PatientListContextProvider({ children }) {
               .length > 0;
           // if last accessed field is present
           if (hasLastAccessedField) {
-            console.log("I am updating the time");
             // this will ensure that last accessed date, i.e. meta.lastUpdated, is being updated
             putPatientData(
               rowData.id,
@@ -706,7 +715,8 @@ export default function PatientListContextProvider({ children }) {
       return false;
     }
     setCurrentRow(rowData);
-
+    const isReactivate = params && params.reactivate;
+    const isCreateNew = params && params.createNew;
     const searchParams = {
       headers: {
         Accept: "application/json",
@@ -716,7 +726,9 @@ export default function PatientListContextProvider({ children }) {
     };
     const getFHIRPatientData = async () =>
       fetchData(
-        _getPatientSearchURL(rowData, !!appSettings["REACTIVATE_PATIENT"]),
+        _getPatientSearchURL(rowData, {
+          searchInactive: !!appSettings["REACTIVATE_PATIENT"],
+        }),
         {
           ...searchParams,
           method: "GET",
@@ -724,40 +736,50 @@ export default function PatientListContextProvider({ children }) {
         (e) => handleErrorCallback(e)
       );
 
-    const isReactivate = params && params.reactivate;
-
     getFHIRPatientData().then((bundleResult) => {
       const result = getFirstResourceFromFhirBundle(bundleResult);
-      const isInactive = typeof result.active !== "undefined" && !result.active;
       if (result) {
-        if (!isReactivate && isInactive) {
-          setOpenReactivatingModal(true);
-          return;
-        }
-        if (bundleResult.entry.length === 1) {
-          if (!isInactive && canLanchApp()) {
-            // found patient, not need to update/create it again
-            handleLaunchApp(_formatData(result)[0]);
-            return;
-          } else {
-            rowData.resource = {
-              ...result,
-              active: true,
-            };
-          }
-        } else {
-          const activeEntries = bundleResult.entry.filter((item) => {
+        const activeEntries = bundleResult.entry
+          .filter((item) => {
             if (!item.resource) return false;
-            if (typeof item.active === "undefined") {
+            if (typeof item.resource.active === "undefined") {
               return true;
             }
             return String(item.resource.active).toLowerCase() === "true";
-          });
+          })
+          .map((item) => item.resource);
+        const inactiveEntries = bundleResult.entry
+          .filter((item) => {
+            if (!item.resource) return false;
+            if (typeof item.resource.active === "undefined") {
+              return false;
+            }
+            return String(item.resource.active).toLowerCase() === "false";
+          })
+          .map((item) => item.resource);
+        const isInactive = inactiveEntries.length > 0;
+        if (!activeEntries.length) {
+          if (!isCreateNew && !isReactivate && isInactive) {
+            setOpenReactivatingModal(true);
+            return;
+          }
+        } else {
           if (activeEntries.length > 1) {
             handleErrorCallback("Multiple matched entries found.");
             return;
           }
+          if (!isCreateNew && canLanchApp()) {
+            // found patient, not need to update/create it again
+            handleLaunchApp(_formatData(activeEntries[0])[0]);
+            return;
+          }
         }
+        const entryToUse = activeEntries.length ? activeEntries[0] : result;
+        rowData.resource = {
+          ...entryToUse,
+          active: true,
+        };
+        rowData.id = entryToUse.id;
       }
       const oData = new RowData(rowData);
       const payload = JSON.stringify(oData.getFhirData());
@@ -772,11 +794,14 @@ export default function PatientListContextProvider({ children }) {
         : "Server error when looking up patient";
       setOpenLoadingModal(true);
       fetchData(
-        _getPatientSearchURL(rowData),
+        _getPatientSearchURL(rowData, {
+          useActiveFlag: !!getAppSettingByKey("ACTIVE_PATIENT_FLAG"),
+          isUpdate: !isCreateNew && !!rowData.id,
+        }),
         {
           ...searchParams,
           body: payload,
-          method: "PUT",
+          method: isCreateNew ? "POST" : "PUT",
         },
         (e) => handleErrorCallback(e)
       )
@@ -812,7 +837,7 @@ export default function PatientListContextProvider({ children }) {
     });
   };
   const getPatientList = (query) => {
-    console.log("patient list query object ", query);
+   // console.log("patient list query object ", query);
     const defaults = {
       data: [],
       page: 0,
