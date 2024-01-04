@@ -700,7 +700,7 @@ export default function PatientListContextProvider({ children }) {
       ),
     },
   });
-  const handleSearch = (rowData) => {
+  const handleSearch = (rowData, params) => {
     if (!rowData) {
       handleLaunchError("No patient data to proceed.");
       return false;
@@ -724,11 +724,13 @@ export default function PatientListContextProvider({ children }) {
         (e) => handleErrorCallback(e)
       );
 
+    const isReactivate = params && params.reactivate;
+
     getFHIRPatientData().then((bundleResult) => {
       const result = getFirstResourceFromFhirBundle(bundleResult);
       const isInactive = typeof result.active !== "undefined" && !result.active;
       if (result) {
-        if (!rowData.active && isInactive) {
+        if (!isReactivate && isInactive) {
           setOpenReactivatingModal(true);
           return;
         }
@@ -737,6 +739,11 @@ export default function PatientListContextProvider({ children }) {
             // found patient, not need to update/create it again
             handleLaunchApp(_formatData(result)[0]);
             return;
+          } else {
+            rowData.resource = {
+              ...result,
+              active: true,
+            };
           }
         }
       }

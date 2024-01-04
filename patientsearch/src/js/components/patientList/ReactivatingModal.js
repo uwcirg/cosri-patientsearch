@@ -39,15 +39,13 @@ export default function ReactivatingModal() {
   const [open, setOpen] = React.useState(openReactivatingModal);
 
   const onReactivate = () => {
-    handleSearch({
-      ...getSubjectDataFromFilters(),
-      active: true,
+    handleSearch(getSubjectDataFromFilters(), {
+      reactivate: true,
     });
     setOpen(false);
   };
   const onClose = (event, reason) => {
-    if (reason && reason === "backdropClick") 
-        return;
+    if (reason && reason === "backdropClick") return;
     setOpen(false);
     setTimeout(() => window.location.reload(), 0);
   };
