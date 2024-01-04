@@ -745,6 +745,18 @@ export default function PatientListContextProvider({ children }) {
               active: true,
             };
           }
+        } else {
+          const activeEntries = bundleResult.entry.filter((item) => {
+            if (!item.resource) return false;
+            if (typeof item.active === "undefined") {
+              return true;
+            }
+            return String(item.resource.active).toLowerCase() === "true";
+          });
+          if (activeEntries.length > 1) {
+            handleErrorCallback("Multiple matched entries found.");
+            return;
+          }
         }
       }
       const oData = new RowData(rowData);
