@@ -144,32 +144,6 @@ def test_new_active_upsert(
     assert result == new_active_patient
 
 
-def test_new_nonactive_upsert(
-    client,
-    mocker,
-    faux_token,
-    external_patient_active_search,
-    internal_patient_miss,
-    new_patient,
-):
-    """Finding a matching inactive patient, user chose to generate new patient"""
-
-    # Mock HAPI search finding a matching inactive
-    mocker.patch(
-        "patientsearch.models.sync.requests.get",
-        return_value=mock_response(internal_patient_miss),
-    )
-
-    # Mock POST to generate new patient on HAPI
-    mocker.patch(
-        "patientsearch.models.sync.requests.post",
-        return_value=mock_response(new_patient),
-    )
-
-    result = sync_bundle(faux_token, external_patient_active_search)
-    assert result == new_patient
-
-
 def test_adding_identifier(external_patient_search):
     """Test adding identifier to external search bundle"""
     ident = {"system": "https://examle.org/foobar", "value": 12}
@@ -276,7 +250,7 @@ def test_inactive_nonactive_existing(
     external_patient_search,
     internal_patient_inactive_match,
 ):
-    """Finding a matching active patient from external search, return existing"""
+    """Finding a matching inactive patient from external search, return existing"""
 
     # Mock HAPI search finding a matching inactive patient
     mocker.patch(
@@ -391,7 +365,7 @@ def test_restore_inactive_resource(
     internal_patient_active_match,
 ):
     """Confirm the patient gets restored"""
-    # Mock HAPI search finding a matching external inactive patient
+    # Mock HAPI search finding a matching inactive patient
     mocker.patch(
         "patientsearch.models.sync.requests.get",
         return_value=mock_response(internal_patient_inactive_match),
