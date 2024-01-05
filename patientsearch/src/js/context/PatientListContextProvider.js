@@ -737,8 +737,12 @@ export default function PatientListContextProvider({ children }) {
       );
 
     getFHIRPatientData().then((bundleResult) => {
-      const result = getFirstResourceFromFhirBundle(bundleResult);
-      if (result) {
+      if (
+        bundleResult &&
+        bundleResult.entry &&
+        Array.isArray(bundleResult.entry) &&
+        bundleResult.entry.length
+      ) {
         const activeEntries = bundleResult.entry
           .filter((item) => {
             if (!item.resource) return false;
@@ -774,7 +778,9 @@ export default function PatientListContextProvider({ children }) {
             return;
           }
         }
-        const entryToUse = activeEntries.length ? activeEntries[0] : result;
+        const entryToUse = activeEntries.length
+          ? activeEntries[0]
+          : getFirstResourceFromFhirBundle(bundleResult);
         rowData.resource = {
           ...entryToUse,
           active: true,
@@ -837,7 +843,7 @@ export default function PatientListContextProvider({ children }) {
     });
   };
   const getPatientList = (query) => {
-   // console.log("patient list query object ", query);
+    // console.log("patient list query object ", query);
     const defaults = {
       data: [],
       page: 0,

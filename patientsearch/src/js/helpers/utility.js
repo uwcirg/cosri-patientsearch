@@ -586,12 +586,17 @@ export function hasFlagForCheckbox(flagId) {
 export function getFirstResourceFromFhirBundle(bundle) {
   if (!bundle) return null;
   if (!bundle.entry) {
-    if (Array.isArray(bundle)) return bundle[0];
+    if (Array.isArray(bundle)) {
+      if (bundle.length) return bundle[0];
+      else return null;
+    }
     if (bundle.resource) return bundle.resource;
     return bundle;
   }
   const firstEntry = Array.isArray(bundle.entry)
-    ? bundle.entry[0]
+    ? bundle.entry.length
+      ? bundle.entry[0]
+      : null
     : bundle.entry;
   if (firstEntry.resource) return firstEntry.resource;
   return firstEntry;

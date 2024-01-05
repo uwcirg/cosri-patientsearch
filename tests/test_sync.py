@@ -7,7 +7,6 @@ from patientsearch.models import (
     add_identifier_to_resource_type,
     sync_bundle,
     restore_patient,
-    new_resource_hook,
 )
 
 
@@ -239,7 +238,9 @@ def test_inactive_existing(
         return_value=mock_response(internal_patient_inactive_match),
     )
 
-    identified_internal = deepcopy(internal_patient_active_match["entry"][0]["resource"])
+    identified_internal = deepcopy(
+        internal_patient_active_match["entry"][0]["resource"]
+    )
     # Mock POST to put active version of the same patient on HAPI
     mocker.patch(
         "patientsearch.models.sync.requests.put",
@@ -419,7 +420,9 @@ def test_restore_inactive_resource(
         return_value=mock_response(internal_patient_inactive_match),
     )
 
-    identified_internal = deepcopy(internal_patient_active_match["entry"][0]["resource"])
+    identified_internal = deepcopy(
+        internal_patient_active_match["entry"][0]["resource"]
+    )
     # Mock POST to put active version of the same patient on HAPI
     mocker.patch(
         "patientsearch.models.sync.requests.put",
