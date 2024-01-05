@@ -743,24 +743,22 @@ export default function PatientListContextProvider({ children }) {
         Array.isArray(bundleResult.entry) &&
         bundleResult.entry.length
       ) {
-        const activeEntries = bundleResult.entry
-          .filter((item) => {
-            if (!item.resource) return false;
-            if (typeof item.resource.active === "undefined") {
-              return true;
-            }
-            return String(item.resource.active).toLowerCase() === "true";
-          })
-          .map((item) => item.resource);
-        const inactiveEntries = bundleResult.entry
-          .filter((item) => {
-            if (!item.resource) return false;
-            if (typeof item.resource.active === "undefined") {
-              return false;
-            }
-            return String(item.resource.active).toLowerCase() === "false";
-          })
-          .map((item) => item.resource);
+        const entries = bundleResult.entry
+          .filter((item) => item.resource)
+          .map((item) => item.resource)
+          .sort((a, b) => parseInt(b.id) - parseFloat(a.id));
+        const activeEntries = entries.filter((item) => {
+          if (typeof item.active === "undefined") {
+            return true;
+          }
+          return String(item.active).toLowerCase() === "true";
+        });
+        const inactiveEntries = entries.filter((item) => {
+          if (typeof item.active === "undefined") {
+            return false;
+          }
+          return String(item.active).toLowerCase() === "false";
+        });
         const isInactive = inactiveEntries.length > 0;
         if (!activeEntries.length) {
           if (!isCreateNew && !isReactivate && isInactive) {
@@ -778,8 +776,8 @@ export default function PatientListContextProvider({ children }) {
             return;
           }
         }
-        const entryToUse = activeEntries.length
-          ? activeEntries[0]
+        const entryToUse = entries.length
+          ? entries[0]
           : getFirstResourceFromFhirBundle(bundleResult);
         rowData.resource = {
           ...entryToUse,

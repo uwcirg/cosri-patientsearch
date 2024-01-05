@@ -91,8 +91,6 @@ export default function ReactivatingModal() {
           <strong>{getSubjectInfoFromFilters()}</strong> ). Do you want to
           restore that record or create a new one?
         </Alert>
-        {/* TODO: implement create new */}
-        {/* Note, need to consider implication where there are multiple patient records of the same name and dob, which one to reactivate if there are multiple inactive ones? */}
         <div className={classes.buttonsContainer}>
           <Button
             variant="contained"
