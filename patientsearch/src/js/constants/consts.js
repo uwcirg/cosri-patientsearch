@@ -10,6 +10,7 @@ import ArrowDownIcon from '@material-ui/icons/ArrowDropUp';
 import ArrowUpIcon from '@material-ui/icons/ArrowDropDown';
 import LastPage from "@material-ui/icons/LastPage";
 import Search from "@material-ui/icons/Search";
+import RowData from "../models/RowData";
 
 export const tableIcons = {
   Check: forwardRef((props, ref) => (
@@ -69,11 +70,10 @@ export const defaultPagination = {
   nextPageURL: "",
   prevPageURL: "",
 };
-export const defaultFilters = {
-  first_name: "",
-  last_name: "",
-  birth_date: "",
-};
+export const defaultFilters = (() => {
+  const defaultData = RowData.create();
+  return defaultData.getData();
+})();
 export const fieldNameMaps = {
   first_name: "given",
   last_name: "family",

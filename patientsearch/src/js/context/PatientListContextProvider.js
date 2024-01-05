@@ -12,6 +12,8 @@ import DetailPanel from "../components/patientList/DetailPanel";
 import {
   fetchData,
   getAppLaunchURL,
+  getFirstResourceFromFhirBundle,
+  getErrorDiagnosticTextFromResponse,
   getLocalDateTimeString,
   getClientsByRequiredRoles,
   getTimeAgoDisplay,
@@ -23,6 +25,7 @@ import {
   isEmptyArray,
   toTop,
 } from "../helpers/utility";
+import RowData from "../models/RowData";
 const PatientListContext = React.createContext({});
 /*
  * context provider component that allows patient list settings to be accessible to its children component(s)
@@ -90,7 +93,8 @@ export default function PatientListContextProvider({ children }) {
       : ""
   );
   const [openLoadingModal, setOpenLoadingModal] = React.useState(false);
-  const [openReactivatingModal, setOpenReactivatingModal] = React.useState(false);
+  const [openReactivatingModal, setOpenReactivatingModal] =
+    React.useState(false);
   const [openLaunchInfoModal, setOpenLaunchInfoModal] = React.useState(false);
   const [containNoPMPRow, setContainNoPMPRow] = React.useState(false);
   const [anchorEl, setAnchorEl] = React.useState(false);
@@ -178,11 +182,15 @@ export default function PatientListContextProvider({ children }) {
   const hasMultipleSoFClients = () => {
     return appClients && appClients.length > 1;
   };
+  // if only one SoF client, use its launch params
+  // or param specified launching first client app
+  const canLanchApp = () =>
+    hasSoFClients() &&
+    (appClients.length === 1 ||
+      getAppSettingByKey("LAUNCH_AFTER_PATIENT_CREATION"));
   const handleLaunchApp = (rowData, launchParams) => {
     if (!launchParams) {
-      // if only one SoF client, use its launch params
-      launchParams =
-        hasSoFClients() && appClients.length === 1 ? appClients[0] : null;
+      launchParams = canLanchApp() ? appClients[0] : null;
     }
     // if no launch params specifieid, need to handle multiple SoF clients that can be launched
     // open a dialog here so user can select which one to launch?
@@ -209,9 +217,6 @@ export default function PatientListContextProvider({ children }) {
   };
   const onLaunchDialogClose = () => {
     setOpenLaunchInfoModal(false);
-  };
-  const onReactivatingModalClose = (createNew) => {
-    setOpenReactivatingModal(false);
   };
   const onFiltersDidChange = (filters) => {
     clearTimeout(filterIntervalId);
@@ -371,22 +376,36 @@ export default function PatientListContextProvider({ children }) {
     launchParams = launchParams || {};
     return getAppLaunchURL(patientId, { ...launchParams, ...appSettings });
   };
-  const _getPatientSearchURL = (data) => {
+  const _getPatientSearchURL = (data, params) => {
+    const oData = new RowData(data);
+    const fName = String(oData.firstName).trim();
+    const lName = String(oData.lastName).trim();
+    const birthDate = oData.birthDate;
     if (needExternalAPILookup()) {
       const dataURL = "/external_search/Patient";
       // remove leading/trailing spaces from first/last name data sent to patient search API
       const params = [
-        `subject:Patient.name.given=${String(data.first_name).trim()}`,
-        `subject:Patient.name.family=${String(data.last_name).trim()}`,
-        `subject:Patient.birthdate=eq${data.birth_date}`,
+        `subject:Patient.name.given=${fName}`,
+        `subject:Patient.name.family=${lName}`,
+        `subject:Patient.birthdate=eq${birthDate}`,
       ];
       return `${dataURL}?${params.join("&")}`;
     }
-    return `/fhir/Patient?given=${String(
-      data.first_name
-    ).trim()}&family=${String(data.last_name).trim()}&birthdate=${
-      data.birth_date
-    }`;
+    const searchInactive = params && params.searchInactive;
+    const useActiveFlag = params && params.useActiveFlag;
+    const isUpdate = params && params.isUpdate;
+    if (isUpdate && data.id) {
+      return `/fhir/Patient/${data.id}`;
+    }
+    let url = `/fhir/Patient?given=${fName}&family=${lName}&birthdate=${birthDate}`;
+    if (searchInactive) {
+      url += `&inactive_search=true`;
+    } else {
+      if (useActiveFlag) {
+        url += `&active=true`;
+      }
+    }
+    return url;
   };
   const _formatData = (data) => {
     if (!data) return false;
@@ -422,7 +441,7 @@ export default function PatientListContextProvider({ children }) {
             }
             if (col.field === "next_message") {
               // TODO maybe a specific data type to handle not displaying past message?
-              value = isInPast(value) ? "--": getLocalDateTimeString(value);
+              value = isInPast(value) ? "--" : getLocalDateTimeString(value);
             }
             if (col.field) rowData[col.field] = value;
           });
@@ -623,7 +642,6 @@ export default function PatientListContextProvider({ children }) {
               .length > 0;
           // if last accessed field is present
           if (hasLastAccessedField) {
-            console.log("I am updating the time");
             // this will ensure that last accessed date, i.e. meta.lastUpdated, is being updated
             putPatientData(
               rowData.id,
@@ -691,103 +709,140 @@ export default function PatientListContextProvider({ children }) {
       ),
     },
   });
-  const handleSearch = (rowData) => {
-    console.log("I am in a search!");
+  const handleSearch = (rowData, params) => {
     if (!rowData) {
       handleLaunchError("No patient data to proceed.");
       return false;
     }
-    // search parameters
-    console.log("I am before defining searchBody!");
-    const searchBody = rowData.resource
-      ? JSON.stringify(rowData.resource)
-      : JSON.stringify({
-          resourceType: "Patient",
-          name: [
-            {
-              family: rowData.last_name.trim(),
-              given: [rowData.first_name.trim()],
-            },
-          ],
-          birthDate: rowData.birth_date,
-        });
-    console.log("I am after defining searchBody!");
-    // error message when no result returned
-    const noResultErrorMessage = needExternalAPILookup()
-      ? constants.NON_PDMP_RESULT_MESSAGE
-      : "No matched patient found";
-    // error message for API error
-    const fetchErrorMessage = needExternalAPILookup()
-      ? constants.PDMP_SYSTEM_ERROR_MESSAGE
-      : "Server error when looking up patient";
-    setOpenLoadingModal(true);
-    console.log("I am opening a modal!");
-    setOpenReactivatingModal(true);
-    console.log("I am finished with the modal!");
-    fetchData(
-      _getPatientSearchURL(rowData),
-      {
-        ...{
-          method: "PUT",
-          headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json",
-          },
-          body: searchBody,
-        },
-        ...constants.noCacheParam,
+    setCurrentRow(rowData);
+    const isReactivate = params && params.reactivate;
+    const isCreateNew = params && params.createNew;
+    const searchParams = {
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
       },
-      (e) => handleErrorCallback(e)
-    )
-      .then((result) => {
-        console.log("I have the result", result);
-        setOpenLoadingModal(false);
-        setOpenReactivatingModal(false);
-        let response = result;
-        if (result && result.entry && result.entry[0]) {
-          response = result.entry[0];
-        }
-        if (!response || !response.id) {
-          handleLaunchError(noResultErrorMessage);
-          _handleRefresh();
-          return false;
-        }
-        //add new table row where applicable
-        try {
-          _addDataRow(response);
-        } catch (e) {
-          console.log("Error occurred adding row to table ", e);
-        }
-        const shouldLaunchApp =
-          appClients &&
-          appClients.length > 0 &&
-          (appClients.length === 1 ||
-            (hasMultipleSoFClients() &&
-              getAppSettingByKey("LAUNCH_AFTER_PATIENT_CREATION")));
+      ...constants.noCacheParam,
+    };
+    const getFHIRPatientData = async () =>
+      fetchData(
+        _getPatientSearchURL(rowData, {
+          searchInactive: !!appSettings["REACTIVATE_PATIENT"],
+        }),
+        {
+          ...searchParams,
+          method: "GET",
+        },
+        (e) => handleErrorCallback(e)
+      );
 
-        if (shouldLaunchApp) {
-          // use config variable to determine whether to launch the first defined client application after account creation
-          handleLaunchApp(_formatData(response)[0], appClients[0]);
+    getFHIRPatientData().then((bundleResult) => {
+      const result = getFirstResourceFromFhirBundle(bundleResult);
+      if (result) {
+        const activeEntries = bundleResult.entry
+          .filter((item) => {
+            if (!item.resource) return false;
+            if (typeof item.resource.active === "undefined") {
+              return true;
+            }
+            return String(item.resource.active).toLowerCase() === "true";
+          })
+          .map((item) => item.resource);
+        const inactiveEntries = bundleResult.entry
+          .filter((item) => {
+            if (!item.resource) return false;
+            if (typeof item.resource.active === "undefined") {
+              return false;
+            }
+            return String(item.resource.active).toLowerCase() === "false";
+          })
+          .map((item) => item.resource);
+        const isInactive = inactiveEntries.length > 0;
+        if (!activeEntries.length) {
+          if (!isCreateNew && !isReactivate && isInactive) {
+            setOpenReactivatingModal(true);
+            return;
+          }
         } else {
-          _handleRefresh();
+          if (activeEntries.length > 1) {
+            handleErrorCallback("Multiple matched entries found.");
+            return;
+          }
+          if (!isCreateNew && canLanchApp()) {
+            // found patient, not need to update/create it again
+            handleLaunchApp(_formatData(activeEntries[0])[0]);
+            return;
+          }
         }
-      })
-      .catch((e) => {
-        //log error to console
-        console.log(`Patient search error: ${e}`);
-        setOpenLoadingModal(false);
-        handleLaunchError(fetchErrorMessage + `<p>See console for detail.</p>`);
-      });
+        const entryToUse = activeEntries.length ? activeEntries[0] : result;
+        rowData.resource = {
+          ...entryToUse,
+          active: true,
+        };
+        rowData.id = entryToUse.id;
+      }
+      const oData = new RowData(rowData);
+      const payload = JSON.stringify(oData.getFhirData());
+
+      // error message when no result returned
+      const noResultErrorMessage = needExternalAPILookup()
+        ? constants.NON_PDMP_RESULT_MESSAGE
+        : "Server error occurred. No result returned.  See console for detail";
+      // error message for API error
+      const fetchErrorMessage = needExternalAPILookup()
+        ? constants.PDMP_SYSTEM_ERROR_MESSAGE
+        : "Server error when looking up patient";
+      setOpenLoadingModal(true);
+      fetchData(
+        _getPatientSearchURL(rowData, {
+          useActiveFlag: !!getAppSettingByKey("ACTIVE_PATIENT_FLAG"),
+          isUpdate: !isCreateNew && !!rowData.id,
+        }),
+        {
+          ...searchParams,
+          body: payload,
+          method: isCreateNew ? "POST" : "PUT",
+        },
+        (e) => handleErrorCallback(e)
+      )
+        .then((result) => {
+          setOpenLoadingModal(false);
+          let response = getFirstResourceFromFhirBundle(result);
+          console.log("Patient update result: ", response);
+          if (!response || !response.id) {
+            handleLaunchError(
+              getErrorDiagnosticTextFromResponse(response) ||
+                noResultErrorMessage
+            );
+            return false;
+          }
+          //add new table row where applicable
+          try {
+            _addDataRow(response);
+          } catch (e) {
+            console.log("Error occurred adding row to table ", e);
+          }
+          if (canLanchApp()) {
+            handleLaunchApp(_formatData(response)[0]);
+          }
+        })
+        .catch((e) => {
+          //log error to console
+          console.log(`Patient search error: ${e}`);
+          setOpenLoadingModal(false);
+          handleLaunchError(
+            fetchErrorMessage + `<p>See console for detail.</p>`
+          );
+        });
+    });
   };
   const getPatientList = (query) => {
-    console.log("patient list query object ", query);
-    setOpenReactivatingModal(true);
+   // console.log("patient list query object ", query);
     const defaults = {
       data: [],
       page: 0,
       totalCount: 0,
     };
-    setOpenReactivatingModal(false);
     // return patient data
     return new Promise((resolve) => {
       fetchData(
@@ -997,7 +1052,6 @@ export default function PatientListContextProvider({ children }) {
         onDetailPanelClose,
         onFiltersDidChange,
         onLaunchDialogClose,
-        onReactivatingModalClose,
         onMyPatientsCheckboxChange,
         onTestPatientsCheckboxChange,
         shouldShowLegend,

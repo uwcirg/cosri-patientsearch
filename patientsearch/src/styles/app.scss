@@ -280,7 +280,7 @@ button.disabled:focus,
         &:hover {
           filter: brightness(0.99);
         }
-        td:last-child {
+        td:has(.action-button) {
           min-width: 96px;
         }
       }
