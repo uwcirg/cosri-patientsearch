@@ -203,7 +203,8 @@ def _merge_patient(src_patient, internal_patient, token, consider_active=False):
 
         params = patient_as_search_params(internal_patient)
         # Ensure it is active
-        internal_patient["active"] = True
+        if consider_active:
+            internal_patient["active"] = True
         return HAPI_request(
             token=token,
             method="PUT",
@@ -241,7 +242,7 @@ def patient_as_search_params(patient, active_only=False):
             ("name.given[0]", "given", ""),
             ("name[0].given[0]", "given", ""),
             ("birthDate", "birthdate", "eq"),
-            ("active", True, "eq"),
+            ("active", True, ""),
         )
     else:
         search_map = (
@@ -316,7 +317,8 @@ def sync_patient(token, patient, consider_active=False):
 
     # No match, insert and return
     patient = new_resource_hook(resource=patient)
-    patient["active"] = True
+    if consider_active:
+        patient["active"] = True
     return HAPI_request(
         token=token,
         method="POST",
