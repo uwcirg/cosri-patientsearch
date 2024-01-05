@@ -206,7 +206,7 @@ def test_active_existing(
     external_patient_active_search,
     internal_patient_active_match,
 ):
-    """Finding a matching active patient from active external search, return existing"""
+    """Finding a matching active patient from external search, return existing"""
 
     # Mock HAPI search finding a matching active patient
     mocker.patch(
@@ -229,10 +229,9 @@ def test_inactive_existing(
     internal_patient_inactive_match,
     internal_patient_active_match,
 ):
-    """Finding a matching inactive patient from active external search, return existing restored"""
+    """Finding a matching inactive patient from external search, restore it"""
 
     # Mock HAPI search finding a matching inactive patient
-    # when the service is called for the patient to be restored
     mocker.patch(
         "patientsearch.models.sync.requests.get",
         return_value=mock_response(internal_patient_inactive_match),
@@ -258,10 +257,9 @@ def test_active_nonactive_existing(
     external_patient_active_search,
     internal_patient_active_match,
 ):
-    """Finding a matching inactive patient from active external search, return existing restored"""
+    """Finding a matching active patient from external search, return existing"""
 
-    # Mock HAPI search finding a matching inactive patient
-    # when the service is called for the patient to be restored
+    # Mock HAPI search finding a matching active patient
     mocker.patch(
         "patientsearch.models.sync.requests.get",
         return_value=mock_response(internal_patient_active_match),
@@ -278,36 +276,15 @@ def test_inactive_nonactive_existing(
     external_patient_search,
     internal_patient_inactive_match,
 ):
-    """Finding a matching inactive patient from active external search, return existing restored"""
+    """Finding a matching active patient from external search, return existing"""
 
     # Mock HAPI search finding a matching inactive patient
-    # when the service is called for the patient to be restored
     mocker.patch(
         "patientsearch.models.sync.requests.get",
         return_value=mock_response(internal_patient_inactive_match),
     )
 
     result = sync_bundle(faux_token, external_patient_search, False)
-    assert result == internal_patient_inactive_match["entry"][0]["resource"]
-
-
-def test_nonactive_existing(
-    client,
-    mocker,
-    faux_token,
-    external_patient_active_search,
-    internal_patient_inactive_match,
-):
-    """Finding a matching inactive patient from active external search, return existing restored"""
-
-    # Mock HAPI search finding a matching inactive patient
-    # when the service is called for the patient to be restored
-    mocker.patch(
-        "patientsearch.models.sync.requests.get",
-        return_value=mock_response(internal_patient_inactive_match),
-    )
-
-    result = sync_bundle(faux_token, external_patient_active_search)
     assert result == internal_patient_inactive_match["entry"][0]["resource"]
 
 
@@ -374,7 +351,7 @@ def test_duplicate_active(
 ):
     """Finding a matching active patient with duplicates, handle well"""
 
-    # Mock HAPI search finding duplicate matching patients
+    # Mock HAPI search finding duplicate active matching patients
     mocker.patch(
         "patientsearch.models.sync.requests.get",
         return_value=mock_response(internal_patient_duplicate_active_match),
@@ -394,7 +371,7 @@ def test_duplicate_inactive(
 ):
     """Finding a matching inactive patient with duplicates, handle well"""
 
-    # Mock HAPI search finding duplicate matching patients
+    # Mock HAPI search finding duplicate inactive matching patients
     mocker.patch(
         "patientsearch.models.sync.requests.get",
         return_value=mock_response(internal_patient_duplicate_inactive_match),
@@ -414,7 +391,7 @@ def test_restore_inactive_resource(
     internal_patient_active_match,
 ):
     """Confirm the patient gets restored"""
-    # Mock HAPI search finding a matching external active patient
+    # Mock HAPI search finding a matching external inactive patient
     mocker.patch(
         "patientsearch.models.sync.requests.get",
         return_value=mock_response(internal_patient_inactive_match),
