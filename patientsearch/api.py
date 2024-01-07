@@ -309,16 +309,9 @@ def post_resource(resource_type):
     :param request.body: Must include the valid JSON FHIR Resource
 
     """
-    token = validate_auth()
     active_patient_flag = current_app.config.get("ACTIVE_PATIENT_FLAG")
-    reactivate_patient = current_app.config.get("REACTIVATE_PATIENT")
-    params = dict(deepcopy(request.args))  # Necessary on ImmutableMultiDict
 
-    if active_patient_flag and reactivate_patient:
-        create_new_patient = params.pop("create_new", False)
-    else:
-        create_new_patient = False
-
+    token = validate_auth()
     try:
         resource = request.get_json()
         if not resource:
@@ -329,18 +322,16 @@ def post_resource(resource_type):
                 f"{resource['resourceType']} != {resource_type}"
             )
 
-        resource = new_resource_hook(resource, create_new_patient)
+        resource = new_resource_hook(resource)
         method = request.method
         if active_patient_flag:
-            if create_new_patient:
-                # Ensure it is a new active patient
-                method = "POST"
+            # Ensure it is an active patient
             resource["active"] = True
 
         audit_HAPI_change(
             user_info=current_user_info(token),
             method=method,
-            params=params,
+            params=request.args,
             resource=resource,
             resource_type=resource_type,
         )
@@ -348,7 +339,7 @@ def post_resource(resource_type):
             HAPI_request(
                 token=token,
                 method=method,
-                params=params,
+                params=request.args,
                 resource_type=resource_type,
                 resource=resource,
             )

@@ -748,13 +748,13 @@ export default function PatientListContextProvider({ children }) {
           .map((item) => item.resource)
           .sort((a, b) => parseInt(b.id) - parseFloat(a.id));
         const activeEntries = entries.filter((item) => {
-          if (typeof item.active === "undefined") {
+          if (item.hasOwnProperty('active')) {
             return true;
           }
           return String(item.active).toLowerCase() === "true";
         });
         const inactiveEntries = entries.filter((item) => {
-          if (typeof item.active === "undefined") {
+          if (item.hasOwnProperty('active')) {
             return false;
           }
           return String(item.active).toLowerCase() === "false";
@@ -781,7 +781,6 @@ export default function PatientListContextProvider({ children }) {
           : getFirstResourceFromFhirBundle(bundleResult);
         rowData.resource = {
           ...entryToUse,
-          active: true,
         };
         rowData.id = entryToUse.id;
       }

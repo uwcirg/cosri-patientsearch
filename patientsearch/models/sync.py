@@ -272,7 +272,7 @@ def internal_patient_search(token, patient, active_only=False):
     )
 
 
-def new_resource_hook(resource, create_new_patient=False):
+def new_resource_hook(resource):
     """Return modified version of resourse as per new resource rules
 
     Products occasionally require customization of resources on creation.
@@ -280,7 +280,7 @@ def new_resource_hook(resource, create_new_patient=False):
 
     :returns: modified resource
     """
-    if resource.get("id") and not create_new_patient:
+    if resource.get("id"):
         # not a new resource, bail
         return resource
 
