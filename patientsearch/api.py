@@ -496,16 +496,21 @@ def external_search(resource_type):
 
     """
     token = validate_auth()
-
     active_patient_flag = current_app.config.get("ACTIVE_PATIENT_FLAG")
     reactivate_patient = current_app.config.get("REACTIVATE_PATIENT")
+
+    params = dict(deepcopy(request.args))  # Necessary on ImmutableMultiDict
+    if active_patient_flag and resource_type == "Patient":
+        # Only consider active external patients
+        params["active"] = "true"
+
     if active_patient_flag:
         # Add default behavior for when the active consideration is disabled
         reactivate_patient = True
     # Tag any matching results with identifier naming source
     try:
         external_search_bundle = add_identifier_to_resource_type(
-            bundle=external_request(token, resource_type, request.args),
+            bundle=external_request(token, resource_type, params),
             resource_type=resource_type,
             identifier={
                 "system": "https://github.com/uwcirg/script-fhir-facade",

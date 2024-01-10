@@ -195,16 +195,12 @@ def _merge_patient(src_patient, internal_patient, token, consider_active=False):
 
     if not different(src_patient, internal_patient):
         # If patient is active, proceed. If not, re-activate
-        if not consider_active:
-            return internal_patient
-
-        if internal_patient.get("active", False) is not False:
+        if not consider_active or internal_patient.get("active", False):
             return internal_patient
 
         params = patient_as_search_params(internal_patient)
         # Ensure it is active
-        if consider_active:
-            internal_patient["active"] = True
+        internal_patient["active"] = True
         return HAPI_request(
             token=token,
             method="PUT",
@@ -216,7 +212,7 @@ def _merge_patient(src_patient, internal_patient, token, consider_active=False):
     else:
         internal_patient["identifier"] = src_patient["identifier"]
         params = patient_as_search_params(internal_patient)
-        # Ensure it is active, skip if active field does not exis
+        # Ensure it is active, skip if active parameter is not considered
         if consider_active:
             internal_patient["active"] = True
         return HAPI_request(
@@ -234,25 +230,17 @@ def patient_as_search_params(patient, active_only=False):
 
     # Use same parameters sent to external src looking for existing Patient
     # Note FHIR uses list for 'name' and 'given', common parameter use defines just one
+    search_map = (
+        ("name.family", "family", ""),
+        ("name[0].family", "family", ""),
+        ("name.given", "given", ""),
+        ("name.given[0]", "given", ""),
+        ("name[0].given[0]", "given", ""),
+        ("birthDate", "birthdate", "eq"),
+    )
     if active_only:
-        search_map = (
-            ("name.family", "family", ""),
-            ("name[0].family", "family", ""),
-            ("name.given", "given", ""),
-            ("name.given[0]", "given", ""),
-            ("name[0].given[0]", "given", ""),
-            ("birthDate", "birthdate", "eq"),
-            ("active", True, ""),
-        )
-    else:
-        search_map = (
-            ("name.family", "family", ""),
-            ("name[0].family", "family", ""),
-            ("name.given", "given", ""),
-            ("name.given[0]", "given", ""),
-            ("name[0].given[0]", "given", ""),
-            ("birthDate", "birthdate", "eq"),
-        )
+        # Change the search params if we are considering only active patients in search
+        search_map = search_map + (("active", True, ""),)
 
     search_params = {}
 
@@ -329,7 +317,9 @@ def sync_patient(token, patient, consider_active=False):
 
 def restore_patient(token, patient):
     """Restore single internal patient resource"""
-    # Set patient to active
+    # If the patient is already active, bail
+    if patient.get("active", False):
+        return patient
     patient["active"] = True
 
     return HAPI_request(
