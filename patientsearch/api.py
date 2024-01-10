@@ -243,7 +243,7 @@ def resource_bundle(resource_type):
 
     """
     token = validate_auth()
-    # Check for the user's configurations
+    # Check for the store's configurations
     active_patient_flag = current_app.config.get("ACTIVE_PATIENT_FLAG")
     params = dict(deepcopy(request.args))  # Necessary on ImmutableMultiDict
 
@@ -309,9 +309,10 @@ def post_resource(resource_type):
     :param request.body: Must include the valid JSON FHIR Resource
 
     """
-    active_patient_flag = current_app.config.get("ACTIVE_PATIENT_FLAG")
-
     token = validate_auth()
+    # Check for the store's configurations
+    active_patient_flag = current_app.config.get("ACTIVE_PATIENT_FLAG")
+    
     try:
         resource = request.get_json()
         if not resource:
@@ -324,7 +325,7 @@ def post_resource(resource_type):
 
         resource = new_resource_hook(resource)
         method = request.method
-        if active_patient_flag:
+        if active_patient_flag and resource_type == "Patient":
             # Ensure it is an active patient
             resource["active"] = True
 
@@ -361,6 +362,8 @@ def update_resource_by_id(resource_type, resource_id):
     redirect.  Client should watch for 401 and redirect appropriately.
     """
     token = validate_auth()
+    # Check for the store's configurations
+    active_patient_flag = current_app.config.get("ACTIVE_PATIENT_FLAG")
 
     try:
         resource = request.get_json()
@@ -387,6 +390,9 @@ def update_resource_by_id(resource_type, resource_id):
             else:
                 ignorable_id_increment_audit = True
             resource["identifier"] = identifiers
+            if active_patient_flag:
+                # Ensure it is an active patient
+                resource["active"] = True
 
         method = "PUT"
         if not ignorable_id_increment_audit:
