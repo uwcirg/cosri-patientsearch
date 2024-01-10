@@ -781,7 +781,7 @@ export default function PatientListContextProvider({ children }) {
           : getFirstResourceFromFhirBundle(bundleResult);
         rowData.resource = {
           ...entryToUse,
-          active: true ? (params && params.useActiveFlag) : undefined,
+          ...(params && params.useActiveFlag ? { active: true } : {}),
         };
         rowData.id = entryToUse.id;
       }
