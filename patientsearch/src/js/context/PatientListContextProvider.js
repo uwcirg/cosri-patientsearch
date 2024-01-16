@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useRef } from "react";
 import jsonpath from "jsonpath";
 import DOMPurify from "dompurify";
 import PropTypes from "prop-types";
@@ -43,7 +43,8 @@ export default function PatientListContextProvider({ children }) {
     appSettings ? appSettings["SOF_CLIENTS"] : null,
     roles
   );
-  const tableRef = React.useRef();
+  const tableRef = useRef();
+  const filterRowRef = useRef();
   const menuItems = constants.defaultMenuItems;
   const [data, setData] = React.useState([]);
   const [patientIdsByCareTeamParticipant, setPatientIdsByCareTeamParticipant] =
@@ -736,108 +737,114 @@ export default function PatientListContextProvider({ children }) {
         (e) => handleErrorCallback(e)
       );
 
-    getFHIRPatientData().then((bundleResult) => {
-      if (
-        bundleResult &&
-        bundleResult.entry &&
-        Array.isArray(bundleResult.entry) &&
-        bundleResult.entry.length
-      ) {
-        const entries = bundleResult.entry
-          .filter((item) => item.resource)
-          .map((item) => item.resource)
-          .sort((a, b) => parseInt(b.id) - parseFloat(a.id));
-        const activeEntries = entries.filter((item) => {
-          if (typeof item.active === "undefined") {
-            return true;
+    getFHIRPatientData()
+      .then((bundleResult) => {
+        if (
+          bundleResult &&
+          bundleResult.entry &&
+          Array.isArray(bundleResult.entry) &&
+          bundleResult.entry.length
+        ) {
+          const entries = bundleResult.entry
+            .filter((item) => item.resource)
+            .map((item) => item.resource)
+            .sort((a, b) => parseInt(b.id) - parseFloat(a.id));
+          const activeEntries = entries.filter((item) => {
+            if (typeof item.active === "undefined") {
+              return true;
+            }
+            return String(item.active).toLowerCase() === "true";
+          });
+          const inactiveEntries = entries.filter((item) => {
+            if (typeof item.active === "undefined") {
+              return false;
+            }
+            return String(item.active).toLowerCase() === "false";
+          });
+          const isInactive = inactiveEntries.length > 0;
+          if (!activeEntries.length) {
+            if (!isCreateNew && !isReactivate && isInactive) {
+              setOpenReactivatingModal(true);
+              return;
+            }
+          } else {
+            if (activeEntries.length > 1) {
+              handleErrorCallback("Multiple matched entries found.");
+              return;
+            }
+            if (!isCreateNew && canLanchApp()) {
+              // found patient, not need to update/create it again
+              handleLaunchApp(_formatData(activeEntries[0])[0]);
+              return;
+            }
           }
-          return String(item.active).toLowerCase() === "true";
-        });
-        const inactiveEntries = entries.filter((item) => {
-          if (typeof item.active === "undefined") {
-            return false;
-          }
-          return String(item.active).toLowerCase() === "false";
-        });
-        const isInactive = inactiveEntries.length > 0;
-        if (!activeEntries.length) {
-          if (!isCreateNew && !isReactivate && isInactive) {
-            setOpenReactivatingModal(true);
-            return;
-          }
-        } else {
-          if (activeEntries.length > 1) {
-            handleErrorCallback("Multiple matched entries found.");
-            return;
-          }
-          if (!isCreateNew && canLanchApp()) {
-            // found patient, not need to update/create it again
-            handleLaunchApp(_formatData(activeEntries[0])[0]);
-            return;
-          }
+          const entryToUse = entries.length
+            ? entries[0]
+            : getFirstResourceFromFhirBundle(bundleResult);
+          rowData.resource = {
+            ...entryToUse,
+            active: true,
+          };
+          rowData.id = entryToUse.id;
         }
-        const entryToUse = entries.length
-          ? entries[0]
-          : getFirstResourceFromFhirBundle(bundleResult);
-        rowData.resource = {
-          ...entryToUse,
-        };
-        rowData.id = entryToUse.id;
-      }
-      const oData = new RowData(rowData);
-      const payload = JSON.stringify(oData.getFhirData());
+        const oData = new RowData(rowData);
+        const payload = JSON.stringify(oData.getFhirData());
 
-      // error message when no result returned
-      const noResultErrorMessage = needExternalAPILookup()
-        ? constants.NON_PDMP_RESULT_MESSAGE
-        : "Server error occurred. No result returned.  See console for detail";
-      // error message for API error
-      const fetchErrorMessage = needExternalAPILookup()
-        ? constants.PDMP_SYSTEM_ERROR_MESSAGE
-        : "Server error when looking up patient";
-      setOpenLoadingModal(true);
-      fetchData(
-        _getPatientSearchURL(rowData, {
-          useActiveFlag: !!getAppSettingByKey("ACTIVE_PATIENT_FLAG"),
-          isUpdate: !isCreateNew && !!rowData.id,
-        }),
-        {
-          ...searchParams,
-          body: payload,
-          method: isCreateNew ? "POST" : "PUT",
-        },
-        (e) => handleErrorCallback(e)
-      )
-        .then((result) => {
-          setOpenLoadingModal(false);
-          let response = getFirstResourceFromFhirBundle(result);
-          console.log("Patient update result: ", response);
-          if (!response || !response.id) {
+        // error message when no result returned
+        const noResultErrorMessage = needExternalAPILookup()
+          ? constants.NON_PDMP_RESULT_MESSAGE
+          : "Server error occurred. No result returned.  See console for detail";
+        // error message for API error
+        const fetchErrorMessage = needExternalAPILookup()
+          ? constants.PDMP_SYSTEM_ERROR_MESSAGE
+          : "Server error when looking up account";
+        setOpenLoadingModal(true);
+        fetchData(
+          _getPatientSearchURL(rowData, {
+            useActiveFlag: !!getAppSettingByKey("ACTIVE_PATIENT_FLAG"),
+            isUpdate: !isCreateNew && !!rowData.id,
+          }),
+          {
+            ...searchParams,
+            body: payload,
+            method: isCreateNew ? "POST" : "PUT",
+          },
+          (e) => handleErrorCallback(e)
+        )
+          .then((result) => {
+            setOpenLoadingModal(false);
+            let response = getFirstResourceFromFhirBundle(result);
+            console.log("Patient update result: ", response);
+            if (!response || !response.id) {
+              handleLaunchError(
+                getErrorDiagnosticTextFromResponse(response) ||
+                  noResultErrorMessage
+              );
+              return false;
+            }
+            //add new table row where applicable
+            try {
+              _addDataRow(response);
+            } catch (e) {
+              console.log("Error occurred adding row to table ", e);
+            }
+            if (canLanchApp()) {
+              handleLaunchApp(_formatData(response)[0]);
+            }
+          })
+          .catch((e) => {
+            //log error to console
+            console.log(`Patient search error: ${e}`);
+            setOpenLoadingModal(false);
             handleLaunchError(
-              getErrorDiagnosticTextFromResponse(response) ||
-                noResultErrorMessage
+              fetchErrorMessage +
+                (typeof e === "string"
+                  ? `<p>${e}</p>`
+                  : `<p>See console for detail.</p>`)
             );
-            return false;
-          }
-          //add new table row where applicable
-          try {
-            _addDataRow(response);
-          } catch (e) {
-            console.log("Error occurred adding row to table ", e);
-          }
-          if (canLanchApp()) {
-            handleLaunchApp(_formatData(response)[0]);
-          }
-        })
-        .catch((e) => {
-          //log error to console
-          console.log(`Patient search error: ${e}`);
-          setOpenLoadingModal(false);
-          handleLaunchError(
-            fetchErrorMessage + `<p>See console for detail.</p>`
-          );
-        });
-    });
+          });
+      })
+      .catch((e) => handleErrorCallback(e));
   };
   const getPatientList = (query) => {
     // console.log("patient list query object ", query);
@@ -998,7 +1005,11 @@ export default function PatientListContextProvider({ children }) {
           handleErrorCallback(error);
           setErrorMessage(
             `Error retrieving data: ${
-              error && error.status ? "Error status " + error.status : error
+              typeof error === "string"
+                ? error
+                : error && error.status
+                ? "Error status " + error.status
+                : error
             }`
           );
           resolve(defaults);
@@ -1016,6 +1027,7 @@ export default function PatientListContextProvider({ children }) {
         userName,
         userError,
         tableRef,
+        filterRowRef,
         // table props
         tableProps: {
           columns: getColumns(),
