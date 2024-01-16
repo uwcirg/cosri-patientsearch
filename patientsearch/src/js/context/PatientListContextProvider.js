@@ -836,7 +836,7 @@ export default function PatientListContextProvider({ children }) {
             //log error to console
             console.log(`Patient search error: ${e}`);
             setOpenLoadingModal(false);
-            const errorMessage = (typeof e === "string" ? e : (e && e.message ? e.message : "See console for detail."))
+            const errorMessage = (typeof e === "string" ? e : (e && e.message ? e.message : "See console for detail."));
             handleLaunchError(
               fetchErrorMessage +`<p>${errorMessage}</p>`
             );

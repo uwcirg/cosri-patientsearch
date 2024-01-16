@@ -88,7 +88,6 @@ export async function fetchData(url, params, errorCallback) {
   }
   if (!results || !results.ok) {
     console.log("no results returned ", results);
-    errorCallback(results ? results : "error retrieving data");
     if (!results.ok) {
       console.log("Error results ", results);
       const errorMessage =
@@ -96,7 +95,8 @@ export async function fetchData(url, params, errorCallback) {
           ? json.message
           : results && results.status
           ? "Status code: " + results.status
-          : "";
+          : "Error occurred retrieving data";
+      errorCallback(errorMessage);
       throw errorMessage;
     }
     return null;
