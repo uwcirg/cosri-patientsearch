@@ -73,31 +73,35 @@ export async function fetchData(url, params, errorCallback) {
       throw e;
     }
   );
-
-  if (!results || !results.ok) {
-    console.log("no results returned ", results);
-    errorCallback(results ? results : "error retrieving data");
-    if (!results.ok) {
-      throw (
-        "There was error processing data. " +
-        (results && results.status ? "Status code: " + results.status : "")
-      );
-    }
-    return null;
-  }
-
   try {
     //read response stream
     json = await results.json().catch((e) => {
       console.log("There was error processing data.");
       throw e.message;
     });
+    console.log("response json ", json);
   } catch (e) {
     console.log(`There was error parsing data: ${e}`);
     json = null;
     errorCallback(e);
     throw e;
   }
+  if (!results || !results.ok) {
+    console.log("no results returned ", results);
+    errorCallback(results ? results : "error retrieving data");
+    if (!results.ok) {
+      console.log("Error results ", results);
+      const errorMessage =
+        json && json.message
+          ? json.message
+          : results && results.status
+          ? "Status code: " + results.status
+          : "";
+      throw errorMessage;
+    }
+    return null;
+  }
+
   return json;
 }
 /*

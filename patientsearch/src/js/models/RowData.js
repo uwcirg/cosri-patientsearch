@@ -33,9 +33,9 @@ class RowData {
     if (this.data)
       this.data["active"] = value;
   }
-  getFhirData() {
+  getFhirData(createNew) {
     if (!this.data) return null;
-    if (this.data.resource) return this.data.resource;
+    if (!createNew && this.data.resource) return this.data.resource;
     let fhirData = {
       resourceType: "Patient",
       name: [
@@ -46,12 +46,6 @@ class RowData {
       ],
       birthDate: this.birthDate,
     };
-    if (this.activeFlag) {
-      fhirData = {
-        ...fhirData,
-        active: this.activeFlag,
-      };
-    }
     return fhirData;
   }
   getData() {
