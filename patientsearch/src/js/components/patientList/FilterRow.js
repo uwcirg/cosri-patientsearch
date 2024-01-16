@@ -1,4 +1,4 @@
-import React from "react";
+import React, { forwardRef, useImperativeHandle } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import DateFnsUtils from "@date-io/date-fns";
 import isValid from "date-fns/isValid";
@@ -50,7 +50,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default function FilterRow() {
+export default forwardRef((props, ref) => {
   let {
     //methods
     handleSearch = function () {
@@ -126,6 +126,11 @@ export default function FilterRow() {
     }
     return false;
   };
+  useImperativeHandle(ref, () => ({
+    clear() {
+      handleClear();
+    },
+  }));
   const renderFirstNameField = () => (
     <TextField
       variant="standard"
@@ -263,4 +268,4 @@ export default function FilterRow() {
       </td>
     </tr>
   );
-}
+});

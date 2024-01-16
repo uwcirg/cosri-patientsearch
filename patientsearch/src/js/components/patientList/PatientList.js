@@ -24,6 +24,7 @@ export default function PatientListTable() {
     // constants
     appSettings,
     userName,
+    filterRowRef,
     // table props
     tableProps,
     //methods
@@ -48,7 +49,7 @@ export default function PatientListTable() {
   const renderPatientSearchRow = () => (
     <table className="bottom-gap">
       <tbody>
-        <FilterRow />
+        <FilterRow ref={filterRowRef}/>
       </tbody>
     </table>
   );

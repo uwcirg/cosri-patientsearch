@@ -32,11 +32,13 @@ export default function ReactivatingModal() {
     //consts
     getAppSettingByKey,
     openReactivatingModal,
+    setOpenReactivatingModal,
     currentRow,
+    filterRowRef,
     handleSearch,
   } = usePatientListContext();
 
-  const [open, setOpen] = React.useState(openReactivatingModal);
+  const [open, setOpen] = React.useState(false);
 
   const onReactivate = () => {
     handleSearch(getSubjectDataFromFilters(), {
@@ -53,7 +55,11 @@ export default function ReactivatingModal() {
   const onClose = (event, reason) => {
     if (reason && reason === "backdropClick") return;
     setOpen(false);
-    setTimeout(() => window.location.reload(), 0);
+    setOpenReactivatingModal(false);
+    if (filterRowRef.current) {
+      filterRowRef.current.clear();
+    }
+   // setTimeout(() => window.location.reload(), 0);
   };
   const getSubjectReferenceText = () =>
     String(getAppSettingByKey("MY_PATIENTS_FILTER_LABEL"))

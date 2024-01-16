@@ -1,6 +1,7 @@
 import { makeStyles } from "@material-ui/core/styles";
 import { Button, Tooltip } from "@material-ui/core";
 import RefreshIcon from "@material-ui/icons/Refresh";
+import { usePatientListContext } from "../../context/PatientListContextProvider";
 
 const useStyles = makeStyles((theme) => ({
   refreshButtonContainer: {
@@ -13,6 +14,10 @@ const useStyles = makeStyles((theme) => ({
 
 export default function RefreshButton() {
   const classes = useStyles();
+  const {
+    //consts
+    filterRowRef,
+  } = usePatientListContext();
   return (
     <div className={classes.refreshButtonContainer}>
       <Tooltip title="Refresh the list">
@@ -21,6 +26,10 @@ export default function RefreshButton() {
           size="small"
           startIcon={<RefreshIcon />}
           onClick={() => {
+            if (filterRowRef.current) {
+              filterRowRef.current.clear();
+              return;
+            }
             location.reload();
           }}
         >
