@@ -247,22 +247,24 @@ def resource_bundle(resource_type):
     active_patient_flag = current_app.config.get("ACTIVE_PATIENT_FLAG")
     params = dict(deepcopy(request.args))  # Necessary on ImmutableMultiDict
 
-    # Override if the search is specifically for inactive objects, only occurs
-    # when working on reactivating a patient
+    # Override if the search is specifically for inactive objects,
+    # includes checking working patients for specific phone number
+    # only occurs when working on reactivating a patient
     inactive_search_param = request.args.get("inactive_search")
     is_inactive_search = False
     if inactive_search_param:
         is_inactive_search = inactive_search_param.lower() in {"true", "1"}
-    if is_inactive_search:
-        active_patient_flag = False
-    # need to remove this param, name/key error is raised when passed to HAPI_request
+
+    # need to remove params, otherwise key/name error is raised during HAPI_request
     if inactive_search_param is not None:
         del params["inactive_search"]
 
+    patient = None
     # If the resource is a patient, proceed with the active GET, if requested
     try:
-        if active_patient_flag and resource_type == "Patient":
+        if resource_type == "Patient" and active_patient_flag and not is_inactive_search:
             params["active"] = "true"
+
         patient = HAPI_request(
             token=token,
             method="GET",
@@ -270,9 +272,49 @@ def resource_bundle(resource_type):
             params=params,
         )
 
-        return jsonify(patient)
     except (RuntimeError, ValueError) as error:
         return jsonify_abort(status_code=400, message=str(error))
+
+    # Check store for working patients with the same phone number
+    if resource_type == "Patient" and is_inactive_search:
+        try:
+            # Look for the patient's telecom. If does not exist, bail
+            telecom = patient.get('telecom', [])
+
+            if not telecom:
+                return patient
+
+            # Assuming there is always one telecom
+            telecom_entry = telecom[0]
+            telecom_value = telecom_entry.get('value')
+            params = {
+            'telecom': telecom_value,
+            }
+
+            if active_patient_flag:
+                params["active"] = "true"
+
+            working_patient = HAPI_request(
+                token=token,
+                method="GET",
+                resource_type=resource_type,
+                params=params,
+            )
+
+            # Raise a 500 error if usable patient with the same phone number have been found
+            if working_patient != patient:
+                error_message = """The account can't be restored because its phone number
+                is now used by another account"""
+                current_app.logger.warn(error_message)
+                raise LookupError(error_message)
+
+        except (RuntimeError, ValueError) as error:
+            if isinstance(error, LookupError):
+                return jsonify_abort(status_code=500, message=str(error))
+            else:
+                return jsonify_abort(status_code=400, message=str(error))
+
+    return jsonify(patient)
 
 
 @api_blueprint.route("/fhir/<string:resource_type>", methods=["POST", "PUT"])
