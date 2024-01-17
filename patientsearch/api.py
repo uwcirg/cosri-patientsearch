@@ -231,6 +231,7 @@ def bundle_getpages():
 
 
 @api_blueprint.route("/fhir/<string:resource_type>", methods=["GET"])
+@api_blueprint.route("/fhir/<string:resource_type>", methods=["GET"])
 def resource_bundle(resource_type):
     """Query HAPI for resource_type and return as JSON FHIR Bundle
 
@@ -247,29 +248,29 @@ def resource_bundle(resource_type):
     active_patient_flag = current_app.config.get("ACTIVE_PATIENT_FLAG")
     params = dict(deepcopy(request.args))  # Necessary on ImmutableMultiDict
 
-    # Override if the search is specifically for inactive objects,
-    # includes checking working patients for specific phone number
-    # only occurs when working on reactivating a patient
+    # Override if the search is specifically for inactive objects, only occurs
+    # when working on reactivating a patient
     inactive_search_param = request.args.get("inactive_search")
     is_inactive_search = False
-    if inactive_search_param and active_patient_flag:
+    if inactive_search_param:
         is_inactive_search = inactive_search_param.lower() in {"true", "1"}
-
-    # need to remove params, otherwise key/name error is raised during HAPI_request
+    if is_inactive_search:
+        active_patient_flag = False
+    # need to remove this param, name/key error is raised when passed to HAPI_request
     if inactive_search_param is not None:
         del params["inactive_search"]
 
     # If the resource is a patient, proceed with the active GET, if requested
     try:
-        if resource_type == "Patient" and active_patient_flag and not is_inactive_search:
+        if active_patient_flag and resource_type == "Patient":
             params["active"] = "true"
-
         patient = HAPI_request(
             token=token,
             method="GET",
             resource_type=resource_type,
             params=params,
         )
+
         return jsonify(patient)
     except (RuntimeError, ValueError) as error:
         return jsonify_abort(status_code=400, message=str(error))
@@ -340,9 +341,44 @@ def update_resource_by_id(resource_type, resource_id):
     token = validate_auth()
     # Check for the store's configurations
     active_patient_flag = current_app.config.get("ACTIVE_PATIENT_FLAG")
+    params = dict(deepcopy(request.args))  # Necessary on ImmutableMultiDict
+    resource = request.get_json()
+
+    # This portion of code is only invoked when we are attempting to restore
+    # and returns 500 error if patient's phone number is already in use
+    if resource_type == "Patient" and active_patient_flag:
+        try:
+            # First, get our patient in order to access his phone number 
+            patient = HAPI_request(method='GET', resource_type=resource_type, token=token, resource_id=resource_id)
+            telecom = patient.get('telecom')
+            if not telecom:
+                return jsonify(patient)
+
+            # Assuming there is one telecom, looking for phone number among active patients
+            telecom_entry = telecom[0]
+            telecom_value = telecom_entry.get('value')
+            params = {
+            'telecom':telecom_value,
+            'active':"true",
+            }
+
+            active_patient = HAPI_request(
+                token=token,
+                method="GET",
+                resource_type=resource_type,
+                params=params,
+            )
+
+            # Raise a 500 error if active patients with the same phone number have been found
+            if (active_patient['total'] > 0):
+                error_message = """The account can't be restored because its phone number
+                is now used by another account"""
+                raise RuntimeError(error_message)
+
+        except (RuntimeError, ValueError) as error:
+            return jsonify_abort(status_code=500, message=str(error))
 
     try:
-        resource = request.get_json()
         if not resource:
             return jsonify_abort(
                 status_code=400,
@@ -379,52 +415,17 @@ def update_resource_by_id(resource_type, resource_id):
                 resource_type=resource_type,
                 resource_id=resource_id,
             )
-            patient = HAPI_request(
+        patient = HAPI_request(
                 method=method,
                 resource_type=resource_type,
                 resource_id=resource_id,
                 resource=resource,
                 token=token,
-            )
+        )
+        return jsonify(patient)
+
     except (RuntimeError, ValueError) as error:
         return jsonify_abort(status_code=400, message=str(error))
-
-    # This portion of code is only invoked when we are attempting to restore
-    # and returns 500 error if patient's phone number is already in use
-    if resource_type == "Patient" and active_patient_flag:
-        try:
-            # Look for the patient's telecom. If does not exist, bail
-            telecom = patient.get('telecom')
-
-            if not telecom:
-                return patient
-
-            # Assuming there is always one telecom
-            telecom_entry = telecom[0]
-            telecom_value = telecom_entry.get('value')
-            params = {
-            'telecom': telecom_value,
-            }
-            # Ensure we are looking for phone numebrs among active patients
-            params["active"] = "true"
-
-            working_patient = HAPI_request(
-                token=token,
-                method="GET",
-                resource_type=resource_type,
-                params=params,
-            )
-
-            # Raise a 500 error if usable patient with the same phone number have been found
-            if working_patient != patient:
-                error_message = """The account can't be restored because its phone number
-                is now used by another account"""
-                raise RuntimeError(error_message)
-
-        except (RuntimeError, ValueError) as error:
-            return jsonify_abort(status_code=500, message=str(error))
-
-    return jsonify(patient)
 
 
 @api_blueprint.route(
