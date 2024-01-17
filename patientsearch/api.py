@@ -352,18 +352,23 @@ def update_resource_by_id(resource_type, resource_id):
     # and returns 500 error if patient's phone number is already in use
     if resource_type == "Patient" and active_patient_flag:
         try:
-            # First, get our patient in order to access his phone number 
-            patient = HAPI_request(method='GET', resource_type=resource_type, token=token, resource_id=resource_id)
-            telecom = patient.get('telecom')
+            # Get our patient in order to access his phone number
+            patient = HAPI_request(
+                method='GET',
+                resource_type=resource_type,
+                token=token,
+                resource_id=resource_id,
+            )
+            telecom = patient.get("telecom")
             if not telecom:
                 return jsonify(patient)
 
             # Assuming there is one telecom, looking for phone number among active patients
             telecom_entry = telecom[0]
-            telecom_value = telecom_entry.get('value')
+            telecom_value = telecom_entry.get("value")
             params = {
-                "telecom":telecom_value,
-                "active":"true",
+                "telecom": telecom_value,
+                "active": "true",
             }
 
             active_patient = HAPI_request(
@@ -374,7 +379,7 @@ def update_resource_by_id(resource_type, resource_id):
             )
 
             # Raise a 500 error if active patients with the same phone number have been found
-            if (active_patient['total'] > 0):
+            if active_patient["total"] > 0:
                 error_message = """The account can't be restored because its phone number
                 is now used by another account."""
                 raise RuntimeError(error_message)
@@ -420,11 +425,11 @@ def update_resource_by_id(resource_type, resource_id):
                 resource_id=resource_id,
             )
         patient = HAPI_request(
-                method=method,
-                resource_type=resource_type,
-                resource_id=resource_id,
-                resource=resource,
-                token=token,
+            method=method,
+            resource_type=resource_type,
+            resource_id=resource_id,
+            resource=resource,
+            token=token,
         )
         return jsonify(patient)
 
