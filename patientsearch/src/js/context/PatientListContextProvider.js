@@ -788,16 +788,16 @@ export default function PatientListContextProvider({ children }) {
           rowData.id = entryToUse.id;
         }
         const oData = new RowData(rowData);
-        const payload = JSON.stringify(oData.getFhirData());
+        const payload = JSON.stringify(oData.getFhirData(isCreateNew));
 
         // error message when no result returned
         const noResultErrorMessage = needExternalAPILookup()
           ? constants.NON_PDMP_RESULT_MESSAGE
-          : "Server error occurred. No result returned.  See console for detail";
+          : "Server error occurred. No result returned.  See console for detail.";
         // error message for API error
         const fetchErrorMessage = needExternalAPILookup()
           ? constants.PDMP_SYSTEM_ERROR_MESSAGE
-          : "Server error when looking up account";
+          : "Server error ocurred.  See console for detail.";
         setOpenLoadingModal(true);
         fetchData(
           _getPatientSearchURL(rowData, {
@@ -836,11 +836,9 @@ export default function PatientListContextProvider({ children }) {
             //log error to console
             console.log(`Patient search error: ${e}`);
             setOpenLoadingModal(false);
+            const errorMessage = (typeof e === "string" ? e : (e && e.message ? e.message : "See console for detail."));
             handleLaunchError(
-              fetchErrorMessage +
-                (typeof e === "string"
-                  ? `<p>${e}</p>`
-                  : `<p>See console for detail.</p>`)
+              fetchErrorMessage +`<p>${errorMessage}</p>`
             );
           });
       })

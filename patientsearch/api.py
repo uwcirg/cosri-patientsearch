@@ -262,7 +262,11 @@ def resource_bundle(resource_type):
 
     # If the resource is a patient, proceed with the active GET, if requested
     try:
-        if active_patient_flag and resource_type == "Patient":
+        if (
+            resource_type == "Patient"
+            and active_patient_flag
+            and not is_inactive_search
+        ):
             params["active"] = "true"
         patient = HAPI_request(
             token=token,
@@ -358,8 +362,8 @@ def update_resource_by_id(resource_type, resource_id):
             telecom_entry = telecom[0]
             telecom_value = telecom_entry.get('value')
             params = {
-            'telecom':telecom_value,
-            'active':"true",
+                "telecom":telecom_value,
+                "active":"true",
             }
 
             active_patient = HAPI_request(
@@ -372,7 +376,7 @@ def update_resource_by_id(resource_type, resource_id):
             # Raise a 500 error if active patients with the same phone number have been found
             if (active_patient['total'] > 0):
                 error_message = """The account can't be restored because its phone number
-                is now used by another account"""
+                is now used by another account."""
                 raise RuntimeError(error_message)
 
         except (RuntimeError, ValueError) as error:
