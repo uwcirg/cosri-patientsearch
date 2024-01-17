@@ -380,8 +380,11 @@ def update_resource_by_id(resource_type, resource_id):
 
             # Raise a 500 error if active patients with the same phone number have been found
             if active_patient["total"] > 0:
-                error_message = """The account can't be restored because its phone number
-                is now used by another account."""
+                first_name = active_patient['entry'][0]['resource']['name'][0]['given'][0]
+                family_name = active_patient['entry'][0]['resource']['name'][0]['family']
+                error_message = f"""The account can't be restored because
+                    it's phone number, {telecom_value} is now used by another 
+                    account {first_name} {family_name}"""
                 raise RuntimeError(error_message)
 
         except (RuntimeError, ValueError) as error:
