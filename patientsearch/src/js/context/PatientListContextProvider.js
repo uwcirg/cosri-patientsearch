@@ -739,6 +739,7 @@ export default function PatientListContextProvider({ children }) {
 
     getFHIRPatientData()
       .then((bundleResult) => {
+        setErrorMessage("");
         if (
           bundleResult &&
           bundleResult.entry &&

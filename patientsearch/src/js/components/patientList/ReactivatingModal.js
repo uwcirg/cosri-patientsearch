@@ -40,22 +40,26 @@ export default function ReactivatingModal() {
 
   const [open, setOpen] = React.useState(false);
 
+  const onAfterButtonClick = () => {
+    setOpen(false);
+    setOpenReactivatingModal(false);
+  }
+
   const onReactivate = () => {
     handleSearch(getSubjectDataFromFilters(), {
       reactivate: true,
     });
-    setOpen(false);
+    onAfterButtonClick();
   };
   const onCreate = () => {
     handleSearch(getSubjectDataFromFilters(), {
       createNew: true,
     });
-    setOpen(false);
+    onAfterButtonClick();
   };
   const onClose = (event, reason) => {
     if (reason && reason === "backdropClick") return;
-    setOpen(false);
-    setOpenReactivatingModal(false);
+    onAfterButtonClick();
     if (filterRowRef.current) {
       filterRowRef.current.clear();
     }
