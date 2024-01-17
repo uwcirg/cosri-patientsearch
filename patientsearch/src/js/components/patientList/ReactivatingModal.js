@@ -43,7 +43,7 @@ export default function ReactivatingModal() {
   const onAfterButtonClick = () => {
     setOpen(false);
     setOpenReactivatingModal(false);
-  }
+  };
 
   const onReactivate = () => {
     handleSearch(getSubjectDataFromFilters(), {
@@ -63,7 +63,6 @@ export default function ReactivatingModal() {
     if (filterRowRef.current) {
       filterRowRef.current.clear();
     }
-   // setTimeout(() => window.location.reload(), 0);
   };
   const getSubjectReferenceText = () =>
     String(getAppSettingByKey("MY_PATIENTS_FILTER_LABEL"))
