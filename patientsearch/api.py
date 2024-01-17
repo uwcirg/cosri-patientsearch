@@ -354,7 +354,7 @@ def update_resource_by_id(resource_type, resource_id):
         try:
             # Get our patient in order to access his phone number
             patient = HAPI_request(
-                method='GET',
+                method="GET",
                 resource_type=resource_type,
                 token=token,
                 resource_id=resource_id,
