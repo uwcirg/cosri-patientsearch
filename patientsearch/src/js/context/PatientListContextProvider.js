@@ -763,10 +763,23 @@ export default function PatientListContextProvider({ children }) {
             return String(item.active).toLowerCase() === "false";
           });
           const isInactive = inactiveEntries.length > 0;
+          const shouldShowReactivatePopup =
+            isInactive && getAppSettingByKey("REACTIVATE_PATIENT");
           if (!activeEntries.length) {
-            if (!isCreateNew && !isReactivate && isInactive) {
-              setOpenReactivatingModal(true);
-              return;
+            if (!isCreateNew && !isReactivate) {
+              if (shouldShowReactivatePopup) {
+                setOpenReactivatingModal(true);
+                return;
+              }
+              if (inactiveEntries.length > 1) {
+                handleErrorCallback("Multiple matched entries found.");
+                return;
+              }
+              if (inactiveEntries.length) {
+                // found patient, not need to update/create it again
+                handleLaunchApp(_formatData(inactiveEntries[0])[0]);
+                return;
+              }
             }
           } else {
             if (activeEntries.length > 1) {
@@ -837,10 +850,13 @@ export default function PatientListContextProvider({ children }) {
             //log error to console
             console.log(`Patient search error: ${e}`);
             setOpenLoadingModal(false);
-            const errorMessage = (typeof e === "string" ? e : (e && e.message ? e.message : "See console for detail."));
-            handleLaunchError(
-              fetchErrorMessage +`<p>${errorMessage}</p>`
-            );
+            const errorMessage =
+              typeof e === "string"
+                ? e
+                : e && e.message
+                ? e.message
+                : "See console for detail.";
+            handleLaunchError(fetchErrorMessage + `<p>${errorMessage}</p>`);
           });
       })
       .catch((e) => handleErrorCallback(e));
