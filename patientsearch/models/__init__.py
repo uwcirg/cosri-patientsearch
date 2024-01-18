@@ -6,6 +6,7 @@ from .sync import (
     internal_patient_search,
     new_resource_hook,
     sync_bundle,
+    restore_patient,
 )
 
 __all__ = [
@@ -16,4 +17,5 @@ __all__ = [
     "internal_patient_search",
     "new_resource_hook",
     "sync_bundle",
+    "restore_patient",
 ]

@@ -146,7 +146,7 @@ def external_request(token, resource_type, params):
     return resp.json()
 
 
-def sync_bundle(token, bundle):
+def sync_bundle(token, bundle, consider_active=False):
     """Given FHIR bundle, insert or update all contained resources
 
     :param token: valid JWT token for use in auth calls
@@ -167,13 +167,13 @@ def sync_bundle(token, bundle):
         if entry["resourceType"] != "Patient":
             raise ValueError(f"Can't sync resourceType {entry['resourceType']}")
 
-        patient = sync_patient(token, entry)
+        patient = sync_patient(token, entry, consider_active)
         # TODO handle multiple external matches (if it ever happens!)
         # currently returning first
         return patient
 
 
-def _merge_patient(src_patient, internal_patient, token):
+def _merge_patient(src_patient, internal_patient, token, consider_active=False):
     """Helper used to push details from src into internal patient"""
     # TODO consider additional patient attributes beyond identifiers
 
@@ -194,10 +194,27 @@ def _merge_patient(src_patient, internal_patient, token):
         return True
 
     if not different(src_patient, internal_patient):
-        return internal_patient
+        # If patient is active, proceed. If not, re-activate
+        if not consider_active or internal_patient.get("active", False):
+            return internal_patient
+
+        params = patient_as_search_params(internal_patient)
+        # Ensure it is active
+        internal_patient["active"] = True
+        return HAPI_request(
+            token=token,
+            method="PUT",
+            params=params,
+            resource_type="Patient",
+            resource=internal_patient,
+            resource_id=internal_patient["id"],
+        )
     else:
         internal_patient["identifier"] = src_patient["identifier"]
         params = patient_as_search_params(internal_patient)
+        # Ensure it is active, skip if active parameter is not considered
+        if consider_active:
+            internal_patient["active"] = True
         return HAPI_request(
             token=token,
             method="PUT",
@@ -208,7 +225,7 @@ def _merge_patient(src_patient, internal_patient, token):
         )
 
 
-def patient_as_search_params(patient):
+def patient_as_search_params(patient, active_only=False):
     """Generate HAPI search params from patient resource"""
 
     # Use same parameters sent to external src looking for existing Patient
@@ -221,6 +238,10 @@ def patient_as_search_params(patient):
         ("name[0].given[0]", "given", ""),
         ("birthDate", "birthdate", "eq"),
     )
+    if active_only:
+        # Change the search params if we are considering only active patients in search
+        search_map = search_map + (("active", True, ""),)
+
     search_params = {}
 
     for path, queryterm, compstr in search_map:
@@ -230,9 +251,10 @@ def patient_as_search_params(patient):
     return search_params
 
 
-def internal_patient_search(token, patient):
+def internal_patient_search(token, patient, active_only=False):
     """Look up given patient from "internal" HAPI store, returns bundle"""
-    params = patient_as_search_params(patient)
+    params = patient_as_search_params(patient, active_only)
+
     return HAPI_request(
         token=token, method="GET", resource_type="Patient", params=params
     )
@@ -259,7 +281,7 @@ def new_resource_hook(resource):
     return resource
 
 
-def sync_patient(token, patient):
+def sync_patient(token, patient, consider_active=False):
     """Sync single patient resource - insert or update as needed"""
 
     internal_search = internal_patient_search(token, patient)
@@ -274,12 +296,36 @@ def sync_patient(token, patient):
 
         internal_patient = internal_search["entry"][0]["resource"]
         merged_patient = _merge_patient(
-            src_patient=patient, internal_patient=internal_patient, token=token
+            src_patient=patient,
+            internal_patient=internal_patient,
+            token=token,
+            consider_active=consider_active,
         )
         return merged_patient
 
     # No match, insert and return
     patient = new_resource_hook(resource=patient)
+    if consider_active:
+        patient["active"] = True
     return HAPI_request(
-        token=token, method="POST", resource_type="Patient", resource=patient
+        token=token,
+        method="POST",
+        resource_type="Patient",
+        resource=patient,
+    )
+
+
+def restore_patient(token, patient):
+    """Restore single internal patient resource"""
+    # If the patient is already active, bail
+    if patient.get("active", False):
+        return patient
+    patient["active"] = True
+
+    return HAPI_request(
+        token=token,
+        method="PUT",
+        resource_type="Patient",
+        resource=patient,
+        resource_id=patient["id"],
     )
