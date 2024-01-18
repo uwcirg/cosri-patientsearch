@@ -538,9 +538,6 @@ def external_search(resource_type):
         # Only consider active external patients
         params["active"] = "true"
 
-    if active_patient_flag:
-        # Add default behavior for when the active consideration is disabled
-        reactivate_patient = True
     # Tag any matching results with identifier naming source
     try:
         external_search_bundle = add_identifier_to_resource_type(
@@ -588,7 +585,8 @@ def external_search(resource_type):
         local_fhir_patient = None
         if internal_bundle["total"] > 0:
             local_fhir_patient = internal_bundle["entry"][0]["resource"]
-            if active_patient_flag and reactivate_patient:
+            active = local_fhir_patient.get("active", True)
+            if reactivate_patient and not active:
                 local_fhir_patient = restore_patient(token, local_fhir_patient)
 
         if internal_bundle["total"] > 1:
