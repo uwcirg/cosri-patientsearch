@@ -348,32 +348,30 @@ def update_resource_by_id(resource_type, resource_id):
                 resource_id=resource_id,
             )
             telecom = patient.get("telecom")
-            if not telecom:
-                return jsonify(patient)
+            if telecom:
+                # Assuming there is one telecom, looking for phone number among active patients
+                telecom_entry = telecom[0]
+                telecom_value = telecom_entry.get("value")
+                params = {
+                    "telecom": telecom_value,
+                    "active": "true",
+                }
 
-            # Assuming there is one telecom, looking for phone number among active patients
-            telecom_entry = telecom[0]
-            telecom_value = telecom_entry.get("value")
-            params = {
-                "telecom": telecom_value,
-                "active": "true",
-            }
+                active_patient = HAPI_request(
+                    token=token,
+                    method="GET",
+                    resource_type=resource_type,
+                    params=params,
+                )
 
-            active_patient = HAPI_request(
-                token=token,
-                method="GET",
-                resource_type=resource_type,
-                params=params,
-            )
-
-            # Raise a 500 error if active patients with the same phone number have been found
-            if active_patient["total"] > 0:
-                first = active_patient["entry"][0]["resource"]["name"][0]["given"][0]
-                last = active_patient["entry"][0]["resource"]["name"][0]["family"]
-                error_message = f"""The account can't be restored because
-                    it's phone number, {telecom_value} is now used by another
-                    account {first} {last}"""
-                raise RuntimeError(error_message)
+                # Raise a 500 error if active patients with the same phone number have been found
+                if active_patient["total"] > 0:
+                    first = active_patient["entry"][0]["resource"]["name"][0]["given"][0]
+                    last = active_patient["entry"][0]["resource"]["name"][0]["family"]
+                    error_message = f"""The account can't be restored because
+                        it's phone number, {telecom_value} is now used by another
+                        account {first} {last}"""
+                    raise RuntimeError(error_message)
 
         except (RuntimeError, ValueError) as error:
             return jsonify_abort(status_code=500, message=str(error))
