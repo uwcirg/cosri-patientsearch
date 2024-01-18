@@ -248,34 +248,21 @@ def resource_bundle(resource_type):
     active_patient_flag = current_app.config.get("ACTIVE_PATIENT_FLAG")
     params = dict(deepcopy(request.args))  # Necessary on ImmutableMultiDict
 
-    # Override if the search is specifically for inactive objects, only occurs
-    # when working on reactivating a patient
-    inactive_search_param = request.args.get("inactive_search")
-    is_inactive_search = False
-    if inactive_search_param:
-        is_inactive_search = inactive_search_param.lower() in {"true", "1"}
-    if is_inactive_search:
-        active_patient_flag = False
-    # need to remove this param, name/key error is raised when passed to HAPI_request
-    if inactive_search_param is not None:
+    # Override if the search is specifically for inactive objects
+    if request.args.get("inactive_search") in {"true", "1"}:
         del params["inactive_search"]
+    elif active_patient_flag:
+        params["active"] = "true"
 
-    # If the resource is a patient, proceed with the active GET, if requested
     try:
-        if (
-            resource_type == "Patient"
-            and active_patient_flag
-            and not is_inactive_search
-        ):
-            params["active"] = "true"
-        patient = HAPI_request(
-            token=token,
-            method="GET",
-            resource_type=resource_type,
-            params=params,
+        return jsonify(
+            HAPI_request(
+                token=token,
+                method="GET",
+                resource_type=resource_type,
+                params=params,
+            )
         )
-
-        return jsonify(patient)
     except (RuntimeError, ValueError) as error:
         return jsonify_abort(status_code=400, message=str(error))
 
@@ -318,14 +305,15 @@ def post_resource(resource_type):
             resource=resource,
             resource_type=resource_type,
         )
-        patient = HAPI_request(
-            token=token,
-            method=method,
-            params=request.args,
-            resource_type=resource_type,
-            resource=resource,
+        return jsonify(
+            HAPI_request(
+                token=token,
+                method=method,
+                params=request.args,
+                resource_type=resource_type,
+                resource=resource,
+            )
         )
-        return jsonify(patient)
     except (RuntimeError, ValueError) as error:
         return jsonify_abort(status_code=400, message=str(error))
 
@@ -348,7 +336,7 @@ def update_resource_by_id(resource_type, resource_id):
     params = dict(deepcopy(request.args))  # Necessary on ImmutableMultiDict
     resource = request.get_json()
 
-    # This portion of code is only invoked when we are attempting to restore
+    # This portion of code is only invoked when restoring a patient
     # and returns 500 error if patient's phone number is already in use
     if resource_type == "Patient" and active_patient_flag:
         try:
@@ -427,14 +415,15 @@ def update_resource_by_id(resource_type, resource_id):
                 resource_type=resource_type,
                 resource_id=resource_id,
             )
-        patient = HAPI_request(
-            method=method,
-            resource_type=resource_type,
-            resource_id=resource_id,
-            resource=resource,
-            token=token,
+        return jsonify(
+            HAPI_request(
+                method=method,
+                resource_type=resource_type,
+                resource_id=resource_id,
+                resource=resource,
+                token=token,
+            )
         )
-        return jsonify(patient)
 
     except (RuntimeError, ValueError) as error:
         return jsonify_abort(status_code=400, message=str(error))

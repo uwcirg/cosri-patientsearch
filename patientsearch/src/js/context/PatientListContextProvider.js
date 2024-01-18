@@ -797,7 +797,6 @@ export default function PatientListContextProvider({ children }) {
             : getFirstResourceFromFhirBundle(bundleResult);
           rowData.resource = {
             ...entryToUse,
-            active: true,
           };
           rowData.id = entryToUse.id;
         }
