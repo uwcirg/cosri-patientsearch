@@ -11,14 +11,14 @@ const useStyles = makeStyles((theme) => ({
   container: {
     backgroundColor: "#FFF",
     margin: "auto",
-    padding: theme.spacing(2),
+    padding: theme.spacing(1),
     position: "absolute",
     top: "25%",
     width: "480px",
     left: "calc(50% - 240px)",
   },
   buttonsContainer: {
-    padding: theme.spacing(2),
+    padding: theme.spacing(2,2,1),
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
