@@ -1,4 +1,5 @@
 """Manages synchronization of Model data, between external and internal stores"""
+
 from copy import deepcopy
 from json.decoder import JSONDecodeError
 

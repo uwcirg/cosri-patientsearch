@@ -10,6 +10,7 @@ import { useUserContext } from "./UserContextProvider";
 import * as constants from "../constants/consts";
 import DetailPanel from "../components/patientList/DetailPanel";
 import {
+  capitalizeFirstLetter,
   fetchData,
   getAppLaunchURL,
   getFirstResourceFromFhirBundle,
@@ -398,7 +399,21 @@ export default function PatientListContextProvider({ children }) {
     if (isUpdate && data.id) {
       return `/fhir/Patient/${data.id}`;
     }
-    let url = `/fhir/Patient?given=${fName}&family=${lName}&birthdate=${birthDate}`;
+    const matchFNames = [
+      fName,
+      fName.toLowerCase(),
+      fName.toUpperCase(),
+      capitalizeFirstLetter(fName),
+    ].join(",");
+    const matchLNames = [
+      lName,
+      lName.toLowerCase(),
+      lName.toUpperCase(),
+      capitalizeFirstLetter(lName),
+    ].join(",");
+    // lookup patient with exact match
+    //e.g., /fhir/Patient?given:exact=Test,test,TEST&family:exact=Bubblegum,bubblegum,BUBBLEGUM&birthdate=2000-01-01
+    let url = `/fhir/Patient?given:exact=${matchFNames}&family:exact=${matchLNames}&birthdate=${birthDate}`;
     if (searchInactive) {
       url += `&inactive_search=true`;
     } else {
@@ -802,6 +817,7 @@ export default function PatientListContextProvider({ children }) {
         }
         const oData = new RowData(rowData);
         const payload = JSON.stringify(oData.getFhirData(isCreateNew));
+        const isUpdate = isReactivate || (!isCreateNew && !!rowData.id);
 
         // error message when no result returned
         const noResultErrorMessage = needExternalAPILookup()
@@ -815,12 +831,12 @@ export default function PatientListContextProvider({ children }) {
         fetchData(
           _getPatientSearchURL(rowData, {
             useActiveFlag: !!getAppSettingByKey("ACTIVE_PATIENT_FLAG"),
-            isUpdate: !isCreateNew && !!rowData.id,
+            isUpdate: isUpdate,
           }),
           {
             ...searchParams,
             body: payload,
-            method: isCreateNew ? "POST" : "PUT",
+            method: isUpdate ? "PUT" : "POST",
           },
           (e) => handleErrorCallback(e)
         )

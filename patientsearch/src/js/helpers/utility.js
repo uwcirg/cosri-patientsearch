@@ -81,11 +81,10 @@ export async function fetchData(url, params, errorCallback) {
     });
     console.log("response json ", json);
   } catch (e) {
-    console.log(`There was error parsing data: ${e}`);
+    console.log(`There was error parsing data:`, e);
     json = null;
-    errorCallback(e);
-    throw e;
   }
+
   if (!results || !results.ok) {
     console.log("no results returned ", results);
     if (!results.ok) {
@@ -618,4 +617,16 @@ export function getErrorDiagnosticTextFromResponse(response) {
     Array.isArray(response.issue) &&
     response.issue.find((item) => item.severity === "error");
   return issue && issue.diagnostics ? issue.diagnostics : "";
+}
+
+/*
+ * return string with first letter capitalized and the rest lower cased
+ * @param string to be modified
+ * @return string
+ */
+export function capitalizeFirstLetter(string) {
+  if (!string) return "";
+  const firstCapLetter = string.charAt(0).toUpperCase();
+  const theRest = string.slice(1);
+  return firstCapLetter + (theRest ? theRest.toLowerCase() : "");
 }

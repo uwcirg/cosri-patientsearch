@@ -231,7 +231,6 @@ def bundle_getpages():
 
 
 @api_blueprint.route("/fhir/<string:resource_type>", methods=["GET"])
-@api_blueprint.route("/fhir/<string:resource_type>", methods=["GET"])
 def resource_bundle(resource_type):
     """Query HAPI for resource_type and return as JSON FHIR Bundle
 
