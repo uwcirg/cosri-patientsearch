@@ -2,6 +2,7 @@
 
 functions to simplify adding context and extra data to log messages destined for audit logs
 """
+
 from flask import current_app, has_app_context
 import logging
 

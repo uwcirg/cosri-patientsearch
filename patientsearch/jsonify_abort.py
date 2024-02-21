@@ -1,4 +1,5 @@
 """Utility function to generate JSON response with error (status_code)"""
+
 from flask import jsonify, make_response
 
 

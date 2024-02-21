@@ -1,4 +1,4 @@
-import React from "react";
+import React, { forwardRef, useImperativeHandle } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import DateFnsUtils from "@date-io/date-fns";
 import isValid from "date-fns/isValid";
@@ -14,6 +14,7 @@ import {
   KeyboardDatePicker,
 } from "@material-ui/pickers";
 import { usePatientListContext } from "../../context/PatientListContextProvider";
+import RowData from "../../models/RowData";
 
 const useStyles = makeStyles((theme) => ({
   row: {
@@ -49,7 +50,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default function FilterRow() {
+export default forwardRef((props, ref) => {
   let {
     //methods
     handleSearch = function () {
@@ -68,41 +69,20 @@ export default function FilterRow() {
   const [lastName, setLastName] = React.useState("");
   const [date, setDate] = React.useState(null);
   const [dateInput, setDateInput] = React.useState(null);
+  const getDateInput = () => (isValid(new Date(dateInput)) ? dateInput : "");
+  const handleFilterChange = (firstName, lastName, birthDate) => {
+    const oData = RowData.create(firstName, lastName, birthDate);
+    onFiltersDidChange(oData.getFilters());
+  };
   const handleFirstNameChange = (event) => {
     let targetValue = event.target.value;
     setFirstName(targetValue);
-    onFiltersDidChange([
-      {
-        field: "first_name",
-        value: targetValue,
-      },
-      {
-        field: "last_name",
-        value: lastName,
-      },
-      {
-        field: "birth_date",
-        value: isValid(new Date(dateInput)) ? dateInput : "",
-      },
-    ]);
+    handleFilterChange(targetValue, lastName, getDateInput());
   };
   const handleLastNameChange = (event) => {
     let targetValue = event.target.value;
     setLastName(targetValue);
-    onFiltersDidChange([
-      {
-        field: "last_name",
-        value: targetValue,
-      },
-      {
-        field: "first_name",
-        value: firstName,
-      },
-      {
-        field: "birth_date",
-        value: isValid(new Date(dateInput)) ? dateInput : "",
-      },
-    ]);
+    handleFilterChange(firstName, targetValue, getDateInput());
   };
   const hasFilter = () => {
     return firstName || lastName || dateInput;
@@ -115,29 +95,13 @@ export default function FilterRow() {
     return getCurrentFilters();
   };
   const getCurrentFilters = () => {
-    return {
-      first_name: firstName,
-      last_name: lastName,
-      birth_date: dateInput,
-    };
+    const oData = RowData.create(firstName, lastName, getDateInput());
+    return oData.getData();
   };
   const clearDate = () => {
     setDateInput("");
     setDate(null);
-    onFiltersDidChange([
-      {
-        field: "first_name",
-        value: firstName,
-      },
-      {
-        field: "last_name",
-        value: lastName,
-      },
-      {
-        field: "birth_date",
-        value: null,
-      },
-    ]);
+    handleFilterChange(firstName, lastName, null);
   };
   const handleClear = () => {
     clearFields();
@@ -162,6 +126,11 @@ export default function FilterRow() {
     }
     return false;
   };
+  useImperativeHandle(ref, () => ({
+    clear() {
+      handleClear();
+    },
+  }));
   const renderFirstNameField = () => (
     <TextField
       variant="standard"
@@ -244,37 +213,11 @@ export default function FilterRow() {
           if (!event || !isValid(event)) {
             if (event && String(dateInput).replace(/[-_]/g, "").length >= 8)
               setDate(event);
-            onFiltersDidChange([
-              {
-                field: "first_name",
-                value: firstName,
-              },
-              {
-                field: "last_name",
-                value: lastName,
-              },
-              {
-                field: "birth_date",
-                value: null,
-              },
-            ]);
+            handleFilterChange(firstName, lastName, null);
             return;
           }
           setDate(event);
-          onFiltersDidChange([
-            {
-              field: "first_name",
-              value: firstName,
-            },
-            {
-              field: "last_name",
-              value: lastName,
-            },
-            {
-              field: "birth_date",
-              value: dateString,
-            },
-          ]);
+          handleFilterChange(firstName, lastName, dateString);
         }}
         KeyboardButtonProps={{ color: "primary", title: "Date picker" }}
       />
@@ -325,4 +268,4 @@ export default function FilterRow() {
       </td>
     </tr>
   );
-}
+});

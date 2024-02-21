@@ -1,0 +1,17 @@
+{
+    "entry": [
+      {
+        "active": true,
+        "birthDate": "1977-01-12",
+        "gender": "male",
+        "name": {
+          "family": "skywalker",
+          "given": ["luke"]
+        },
+        "resourceType": "Patient"
+      }
+    ],
+    "resourceType": "Bundle",
+    "type": "searchset"
+  }
+  

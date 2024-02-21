@@ -3,7 +3,11 @@ import json
 from pytest import fixture
 import os
 
-from patientsearch.models import add_identifier_to_resource_type, sync_bundle
+from patientsearch.models import (
+    add_identifier_to_resource_type,
+    sync_bundle,
+    restore_patient,
+)
 
 
 def load_json(datadir, filename):
@@ -34,8 +38,18 @@ def external_patient_search(datadir):
 
 
 @fixture
+def external_patient_active_search(datadir):
+    return load_json(datadir, "external_patient_active_search.json")
+
+
+@fixture
 def new_patient(datadir):
     return load_json(datadir, "new_patient_result.json")
+
+
+@fixture
+def new_active_patient(datadir):
+    return load_json(datadir, "new_patient_active_result.json")
 
 
 @fixture
@@ -49,8 +63,33 @@ def internal_patient_match(datadir):
 
 
 @fixture
+def internal_patient_active_match(datadir):
+    return load_json(datadir, "internal_patient_active_match.json")
+
+
+@fixture
+def internal_patient_inactive_match(datadir):
+    return load_json(datadir, "internal_patient_inactive_match.json")
+
+
+@fixture
 def internal_patient_duplicate_match(datadir):
     return load_json(datadir, "internal_patient_duplicate_match.json")
+
+
+@fixture
+def internal_patient_duplicate_active_match(datadir):
+    return load_json(datadir, "internal_patient_duplicate_active_match.json")
+
+
+@fixture
+def internal_patient_duplicate_mismatch(datadir):
+    return load_json(datadir, "internal_patient_duplicate_mismatch.json")
+
+
+@fixture
+def internal_patient_duplicate_inactive_match(datadir):
+    return load_json(datadir, "internal_patient_duplicate_inactive_match.json")
 
 
 def test_new_upsert(
@@ -79,6 +118,32 @@ def test_new_upsert(
     assert result == new_patient
 
 
+def test_new_active_upsert(
+    client,
+    mocker,
+    faux_token,
+    external_patient_active_search,
+    internal_patient_miss,
+    new_active_patient,
+):
+    """Without finding a matching patient, should insert new and return"""
+
+    # Mock HAPI search failing to find a matching patient
+    mocker.patch(
+        "patientsearch.models.sync.requests.get",
+        return_value=mock_response(internal_patient_miss),
+    )
+
+    # Mock POST to generate new patient on HAPI
+    mocker.patch(
+        "patientsearch.models.sync.requests.post",
+        return_value=mock_response(new_active_patient),
+    )
+
+    result = sync_bundle(faux_token, external_patient_active_search, True)
+    assert result == new_active_patient
+
+
 def test_adding_identifier(external_patient_search):
     """Test adding identifier to external search bundle"""
     ident = {"system": "https://examle.org/foobar", "value": 12}
@@ -90,7 +155,11 @@ def test_adding_identifier(external_patient_search):
 
 
 def test_existing(
-    client, mocker, faux_token, external_patient_search, internal_patient_match
+    client,
+    mocker,
+    faux_token,
+    external_patient_search,
+    internal_patient_match,
 ):
     """Finding a matching patient, return existing"""
 
@@ -102,6 +171,95 @@ def test_existing(
 
     result = sync_bundle(faux_token, external_patient_search)
     assert result == internal_patient_match["entry"][0]["resource"]
+
+
+def test_active_existing(
+    client,
+    mocker,
+    faux_token,
+    external_patient_active_search,
+    internal_patient_active_match,
+):
+    """Finding a matching active patient from external search, return existing"""
+
+    # Mock HAPI search finding a matching active patient
+    mocker.patch(
+        "patientsearch.models.sync.requests.get",
+        return_value=mock_response(internal_patient_active_match),
+    )
+
+    result = sync_bundle(faux_token, external_patient_active_search, True)
+    assert (
+        result["active"]
+        == internal_patient_active_match["entry"][0]["resource"]["active"]
+    )
+
+
+def test_inactive_existing(
+    client,
+    mocker,
+    faux_token,
+    external_patient_active_search,
+    internal_patient_inactive_match,
+    internal_patient_active_match,
+):
+    """Finding a matching inactive patient from external search, restore it"""
+
+    # Mock HAPI search finding a matching inactive patient
+    mocker.patch(
+        "patientsearch.models.sync.requests.get",
+        return_value=mock_response(internal_patient_inactive_match),
+    )
+
+    identified_internal = deepcopy(
+        internal_patient_active_match["entry"][0]["resource"]
+    )
+    # Mock POST to put active version of the same patient on HAPI
+    mocker.patch(
+        "patientsearch.models.sync.requests.put",
+        return_value=mock_response(identified_internal),
+    )
+
+    result = sync_bundle(faux_token, external_patient_active_search, True)
+    assert result == internal_patient_active_match["entry"][0]["resource"]
+
+
+def test_active_nonactive_existing(
+    client,
+    mocker,
+    faux_token,
+    external_patient_active_search,
+    internal_patient_active_match,
+):
+    """Finding a matching active patient from external search, return existing"""
+
+    # Mock HAPI search finding a matching active patient
+    mocker.patch(
+        "patientsearch.models.sync.requests.get",
+        return_value=mock_response(internal_patient_active_match),
+    )
+
+    result = sync_bundle(faux_token, external_patient_active_search, False)
+    assert result == internal_patient_active_match["entry"][0]["resource"]
+
+
+def test_inactive_nonactive_existing(
+    client,
+    mocker,
+    faux_token,
+    external_patient_search,
+    internal_patient_inactive_match,
+):
+    """Finding a matching inactive patient from external search, return existing"""
+
+    # Mock HAPI search finding a matching inactive patient
+    mocker.patch(
+        "patientsearch.models.sync.requests.get",
+        return_value=mock_response(internal_patient_inactive_match),
+    )
+
+    result = sync_bundle(faux_token, external_patient_search, False)
+    assert result == internal_patient_inactive_match["entry"][0]["resource"]
 
 
 def test_existing_modified(
@@ -156,3 +314,73 @@ def test_duplicate(
     # Shouldn't kill the process, but return the first
     result = sync_bundle(faux_token, external_patient_search)
     assert result == internal_patient_duplicate_match["entry"][0]["resource"]
+
+
+def test_duplicate_active(
+    client,
+    mocker,
+    faux_token,
+    external_patient_active_search,
+    internal_patient_duplicate_active_match,
+):
+    """Finding a matching active patient with duplicates, handle well"""
+
+    # Mock HAPI search finding duplicate active matching patients
+    mocker.patch(
+        "patientsearch.models.sync.requests.get",
+        return_value=mock_response(internal_patient_duplicate_active_match),
+    )
+
+    # Shouldn't kill the process, but return the first
+    result = sync_bundle(faux_token, external_patient_active_search)
+    assert result == internal_patient_duplicate_active_match["entry"][0]["resource"]
+
+
+def test_duplicate_inactive(
+    client,
+    mocker,
+    faux_token,
+    external_patient_active_search,
+    internal_patient_duplicate_inactive_match,
+):
+    """Finding a matching inactive patient with duplicates, handle well"""
+
+    # Mock HAPI search finding duplicate inactive matching patients
+    mocker.patch(
+        "patientsearch.models.sync.requests.get",
+        return_value=mock_response(internal_patient_duplicate_inactive_match),
+    )
+
+    # Shouldn't kill the process, but return the first
+    result = sync_bundle(faux_token, external_patient_active_search)
+    assert result == internal_patient_duplicate_inactive_match["entry"][0]["resource"]
+
+
+def test_restore_inactive_resource(
+    client,
+    mocker,
+    faux_token,
+    external_patient_active_search,
+    internal_patient_inactive_match,
+    internal_patient_active_match,
+):
+    """Confirm the patient gets restored"""
+    # Mock HAPI search finding a matching inactive patient
+    mocker.patch(
+        "patientsearch.models.sync.requests.get",
+        return_value=mock_response(internal_patient_inactive_match),
+    )
+
+    identified_internal = deepcopy(
+        internal_patient_active_match["entry"][0]["resource"]
+    )
+    # Mock POST to put active version of the same patient on HAPI
+    mocker.patch(
+        "patientsearch.models.sync.requests.put",
+        return_value=mock_response(identified_internal),
+    )
+
+    active_result = sync_bundle(faux_token, external_patient_active_search, True)
+    result = restore_patient(faux_token, active_result)
+
+    assert result == internal_patient_active_match["entry"][0]["resource"]

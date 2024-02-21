@@ -73,31 +73,34 @@ export async function fetchData(url, params, errorCallback) {
       throw e;
     }
   );
-
-  if (!results || !results.ok) {
-    console.log("no results returned ", results);
-    errorCallback(results ? results : "error retrieving data");
-    if (!results.ok) {
-      throw (
-        "There was error processing data. " +
-        (results && results.status ? "Status code: " + results.status : "")
-      );
-    }
-    return null;
-  }
-
   try {
     //read response stream
     json = await results.json().catch((e) => {
       console.log("There was error processing data.");
       throw e.message;
     });
+    console.log("response json ", json);
   } catch (e) {
-    console.log(`There was error parsing data: ${e}`);
+    console.log(`There was error parsing data:`, e);
     json = null;
-    errorCallback(e);
-    throw e;
   }
+
+  if (!results || !results.ok) {
+    console.log("no results returned ", results);
+    if (!results.ok) {
+      console.log("Error results ", results);
+      const errorMessage =
+        json && json.message
+          ? json.message
+          : results && results.status
+          ? "Status code: " + results.status
+          : "Error occurred retrieving data";
+      errorCallback(errorMessage);
+      throw errorMessage;
+    }
+    return null;
+  }
+
   return json;
 }
 /*
@@ -457,7 +460,7 @@ export function addMamotoTracking(siteId, userId) {
 
 /*
  * @param dateString of type String
- * @returns true if supplied dateString is determined to be less than today's date otherwise false 
+ * @returns true if supplied dateString is determined to be less than today's date otherwise false
  */
 export function isInPast(dateString) {
   if (!dateString) return false;
@@ -571,9 +574,59 @@ export async function getPatientIdsByCareTeamParticipant(practitionerId) {
  * @param flagId, value for the query string, flags
  * @return boolean
  */
-export function hasFlagForCheckbox (flagId) {
+export function hasFlagForCheckbox(flagId) {
   const flagQueryString = getUrlParameter("flags");
   if (!flagQueryString) return false;
   if (!flagId) return false;
   return flagQueryString === flagId;
+}
+
+/*
+ * return first resource in a bundled FHIR resource data
+ * @param FHIR resource bundle
+ * @return FHIR object
+ */
+export function getFirstResourceFromFhirBundle(bundle) {
+  if (!bundle) return null;
+  if (!bundle.entry) {
+    if (Array.isArray(bundle)) {
+      if (bundle.length) return bundle[0];
+      else return null;
+    }
+    if (bundle.resource) return bundle.resource;
+    return bundle;
+  }
+  const firstEntry = Array.isArray(bundle.entry)
+    ? bundle.entry.length
+      ? bundle.entry[0]
+      : null
+    : bundle.entry;
+  if (firstEntry.resource) return firstEntry.resource;
+  return firstEntry;
+}
+
+/*
+ * return error text from diagnostic element in a FHIR response data
+ * @param FHIR response data
+ * @return string
+ */
+export function getErrorDiagnosticTextFromResponse(response) {
+  const issue =
+    response &&
+    response.issue &&
+    Array.isArray(response.issue) &&
+    response.issue.find((item) => item.severity === "error");
+  return issue && issue.diagnostics ? issue.diagnostics : "";
+}
+
+/*
+ * return string with first letter capitalized and the rest lower cased
+ * @param string to be modified
+ * @return string
+ */
+export function capitalizeFirstLetter(string) {
+  if (!string) return "";
+  const firstCapLetter = string.charAt(0).toUpperCase();
+  const theRest = string.slice(1);
+  return firstCapLetter + (theRest ? theRest.toLowerCase() : "");
 }

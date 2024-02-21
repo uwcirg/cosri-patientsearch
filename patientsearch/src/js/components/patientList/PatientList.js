@@ -14,6 +14,7 @@ import MyPatientsCheckbox from "./MyPatientsCheckbox";
 import Pagination from "./Pagination";
 import OverlayElement from "../OverlayElement";
 import TestPatientsCheckbox from "./TestPatientsCheckbox";
+import ReactivatingModal from "./ReactivatingModal";
 import * as constants from "../../constants/consts";
 import { addMamotoTracking, hasFlagForCheckbox } from "../../helpers/utility";
 
@@ -23,6 +24,7 @@ export default function PatientListTable() {
     // constants
     appSettings,
     userName,
+    filterRowRef,
     // table props
     tableProps,
     //methods
@@ -33,7 +35,7 @@ export default function PatientListTable() {
     //states
     errorMessage,
     openLoadingModal,
-    setOpenLoadingModal
+    setOpenLoadingModal,
   } = usePatientListContext();
 
   const renderTitle = () => {
@@ -47,7 +49,7 @@ export default function PatientListTable() {
   const renderPatientSearchRow = () => (
     <table className="bottom-gap">
       <tbody>
-        <FilterRow />
+        <FilterRow ref={filterRowRef}/>
       </tbody>
     </table>
   );
@@ -126,6 +128,7 @@ export default function PatientListTable() {
         </div>
       </div>
       <LaunchDialog></LaunchDialog>
+      <ReactivatingModal></ReactivatingModal>
       {renderDropdownMenu()}
     </Container>
   );
