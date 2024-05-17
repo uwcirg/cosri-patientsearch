@@ -740,6 +740,19 @@ export default function PatientListContextProvider({ children }) {
       },
       ...constants.noCacheParam,
     };
+    const getFetchErrorMessage = (e) => {
+      // error message for API error
+      const fetchErrorMessage = needExternalAPILookup()
+      ? constants.PDMP_SYSTEM_ERROR_MESSAGE
+      : "Server error ocurred.  See console for detail.";
+      const errorMessage =
+              typeof e === "string"
+                ? e
+                : e && e.message
+                ? e.message
+                : "See console for detail.";
+      return fetchErrorMessage + `<p>${errorMessage}</p>`;
+    }
     const getFHIRPatientData = async () =>
       fetchData(
         _getPatientSearchURL(rowData, {
@@ -750,7 +763,9 @@ export default function PatientListContextProvider({ children }) {
           // external search API allowable method is PUT
           method: needExternalAPILookup() ? "PUT": "GET",
         },
-        (e) => handleErrorCallback(e)
+        (e) => {
+          handleErrorCallback(getFetchErrorMessage(e));
+        }
       );
 
     getFHIRPatientData()
@@ -824,10 +839,6 @@ export default function PatientListContextProvider({ children }) {
         const noResultErrorMessage = needExternalAPILookup()
           ? constants.NON_PDMP_RESULT_MESSAGE
           : "Server error occurred. No result returned.  See console for detail.";
-        // error message for API error
-        const fetchErrorMessage = needExternalAPILookup()
-          ? constants.PDMP_SYSTEM_ERROR_MESSAGE
-          : "Server error ocurred.  See console for detail.";
         setOpenLoadingModal(true);
         fetchData(
           _getPatientSearchURL(rowData, {
@@ -866,16 +877,10 @@ export default function PatientListContextProvider({ children }) {
             //log error to console
             console.log(`Patient search error: ${e}`);
             setOpenLoadingModal(false);
-            const errorMessage =
-              typeof e === "string"
-                ? e
-                : e && e.message
-                ? e.message
-                : "See console for detail.";
-            handleLaunchError(fetchErrorMessage + `<p>${errorMessage}</p>`);
+            handleLaunchError(getFetchErrorMessage(e));
           });
       })
-      .catch((e) => handleErrorCallback(e));
+      .catch((e) => handleErrorCallback(getFetchErrorMessage(e)));
   };
   const getPatientList = (query) => {
     // console.log("patient list query object ", query);
