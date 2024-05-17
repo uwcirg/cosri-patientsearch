@@ -747,7 +747,8 @@ export default function PatientListContextProvider({ children }) {
         }),
         {
           ...searchParams,
-          method: "GET",
+          // external search API allowable method is PUT
+          method: needExternalAPILookup() ? "PUT": "GET",
         },
         (e) => handleErrorCallback(e)
       );
