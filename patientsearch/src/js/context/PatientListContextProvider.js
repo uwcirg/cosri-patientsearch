@@ -733,6 +733,7 @@ export default function PatientListContextProvider({ children }) {
     setCurrentRow(rowData);
     const isReactivate = params && params.reactivate;
     const isCreateNew = params && params.createNew;
+    const isExternalLookup = needExternalAPILookup();
     const searchParams = {
       headers: {
         Accept: "application/json",
@@ -740,19 +741,25 @@ export default function PatientListContextProvider({ children }) {
       },
       ...constants.noCacheParam,
     };
-    const getFetchErrorMessage = (e) => {
+    const getFetchErrorMessage = (e, noData) => {
+      // error message when no result returned
+      const noResultErrorMessage = isExternalLookup
+        ? constants.NON_PDMP_RESULT_MESSAGE
+        : "Server error occurred. No result returned.  See console for detail.";
       // error message for API error
-      const fetchErrorMessage = needExternalAPILookup()
-      ? constants.PDMP_SYSTEM_ERROR_MESSAGE
-      : "Server error ocurred.  See console for detail.";
+      const fetchErrorMessage = noData
+        ? noResultErrorMessage
+        : isExternalLookup
+        ? constants.PDMP_SYSTEM_ERROR_MESSAGE
+        : "Server error ocurred.  See console for detail.";
       const errorMessage =
-              typeof e === "string"
-                ? e
-                : e && e.message
-                ? e.message
-                : "See console for detail.";
-      return fetchErrorMessage + `<p>${errorMessage}</p>`;
-    }
+        typeof e === "string"
+          ? e
+          : e && e.message
+          ? e.message
+          : "";
+      return fetchErrorMessage + (errorMessage ? `<p>Response from the system: ${errorMessage}</p>` : `<p>See console for detail.</p>`);
+    };
     const getFHIRPatientData = async () =>
       fetchData(
         _getPatientSearchURL(rowData, {
@@ -761,10 +768,16 @@ export default function PatientListContextProvider({ children }) {
         {
           ...searchParams,
           // external search API allowable method is PUT
-          method: needExternalAPILookup() ? "PUT": "GET",
+          method: isExternalLookup ? "PUT" : "GET",
         },
-        (e) => {
-          handleErrorCallback(getFetchErrorMessage(e));
+        (e, status) => {
+          console.log("Error status? ", status);
+          const errorMessage =
+            status && parseInt(status) > 300 && parseInt(status) < 500
+              ? getFetchErrorMessage(e, true)
+              : getFetchErrorMessage(e);
+          handleErrorCallback(errorMessage);
+          return;
         }
       );
 
@@ -817,9 +830,19 @@ export default function PatientListContextProvider({ children }) {
               handleErrorCallback("Multiple matched entries found.");
               return;
             }
+            const targetEntry = _formatData(activeEntries[0])[0];
             if (!isCreateNew && canLanchApp()) {
               // found patient, not need to update/create it again
-              handleLaunchApp(_formatData(activeEntries[0])[0]);
+              handleLaunchApp(targetEntry);
+              return;
+            }
+            if (isExternalLookup) {
+              //add new table row where applicable
+              try {
+                _addDataRow(activeEntries[0]);
+              } catch (e) {
+                console.log("Error occurred adding row to table ", e);
+              }
               return;
             }
           }
@@ -830,15 +853,17 @@ export default function PatientListContextProvider({ children }) {
             ...entryToUse,
           };
           rowData.id = entryToUse.id;
+        } else {
+          if (isExternalLookup) {
+            //no result from lookup
+            handleErrorCallback(getFetchErrorMessage("Search returns no result", true));
+            return;
+          }
         }
         const oData = new RowData(rowData);
         const payload = JSON.stringify(oData.getFhirData(isCreateNew));
         const isUpdate = isReactivate || (!isCreateNew && !!rowData.id);
 
-        // error message when no result returned
-        const noResultErrorMessage = needExternalAPILookup()
-          ? constants.NON_PDMP_RESULT_MESSAGE
-          : "Server error occurred. No result returned.  See console for detail.";
         setOpenLoadingModal(true);
         fetchData(
           _getPatientSearchURL(rowData, {
@@ -857,9 +882,9 @@ export default function PatientListContextProvider({ children }) {
             let response = getFirstResourceFromFhirBundle(result);
             console.log("Patient update result: ", response);
             if (!response || !response.id) {
+              const errorText = getErrorDiagnosticTextFromResponse(response);
               handleLaunchError(
-                getErrorDiagnosticTextFromResponse(response) ||
-                  noResultErrorMessage
+                getFetchErrorMessage(errorText, !errorText)
               );
               return false;
             }
@@ -880,7 +905,10 @@ export default function PatientListContextProvider({ children }) {
             handleLaunchError(getFetchErrorMessage(e));
           });
       })
-      .catch((e) => handleErrorCallback(getFetchErrorMessage(e)));
+      .catch((e) => {
+        //handleErrorCallback(getFetchErrorMessage(e))
+        console.log("fetch FHIR patient error ", e);
+      });
   };
   const getPatientList = (query) => {
     // console.log("patient list query object ", query);

@@ -95,7 +95,7 @@ export async function fetchData(url, params, errorCallback) {
           : results && results.status
           ? "Status code: " + results.status
           : "Error occurred retrieving data";
-      errorCallback(errorMessage);
+      errorCallback(errorMessage, results.status);
       throw errorMessage;
     }
     return null;
