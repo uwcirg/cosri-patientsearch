@@ -245,12 +245,12 @@ def resource_bundle(resource_type):
     token = validate_auth()
     # Check for the store's configurations
     active_patient_flag = current_app.config.get("ACTIVE_PATIENT_FLAG")
-    params = dict(deepcopy(request.args))  # Necessary on ImmutableMultiDict
+    params = dict(deepcopy(request.args))
 
     # Override if the search is specifically for inactive objects
     if request.args.get("inactive_search") in {"true", "1"}:
         del params["inactive_search"]
-    elif active_patient_flag and resource_type == 'Patient':
+    elif active_patient_flag and resource_type == "Patient":
         params["active"] = "true"
 
     try:
