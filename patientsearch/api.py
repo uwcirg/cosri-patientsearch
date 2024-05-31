@@ -250,7 +250,7 @@ def resource_bundle(resource_type):
     # Override if the search is specifically for inactive objects
     if request.args.get("inactive_search") in {"true", "1"}:
         del params["inactive_search"]
-    elif active_patient_flag:
+    elif active_patient_flag and resource_type == 'Patient':
         params["active"] = "true"
 
     try:
