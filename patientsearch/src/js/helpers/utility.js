@@ -630,3 +630,46 @@ export function capitalizeFirstLetter(string) {
   const theRest = string.slice(1);
   return firstCapLetter + (theRest ? theRest.toLowerCase() : "");
 }
+
+/*
+ * return sorted array of resource entries by ID from a FHIR bundle result
+ * @param FHIR bundle result
+ * @return array
+ */
+export function getSortedEntriesFromBundle(bundle) {
+  if (!bundle || isEmptyArray(bundle)) return [];
+  return bundle
+    .filter((item) => item.resource)
+    .map((item) => item.resource)
+    .sort((a, b) => parseInt(b.id) - parseFloat(a.id));
+}
+
+/*
+ * return array of active resource entries from a Patient FHIR bundle result
+ * @param FHIR bundle result
+ * @return array
+ */
+export function getActiveEntriesFromPatientBundle(bundle) {
+  if (!bundle || isEmptyArray(bundle)) return [];
+  return bundle.filter((item) => {
+    if (typeof item.active === "undefined") {
+      return true;
+    }
+    return String(item.active).toLowerCase() === "true";
+  });
+}
+
+/*
+ * return array of inactive resource entries from a Patient FHIR bundle result
+ * @param FHIR bundle result
+ * @return array
+ */
+export function getInactiveEntriesFromPatientBundle(bundle) {
+  if (!bundle || isEmptyArray(bundle)) return [];
+  return bundle.filter((item) => {
+    if (typeof item.active === "undefined") {
+      return true;
+    }
+    return String(item.active).toLowerCase() === "true";
+  });
+}

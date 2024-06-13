@@ -12,11 +12,14 @@ import DetailPanel from "../components/patientList/DetailPanel";
 import {
   capitalizeFirstLetter,
   fetchData,
+  getActiveEntriesFromPatientBundle,
   getAppLaunchURL,
   getFirstResourceFromFhirBundle,
   getErrorDiagnosticTextFromResponse,
+  getInactiveEntriesFromPatientBundle,
   getLocalDateTimeString,
   getClientsByRequiredRoles,
+  getSortedEntriesFromBundle,
   getTimeAgoDisplay,
   hasFlagForCheckbox,
   isInPast,
@@ -125,6 +128,7 @@ export default function PatientListContextProvider({ children }) {
   };
   const getColumns = () => {
     const configColumns = getAppSettingByKey("DASHBOARD_COLUMNS");
+    const defaultSearchFields = constants.defaultSearchableFields;
     const isValidConfig = configColumns && Array.isArray(configColumns);
     let cols = isValidConfig ? configColumns : constants.defaultColumns;
     if (!isValidConfig) {
@@ -148,6 +152,9 @@ export default function PatientListContextProvider({ children }) {
         /* eslint-disable react/no-unknown-property */
         <div datacolumn={`${column.label}`}>{rowData[fieldName]}</div>
       );
+      column.searchable =
+        defaultSearchFields.indexOf(fieldName.toLowerCase()) !== -1 ||
+        !!column.searchable;
       return column;
     });
     const sortByQueryString = getUrlParameter("sort_by");
@@ -174,6 +181,17 @@ export default function PatientListContextProvider({ children }) {
       });
     }
     return returnColumns;
+  };
+  const getSearchableFields = () => {
+    const columns = getColumns();
+    if (!columns) return [];
+    return columns.filter((column) => column.searchable);
+  };
+  const shouldSearchByField = (fieldname) => {
+    const fields = getSearchableFields();
+    return fields.find(
+      (col) => String(col.field).toLowerCase() === fieldname && !!col.searchable
+    );
   };
   const needExternalAPILookup = () => {
     return getAppSettingByKey("EXTERNAL_FHIR_API");
@@ -237,8 +255,9 @@ export default function PatientListContextProvider({ children }) {
     }, 200);
   };
   const _handleActionLabel = (filters) => {
+    const totalFilterCount = getSearchableFields().length;
     setActionLabel(
-      _getNonEmptyFilters(filters).length === 3
+      _getNonEmptyFilters(filters).length === totalFilterCount
         ? constants.CREATE_BUTTON_LABEL
         : constants.LAUNCH_BUTTON_LABEL
     );
@@ -246,9 +265,14 @@ export default function PatientListContextProvider({ children }) {
   const _handleNoDataText = (filters) => {
     let text = "No matching record found.<br/>";
     const nonEmptyFilters = _getNonEmptyFilters(filters);
-    if (nonEmptyFilters.length < 3) {
-      text += "Try entering all First name, Last name and Birth Date.";
-    } else if (nonEmptyFilters.length === 3) {
+    const searchFields = getSearchableFields();
+    const totalFilterCount = searchFields.length;
+    const searchFieldNames = searchFields
+      .map((field) => field.title)
+      .join(", ");
+    if (nonEmptyFilters.length < totalFilterCount) {
+      text += `Try entering all ${searchFieldNames}.`;
+    } else if (nonEmptyFilters.length === totalFilterCount) {
       text += `Click on ${constants.CREATE_BUTTON_LABEL} button to create new patient`;
     }
     setNoDataText(text);
@@ -386,7 +410,7 @@ export default function PatientListContextProvider({ children }) {
     if (needExternalAPILookup()) {
       const dataURL = "/external_search/Patient";
       // remove leading/trailing spaces from first/last name data sent to patient search API
-      const params = [
+      let params = [
         `subject:Patient.name.given=${fName}`,
         `subject:Patient.name.family=${lName}`,
         `subject:Patient.birthdate=eq${birthDate}`,
@@ -530,7 +554,13 @@ export default function PatientListContextProvider({ children }) {
       currentFilters.forEach((item) => {
         if (item.value) {
           filterBy.push(
-            `${constants.fieldNameMaps[item.field]}:contains=${item.value}`
+            `${constants.fieldNameMaps[item.field]}${
+              constants.defaultSearchableFields.indexOf(
+                item.field.toLowerCase()
+              ) !== -1
+                ? ":contains"
+                : ""
+            }=${item.value}`
           );
         }
       });
@@ -725,6 +755,47 @@ export default function PatientListContextProvider({ children }) {
       ),
     },
   });
+  const _getFetchErrorMessage = (e, noData, isExternalLookup) => {
+    // error message when no result returned
+    const noResultErrorMessage = isExternalLookup
+      ? constants.NON_PDMP_RESULT_MESSAGE
+      : "Server error occurred. No result returned.  See console for detail.";
+    // error message for API error
+    const fetchErrorMessage = noData
+      ? noResultErrorMessage
+      : isExternalLookup
+      ? constants.PDMP_SYSTEM_ERROR_MESSAGE
+      : "Server error ocurred.  See console for detail.";
+    const errorMessage =
+      typeof e === "string" ? e : e && e.message ? e.message : "";
+    return (
+      fetchErrorMessage +
+      (errorMessage
+        ? `<p>Response from the system: ${errorMessage}</p>`
+        : `<p>See console for detail.</p>`)
+    );
+  };
+  const _getFHIRPatientData = async (rowData, isExternalLookup) =>
+    fetchData(
+      _getPatientSearchURL(rowData, {
+        searchInactive: !!appSettings["REACTIVATE_PATIENT"],
+      }),
+      {
+        ...constants.searchHeaderParams,
+        // external search API allowable method is PUT
+        method: isExternalLookup ? "PUT" : "GET",
+      },
+      (e, status) => {
+        console.log("Error status? ", status);
+        const badSearchError =
+          status && parseInt(status) > 300 && parseInt(status) < 500;
+        const errorMessage = badSearchError
+          ? _getFetchErrorMessage(e, true, isExternalLookup)
+          : _getFetchErrorMessage(e, false, isExternalLookup);
+        handleErrorCallback(errorMessage);
+        return;
+      }
+    );
   const handleSearch = (rowData, params) => {
     if (!rowData) {
       handleLaunchError("No patient data to proceed.");
@@ -734,116 +805,65 @@ export default function PatientListContextProvider({ children }) {
     const isReactivate = params && params.reactivate;
     const isCreateNew = params && params.createNew;
     const isExternalLookup = needExternalAPILookup();
-    const searchParams = {
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-      ...constants.noCacheParam,
-    };
-    const getFetchErrorMessage = (e, noData) => {
-      // error message when no result returned
-      const noResultErrorMessage = isExternalLookup
-        ? constants.NON_PDMP_RESULT_MESSAGE
-        : "Server error occurred. No result returned.  See console for detail.";
-      // error message for API error
-      const fetchErrorMessage = noData
-        ? noResultErrorMessage
-        : isExternalLookup
-        ? constants.PDMP_SYSTEM_ERROR_MESSAGE
-        : "Server error ocurred.  See console for detail.";
-      const errorMessage =
-        typeof e === "string"
-          ? e
-          : e && e.message
-          ? e.message
-          : "";
-      return fetchErrorMessage + (errorMessage ? `<p>Response from the system: ${errorMessage}</p>` : `<p>See console for detail.</p>`);
-    };
-    const getFHIRPatientData = async () =>
-      fetchData(
-        _getPatientSearchURL(rowData, {
-          searchInactive: !!appSettings["REACTIVATE_PATIENT"],
-        }),
-        {
-          ...searchParams,
-          // external search API allowable method is PUT
-          method: isExternalLookup ? "PUT" : "GET",
-        },
-        (e, status) => {
-          console.log("Error status? ", status);
-          const errorMessage =
-            status && parseInt(status) > 300 && parseInt(status) < 500
-              ? getFetchErrorMessage(e, true)
-              : getFetchErrorMessage(e);
-          handleErrorCallback(errorMessage);
-          return;
-        }
-      );
-
-    getFHIRPatientData()
+    setOpenLoadingModal(true);
+    _getFHIRPatientData(rowData, isExternalLookup)
       .then((bundleResult) => {
         setErrorMessage("");
-        if (
-          bundleResult &&
-          bundleResult.entry &&
-          Array.isArray(bundleResult.entry) &&
-          bundleResult.entry.length
-        ) {
-          const entries = bundleResult.entry
-            .filter((item) => item.resource)
-            .map((item) => item.resource)
-            .sort((a, b) => parseInt(b.id) - parseFloat(a.id));
-          const activeEntries = entries.filter((item) => {
-            if (typeof item.active === "undefined") {
-              return true;
-            }
-            return String(item.active).toLowerCase() === "true";
-          });
-          const inactiveEntries = entries.filter((item) => {
-            if (typeof item.active === "undefined") {
-              return false;
-            }
-            return String(item.active).toLowerCase() === "false";
-          });
+        if (isEmptyArray(bundleResult?.entry)) {
+          if (isExternalLookup) {
+            _handleRefresh();
+            setOpenLoadingModal(false);
+            //no result from lookup
+            handleErrorCallback(
+              _getFetchErrorMessage("Search returns no match", true, isExternalLookup)
+            );
+            return;
+          }
+        } else {
+          const entries = getSortedEntriesFromBundle(bundleResult?.entry);
+          const activeEntries = getActiveEntriesFromPatientBundle(entries);
+          const inactiveEntries = getInactiveEntriesFromPatientBundle(entries);
           const isInactive = inactiveEntries.length > 0;
           const shouldShowReactivatePopup =
             isInactive && getAppSettingByKey("REACTIVATE_PATIENT");
-          if (!activeEntries.length) {
-            if (!isCreateNew && !isReactivate) {
-              if (shouldShowReactivatePopup) {
-                setOpenReactivatingModal(true);
-                return;
-              }
-              if (inactiveEntries.length > 1) {
-                handleErrorCallback("Multiple matched entries found.");
-                return;
-              }
-              if (inactiveEntries.length) {
-                // found patient, not need to update/create it again
-                handleLaunchApp(_formatData(inactiveEntries[0])[0]);
-                return;
-              }
-            }
-          } else {
-            if (activeEntries.length > 1) {
-              handleErrorCallback("Multiple matched entries found.");
-              return;
-            }
+
+          if (activeEntries.length > 1) {
+            setOpenLoadingModal(false);
+            handleErrorCallback("Multiple matched entries found.");
+            return;
+          }
+          if (activeEntries.length > 0) {
             const targetEntry = _formatData(activeEntries[0])[0];
             if (!isCreateNew && canLanchApp()) {
+              setOpenLoadingModal(false);
               // found patient, not need to update/create it again
               handleLaunchApp(targetEntry);
               return;
             }
             if (isExternalLookup) {
-              //add new table row where applicable
-              try {
-                _addDataRow(activeEntries[0]);
-              } catch (e) {
-                console.log("Error occurred adding row to table ", e);
-              }
+              //refresh table to show new table row
+              _handleRefresh();
+              setOpenLoadingModal(false);
               return;
+            }
+          } else {
+            if (!isCreateNew && !isReactivate) {
+              if (shouldShowReactivatePopup) {
+                setOpenReactivatingModal(true);
+                setOpenLoadingModal(false);
+                return;
+              }
+              if (inactiveEntries.length > 1) {
+                handleErrorCallback("Multiple matched entries found.");
+                setOpenLoadingModal(false);
+                return;
+              }
+              if (inactiveEntries.length) {
+                setOpenLoadingModal(false);
+                // found patient, not need to update/create it again
+                handleLaunchApp(_formatData(inactiveEntries[0])[0]);
+                return;
+              }
             }
           }
           const entryToUse = entries.length
@@ -853,29 +873,26 @@ export default function PatientListContextProvider({ children }) {
             ...entryToUse,
           };
           rowData.id = entryToUse.id;
-        } else {
-          if (isExternalLookup) {
-            //no result from lookup
-            handleErrorCallback(getFetchErrorMessage("Search returns no result", true));
-            return;
-          }
         }
+
         const oData = new RowData(rowData);
         const payload = JSON.stringify(oData.getFhirData(isCreateNew));
         const isUpdate = isReactivate || (!isCreateNew && !!rowData.id);
 
-        setOpenLoadingModal(true);
         fetchData(
           _getPatientSearchURL(rowData, {
             useActiveFlag: !!getAppSettingByKey("ACTIVE_PATIENT_FLAG"),
             isUpdate: isUpdate,
           }),
           {
-            ...searchParams,
+            ...constants.searchHeaderParams,
             body: payload,
             method: isUpdate ? "PUT" : "POST",
           },
-          (e) => handleErrorCallback(e)
+          (e) => {
+            setOpenLoadingModal(false);
+            handleErrorCallback(e);
+          }
         )
           .then((result) => {
             setOpenLoadingModal(false);
@@ -883,9 +900,7 @@ export default function PatientListContextProvider({ children }) {
             console.log("Patient update result: ", response);
             if (!response || !response.id) {
               const errorText = getErrorDiagnosticTextFromResponse(response);
-              handleLaunchError(
-                getFetchErrorMessage(errorText, !errorText)
-              );
+              handleLaunchError(_getFetchErrorMessage(errorText, !errorText));
               return false;
             }
             //add new table row where applicable
@@ -902,11 +917,12 @@ export default function PatientListContextProvider({ children }) {
             //log error to console
             console.log(`Patient search error: ${e}`);
             setOpenLoadingModal(false);
-            handleLaunchError(getFetchErrorMessage(e));
+            handleLaunchError(_getFetchErrorMessage(e, false, isExternalLookup));
           });
       })
       .catch((e) => {
-        //handleErrorCallback(getFetchErrorMessage(e))
+        setOpenLoadingModal(false);
+        handleErrorCallback(_getFetchErrorMessage(e, false, isExternalLookup));
         console.log("fetch FHIR patient error ", e);
       });
   };
@@ -1126,6 +1142,8 @@ export default function PatientListContextProvider({ children }) {
         getColumns,
         getDetailPanelContent,
         getPatientList,
+        getSearchableFields,
+        shouldSearchByField,
         getMenuItems,
         needExternalAPILookup,
         onDetailPanelClose,
