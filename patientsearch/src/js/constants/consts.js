@@ -141,7 +141,7 @@ export const PDMP_SYSTEM_ERROR_MESSAGE =
   "<p>COSRI is unable to return PMP information. This may be due to PMP system being down or a problem with the COSRI connection to PMP.</p>";
 export const noCacheParam = { cache: "no-cache" };
 export const searchHeaderParams = {
-  ...{
+  headers: {
     Accept: "application/json",
     "Content-Type": "application/json",
   },

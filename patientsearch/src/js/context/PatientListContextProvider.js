@@ -903,9 +903,9 @@ export default function PatientListContextProvider({ children }) {
               handleLaunchError(_getFetchErrorMessage(errorText, !errorText));
               return false;
             }
-            //add new table row where applicable
             try {
-              _addDataRow(response);
+              // show new patient row by refreshing table
+              _handleRefresh();
             } catch (e) {
               console.log("Error occurred adding row to table ", e);
             }
