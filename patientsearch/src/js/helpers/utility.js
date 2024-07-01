@@ -79,7 +79,7 @@ export async function fetchData(url, params, errorCallback) {
       console.log("There was error processing data.");
       throw e.message;
     });
-    console.log("response json ", json);
+    //console.log("response json ", json);
   } catch (e) {
     console.log(`There was error parsing data:`, e);
     json = null;
@@ -95,7 +95,7 @@ export async function fetchData(url, params, errorCallback) {
           : results && results.status
           ? "Status code: " + results.status
           : "Error occurred retrieving data";
-      errorCallback(errorMessage);
+      errorCallback(errorMessage, results.status);
       throw errorMessage;
     }
     return null;
@@ -629,4 +629,47 @@ export function capitalizeFirstLetter(string) {
   const firstCapLetter = string.charAt(0).toUpperCase();
   const theRest = string.slice(1);
   return firstCapLetter + (theRest ? theRest.toLowerCase() : "");
+}
+
+/*
+ * return sorted array of resource entries by ID from a FHIR bundle result
+ * @param FHIR bundle result
+ * @return array
+ */
+export function getSortedEntriesFromBundle(bundle) {
+  if (!bundle || isEmptyArray(bundle)) return [];
+  return bundle
+    .filter((item) => item.resource)
+    .map((item) => item.resource)
+    .sort((a, b) => parseInt(b.id) - parseFloat(a.id));
+}
+
+/*
+ * return array of active resource entries from a Patient FHIR bundle result
+ * @param FHIR bundle result
+ * @return array
+ */
+export function getActiveEntriesFromPatientBundle(bundle) {
+  if (!bundle || isEmptyArray(bundle)) return [];
+  return bundle.filter((item) => {
+    if (typeof item.active === "undefined") {
+      return true;
+    }
+    return String(item.active).toLowerCase() === "true";
+  });
+}
+
+/*
+ * return array of inactive resource entries from a Patient FHIR bundle result
+ * @param FHIR bundle result
+ * @return array
+ */
+export function getInactiveEntriesFromPatientBundle(bundle) {
+  if (!bundle || isEmptyArray(bundle)) return [];
+  return bundle.filter((item) => {
+    if (typeof item.active === "undefined") {
+      return true;
+    }
+    return String(item.active).toLowerCase() === "true";
+  });
 }

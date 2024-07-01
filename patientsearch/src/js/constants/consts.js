@@ -6,8 +6,8 @@ import ClearIcon from "@material-ui/icons/Clear";
 import Delete from "@material-ui/icons/Delete";
 import Edit from "@material-ui/icons/Edit";
 import FirstPage from "@material-ui/icons/FirstPage";
-import ArrowDownIcon from '@material-ui/icons/ArrowDropUp';
-import ArrowUpIcon from '@material-ui/icons/ArrowDropDown';
+import ArrowDownIcon from "@material-ui/icons/ArrowDropUp";
+import ArrowUpIcon from "@material-ui/icons/ArrowDropDown";
 import LastPage from "@material-ui/icons/LastPage";
 import Search from "@material-ui/icons/Search";
 import RowData from "../models/RowData";
@@ -33,7 +33,12 @@ export const tableIcons = {
     <ChevronLeft {...props} ref={ref} />
   )),
   SortArrow: forwardRef((props, ref) => (
-    <div style={{display: "flex", flexDirection:"column"}} {...props} ref={ref} color="primary">
+    <div
+      style={{ display: "flex", flexDirection: "column" }}
+      {...props}
+      ref={ref}
+      color="primary"
+    >
       <ArrowDownIcon size="small" className="down"></ArrowDownIcon>
       <ArrowUpIcon size="small" className="up"></ArrowUpIcon>
     </div>
@@ -70,9 +75,14 @@ export const defaultPagination = {
   nextPageURL: "",
   prevPageURL: "",
 };
+export const defaultSearchableFields = [
+  "first_name",
+  "last_name",
+  "birth_date",
+];
 export const defaultFilters = (() => {
   const defaultData = RowData.create();
-  return defaultData.getData();
+  return defaultData.getFilters();
 })();
 export const fieldNameMaps = {
   first_name: "given",
@@ -123,10 +133,20 @@ export const defaultMenuItems = [
     ),
   },
 ];
-export const PDMP_SYSTEM_IDENTIFIER = "https://github.com/uwcirg/script-fhir-facade";
-export const NON_PDMP_RESULT_MESSAGE = "<div>The patient was not found in the PMP. This could be due to:</div><ul><li>No previous controlled substance medications dispensed</li><li>Incorrect spelling of name or incorrect date of birth.</li></ul><div>Please double check name spelling and date of birth.</div>";
-export const PDMP_SYSTEM_ERROR_MESSAGE = "<p>COSRI is unable to return PMP information. This may be due to PMP system being down or a problem with the COSRI connection to PMP.</p>";
+export const PDMP_SYSTEM_IDENTIFIER =
+  "https://github.com/uwcirg/script-fhir-facade";
+export const NON_PDMP_RESULT_MESSAGE =
+  "<div>The patient was not found in the PMP. This could be due to:</div><ul><li>No previous controlled substance medications dispensed</li><li>Incorrect spelling of name or incorrect date of birth.</li></ul><div>Please double check name spelling and date of birth.</div>";
+export const PDMP_SYSTEM_ERROR_MESSAGE =
+  "<p>COSRI is unable to return PMP information. This may be due to PMP system being down or a problem with the COSRI connection to PMP.</p>";
 export const noCacheParam = { cache: "no-cache" };
+export const searchHeaderParams = {
+  headers: {
+    Accept: "application/json",
+    "Content-Type": "application/json",
+  },
+  ...noCacheParam,
+};
 export const LAUNCH_BUTTON_LABEL = "VIEW";
 export const CREATE_BUTTON_LABEL = "CREATE";
 export const MORE_MENU_KEY = "MORE_MENU";
