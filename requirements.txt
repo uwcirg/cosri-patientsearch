@@ -22,4 +22,4 @@ six==1.15.0               # via flask-jwt-extended
 typing-extensions==3.10.0.2  # via importlib-metadata
 urllib3==1.26.7           # via requests
 werkzeug==2.0.1           # via flask, flask-jwt-extended
-zipp==3.5.0               # via importlib-metadata
+zipp==3.19.1               # via importlib-metadata
