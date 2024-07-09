@@ -19,4 +19,4 @@ pytest-mock==3.6.1        # via patientsearch (setup.py)
 pytest==6.2.5             # via patientsearch (setup.py), pytest-datadir, pytest-mock
 toml==0.10.2              # via pytest
 typing-extensions==3.10.0.2  # via importlib-metadata
-zipp==3.5.0               # via importlib-metadata
+zipp==3.19.1               # via importlib-metadata
