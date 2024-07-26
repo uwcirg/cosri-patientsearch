@@ -533,38 +533,62 @@ export const getAppLaunchURL = (patientId, params) => {
 };
 
 /*
- * look up care team resources containing the practitioner ID
+ * look up CareTeam and Patient FHIR resources containing the practitioner ID
  * @param practitionerId practitioner id (as id from the Practitioner FHIR resource)
  * @return {array<string> | null} array of patient ids or null
  */
 export async function getPatientIdsByCareTeamParticipant(practitionerId) {
   if (!practitionerId) return null;
-  const results = await fetchData(
-    `/fhir/CareTeam?participant=Practitioner/${practitionerId}`,
-    noCacheParam,
-    (error) => {
-      if (error) {
-        console.log("Error retrieving careteam by participant id ", error);
-        return null;
+  const results = await Promise.allSettled([
+    fetchData(
+      `/fhir/Patient?general-practitioner=Practitioner/${practitionerId}&_count=200`,
+      noCacheParam,
+      (error) => {
+        if (error) {
+          console.log(
+            "Error retrieving patient resources by practitioner id ",
+            error
+          );
+          return null;
+        }
       }
-    }
-  ).catch((e) => {
-    console.log("Error retrieving careteam partipant by id ", e);
+    ),
+    fetchData(
+      `/fhir/CareTeam?participant=Practitioner/${practitionerId}&_count=200`,
+      noCacheParam,
+      (error) => {
+        if (error) {
+          console.log("Error retrieving careteam by practitioner id ", error);
+          return null;
+        }
+      }
+    ),
+  ]).catch((e) => {
+    console.log("Error retrieving patients followed by practitioner ", e);
     return null;
   });
-  console.log("care team participant result ", results);
-  if (results && results.entry.length) {
-    const matchedPatientIds = results.entry
+  console.log(
+    "Query results for patients the practitioner is following: ",
+    results
+  );
+  let combinedResults = [];
+  // Patient resources
+  if (results[0].value && !isEmptyArray(results[0].value.entry)) {
+    let arrIds = results[0].value.entry.map((o) => o.resource.id);
+    combinedResults = [...arrIds];
+  }
+  // CareTeam resources
+  if (results[1].value && !isEmptyArray(results[1].value.entry)) {
+    let arrIds = results[1].value.entry
       .filter(
         (o) => o.resource && o.resource.subject && o.resource.subject.reference
       )
-      .map((o) => {
-        return o.resource.subject.reference.split("/")[1];
-      });
-    if (matchedPatientIds.length) {
-      return matchedPatientIds;
-    }
-    return null;
+      .map((o) => o.resource.subject.reference.split("/")[1]);
+    combinedResults = [...combinedResults, ...arrIds];
+  }
+  if (!isEmptyArray(combinedResults)) {
+    // ids without duplicates
+    return [...new Set(combinedResults)];
   }
   return null;
 }
