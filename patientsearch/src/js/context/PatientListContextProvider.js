@@ -119,13 +119,6 @@ export default function PatientListContextProvider({ children }) {
       }).length > 0
     );
   };
-  const _addDataRow = (rowData) => {
-    if (!rowData || !rowData.id) return false;
-    let newData = _formatData(rowData);
-    if (newData && !existsIndata(newData[0])) {
-      setData([newData[0], ...data]);
-    }
-  };
   const getColumns = () => {
     const configColumns = getAppSettingByKey("DASHBOARD_COLUMNS");
     const defaultSearchFields = constants.defaultSearchableFields;
