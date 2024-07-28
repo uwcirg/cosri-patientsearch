@@ -6,6 +6,7 @@ from flask import (
     make_response,
     redirect,
     request,
+    safe_join,
     session,
     send_from_directory,
 )
@@ -13,7 +14,6 @@ from flask.json import JSONEncoder
 import jwt
 import requests
 from werkzeug.exceptions import Unauthorized, Forbidden
-from werkzeug.utils import safe_join
 from copy import deepcopy
 
 from patientsearch.audit import audit_entry, audit_HAPI_change

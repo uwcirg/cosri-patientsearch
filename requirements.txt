@@ -16,15 +16,15 @@ charset-normalizer==3.3.2
     # via requests
 click==8.1.7
     # via flask
-flask==2.2.5
+flask==2.0.1
     # via
     #   flask-jwt-extended
     #   flask-session
-    #   patientsearch (setup.cfg)
+    #   patientsearch (setup.py)
 flask-jwt-extended==3.24.1
-    # via patientsearch (setup.cfg)
-flask-session==0.8.0
-    # via patientsearch (setup.cfg)
+    # via patientsearch (setup.py)
+flask-session==0.3.2
+    # via patientsearch (setup.py)
 # pin to last hash of master, to remove requirement of freestanding JSON config file
 git+https://github.com/uwcirg/flask-oidc.git@ed4eb20#egg=flask-oidc
 gunicorn==22.0.0
