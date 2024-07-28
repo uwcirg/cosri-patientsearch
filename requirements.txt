@@ -68,3 +68,4 @@ werkzeug==2.0.1
 zipp==3.19.2
     # via importlib-metadata
 six==1.15.0
+    # via flask-jwt-extended
