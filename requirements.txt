@@ -55,6 +55,3 @@ werkzeug==2.0.1
     # via
     #   flask
     #   flask-jwt-extended
-
-# The following packages are considered to be unsafe in a requirements file:
-# setuptools

@@ -9,7 +9,7 @@ All views require Keycloak authentication.  Keycloak roles determine authorizati
 1) `git clone <this repository>`
 2) `cp client_secrets.json.default client_secrets.json`  # Edit to fit
 3) `cp patientsearch.env.default patientsearch.env`  # Edit to fit
-4) `mkvirtualenv patientsearch`  # Python 3.7
+4) `mkvirtualenv patientsearch`  # Python 3.9
 5) `pip install nodeenv`
 6) `nodeenv --python-virtualenv`
 7) `pip install -e .`
