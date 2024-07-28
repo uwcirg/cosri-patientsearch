@@ -61,7 +61,7 @@ requests==2.32.3
     # via patientsearch (setup.cfg)
 urllib3==2.2.2
     # via requests
-werkzeug==3.0.3
+werkzeug==2.0.1
     # via
     #   flask
     #   flask-jwt-extended
