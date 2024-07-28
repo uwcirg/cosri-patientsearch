@@ -21,7 +21,7 @@ flask==2.2.5
     #   flask-jwt-extended
     #   flask-session
     #   patientsearch (setup.cfg)
-flask-jwt-extended==4.6.0
+flask-jwt-extended==3.24.1
     # via patientsearch (setup.cfg)
 flask-session==0.8.0
     # via patientsearch (setup.cfg)
@@ -47,7 +47,7 @@ msgspec==0.18.6
     # via flask-session
 packaging==24.1
     # via gunicorn
-pyjwt==2.8.0
+pyjwt==1.7.1
     # via flask-jwt-extended
 python-json-logger==2.0.7
     # via patientsearch (setup.cfg)
