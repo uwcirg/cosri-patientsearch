@@ -4,52 +4,17 @@
 #
 #    pip-compile --extra=dev --output-file=requirements.dev.txt setup.cfg
 #
+--requirement requirements.txt
 attrs==21.2.0
     # via pytest
-cachelib==0.13.0
-    # via flask-session
-certifi==2021.5.30
-    # via requests
-charset-normalizer==2.0.6
-    # via requests
-click==8.0.1
-    # via flask
-flask==2.0.1
-    # via
-    #   flask-jwt-extended
-    #   flask-session
-    #   patientsearch (setup.cfg)
-    #   pytest-flask
-flask-jwt-extended==3.24.1
-    # via patientsearch (setup.cfg)
-flask-session==0.3.2
-    # via patientsearch (setup.cfg)
-# pin to last hash of master, to remove requirement of freestanding JSON config file
-git+https://github.com/uwcirg/flask-oidc.git@ed4eb20#egg=flask-oidc
-future==1.0.0
-    # via redis-dict
-gunicorn==20.0.4
-    # via patientsearch (setup.cfg)
-idna==3.2
-    # via requests
 iniconfig==1.1.1
     # via pytest
-itsdangerous==2.0.1
-    # via flask
-jinja2==3.0.1
-    # via flask
-jmespath==0.10.0
-    # via patientsearch (setup.cfg)
-markupsafe==2.0.1
-    # via jinja2
 packaging==21.0
     # via pytest
 pluggy==1.0.0
     # via pytest
 py==1.10.0
     # via pytest
-pyjwt==1.7.1
-    # via flask-jwt-extended
 pyparsing==2.4.7
     # via packaging
 pytest==6.2.5
@@ -64,24 +29,5 @@ pytest-flask==1.2.0
     # via patientsearch (setup.cfg)
 pytest-mock==3.6.1
     # via patientsearch (setup.cfg)
-python-json-logger==0.1.11
-    # via patientsearch (setup.cfg)
-redis==3.5.3
-    # via
-    #   patientsearch (setup.cfg)
-    #   redis-dict
-redis-dict==1.5.2
-    # via patientsearch (setup.cfg)
-requests==2.26.0
-    # via patientsearch (setup.cfg)
-six==1.15.0
-    # via flask-jwt-extended
 toml==0.10.2
     # via pytest
-urllib3==1.26.7
-    # via requests
-werkzeug==2.0.1
-    # via
-    #   flask
-    #   flask-jwt-extended
-    #   pytest-flask
