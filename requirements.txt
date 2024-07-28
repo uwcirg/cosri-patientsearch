@@ -4,62 +4,66 @@
 #
 #    pip-compile
 #
+async-timeout==4.0.3
+    # via redis
+blinker==1.8.2
+    # via flask
 cachelib==0.13.0
     # via flask-session
-certifi==2021.5.30
+certifi==2024.7.4
     # via requests
-charset-normalizer==2.0.6
+charset-normalizer==3.3.2
     # via requests
-click==8.0.1
+click==8.1.7
     # via flask
-flask==2.0.1
+flask==3.0.3
     # via
     #   flask-jwt-extended
     #   flask-session
-    #   patientsearch (setup.py)
-flask-jwt-extended==3.24.1
-    # via patientsearch (setup.py)
-flask-session==0.3.2
-    # via patientsearch (setup.py)
+    #   patientsearch (setup.cfg)
+flask-jwt-extended==4.6.0
+    # via patientsearch (setup.cfg)
+flask-session==0.8.0
+    # via patientsearch (setup.cfg)
 # pin to last hash of master, to remove requirement of freestanding JSON config file
 git+https://github.com/uwcirg/flask-oidc.git@ed4eb20#egg=flask-oidc
-future==1.0.0
-    # via redis-dict
-gunicorn==20.0.4
-    # via patientsearch (setup.py)
-idna==3.2
+gunicorn==22.0.0
+    # via patientsearch (setup.cfg)
+idna==3.7
     # via requests
-itsdangerous==2.0.1
+importlib-metadata==8.2.0
     # via flask
-jinja2==3.0.1
+itsdangerous==2.2.0
     # via flask
-jmespath==0.10.0
-    # via patientsearch (setup.py)
-markupsafe==2.0.1
-    # via jinja2
-pyjwt==1.7.1
-    # via flask-jwt-extended
-python-json-logger==0.1.11
-    # via patientsearch (setup.py)
-redis==3.5.3
+jinja2==3.1.4
+    # via flask
+jmespath==1.0.1
+    # via patientsearch (setup.cfg)
+markupsafe==2.1.5
     # via
-    #   patientsearch (setup.py)
-    #   redis-dict
-redis-dict==1.5.2
-    # via patientsearch (setup.py)
-requests==2.26.0
-    # via patientsearch (setup.py)
-six==1.15.0
+    #   jinja2
+    #   werkzeug
+msgspec==0.18.6
+    # via flask-session
+packaging==24.1
+    # via gunicorn
+pyjwt==2.8.0
     # via flask-jwt-extended
-urllib3==1.26.7
+python-json-logger==2.0.7
+    # via patientsearch (setup.cfg)
+redis==5.0.7
+    # via
+    #   patientsearch (setup.cfg)
+    #   redis-dict
+redis-dict==2.5.0
+    # via patientsearch (setup.cfg)
+requests==2.32.3
+    # via patientsearch (setup.cfg)
+urllib3==2.2.2
     # via requests
-werkzeug==2.0.1
+werkzeug==3.0.3
     # via
     #   flask
     #   flask-jwt-extended
-importlib-metadata==4.8.1  
-    # via click
-typing-extensions==3.10.0.2 
-    # via importlib-metadata
-zipp==3.5.0               
+zipp==3.19.2
     # via importlib-metadata
