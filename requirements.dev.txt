@@ -38,7 +38,7 @@ importlib-metadata==8.2.0
     # via flask
 iniconfig==2.0.0
     # via pytest
-itsdangerous==2.2.0
+itsdangerous==2.0.1
     # via flask
 jinja2==3.1.4
     # via flask
