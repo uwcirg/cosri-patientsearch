@@ -57,3 +57,9 @@ werkzeug==2.0.1
     # via
     #   flask
     #   flask-jwt-extended
+importlib-metadata==4.8.1  
+    # via click
+typing-extensions==3.10.0.2 
+    # via importlib-metadata
+zipp==3.5.0               
+    # via importlib-metadata
