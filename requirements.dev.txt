@@ -56,7 +56,7 @@ packaging==24.1
     #   pytest
 pluggy==1.0.0
     # via pytest
-pyjwt==2.8.0
+pyjwt==1.7.1
     # via flask-jwt-extended
 pytest-datadir==1.3.1     
     # via patientsearch (setup.py)
@@ -86,3 +86,4 @@ werkzeug==2.0.1
     #   flask-jwt-extended
 zipp==3.19.2
     # via importlib-metadata
+six==1.15.0
