@@ -111,21 +111,6 @@ export default function PatientListContextProvider({ children }) {
   const [noDataText, setNoDataText] = React.useState("No record found.");
   const [filterByTestPatients, setFilterByTestPatients] = React.useState(false);
 
-  const existsIndata = (rowData) => {
-    if (!data || !rowData) return false;
-    return (
-      data.filter((item) => {
-        return parseInt(item.id) === parseInt(rowData.id);
-      }).length > 0
-    );
-  };
-  const _addDataRow = (rowData) => {
-    if (!rowData || !rowData.id) return false;
-    let newData = _formatData(rowData);
-    if (newData && !existsIndata(newData[0])) {
-      setData([newData[0], ...data]);
-    }
-  };
   const getColumns = () => {
     const configColumns = getAppSettingByKey("DASHBOARD_COLUMNS");
     const defaultSearchFields = constants.defaultSearchableFields;
