@@ -338,10 +338,12 @@ export default function PatientListContextProvider({ children }) {
     );
   };
   const onTestPatientsCheckboxChange = (event) => {
+    _resetPaging();
     setFilterByTestPatients(event.target.checked);
     if (tableRef.current) tableRef.current.onQueryChange();
   };
   const onMyPatientsCheckboxChange = (event, changeEvent) => {
+    _resetPaging();
     if (event && event.target && !event.target.checked) {
       setPatientIdsByCareTeamParticipant(null);
       if (tableRef.current) tableRef.current.onQueryChange();
