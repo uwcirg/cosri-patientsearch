@@ -10,7 +10,7 @@ from flask import (
     session,
     send_from_directory,
 )
-from flask.json import JSONEncoder
+from json import JSONEncoder
 import jwt
 import requests
 from werkzeug.exceptions import Unauthorized, Forbidden
