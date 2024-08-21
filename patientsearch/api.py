@@ -10,7 +10,7 @@ from flask import (
     session,
     send_from_directory,
 )
-from json import JSONEncoder
+from flask.json.provider import DefaultJSONProvider
 import jwt
 import requests
 from werkzeug.exceptions import Unauthorized, Forbidden
@@ -145,11 +145,11 @@ def config_settings(config_key):
     """Non-secret application settings"""
 
     # workaround no JSON representation for datetime.timedelta
-    class CustomJSONEncoder(JSONEncoder):
+    class CustomJSONProvider(DefaultJSONProvider):
         def default(self, obj):
             return str(obj)
 
-    current_app.json_encoder = CustomJSONEncoder
+    current_app.json = CustomJSONProvider
 
     # return selective keys - not all can be be viewed by users, e.g.secret key
     blacklist = ("SECRET", "KEY", "TOKEN", "CREDENTIALS")
