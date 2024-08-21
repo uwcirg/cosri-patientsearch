@@ -26,12 +26,12 @@ flask-jwt-extended==4.6.0
 flask-session==0.8.0
     # via patientsearch (setup.cfg)
 # pin to last hash of master, to remove requirement of freestanding JSON config file
-git+https://github.com/puiterwijk/flask-oidc.git@b10e6bf881a3fe0c3972e4093648f2b77f32a97c
-gunicorn==22.0.0
+git+https://github.com/uwcirg/flask-oidc.git@ed4eb20#egg=flask-oidc
+gunicorn==23.0.0
     # via patientsearch (setup.cfg)
 idna==3.7
     # via requests
-importlib-metadata==8.2.0
+importlib-metadata==8.4.0
     # via flask
 itsdangerous==2.2.0
     # via flask
@@ -47,11 +47,11 @@ msgspec==0.18.6
     # via flask-session
 packaging==24.1
     # via gunicorn
-pyjwt==2.8.0
+pyjwt==2.9.0
     # via flask-jwt-extended
 python-json-logger==2.0.7
     # via patientsearch (setup.cfg)
-redis==5.0.7
+redis==5.0.8
     # via
     #   patientsearch (setup.cfg)
     #   redis-dict
@@ -65,7 +65,5 @@ werkzeug==3.0.3
     # via
     #   flask
     #   flask-jwt-extended
-zipp==3.19.2
+zipp==3.20.0
     # via importlib-metadata
-# pin to last hash of master, to remove requirement of freestanding JSON config file
-git+https://github.com/uwcirg/flask-oidc.git@ed4eb20#egg=flask-oidc
