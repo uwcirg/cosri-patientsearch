@@ -532,7 +532,8 @@ def external_search(resource_type):
     active_patient_flag = current_app.config.get("ACTIVE_PATIENT_FLAG")
     reactivate_patient = current_app.config.get("REACTIVATE_PATIENT")
     only_create_patient_if_found_external = current_app.config.get(
-        "ONLY_CREATE_PATIENT_IF_FOUND_EXTERNAL")
+        "ONLY_CREATE_PATIENT_IF_FOUND_EXTERNAL"
+    )
 
     params = dict(deepcopy(request.args))  # Necessary on ImmutableMultiDict
     if active_patient_flag and resource_type == "Patient":
@@ -597,7 +598,9 @@ def external_search(resource_type):
                 level="warn",
             )
 
-    allow_local_creation = not (only_create_patient_if_found_external and not external_match_count)
+    allow_local_creation = not (
+        only_create_patient_if_found_external and not external_match_count
+    )
     if not local_fhir_patient and allow_local_creation:
         # Add at this time in the local (HAPI) store
         try:
