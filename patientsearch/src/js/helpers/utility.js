@@ -694,6 +694,6 @@ export function getInactiveEntriesFromPatientBundle(bundle) {
     if (typeof item.active === "undefined") {
       return true;
     }
-    return String(item.active).toLowerCase() === "true";
+    return String(item.active).toLowerCase() !== "true";
   });
 }

@@ -121,6 +121,7 @@ export default forwardRef((props, ref) => {
       e.stopPropagation();
     }
     if (pressedKey === "enter") {
+      if (!hasCompleteFilters()) return;
       handleSearch(getFilterData());
       return;
     }
