@@ -28,7 +28,7 @@ def generate_claims(email, sub, roles):
 def generate_jwt(email="fake@testy.org", sub="fake-subject", roles=None):
     claims = generate_claims(email, sub, roles)
     encoded = jwt.encode(claims, SECRET, algorithm="HS256")
-    return encoded.decode("utf-8")
+    return encoded
 
 
 @pytest.fixture()

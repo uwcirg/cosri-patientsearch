@@ -6,14 +6,14 @@ from flask import (
     make_response,
     redirect,
     request,
-    safe_join,
     session,
     send_from_directory,
 )
-from flask.json import JSONEncoder
+from flask.json.provider import DefaultJSONProvider
 import jwt
 import requests
 from werkzeug.exceptions import Unauthorized, Forbidden
+from werkzeug.utils import safe_join
 from copy import deepcopy
 
 from patientsearch.audit import audit_entry, audit_HAPI_change
@@ -145,11 +145,11 @@ def config_settings(config_key):
     """Non-secret application settings"""
 
     # workaround no JSON representation for datetime.timedelta
-    class CustomJSONEncoder(JSONEncoder):
+    class CustomJSONProvider(DefaultJSONProvider):
         def default(self, obj):
             return str(obj)
 
-    current_app.json_encoder = CustomJSONEncoder
+    current_app.json = CustomJSONProvider
 
     # return selective keys - not all can be be viewed by users, e.g.secret key
     blacklist = ("SECRET", "KEY", "TOKEN", "CREDENTIALS")
