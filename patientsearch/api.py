@@ -11,7 +11,6 @@ from flask import (
     send_from_directory,
 )
 from flask.json import JSONEncoder
-import click
 import jwt
 import requests
 from werkzeug.exceptions import Unauthorized, Forbidden
@@ -31,14 +30,7 @@ from patientsearch.models import (
 from patientsearch.extensions import oidc
 from patientsearch.jsonify_abort import jsonify_abort
 
-api_blueprint = Blueprint("patientsearch-api", __name__, cli_group=None)
-
-
-@api_blueprint.cli.command("justtesting", help="yes, need help")
-@click.argument("name", required=True)
-def justtesting(name):
-    click.echo(f"hello {name}")
-    audit_entry("in justtesting()")
+api_blueprint = Blueprint("patientsearch-api", __name__)
 
 
 @api_blueprint.route("/clear_session", methods=["GET"])
