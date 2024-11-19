@@ -1,13 +1,15 @@
 {
   "entry": [
     {
-      "birthDate": "1977-01-12",
-      "gender": "male",
-      "name": {
-        "family": "skywalker",
-        "given": ["luke"]
-      },
-      "resourceType": "Patient"
+      "resource": {
+        "birthDate": "1977-01-12",
+        "gender": "male",
+        "name": {
+          "family": "skywalker",
+          "given": ["luke"]
+        },
+        "resourceType": "Patient"
+      }
     }
   ],
   "resourceType": "Bundle",

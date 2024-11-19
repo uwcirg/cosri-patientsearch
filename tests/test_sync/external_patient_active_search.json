@@ -1,6 +1,7 @@
 {
-    "entry": [
-      {
+  "entry": [
+    {
+      "resource": {
         "active": true,
         "birthDate": "1977-01-12",
         "gender": "male",
@@ -10,8 +11,8 @@
         },
         "resourceType": "Patient"
       }
-    ],
-    "resourceType": "Bundle",
-    "type": "searchset"
-  }
-  
+    }
+  ],
+  "resourceType": "Bundle",
+  "type": "searchset"
+}
