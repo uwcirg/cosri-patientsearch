@@ -166,7 +166,9 @@ def sync_bundle(token, bundle, consider_active=False):
     for entry in bundle.get("entry"):
         # Restrict to what is expected for now
         if entry["resource"]["resourceType"] != "Patient":
-            raise ValueError(f"Can't sync resourceType {entry['resource']['resourceType']}")
+            raise ValueError(
+                f"Can't sync resourceType {entry['resource']['resourceType']}"
+            )
 
         patient = sync_patient(token, entry["resource"], consider_active)
         # TODO handle multiple external matches (if it ever happens!)
