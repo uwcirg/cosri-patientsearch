@@ -150,8 +150,8 @@ def test_adding_identifier(external_patient_search):
     result = add_identifier_to_resource_type(external_patient_search, "Patient", ident)
     assert result != external_patient_search
     for entry in result["entry"]:
-        assert len(entry["identifier"]) == 1
-        assert entry["identifier"][0] == ident
+        assert len(entry["resource"]["identifier"]) == 1
+        assert entry["resource"]["identifier"][0] == ident
 
 
 def test_existing(

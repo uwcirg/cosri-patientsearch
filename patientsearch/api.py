@@ -629,7 +629,9 @@ def external_search(resource_type):
         audit_entry("multiple patients returned from PDMP", extra=extra, level="warn")
 
     if external_match_count:
-        external_search_bundle["entry"][0].setdefault("id", local_fhir_patient["id"])
+        external_search_bundle["entry"][0]["resource"].setdefault(
+            "id", local_fhir_patient["id"]
+        )
 
     message = "PDMP found match" if external_match_count else "fEMR found match"
     audit_entry(message, extra=extra)
