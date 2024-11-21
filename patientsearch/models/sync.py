@@ -16,10 +16,11 @@ def add_identifier_to_resource_type(bundle, resource_type, identifier):
     if "entry" not in result:
         return result
 
-    for resource in result["entry"]:
-        if resource["resource"].get("resourceType") != resource_type:
+    for entry in result["entry"]:
+        resource = entry["resource"]
+        if resource.get("resourceType") != resource_type:
             continue
-        identifiers = resource["resource"].get("identifier", [])
+        identifiers = resource.get("identifier", [])
         found = False
         for i in identifiers:
             if (
@@ -30,7 +31,7 @@ def add_identifier_to_resource_type(bundle, resource_type, identifier):
                 break
         if not found:
             identifiers.append(identifier)
-            resource["resource"]["identifier"] = identifiers
+            resource["identifier"] = identifiers
     return result
 
 
@@ -164,13 +165,12 @@ def sync_bundle(token, bundle, consider_active=False):
         raise ValueError(f"Expected bundle; can't process {bundle.get('resourceType')}")
 
     for entry in bundle.get("entry"):
+        resource = entry["resource"]
         # Restrict to what is expected for now
-        if entry["resource"]["resourceType"] != "Patient":
-            raise ValueError(
-                f"Can't sync resourceType {entry['resource']['resourceType']}"
-            )
+        if resource["resourceType"] != "Patient":
+            raise ValueError(f"Can't sync resourceType {resource['resourceType']}")
 
-        patient = sync_patient(token, entry["resource"], consider_active)
+        patient = sync_patient(token, resource, consider_active)
         # TODO handle multiple external matches (if it ever happens!)
         # currently returning first
         return patient
