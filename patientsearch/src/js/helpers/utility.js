@@ -2,6 +2,7 @@ import differenceInMonths from "date-fns/differenceInMonths";
 import isValid from "date-fns/isValid";
 import {
   ACCESS_TOKEN_KEY,
+  MIN_QUERY_COUNT,
   REALM_ACCESS_TOKEN_KEY,
   noCacheParam,
 } from "../constants/consts";
@@ -541,7 +542,7 @@ export async function getPatientIdsByCareTeamParticipant(practitionerId) {
   if (!practitionerId) return null;
   const results = await Promise.allSettled([
     fetchData(
-      `/fhir/Patient?general-practitioner=Practitioner/${practitionerId}&_count=200`,
+      `/fhir/Patient?general-practitioner=Practitioner/${practitionerId}&_count=${MIN_QUERY_COUNT}`,
       noCacheParam,
       (error) => {
         if (error) {
@@ -554,7 +555,7 @@ export async function getPatientIdsByCareTeamParticipant(practitionerId) {
       }
     ),
     fetchData(
-      `/fhir/CareTeam?participant=Practitioner/${practitionerId}&_count=200`,
+      `/fhir/CareTeam?participant=Practitioner/${practitionerId}&_count=${MIN_QUERY_COUNT}`,
       noCacheParam,
       (error) => {
         if (error) {

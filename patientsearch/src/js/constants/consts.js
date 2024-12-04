@@ -154,3 +154,4 @@ export const ACCESS_TOKEN_KEY = "access_token";
 export const REALM_ACCESS_TOKEN_KEY = "realm_access";
 export const MAX_MAIN_TABLE_WIDTH = "1280px";
 export const FOLLOWING_FLAG = "following";
+export const MIN_QUERY_COUNT = 500;
