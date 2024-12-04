@@ -30,6 +30,6 @@ RUN pip install --requirement requirements.txt
 
 COPY . .
 
-CMD gunicorn --bind "0.0.0.0:${PORT:-8000}" 'patientsearch:create_app()'
+CMD flask upgrade && gunicorn --bind "0.0.0.0:${PORT:-8000}" 'patientsearch:create_app()'
 
 EXPOSE 8000
