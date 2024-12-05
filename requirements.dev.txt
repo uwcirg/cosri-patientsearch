@@ -23,9 +23,5 @@ pytest-flask==1.3.0
     # via patientsearch (setup.cfg)
 pytest-mock==3.14.0
     # via patientsearch (setup.cfg)
-python-json-logger==2.0.7
-    # via patientsearch (setup.cfg)
-requests==2.32.3
-    # via patientsearch (setup.cfg)
 tomli==2.0.1
     # via pytest
