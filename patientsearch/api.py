@@ -124,7 +124,7 @@ def home():
             "templates",
         ),
         "index.html",
-        cache_timeout=-1,
+        max_age=-1,
     )
 
 
@@ -658,7 +658,7 @@ def logout():
                 "templates",
             ),
             "logout.html",
-            cache_timeout=-1,
+            max_age=-1,
         )
     )
     resp.set_cookie(
@@ -690,7 +690,7 @@ def main():
             "templates",
         ),
         "home.html",
-        cache_timeout=-1,
+        max_age=-1,
     )
 
 
@@ -703,5 +703,5 @@ def target():
             "templates",
         ),
         "targetLaunch.html",
-        cache_timeout=-1,
+        max_age=-1,
     )
