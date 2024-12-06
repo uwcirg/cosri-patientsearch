@@ -134,8 +134,7 @@ else:
     )
 
 OIDC_ID_TOKEN_COOKIE_SECURE = False
-OIDC_REQUIRE_VERIFIED_EMAIL = False
-OIDC_SCOPES = ["email", "openid", "roles"]
+OIDC_SCOPES = "email openid roles"
 PROJECT_NAME = os.getenv("PROJECT_NAME", "COSRI")
 REQUIRED_ROLES = json.loads(os.getenv("REQUIRED_ROLES", "[]"))
 UDS_LAB_TYPES = json.loads(os.getenv("UDS_LAB_TYPES", "[]"))
