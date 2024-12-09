@@ -143,6 +143,8 @@ def user_info():
 @api_blueprint.route("/settings/<string:config_key>")
 def config_settings(config_key):
     """Non-secret application settings"""
+    raise ValueError("it's me1!!!!!!!!!!!!")
+    return jsonify({"message": "ok"})
 
     # workaround no JSON representation for datetime.timedelta
     class CustomJSONProvider(DefaultJSONProvider):
@@ -161,7 +163,7 @@ def config_settings(config_key):
                 jsonify_abort(
                     status_code=400, messag=f"Configuration key {key} not available"
                 )
-        return jsonify({key: current_app.config.get(key)})
+        return {key: current_app.config.get(key)}
 
     config_settings = {}
     for key in current_app.config:
@@ -170,7 +172,7 @@ def config_settings(config_key):
             continue
         config_settings[key] = current_app.config.get(key)
 
-    return jsonify(config_settings)
+    return config_settings
 
 
 @api_blueprint.route("/validate_token", methods=["GET"])
