@@ -6,14 +6,14 @@ from flask import (
     make_response,
     redirect,
     request,
-    safe_join,
     session,
     send_from_directory,
 )
-from flask.json import JSONEncoder
+import json
 import jwt
 import requests
 from werkzeug.exceptions import Unauthorized, Forbidden
+from werkzeug.utils import safe_join
 from copy import deepcopy
 
 from patientsearch.audit import audit_entry, audit_HAPI_change
@@ -124,7 +124,7 @@ def home():
             "templates",
         ),
         "index.html",
-        cache_timeout=-1,
+        max_age=-1,
     )
 
 
@@ -144,12 +144,13 @@ def user_info():
 def config_settings(config_key):
     """Non-secret application settings"""
 
-    # workaround no JSON representation for datetime.timedelta
-    class CustomJSONEncoder(JSONEncoder):
-        def default(self, obj):
+    # workaround no JSON representation for datetime.timedelta and others
+    def serialize(obj):
+        try:
+            json.dumps(obj)
+            return obj
+        except (TypeError, OverflowError):
             return str(obj)
-
-    current_app.json_encoder = CustomJSONEncoder
 
     # return selective keys - not all can be be viewed by users, e.g.secret key
     blacklist = ("SECRET", "KEY", "TOKEN", "CREDENTIALS")
@@ -161,14 +162,14 @@ def config_settings(config_key):
                 jsonify_abort(
                     status_code=400, messag=f"Configuration key {key} not available"
                 )
-        return jsonify({key: current_app.config.get(key)})
+        return jsonify({key: serialize(current_app.config.get(key))})
 
     config_settings = {}
     for key in current_app.config:
         matches = any(pattern for pattern in blacklist if pattern in key)
         if matches:
             continue
-        config_settings[key] = current_app.config.get(key)
+        config_settings[key] = serialize(current_app.config.get(key))
 
     return jsonify(config_settings)
 
@@ -658,7 +659,7 @@ def logout():
                 "templates",
             ),
             "logout.html",
-            cache_timeout=-1,
+            max_age=-1,
         )
     )
     resp.set_cookie(
@@ -690,7 +691,7 @@ def main():
             "templates",
         ),
         "home.html",
-        cache_timeout=-1,
+        max_age=-1,
     )
 
 
@@ -703,5 +704,5 @@ def target():
             "templates",
         ),
         "targetLaunch.html",
-        cache_timeout=-1,
+        max_age=-1,
     )
