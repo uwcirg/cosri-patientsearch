@@ -9,7 +9,7 @@ from flask import (
     session,
     send_from_directory,
 )
-from flask.json.provider import DefaultJSONProvider
+import json
 import jwt
 import requests
 from werkzeug.exceptions import Unauthorized, Forbidden
@@ -144,12 +144,14 @@ def user_info():
 def config_settings(config_key):
     """Non-secret application settings"""
 
-    # workaround no JSON representation for datetime.timedelta
-    class CustomJSONProvider(DefaultJSONProvider):
-        def default(self, obj):
+    # workaround no JSON representation for datetime.timedelta and others
+    def serialize(obj):
+        try:
+            json.dumps(obj)
+            return obj
+        except (TypeError, OverflowError):
             return str(obj)
 
-    current_app.json = CustomJSONProvider
 
     # return selective keys - not all can be be viewed by users, e.g.secret key
     blacklist = ("SECRET", "KEY", "TOKEN", "CREDENTIALS")
@@ -161,14 +163,14 @@ def config_settings(config_key):
                 jsonify_abort(
                     status_code=400, messag=f"Configuration key {key} not available"
                 )
-        return jsonify({key: current_app.config.get(key)})
+        return jsonify({key: serialize(current_app.config.get(key))})
 
     config_settings = {}
     for key in current_app.config:
         matches = any(pattern for pattern in blacklist if pattern in key)
         if matches:
             continue
-        config_settings[key] = current_app.config.get(key)
+        config_settings[key] = serialize(current_app.config.get(key))
 
     return jsonify(config_settings)
 
