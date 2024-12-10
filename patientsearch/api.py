@@ -152,7 +152,6 @@ def config_settings(config_key):
         except (TypeError, OverflowError):
             return str(obj)
 
-
     # return selective keys - not all can be be viewed by users, e.g.secret key
     blacklist = ("SECRET", "KEY", "TOKEN", "CREDENTIALS")
 
