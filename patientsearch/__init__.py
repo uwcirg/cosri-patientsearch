@@ -4,6 +4,7 @@ import logging
 from logging import config as logging_config
 import os
 
+from fhir_migrations import commands as migration_commands
 from patientsearch.api import api_blueprint
 from patientsearch.audit import audit_entry, audit_log_init
 from patientsearch.extensions import oidc
@@ -46,6 +47,7 @@ def create_app(testing=False):
     configure_logging(app)
     oidc.init_app(app)
     app.register_blueprint(api_blueprint)
+    app.register_blueprint(migration_commands.migration_blueprint)
     return app
 
 
@@ -60,7 +62,7 @@ def configure_logging(app):
         extra={"tags": ["testing", "logging", "app"]},
     )
 
-    if not app.config["LOGSERVER_URL"]:
+    if not app.config["LOGSERVER_URL"] or not app.config["LOGSERVER_TOKEN"]:
         return
 
     audit_log_init(app)

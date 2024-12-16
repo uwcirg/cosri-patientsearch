@@ -21,7 +21,10 @@ const useStyles = makeStyles((theme) => ({
 export default function ErrorMessage(props) {
   const classes = useStyles();
   return (
-    <div className={classes.root} style={props.style}>
+    <div
+      className={classes.root}
+      style={{ ...props.style, display: props.message ? "block" : "none" }}
+    >
       <Alert severity="error" message={props.message}></Alert>
     </div>
   );

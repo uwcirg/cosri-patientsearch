@@ -1,9 +1,12 @@
 $color-blue: #00838f;
 $color-blue-light: #46777f;
 $color-success: green;
-$color-muted: #777;
+$color-warning: #9a4d0d;
+$color-less-muted: rgba(0, 0, 0, 0.8);
+$color-muted: rgba(0, 0, 0, 0.54);
 $color-muter: rgba(165, 158, 158, 0.64);
 $color-error: #c91616;
+$color-label: #525050;
 $input-icon-color: #686b6b;
 $base-font-size: 16px;
 $small-font-size: 14px;
@@ -17,6 +20,16 @@ body {
 html {
   scroll-behavior: smooth;
 }
+.container {
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 16px;
+  margin-top: 148px;
+}
+.content-container {
+  margin-top: 138px;
+  padding: 24px;
+}
 .app-error-container {
   padding: 24px;
   .error {
@@ -25,13 +38,60 @@ html {
   }
   .buttons-container {
     margin-top: 24px;
+    justify-content: flex-start;
   }
+}
+.table {
+  min-width: 320px;
+  max-width: 100%;
+}
+.bottom-gap {
+  margin-bottom: 8px;
+}
+.bottom-gap-2x {
+  margin-bottom: 16px;
+}
+.flex {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+.flex-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.notice {
+  margin-top: 24px;
+  margin-bottom: 24px;
+  line-height: 1.7;
+}
+.flex-align-start {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
 }
 .success {
   color: $color-success;
 }
 .muted {
   color: $color-muted;
+}
+.warning {
+  color: $color-warning;
+}
+.muted-text {
+  color: $color-muted;
+}
+.text-right {
+  text-align: right;
 }
 .invisible {
   visibility: hidden;
@@ -42,6 +102,19 @@ html {
   width: 0;
   height: 0;
   overflow: hidden;
+}
+.action-button {
+  padding: 8px 16px 8px;
+  color: #FFF;
+  font-size: 12px;
+  border-radius: 4px;
+  font-weight: 600;
+  text-transform: uppercase;
+  border: 0;
+  box-shadow: none;
+  &.disabled {
+    background-color: #777;
+  }
 }
 .landing {
   display: flex;
@@ -95,77 +168,19 @@ html {
 img[disabled] {
   display: none;
 }
-.MuiTypography-h6 {
-  font-size: 1.02rem !important;
-}
-.MuiTableCell-body {
-  .MuiTypography-h6 {
-    width: 100%;
-    max-width: 100%;
-  }
-}
-@media (min-width: 699px) {
-  .MuiTableCell-body {
-    .MuiTypography-h6 {
-      width: 448px;
-      max-width: 100%;
-    }
-  }
-}
-#patientList tr:empty {
+tr:empty {
   height: 0 !important;
 }
-#rowMenu {
-  .MuiMenu-list {
-    padding-top: 32px;
-    padding-bottom: 8px;
-  }
+td:empty {
+  padding: 0;
+  margin: 0;
 }
-.menu-icon {
-  margin-left: 8px;
-}
-#dropdownMenu {
-  overflow: hidden;
-}
-
-.muted-text {
-  color: $color-muted;
-}
-.text-right {
-  text-align: right;
-}
-.warning-modal-body {
+.buttons-container {
   display: flex;
-  width: 100%;
-  height: 100%;
+  margin-top: 16px;
   justify-content: center;
-  align-items: center;
-  flex-direction: column;
-}
-.warning-modal-content {
-  background: #FFF;
-  padding-left: 16px;
-  padding-right: 16px;
-  padding-bottom: 16px;
-  border: 2px solid #c37707;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-direction: column;
-}
-#timeout-modal-description {
-  .buttons-container {
-      display: flex;
-      margin-top: 16px;
-      justify-content: center;
-      button {
-          margin: 8px;
-      }
-  }
-}
-.icon-container {
-  svg {
-    fill: $color-blue;
+  button {
+      margin: 8px;
   }
 }
 
@@ -190,6 +205,114 @@ button.disabled:focus,
     color: #FFF;
   }
 }
+.MuiTypography-h6 {
+  font-size: 1.02rem !important;
+}
+.MuiTableCell-body {
+  .MuiTypography-h6 {
+    width: 100%;
+    max-width: 100%;
+  }
+}
+@media (min-width: 699px) {
+  .MuiTableCell-body {
+    .MuiTypography-h6 {
+      width: 448px;
+      max-width: 100%;
+    }
+  }
+}
+/* Make both ascending and descending sort arrows always visible */
+//.MuiTableSortLabel-iconDirectionAsc ascending class
+//.MuiTableSortLabel-iconDirectionDesc descending class
+
+.MuiTableSortLabel-icon {
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform: none !important;
+  svg {
+    opacity: 0.6;
+    &:hover {
+      opacity: 1 !important;
+    }
+    &:first-of-type {
+      position: relative;
+      top: 8px;
+    }
+    &:last-of-type {
+      position: relative;
+      top: -8px;
+    }
+  }
+}
+.MuiTableSortLabel-root {
+  &:hover {
+    opacity: 1 !important;
+    color: #444 !important;
+  }
+}
+.MuiTableSortLabel-root.MuiTableSortLabel-active {
+  .MuiTableSortLabel-iconDirectionAsc {
+    .up {
+      fill: $color-muter !important;
+    }
+    .down {
+      fill: $color-less-muted !important;
+    }
+
+  }
+  .MuiTableSortLabel-iconDirectionDesc {
+    .down {
+      fill: $color-muter !important;
+    }
+    .up {
+      fill: $color-less-muted !important;
+    }
+  }
+}
+
+#patientList {
+  input,
+  .MuiInputLabel-formControl {
+    font-size: $small-font-size;
+  }
+  .main {
+    tbody {
+      tr {
+        position: relative;
+        &:hover {
+          filter: brightness(0.99);
+        }
+        td:has(.action-button) {
+          min-width: 96px;
+        }
+      }
+    }
+  }
+  table {
+    position: relative;
+    overflow: hidden;
+  }
+}
+#patientListPagination {
+  .MuiSelect-root {
+    min-width: 32px;
+  }
+  .MuiSelect-icon {
+    right: 20px;
+  }
+  .MuiSelect-select.MuiSelect-select {
+    padding-right: 4px !important;
+  }
+}
+
+/*
+ * hide the Lage Page arrow on patient list table
+ */
+.MuiTableRow-footer [title='Last Page'] {
+  display: none !important;
+}
+
 .spinner {
   position: fixed;
   left: 0;
@@ -258,52 +381,6 @@ button.disabled:focus,
   animation-delay: -0.16s;
 }
 
-#patientList {
-  input,
-  .MuiInputLabel-formControl {
-    font-size: $small-font-size;
-  }
-  .main {
-    tr {
-      td:last-child {
-        min-width: 96px;
-      }
-    }
-  }
-  table {
-    position: relative;
-    overflow: hidden;
-  }
-}
-#patientListPagination {
-  .MuiSelect-root {
-    min-width: 32px;
-  }
-  .MuiSelect-icon {
-    right: 20px;
-  }
-  .MuiSelect-select.MuiSelect-select {
-    padding-right: 4px !important;
-  }
-}
-#toolbarGoButton {
-  text-align: center;
-  padding-left: 8px;
-  padding-right: 8px;
-  min-width: 80px;
-  button {
-    padding: 4px 16px;
-    min-width: 120px;
-  }
-}
-
-/*
- * hide the Lage Page arrow on patient list table
- */
-.MuiTableRow-footer [title='Last Page'] {
-  display: none !important;
-}
-
 /*
  * table mobile styling
  */
@@ -317,18 +394,50 @@ only screen and (max-width: 736px),
 		display: block;
 	}
 
-  #patientList {
-    margin-top: 24px;
+  header + #patientList {
+    margin-top: 140px;
   }
 
-	/* Hide table headers (but not display: none;, for accessibility) */
-	thead tr {
-		position: absolute;
-		top: -9999px;
-		left: -9999px;
-	}
+  #patientList tbody td [dataColumn]:before {
+    content: attr(dataColumn);
+    display: inline-block;
+    margin-right: 12px;
+    font-weight: 400;
+    color: $color-label;
+    font-size: 0.8rem;
+  }
 
-	//tr { border: 1px solid #ccc; }
+  thead {
+    padding: 8px;
+    tr {
+      display: block !important;
+      border-bottom: 2px solid $color-muter;
+      padding-bottom: 24px;
+      &:before {
+        content: "Sort by";
+        padding: 16px 16px 8px;
+        font-weight: 500;
+        color: $color-label;
+        display: block;
+        font-size: 0.85rem;
+      }
+    }
+    th {
+      display: block !important;
+      background-color: #FFF !important;
+      width: 80% !important;
+      margin: auto;
+      &.MuiTableCell-paddingCheckbox {
+        padding: 0 !important;
+        line-height: 0 !important;
+        border-bottom: 0;
+      }
+      &:empty {
+        padding: 0 !important;
+        border-bottom: 0;
+      }
+    }
+  }
 
   tbody tr {
     min-height: 280px;
@@ -375,15 +484,7 @@ only screen and (max-width: 736px),
 	/*
 	Label the data
 	*/
-	#patientList tbody td:nth-of-type(1):not(:last-of-type):before { content: "First Name"; }
-	#patientList tbody td:nth-of-type(2):before { content: "Last Name"; }
-	#patientList tbody td:nth-of-type(3):before { content: "Birth Date"; }
-  #patientList body td:not(:empty):nth-of-type(4):before { content: "Last updated";  text-align: left !important}
-  .history-table tbody td:nth-of-type(1):not(:last-of-type):before { content: "History" !important; top: 0}
-	.history-table tbody td:nth-of-type(2):before { content: "" !important; }
-	.history-table tbody td:nth-of-type(3):before { content: "" !important; }
-  .history-table body td:not(:empty):nth-of-type(4):before { content: "" !important;}
-  tbody td:not(:empty):nth-of-type(4) { text-align: left !important}
+  #patientList tbody td { font-weight: 500 !important; }
   tfoot .MuiTablePagination-toolbar {
     display: flex;
     flex-direction: column;

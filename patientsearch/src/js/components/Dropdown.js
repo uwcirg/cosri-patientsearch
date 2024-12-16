@@ -1,6 +1,6 @@
 import React from "react";
 import PropTypes from "prop-types";
-import { makeStyles, styled} from "@material-ui/core/styles";
+import { makeStyles, styled } from "@material-ui/core/styles";
 import AddCircleOutlineIcon from "@material-ui/icons/AddCircleOutline";
 import Button from "@material-ui/core/Button";
 import ListItemIcon from "@material-ui/core/ListItemIcon";
@@ -43,9 +43,11 @@ export default function Dropdown(props) {
     "& .MuiPaper-root": {
       borderRadius: 0,
       marginTop: theme.spacing(3),
+      overflow: "hidden",
       minWidth: 180,
       "& .MuiMenu-list": {
         padding: "32px 0 8px",
+        overflow: "hidden"
       },
       "& .MuiMenuItem-root": {
         paddingBottom: theme.spacing(0.5),
@@ -70,6 +72,10 @@ export default function Dropdown(props) {
     if (props.handleMenuSelect) props.handleMenuSelect(event);
     handleMenuClose(event);
   };
+
+  const menuItems = props.menuItems ? props.menuItems : null;
+
+  if (!menuItems) return null;
 
   return (
     <StyledMenu
@@ -96,15 +102,16 @@ export default function Dropdown(props) {
           X
         </Button>
       </div>
-      {props.menuItems.map((item, index) => {
+      {menuItems.map((item, index) => {
         return (
           <MenuItem
             key={`menuItem${index}`}
             onClick={(event) => handleMenuSelect(event)}
             dense
+            datatopic={item.id}
           >
             <ListItemIcon className={classes.menuIcon} datatopic={item.id}>
-              <AddCircleOutlineIcon fontSize="small" />
+              <AddCircleOutlineIcon fontSize="small"/>
             </ListItemIcon>
             <Typography variant="subtitle2" datatopic={item.id}>
               {item.text}

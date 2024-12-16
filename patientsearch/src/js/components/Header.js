@@ -1,16 +1,23 @@
 import React from "react";
 import { makeStyles } from "@material-ui/core/styles";
+import ClickAwayListener from "@material-ui/core/ClickAwayListener";
+import ExitToAppIcon from "@material-ui/icons/ExitToApp";
+import HowToRegIcon from "@material-ui/icons/HowToReg";
+import MenuIcon from "@material-ui/icons/Menu";
 import AppBar from "@material-ui/core/AppBar";
+import Button from "@material-ui/core/Button";
 import Avatar from "@material-ui/core/Avatar";
 import Box from "@material-ui/core/Box";
-import ExitToAppIcon from "@material-ui/icons/ExitToApp";
+import Fade from "@material-ui/core/Fade";
 import Link from "@material-ui/core/Link";
-import HowToRegIcon from "@material-ui/icons/HowToReg";
+import Popper from "@material-ui/core/Popper";
+import Paper from "@material-ui/core/Paper";
 import Toolbar from "@material-ui/core/Toolbar";
 import Typography from "@material-ui/core/Typography";
 import SiteLogo from "./SiteLogo";
-import { imageOK, sendRequest, setDocumentTitle, setFavicon } from "../helpers/utility";
+import { imageOK, setDocumentTitle, setFavicon } from "../helpers/utility";
 import { useSettingContext } from "../context/SettingContextProvider";
+import { useUserContext } from "../context/UserContextProvider";
 
 const useStyles = makeStyles((theme) => ({
   toolbar: {
@@ -52,6 +59,24 @@ const useStyles = makeStyles((theme) => ({
     alignItems: "center",
     marginRight: theme.spacing(4),
     marginLeft: theme.spacing(4),
+    [theme.breakpoints.down("sm")]: {
+      display: "none",
+    },
+  },
+  mobileWelcomeContainer: {
+    display: "flex",
+    position: "relative",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: theme.spacing(4),
+    marginLeft: theme.spacing(4),
+    [theme.breakpoints.up("md")]: {
+      display: "none",
+    },
+  },
+  menuContainer: {
+    padding: theme.spacing(2),
   },
   welcomeText: {
     marginTop: theme.spacing(0.5),
@@ -96,15 +121,15 @@ const useStyles = makeStyles((theme) => ({
 
 export default function Header() {
   const classes = useStyles();
-  const [userInfo, setUserInfo] = React.useState();
-  const [authorized, setAuthorized] = React.useState(false);
+  const appSettings = useSettingContext().appSettings;
+  const { user: userInfo, error: userError } = useUserContext();
   const [appTitle, setAppTitle] = React.useState("");
   const [projectName, setProjectName] = React.useState("");
+  const [anchorEl, setAnchorEl] = React.useState(null);
+  const [openPopper, setOpenPopper] = React.useState(false);
   const hasUserInfo = () => {
     return userInfo && (userInfo.name || userInfo.email);
   };
-  const appSettings = useSettingContext().appSettings;
-
   const getLogoURL = () => {
     if (!projectName) return "";
     return `/static/app/img/${projectName}_logo.png`;
@@ -133,29 +158,56 @@ export default function Header() {
     }
   };
 
-  React.useEffect(() => {
-    /*
-     * get logged in user information for displaying purpose
-     */
-    sendRequest("./user_info").then(
-      (response) => {
-        let info = null;
-        try {
-          info = JSON.parse(response);
-        } catch (e) {
-          console.log("error parsing data ", e);
-        }
-        if (info) {
-          setUserInfo(info);
-        }
-        setAuthorized(true);
-      },
-      (error) => {
-        if (error.status === 401) setAuthorized(false);
-        console.log("Failed to retrieve data", error.statusText);
-      }
-    );
-  }, []);
+  const handleClickAway = () => {
+    setOpenPopper(false);
+  };
+
+  const handleHambagaMenuClick = (event) => {
+    setAnchorEl(event.currentTarget);
+    setOpenPopper((prev) => !prev);
+  };
+
+  const renderLogoutComponent = () => (
+    <div className={classes.buttonContainer}>
+      <Link
+        className={classes.linkText}
+        color="secondary"
+        variant="body1"
+        href={logoutURL}
+      >
+        Logout
+      </Link>
+      <Link color="secondary" variant="body1" href={logoutURL}>
+        <ExitToAppIcon
+          color="secondary"
+          fontSize="medium"
+          className={classes.linkIcon}
+        ></ExitToAppIcon>
+      </Link>
+    </div>
+  );
+
+  const renderUserInfoComponent = () => (
+    <div>
+      <Typography
+        component="h6"
+        variant="h6"
+        color="textPrimary"
+        noWrap
+        className={classes.welcomeText}
+      >
+        <Avatar className={classes.avatar}>
+          <HowToRegIcon />
+        </Avatar>
+        <span className={classes.avatarText}>Welcome</span>
+        {hasUserInfo() && (
+          <span className={classes.userinfo}>
+            {userInfo.name || userInfo.email}
+          </span>
+        )}
+      </Typography>
+    </div>
+  );
 
   React.useLayoutEffect(() => {
     if (appSettings) {
@@ -163,10 +215,13 @@ export default function Header() {
         setAppTitle(appSettings["APPLICATION_TITLE"]);
       if (appSettings["PROJECT_NAME"]) {
         setProjectName(appSettings["PROJECT_NAME"]);
-        setDocumentTitle(`${appSettings["PROJECT_NAME"]} Patient Search`);
+        setDocumentTitle(
+          `${appSettings["PROJECT_NAME"]} ${appSettings["SEARCH_TITLE_TEXT"]}`
+        );
         setFavicon(`/static/${appSettings["PROJECT_NAME"]}_favicon.ico`);
       }
     }
+    window.addEventListener("resize", () => setOpenPopper(false));
   }, [appSettings]);
 
   const logoutURL = "/logout?user_initiated=true";
@@ -174,61 +229,64 @@ export default function Header() {
   return (
     <AppBar position="absolute" className={classes.appBar}>
       <Toolbar className={classes.topBar} disableGutters variant="dense">
-        <img src={getLogoURL()} alt="Logo" className={classes.logo} onLoad={handleImageLoaded} onError={handleImageLoadError}/>
+        <img
+          src={getLogoURL()}
+          alt="Logo"
+          className={classes.logo}
+          onLoad={handleImageLoaded}
+          onError={handleImageLoadError}
+        />
         <SiteLogo />
-        {authorized && (
+        {!userError && (
           <Box className={classes.welcomeContainer}>
-            <div>
-              <Typography
-                component="h6"
-                variant="h6"
-                color="textPrimary"
-                noWrap
-                className={classes.welcomeText}
-              >
-                <Avatar className={classes.avatar}>
-                  <HowToRegIcon />
-                </Avatar>
-                <span className={classes.avatarText}>Welcome</span>
-                {hasUserInfo() && (
-                  <span className={classes.userinfo}>
-                    {userInfo.name || userInfo.email}
-                  </span>
-                )}
-              </Typography>
-            </div>
-            <div className={classes.buttonContainer}>
-              <Link
-                className={classes.linkText}
-                color="secondary"
-                variant="body1"
-                href={logoutURL}
-              >
-                Logout
-              </Link>
-              <Link color="secondary" variant="body1" href={logoutURL}>
-                <ExitToAppIcon
-                  color="secondary"
-                  fontSize="medium"
-                  className={classes.linkIcon}
-                ></ExitToAppIcon>
-              </Link>
-            </div>
+            {renderUserInfoComponent()}
+            {hasUserInfo() && renderLogoutComponent()}
           </Box>
         )}
+        {!userError && (
+          <ClickAwayListener onClickAway={handleClickAway}>
+            <Box className={classes.mobileWelcomeContainer}>
+              <Button onClick={handleHambagaMenuClick}>
+                <MenuIcon fontSize="large"></MenuIcon>
+              </Button>
+              <Popper
+                open={openPopper}
+                anchorEl={anchorEl}
+                placement={"bottom-start"}
+                transition
+                style={{ zIndex: 100000 }}
+              >
+                {({ TransitionProps }) => (
+                  <Fade {...TransitionProps} timeout={350}>
+                    <Paper
+                      className={classes.menuContainer}
+                      variant="outlined"
+                      square={true}
+                    >
+                      {renderUserInfoComponent()}
+                      {hasUserInfo() && renderLogoutComponent()}
+                    </Paper>
+                  </Fade>
+                )}
+              </Popper>
+            </Box>
+          </ClickAwayListener>
+        )}
       </Toolbar>
-      {appTitle && <Toolbar className={classes.toolbar} disableGutters variant="dense">
-        <Typography
-          component="h1"
-          variant="h5"
-          color="inherit"
-          noWrap
-          className={classes.title}
-          align="center"
-        >
-          {appTitle}
-        </Typography>
-      </Toolbar>}
+      {appTitle && (
+        <Toolbar className={classes.toolbar} disableGutters variant="dense">
+          <Typography
+            component="h1"
+            variant="h5"
+            color="inherit"
+            noWrap
+            className={classes.title}
+            align="center"
+          >
+            {appTitle}
+          </Typography>
+        </Toolbar>
+      )}
     </AppBar>
   );
 }

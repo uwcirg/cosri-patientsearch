@@ -21,25 +21,25 @@ export default function SystemBanner(props) {
   const appSettings = props.appSettings
     ? props.appSettings
     : settingsCtx.appSettings; //provide default if none provided
-  function getSystemType() {
+  const getSystemType = () => {
     if (props.systemType) return props.systemType;
-    if (!Object.keys(appSettings)) return "";
+    if (!appSettings || !Object.keys(appSettings).length) return null;
     return appSettings[SYSTEM_TYPE_STRING];
-  }
-  function isNonProduction() {
+  };
+  const isNonProduction = () => {
     let systemType = getSystemType();
     return systemType && String(systemType.toLowerCase()) !== "production";
-  }
+  };
+  const isNotProd = isNonProduction();
+  if (!isNotProd) return null;
   return (
     /* display system type for non-production instances */
     <div className={classes.container}>
-      {isNonProduction() && (
-        <span>{getSystemType()} version - not for clinical use</span>
-      )}
+      <span>{getSystemType()} version - not for clinical use</span>
     </div>
   );
 }
 SystemBanner.propTypes = {
   systemType: PropTypes.string,
-  appSettings: PropTypes.object
+  appSettings: PropTypes.object,
 };

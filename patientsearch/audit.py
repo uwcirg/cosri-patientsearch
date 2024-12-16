@@ -2,6 +2,7 @@
 
 functions to simplify adding context and extra data to log messages destined for audit logs
 """
+
 from flask import current_app, has_app_context
 import logging
 
@@ -45,9 +46,8 @@ def audit_HAPI_change(
 
     if rt == "Patient":
         extra["patient"] = {"subject.id": resource_id}
-    elif resource:
+    if resource:
         extra["resource"] = resource
-
     if params:
         extra["params"] = params
     audit_entry(message=msg, extra=extra)

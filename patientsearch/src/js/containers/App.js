@@ -2,7 +2,7 @@ import "core-js/stable";
 import "regenerator-runtime/runtime";
 import React, { Component } from "react";
 import Layout from "../layout/Layout";
-import PatientListTable from "../components/PatientListTable";
+import PatientListTable from "../components/patientList/main";
 import TimeoutModal from "../components/TimeoutModal";
 import Version from "../components/Version";
 

@@ -11,8 +11,8 @@ const NodePolyfillPlugin = require("node-polyfill-webpack-plugin");
 const appTitle = "Patient Search";
 const templateFilePath = path.join(__dirname, "/patientsearch/src/index.html");
 
-module.exports = function (_env, argv) {
-  const isProduction = argv.mode === "production";
+module.exports = (env) => {
+  const isProduction = !!env.production;
   const isDevelopment = !isProduction;
   /*
    * output to static file for ease of development
@@ -30,6 +30,8 @@ module.exports = function (_env, argv) {
         stream: require.resolve("stream-browserify"),
       },
     },
+    devtool: "nosources-cheap-source-map",
+    mode: isDevelopment?"development":"production",
     entry: {
       index: [
         "whatwg-fetch",
@@ -123,6 +125,12 @@ module.exports = function (_env, argv) {
         template: templateFilePath,
         filename: path.join(__dirname, `${templateDirectory}/logout.html`),
         chunks: ["logout"],
+      }),
+      new HtmlWebpackPlugin({
+        title: appTitle,
+        template: templateFilePath,
+        filename: path.join(__dirname, `${templateDirectory}/targetLaunch.html`),
+        chunks: ["targetLaunch"]
       }),
       new webpack.ProvidePlugin({
         React: "react",

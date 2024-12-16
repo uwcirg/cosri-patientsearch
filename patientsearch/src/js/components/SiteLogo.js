@@ -19,12 +19,12 @@ export default function SiteLogo(props) {
     ? props.appSettings
     : settingsCtx.appSettings; //provide default if none provided
   const SITE_ID_STRING = "SITE_ID";
-  function getSiteId() {
+  const getSiteId = () => {
     if (props.siteID) return props.siteID;
     if (!Object.keys(appSettings)) return "";
     return appSettings[SITE_ID_STRING];
-  }
-  function handleImageLoaded(e) {
+  };
+  const handleImageLoaded = (e) => {
     if (!e.target) {
       return false;
     }
@@ -37,8 +37,8 @@ export default function SiteLogo(props) {
     if (defaultLogoImage) {
       defaultLogoImage.setAttribute("disabled", true);
     }
-  }
-  function handleImageLoadError(e) {
+  };
+  const handleImageLoadError = (e) => {
     if (!e.target) {
       return false;
     }
@@ -47,7 +47,7 @@ export default function SiteLogo(props) {
       e.target.setAttribute("disabled", true);
       return;
     }
-  }
+  };
   const getSiteImagePath = () => {
     return "/static/" + getSiteId() + "/img/logo.png";
   };
@@ -66,5 +66,5 @@ export default function SiteLogo(props) {
 }
 SiteLogo.propTypes = {
   siteID: PropTypes.string,
-  appSettings: PropTypes.object
+  appSettings: PropTypes.object,
 };

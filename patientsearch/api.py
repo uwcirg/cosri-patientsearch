@@ -14,6 +14,7 @@ from flask.json import JSONEncoder
 import jwt
 import requests
 from werkzeug.exceptions import Unauthorized, Forbidden
+from copy import deepcopy
 
 from patientsearch.audit import audit_entry, audit_HAPI_change
 from patientsearch.models import (
@@ -22,7 +23,9 @@ from patientsearch.models import (
     add_identifier_to_resource_type,
     external_request,
     internal_patient_search,
+    new_resource_hook,
     sync_bundle,
+    restore_patient,
 )
 from patientsearch.extensions import oidc
 from patientsearch.jsonify_abort import jsonify_abort
@@ -240,13 +243,23 @@ def resource_bundle(resource_type):
 
     """
     token = validate_auth()
+    # Check for the store's configurations
+    active_patient_flag = current_app.config.get("ACTIVE_PATIENT_FLAG")
+    params = dict(deepcopy(request.args))
+
+    # Override if the search is specifically for inactive objects
+    if request.args.get("inactive_search") in {"true", "1"}:
+        del params["inactive_search"]
+    elif active_patient_flag and resource_type == "Patient":
+        params["active"] = "true"
+
     try:
         return jsonify(
             HAPI_request(
                 token=token,
                 method="GET",
                 resource_type=resource_type,
-                params=request.args,
+                params=params,
             )
         )
     except (RuntimeError, ValueError) as error:
@@ -265,6 +278,9 @@ def post_resource(resource_type):
 
     """
     token = validate_auth()
+    # Check for the store's configurations
+    active_patient_flag = current_app.config.get("ACTIVE_PATIENT_FLAG")
+
     try:
         resource = request.get_json()
         if not resource:
@@ -275,7 +291,12 @@ def post_resource(resource_type):
                 f"{resource['resourceType']} != {resource_type}"
             )
 
+        resource = new_resource_hook(resource)
         method = request.method
+        if active_patient_flag and resource_type == "Patient":
+            # Ensure it is an active patient
+            resource["active"] = True
+
         audit_HAPI_change(
             user_info=current_user_info(token),
             method=method,
@@ -296,7 +317,9 @@ def post_resource(resource_type):
         return jsonify_abort(status_code=400, message=str(error))
 
 
-@api_blueprint.route("/fhir/<string:resource_type>/<int:resource_id>", methods=["PUT"])
+@api_blueprint.route(
+    "/fhir/<string:resource_type>/<string:resource_id>", methods=["PUT"]
+)
 def update_resource_by_id(resource_type, resource_id):
     """Update individual resource within HAPI; return JSON result
 
@@ -307,9 +330,52 @@ def update_resource_by_id(resource_type, resource_id):
     redirect.  Client should watch for 401 and redirect appropriately.
     """
     token = validate_auth()
+    # Check for the store's configurations
+    active_patient_flag = current_app.config.get("ACTIVE_PATIENT_FLAG")
+    params = dict(deepcopy(request.args))  # Necessary on ImmutableMultiDict
+    resource = request.get_json()
+
+    # This portion of code is only invoked when restoring a patient
+    # and returns 500 error if patient's phone number is already in use
+    if resource_type == "Patient" and active_patient_flag:
+        try:
+            # Get our patient in order to access his phone number
+            patient = HAPI_request(
+                method="GET",
+                resource_type=resource_type,
+                token=token,
+                resource_id=resource_id,
+            )
+            telecom = patient.get("telecom")
+            if telecom:
+                # Assuming there is one telecom, looking for phone number among active patients
+                telecom_entry = telecom[0]
+                telecom_value = telecom_entry.get("value")
+                params = {
+                    "telecom": telecom_value,
+                    "active": "true",
+                }
+
+                duplicates = HAPI_request(
+                    token=token,
+                    method="GET",
+                    resource_type=resource_type,
+                    params=params,
+                )
+
+                # Raise a 500 error if active patients with the same phone number have been found
+                if duplicates["total"] > 0:
+                    first = duplicates["entry"][0]["resource"]["name"][0]["given"][0]
+                    last = duplicates["entry"][0]["resource"]["name"][0]["family"]
+                    error_message = f"""The account can't be restored because
+                        it's phone number, {telecom_value} is now used by another
+                        account {first} {last}"""
+                    raise RuntimeError(error_message)
+
+        except (RuntimeError, ValueError) as error:
+            return jsonify_abort(status_code=500, message=str(error))
 
     try:
-        resource = request.get_json()
         if not resource:
             return jsonify_abort(
                 status_code=400,
@@ -333,6 +399,9 @@ def update_resource_by_id(resource_type, resource_id):
             else:
                 ignorable_id_increment_audit = True
             resource["identifier"] = identifiers
+            if active_patient_flag:
+                # Ensure it is an active patient
+                resource["active"] = True
 
         method = "PUT"
         if not ignorable_id_increment_audit:
@@ -352,12 +421,13 @@ def update_resource_by_id(resource_type, resource_id):
                 token=token,
             )
         )
+
     except (RuntimeError, ValueError) as error:
         return jsonify_abort(status_code=400, message=str(error))
 
 
 @api_blueprint.route(
-    "/fhir/<string:resource_type>/<int:resource_id>", methods=["DELETE"]
+    "/fhir/<string:resource_type>/<string:resource_id>", methods=["DELETE"]
 )
 def delete_resource_by_id(resource_type, resource_id):
     """Delete individual resource from HAPI; return JSON result
@@ -387,7 +457,9 @@ def delete_resource_by_id(resource_type, resource_id):
         return jsonify_abort(status_code=400, message=str(error))
 
 
-@api_blueprint.route("/fhir/<string:resource_type>/<int:resource_id>", methods=["GET"])
+@api_blueprint.route(
+    "/fhir/<string:resource_type>/<string:resource_id>", methods=["GET"]
+)
 def resource_by_id(resource_type, resource_id):
     """Query HAPI for individual resource; return JSON FHIR Resource
 
@@ -457,10 +529,21 @@ def external_search(resource_type):
 
     """
     token = validate_auth()
+    active_patient_flag = current_app.config.get("ACTIVE_PATIENT_FLAG")
+    reactivate_patient = current_app.config.get("REACTIVATE_PATIENT")
+    only_create_patient_if_found_external = current_app.config.get(
+        "ONLY_CREATE_PATIENT_IF_FOUND_EXTERNAL"
+    )
+
+    params = dict(deepcopy(request.args))  # Necessary on ImmutableMultiDict
+    if active_patient_flag and resource_type == "Patient":
+        # Only consider active external patients
+        params["active"] = "true"
+
     # Tag any matching results with identifier naming source
     try:
         external_search_bundle = add_identifier_to_resource_type(
-            bundle=external_request(token, resource_type, request.args),
+            bundle=external_request(token, resource_type, params),
             resource_type=resource_type,
             identifier={
                 "system": "https://github.com/uwcirg/script-fhir-facade",
@@ -485,7 +568,9 @@ def external_search(resource_type):
     if external_match_count:
         # Merge result details with internal resources
         try:
-            local_fhir_patient = sync_bundle(token, external_search_bundle)
+            local_fhir_patient = sync_bundle(
+                token, external_search_bundle, active_patient_flag
+            )
         except ValueError:
             return jsonify_abort(message="Error in local sync", status_code=400)
         if local_fhir_patient:
@@ -494,12 +579,18 @@ def external_search(resource_type):
         # See if local match already exists
         patient = resource_from_args(resource_type, request.args)
         try:
-            internal_bundle = internal_patient_search(token, patient)
+            internal_bundle = internal_patient_search(
+                token, patient, not reactivate_patient
+            )
         except (RuntimeError, ValueError) as error:
             return jsonify_abort(status_code=400, message=str(error))
         local_fhir_patient = None
         if internal_bundle["total"] > 0:
             local_fhir_patient = internal_bundle["entry"][0]["resource"]
+            active = local_fhir_patient.get("active", True)
+            if reactivate_patient and not active:
+                local_fhir_patient = restore_patient(token, local_fhir_patient)
+
         if internal_bundle["total"] > 1:
             audit_entry(
                 f"found multiple internal matches ({patient}), return first",
@@ -507,9 +598,13 @@ def external_search(resource_type):
                 level="warn",
             )
 
-    if not local_fhir_patient:
+    allow_local_creation = not (
+        only_create_patient_if_found_external and not external_match_count
+    )
+    if not local_fhir_patient and allow_local_creation:
         # Add at this time in the local (HAPI) store
         try:
+            patient = new_resource_hook(patient)
             method = "POST"
             resource_type = "Patient"
             audit_HAPI_change(
@@ -518,6 +613,8 @@ def external_search(resource_type):
                 resource_type=resource_type,
                 resource=patient,
             )
+            if active_patient_flag:
+                patient["active"] = True
             local_fhir_patient = HAPI_request(
                 token=token, method=method, resource_type="Patient", resource=patient
             )
@@ -532,7 +629,9 @@ def external_search(resource_type):
         audit_entry("multiple patients returned from PDMP", extra=extra, level="warn")
 
     if external_match_count:
-        external_search_bundle["entry"][0].setdefault("id", local_fhir_patient["id"])
+        external_search_bundle["entry"][0]["resource"].setdefault(
+            "id", local_fhir_patient["id"]
+        )
 
     message = "PDMP found match" if external_match_count else "fEMR found match"
     audit_entry(message, extra=extra)
@@ -591,5 +690,18 @@ def main():
             "templates",
         ),
         "home.html",
+        cache_timeout=-1,
+    )
+
+
+@api_blueprint.route("/target", methods=["GET"])
+@oidc.require_login
+def target():
+    return send_from_directory(
+        safe_join(
+            current_app.config.get("STATIC_DIR") or current_app.static_folder,
+            "templates",
+        ),
+        "targetLaunch.html",
         cache_timeout=-1,
     )
