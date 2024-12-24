@@ -109,7 +109,11 @@ def current_user_info(token):
         DEA = oidc.user_getfield("DEA")
     except Exception:
         DEA = "unknown"
-    return {"username": username, "DEA": DEA}
+    try:
+        roles = oidc.user_getfield("realm_access")["roles"]
+    except Exception:
+        roles = []
+    return {"username": username, "DEA": DEA, "roles": roles}
 
 
 @api_blueprint.route("/home", methods=["GET"])
