@@ -276,7 +276,6 @@ export default function UrineScreen(props) {
           type: type,
           text: text,
           date: date,
-          index: index,
           patientId: getPatientId(),
         };
       });

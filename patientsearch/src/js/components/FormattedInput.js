@@ -16,6 +16,8 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 const TextMaskCustom = forwardRef((props, setRef) => {
+  /* eslint-disable no-unused-vars  */
+  /* eslint-disable react/prop-types */
   const { ownerState, ...other } = props;
   return (
     <MaskedInput

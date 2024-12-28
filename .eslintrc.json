@@ -51,14 +51,13 @@
         "react-hooks/rules-of-hooks": "error",
         "react-hooks/exhaustive-deps": "warn"
     },
-    {
-        "overrides": [
-          {
-            "files": ["**/__tests__/**/*"],
-            "env": {
-              "jest": true
-            }
-          }
-        ]
-    }
+    "overrides": [
+        {
+        "files": ["**/__tests__/**/*"],
+        "env": {
+            "jest": true
+        }
+        }
+    ]
+
 }

@@ -4,7 +4,6 @@ const TerserWebpackPlugin = require("terser-webpack-plugin");
 const CssMinimizerPlugin = require("css-minimizer-webpack-plugin");
 //const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
-const { CleanWebpackPlugin } = require("clean-webpack-plugin");
 const FileManagerPlugin = require("filemanager-webpack-plugin");
 const NodePolyfillPlugin = require("node-polyfill-webpack-plugin");
 /* document title is being populated at runtime, this is just a placeholder */
@@ -29,6 +28,7 @@ module.exports = (env) => {
         util: require.resolve("util/"),
         stream: require.resolve("stream-browserify"),
       },
+      extensions: [".js", ".jsx", ".css"]
     },
     devtool: isDevelopment? "eval" : "nosources-cheap-source-map",
     mode: isDevelopment?"development":"production",
@@ -58,9 +58,6 @@ module.exports = (env) => {
        */
       filename: "app.bundle.[name]-[hash:6].js",
       publicPath: "/static/js/",
-    },
-    resolve: {
-      extensions: [".js", ".jsx", ".css"],
     },
     module: {
       rules: [
@@ -108,9 +105,6 @@ module.exports = (env) => {
     },
     plugins: [
       new NodePolyfillPlugin(),
-      // new CleanWebpackPlugin({
-      //   cleanOnceBeforeBuildPatterns: [path.join(__dirname, "/patientsearch/dist")]
-      // }),
       new HtmlWebpackPlugin({
         title: appTitle,
         template: templateFilePath,

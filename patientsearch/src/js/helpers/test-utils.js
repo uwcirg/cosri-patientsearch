@@ -2,6 +2,7 @@ import React from "react";
 import { render } from "@testing-library/react";
 import ProjectThemeProvider from "../context/ProjectThemeProvider";
 
+/* eslint-disable react/prop-types */
 const AllTheProviders = ({ children }) => {
   return (
       <ProjectThemeProvider>{children}</ProjectThemeProvider>

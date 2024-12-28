@@ -19,8 +19,8 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export default function ErrorMessage(props) {
-  if (!props.message) return null;
   const classes = useStyles();
+  if (!props.message) return null;
   return (
     <div
       className={classes.root}
