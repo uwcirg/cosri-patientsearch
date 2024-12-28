@@ -6,7 +6,8 @@
             "targets": {
                 "browsers": ["> 0.25%, not dead"]
             }
-        }]
+        }],
+        ["@babel/preset-react", {"runtime": "automatic"}]
     ],
     "plugins": [
         [

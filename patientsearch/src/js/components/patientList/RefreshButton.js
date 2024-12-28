@@ -1,6 +1,6 @@
-import { makeStyles } from "@material-ui/core/styles";
-import { Button, Tooltip } from "@material-ui/core";
-import RefreshIcon from "@material-ui/icons/Refresh";
+import makeStyles from '@mui/styles/makeStyles';
+import { Button, Tooltip } from "@mui/material";
+import RefreshIcon from "@mui/icons-material/Refresh";
 
 const useStyles = makeStyles((theme) => ({
   refreshButtonContainer: {

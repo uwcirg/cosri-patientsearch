@@ -116,7 +116,7 @@ export async function getSettings(callback, noCache) {
     pad(today.getMonth()) +
     pad(today.getDate()) +
     pad(today.getMinutes());
-  if (!noCache && sessionStorage.getItem(settingStorageKey)) {
+  if (!noCache && typeof sessionStorage !== "undefined" && sessionStorage.getItem(settingStorageKey)) {
     let cachedSetting = JSON.parse(sessionStorage.getItem(settingStorageKey));
     callback(cachedSetting);
     return cachedSetting;
@@ -130,7 +130,7 @@ export async function getSettings(callback, noCache) {
   } catch (e) {
     callback({ error: e });
   }
-  if (data && Object.keys(data).length) {
+  if (typeof sessionStorage !== "undefined" && data && Object.keys(data).length) {
     sessionStorage.setItem(settingStorageKey, JSON.stringify(data));
   }
   callback(data);
@@ -172,7 +172,7 @@ export function imageOK(img) {
 export function getUrlParameter(name, queryString) {
   name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
   var regex = new RegExp("[\\?&]" + name + "=([^&#]*)");
-  var results = regex.exec(queryString ? queryString : location.search);
+  var results = regex.exec(queryString ? queryString : typeof location !== "undefined" ? location.search : null);
   return results === null
     ? ""
     : decodeURIComponent(results[1].replace(/\+/g, " "));

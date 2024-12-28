@@ -1,10 +1,9 @@
-import { shallow } from "enzyme";
+import {render} from "../../js/helpers/test-utils";
 import React from "react";
 import DialogBox from "../../js/components/DialogBox";
 
 describe("DialogBox", () => {
   it("DialogBox component renders without crashing", () => {
-    const wrapper = shallow(<DialogBox />);
-    expect(wrapper).toBeDefined();
+    render(<DialogBox open={false} />);
   });
 });

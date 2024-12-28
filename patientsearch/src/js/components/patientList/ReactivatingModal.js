@@ -1,9 +1,9 @@
 import React from "react";
-import Modal from "@material-ui/core/Modal";
-import { makeStyles } from "@material-ui/core/styles";
-import Button from "@material-ui/core/Button";
-import Box from "@material-ui/core/Box";
-import { Alert } from "@material-ui/lab";
+import Modal from "@mui/material/Modal";
+import makeStyles from '@mui/styles/makeStyles';
+import Button from "@mui/material/Button";
+import Box from "@mui/material/Box";
+import { Alert } from '@mui/material';
 import { usePatientListContext } from "../../context/PatientListContextProvider";
 import RowData from "../../models/RowData";
 

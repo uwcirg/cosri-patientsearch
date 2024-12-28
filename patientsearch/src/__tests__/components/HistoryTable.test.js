@@ -1,8 +1,16 @@
-import { shallow } from "enzyme";
 import React from "react";
+import {render} from "../../js/helpers/test-utils";
 import HistoryTable from "../../js/components/HistoryTable";
 
 describe("History table", () => {
+  beforeEach(() => {
+    global.fetch = jest.fn(() =>
+      Promise.resolve({
+        json: () => Promise.resolve({ data: [] }),
+      })
+    );
+  });
+  // functional component, use https://github.com/testing-library/react-testing-library
   it("History table component renders without crashing", () => {
     const data = [{
       id: 158,
@@ -14,7 +22,6 @@ describe("History table", () => {
       "field": "id"
     }];
     const apiURL = "/fhir";
-    const wrapper = shallow(<HistoryTable data={data} columns={columns} APIURL={apiURL}/>);
-    expect(wrapper).toBeDefined();
+    render(<HistoryTable data={data} columns={columns} APIURL={apiURL}/>);
   });
 });

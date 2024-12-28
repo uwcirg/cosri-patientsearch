@@ -1,24 +1,20 @@
 import React from "react";
 import PropTypes from "prop-types";
 import DOMPurify from "dompurify";
-import { makeStyles } from "@material-ui/core/styles";
-import DateFnsUtils from "@date-io/date-fns";
+import makeStyles from "@mui/styles/makeStyles";
 import isValid from "date-fns/isValid";
-import ClearIcon from "@material-ui/icons/Clear";
-import Button from "@material-ui/core/Button";
-import CircularProgress from "@material-ui/core/CircularProgress";
-import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
-import ExpandLessIcon from "@material-ui/icons/ExpandLess";
-import IconButton from "@material-ui/core/IconButton";
-import InputAdornment from "@material-ui/core/InputAdornment";
-import InputLabel from "@material-ui/core/InputLabel";
-import Paper from "@material-ui/core/Paper";
-import Snackbar from "@material-ui/core/Snackbar";
-import Typography from "@material-ui/core/Typography";
-import {
-  MuiPickersUtilsProvider,
-  KeyboardDatePicker,
-} from "@material-ui/pickers";
+import Button from "@mui/material/Button";
+import CircularProgress from "@mui/material/CircularProgress";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import ExpandLessIcon from "@mui/icons-material/ExpandLess";
+import InputLabel from "@mui/material/InputLabel";
+import Paper from "@mui/material/Paper";
+import Snackbar from "@mui/material/Snackbar";
+import Typography from "@mui/material/Typography";
+import dayjs from "dayjs";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import Alert from "./Alert";
 import EditButtonGroup from "./EditButtonGroup";
 import Error from "./Error";
@@ -40,6 +36,7 @@ const useStyles = makeStyles((theme) => ({
     paddingLeft: theme.spacing(3),
     paddingRight: theme.spacing(3),
     paddingTop: theme.spacing(1),
+    paddingBottom: theme.spacing(1)
   },
   contentContainer: {
     position: "relative",
@@ -123,7 +120,6 @@ const useStyles = makeStyles((theme) => ({
 
 export default function Agreement(props) {
   const classes = useStyles();
-  const [date, setDate] = React.useState(null);
   const [editDate, setEditDate] = React.useState(null);
   const [editMode, setEditMode] = React.useState(false);
   const lastEntryReducer = (state, action) => {
@@ -159,8 +155,7 @@ export default function Agreement(props) {
     [rowData]
   );
   const clearDate = () => {
-    setDate(null);
-    setDateInput("");
+    setDateInput(null);
   };
   const clearFields = () => {
     clearDate();
@@ -171,10 +166,10 @@ export default function Agreement(props) {
     lastEntryDispatch({ type: "reset" });
   };
   const hasValues = () => {
-    return date;
+    return !!dateInput;
   };
   const hasError = () => {
-    return error !== "";
+    return !!error;
   };
   const submitDataFormatter = (params) => {
     params = params || {};
@@ -204,7 +199,9 @@ export default function Agreement(props) {
     callback = callback || function () {};
     const resourceId = params.id || null;
     const method = params.method || "POST";
-    const contractDate = params.date || dateInput;
+    const contractDate =
+      params.date ||
+      (dayjs.isDayjs(dateInput) ? dateInput.format("YYYY-MM-DD") : dateInput);
     if (String(params.method).toLowerCase() !== "delete" && !contractDate) {
       setError("No contract date provided.");
       callback();
@@ -301,6 +298,25 @@ export default function Agreement(props) {
   const hasHistory = () => {
     return history && history.length > 0;
   };
+  const createHistoryData = React.useCallback(
+    (data) => {
+      if (!data) return [];
+      return data.map((item, index) => {
+        const resource = item.resource;
+        if (!resource) return {};
+        let date = getShortDateFromISODateString(resource.date);
+        return {
+          id: resource.id,
+          date: date,
+          index: index,
+          patientId: getPatientId(),
+          system: LOINC_SYSTEM_URL,
+          code: CONTRACT_CODE,
+        };
+      });
+    },
+    [getPatientId]
+  );
   const getHistory = React.useCallback(
     (callback) => {
       callback = callback || function () {};
@@ -370,25 +386,6 @@ export default function Agreement(props) {
       return "";
     },
     [rowData, createHistoryData]
-  );
-  const createHistoryData = React.useCallback(
-    (data) => {
-      if (!data) return [];
-      return data.map((item, index) => {
-        const resource = item.resource;
-        if (!resource) return {};
-        let date = getShortDateFromISODateString(resource.date);
-        return {
-          id: resource.id,
-          date: date,
-          index: index,
-          patientId: getPatientId(),
-          system: LOINC_SYSTEM_URL,
-          code: CONTRACT_CODE,
-        };
-      });
-    },
-    [getPatientId]
   );
   const displayMostRecent = () => {
     if (!hasHistory()) return "";
@@ -483,55 +480,52 @@ export default function Agreement(props) {
       >
         Add New
       </Typography>
-      <MuiPickersUtilsProvider utils={DateFnsUtils}>
+      <LocalizationProvider dateAdapter={AdapterDayjs}>
         {/* order date field */}
         <InputLabel className={classes.dateLabel}>Agreement Date</InputLabel>
-        <KeyboardDatePicker
+        <DatePicker
           autoOk={true}
           variant="dialog"
           openTo="year"
           disableFuture
-          InputProps={{
-            startAdornment: (
-              <InputAdornment
-                position="end"
-                style={{ order: 1, marginLeft: 0 }}
-              >
-                <IconButton
-                  onClick={() => {
-                    clearDate();
-                  }}
-                  style={{ order: 2, padding: 0 }}
-                  aria-label="Clear date"
-                  title="Clear date"
-                >
-                  <ClearIcon color="primary" fontSize="small" />
-                </IconButton>
-              </InputAdornment>
-            ),
-            className: classes.dateInput,
+          slotProps={{
+            textField: {
+              placeholder: "YYYY-MM-DD",
+              InputLabelProps: { shrink: true },
+              variant: "standard",
+              className: classes.dateInput
+            },
           }}
-          format="yyyy-MM-dd"
-          minDate={new Date("1950-01-01")}
+          // renderInput={(props) => (
+          //   <TextField
+          //     {...props}
+          //     inputProps={{
+          //       placeholder: "MM-DD-YYYY",
+          //     }}
+          //     inputFormat="MM-DD-YYYY"
+          //     className={classes.dateInput}
+          //     variant="standard"
+          //   />
+          // )}
+          clearable={true}
+          format="YYYY-MM-DD"
+          minDate={dayjs("1950-01-01")}
           invalidDateMessage="Date must be in YYYY-MM-DD format, e.g. 1977-01-12"
           maxDateMessage="Date must not be in the future"
-          placeholder="YYYY-MM-DD"
-          value={date}
+          value={dateInput?dayjs(dateInput):null}
           orientation="landscape"
           onKeyDown={(event) => handleKeyDownAdd(event)}
-          onChange={(event, dateString) => {
-            setDateInput(dateString);
-            if (!event || !isValid(event)) {
-              if (event && String(dateInput).replace(/[-_]/g, "").length >= 8)
-                setDate(event);
+          onChange={(dateString, validationContext) => {
+            if (validationContext?.validationError) {
+              setDateInput(dateString.format());
               return;
             }
-            setDate(event);
+            setDateInput(dateString ? dateString.format("YYYY-MM-DD") : null);
           }}
           KeyboardButtonProps={{ color: "primary", title: "Date picker" }}
           autoFocus
         />
-      </MuiPickersUtilsProvider>
+      </LocalizationProvider>
       <div className={classes.buttonsContainer}>
         <Button
           variant="contained"
@@ -676,14 +670,16 @@ export default function Agreement(props) {
   const renderFeedbackSnackbar = () => (
     <Snackbar
       open={snackOpen}
-      autoHideDuration={3000}
+      autoHideDuration={2000}
       onClose={handleSnackClose}
     >
-      <Alert
-        onClose={handleSnackClose}
-        severity="success"
-        message="Request processed successfully."
-      ></Alert>
+      <div>
+        <Alert
+          onClose={handleSnackClose}
+          severity="success"
+          message="Request processed successfully."
+        ></Alert>
+      </div>
     </Snackbar>
   );
   const renderError = () => (

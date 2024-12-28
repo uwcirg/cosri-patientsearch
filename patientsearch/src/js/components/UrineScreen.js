@@ -1,29 +1,25 @@
 import React from "react";
 import PropTypes from "prop-types";
 import DOMPurify from "dompurify";
-import { makeStyles } from "@material-ui/core/styles";
-import DateFnsUtils from "@date-io/date-fns";
+import makeStyles from "@mui/styles/makeStyles";
 import isValid from "date-fns/isValid";
-import ArrowDropDownIcon from "@material-ui/icons/ArrowDropDown";
-import ClearIcon from "@material-ui/icons/Clear";
-import Button from "@material-ui/core/Button";
-import CircularProgress from "@material-ui/core/CircularProgress";
-import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
-import ExpandLessIcon from "@material-ui/icons/ExpandLess";
-import IconButton from "@material-ui/core/IconButton";
-import InputAdornment from "@material-ui/core/InputAdornment";
-import InputLabel from "@material-ui/core/InputLabel";
-import FormControl from "@material-ui/core/FormControl";
-import FormHelperText from "@material-ui/core/FormHelperText";
-import MenuItem from "@material-ui/core/MenuItem";
-import Paper from "@material-ui/core/Paper";
-import Select from "@material-ui/core/Select";
-import Snackbar from "@material-ui/core/Snackbar";
-import Typography from "@material-ui/core/Typography";
-import {
-  MuiPickersUtilsProvider,
-  KeyboardDatePicker,
-} from "@material-ui/pickers";
+import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
+import Button from "@mui/material/Button";
+import CircularProgress from "@mui/material/CircularProgress";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import ExpandLessIcon from "@mui/icons-material/ExpandLess";
+import InputLabel from "@mui/material/InputLabel";
+import FormControl from "@mui/material/FormControl";
+import FormHelperText from "@mui/material/FormHelperText";
+import MenuItem from "@mui/material/MenuItem";
+import Paper from "@mui/material/Paper";
+import Select from "@mui/material/Select";
+import Snackbar from "@mui/material/Snackbar";
+import Typography from "@mui/material/Typography";
+import dayjs from "dayjs";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import Alert from "./Alert";
 import EditButtonGroup from "./EditButtonGroup";
 import Error from "./Error";
@@ -48,6 +44,7 @@ const useStyles = makeStyles((theme) => {
       paddingLeft: theme.spacing(3),
       paddingRight: theme.spacing(3),
       paddingTop: theme.spacing(1),
+      paddingBottom: theme.spacing(1)
     },
     contentContainer: {
       position: "relative",
@@ -130,6 +127,8 @@ const useStyles = makeStyles((theme) => {
     },
     editInput: {
       width: theme.spacing(10),
+      border: 0,
+      textAlign: "center"
     },
     errorContainer: {
       maxWidth: "100%",
@@ -189,7 +188,6 @@ export default function UrineScreen(props) {
       ? urineScreenTypes[0].code
       : ""
   );
-  const [date, setDate] = React.useState(null);
   const [dateInput, setDateInput] = React.useState(null);
   const [history, setHistory] = React.useState([]);
   const [addInProgress, setAddInProgress] = React.useState(false);
@@ -232,7 +230,6 @@ export default function UrineScreen(props) {
     return null;
   }, [rowData]);
   const clearDate = () => {
-    setDate(null);
     setDateInput("");
   };
   const clearHistory = () => {
@@ -256,11 +253,36 @@ export default function UrineScreen(props) {
     });
   };
   const hasValues = () => {
-    return type && date;
+    return type && dateInput;
   };
   const hasError = () => {
     return error !== "";
   };
+  const createHistoryData = React.useCallback(
+    (data) => {
+      if (!data) return [];
+      return data.map((item, index) => {
+        const resource = item.resource;
+        if (!resource) return {};
+        let text = resource.code ? resource.code.text : "";
+        let date = getShortDateFromISODateString(resource.authoredOn);
+        let type =
+          resource.code && resource.code.coding && resource.code.coding.length
+            ? resource.code.coding[0].code
+            : "";
+        return {
+          id: resource.id,
+          index: index,
+          type: type,
+          text: text,
+          date: date,
+          index: index,
+          patientId: getPatientId(),
+        };
+      });
+    },
+    [getPatientId]
+  );
   const getHistory = React.useCallback(
     (callback) => {
       callback = callback || function () {};
@@ -423,7 +445,8 @@ export default function UrineScreen(props) {
       }
     )
       .then(() => {
-        setSnackOpen(true);
+        if (!snackOpen || !setHistoryInitialized)
+          setSnackOpen(true);
         setTimeout(() => {
           getHistory(callback);
         }, 150);
@@ -512,30 +535,6 @@ export default function UrineScreen(props) {
   const hasHistory = () => {
     return history && history.length > 0;
   };
-  const createHistoryData = React.useCallback(
-    (data) => {
-      if (!data) return [];
-      return data.map((item, index) => {
-        const resource = item.resource;
-        if (!resource) return {};
-        let text = resource.code ? resource.code.text : "";
-        let date = getShortDateFromISODateString(resource.authoredOn);
-        let type =
-          resource.code && resource.code.coding && resource.code.coding.length
-            ? resource.code.coding[0].code
-            : "";
-        return {
-          id: resource.id,
-          type: type,
-          text: text,
-          date: date,
-          index: index,
-          patientId: getPatientId(),
-        };
-      });
-    },
-    [getPatientId]
-  );
   const displayMostRecentEntry = () => {
     if (!hasHistory()) return "";
     if (history[0].text)
@@ -562,6 +561,7 @@ export default function UrineScreen(props) {
                 <ArrowDropDownIcon color="primary"></ArrowDropDownIcon>
               )}
               error={hasError()}
+              variant="standard"
             >
               {getUrineScreenTypeSelectList()}
             </Select>
@@ -679,54 +679,39 @@ export default function UrineScreen(props) {
       </Typography>
       {/* urine screen date/datepicker */}
       <div>
-        <MuiPickersUtilsProvider utils={DateFnsUtils}>
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
           {/* order date field */}
           <InputLabel className={classes.dateLabel}>Order Date</InputLabel>
-          <KeyboardDatePicker
+          <DatePicker
             autoOk={true}
             variant="dialog"
             openTo="year"
             disableFuture
-            InputProps={{
-              startAdornment: (
-                <InputAdornment
-                  position="end"
-                  style={{ order: 1, marginLeft: 0 }}
-                >
-                  <IconButton
-                    onClick={() => {
-                      clearDate();
-                    }}
-                    style={{ order: 2, padding: 0 }}
-                    aria-label="Clear date"
-                    title="Clear date"
-                  >
-                    <ClearIcon color="primary" fontSize="small" />
-                  </IconButton>
-                </InputAdornment>
-              ),
-              className: classes.dateInput,
+            slotProps={{
+              textField: {
+                placeholder: "YYYY-MM-DD",
+                InputLabelProps: { shrink: true },
+                variant: "standard",
+                className: classes.dateInput
+              },
             }}
-            format="yyyy-MM-dd"
-            minDate={new Date("1950-01-01")}
+            format="YYYY-MM-DD"
+            minDate={dayjs("1950-01-01")}
             maxDateMessage="Date must not be in the future"
             invalidDateMessage="Date must be in YYYY-MM-DD format, e.g. 1977-01-12"
-            placeholder="YYYY-MM-DD"
-            value={date}
+            value={dateInput ? dayjs(dateInput) : null}
             orientation="landscape"
-            onChange={(event, dateString) => {
-              setDateInput(dateString);
-              if (!event || !isValid(event)) {
-                if (event && String(dateInput).replace(/[-_]/g, "").length >= 8)
-                  setDate(event);
+            onChange={(dateString, validationContext) => {
+              if (validationContext?.validationError) {
+                setDateInput(dateString.format());
                 return;
               }
-              setDate(event);
+              setDateInput(dateString ? dateString.format("YYYY-MM-DD") : null);
             }}
             KeyboardButtonProps={{ color: "primary", title: "Date picker" }}
             autoFocus
           />
-        </MuiPickersUtilsProvider>
+        </LocalizationProvider>
       </div>
       {/* urine screen type selector */}
       {renderUrineTypeSelector()}
@@ -906,14 +891,16 @@ export default function UrineScreen(props) {
   const renderFeedbackSnackbar = () => (
     <Snackbar
       open={snackOpen}
-      autoHideDuration={3000}
+      autoHideDuration={2000}
       onClose={handleSnackClose}
     >
-      <Alert
-        onClose={handleSnackClose}
-        severity="success"
-        message="Request processed successfully."
-      ></Alert>
+      <div>
+        <Alert
+          onClose={handleSnackClose}
+          severity="success"
+          message="Request processed successfully."
+        ></Alert>
+      </div>
     </Snackbar>
   );
 

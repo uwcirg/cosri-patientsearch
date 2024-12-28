@@ -1,6 +1,6 @@
 import React from "react";
 import PropTypes from "prop-types";
-import { makeStyles } from "@material-ui/core/styles";
+import makeStyles from '@mui/styles/makeStyles';
 import Alert from "./Alert";
 
 const useStyles = makeStyles((theme) => ({
@@ -19,11 +19,12 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export default function ErrorMessage(props) {
+  if (!props.message) return null;
   const classes = useStyles();
   return (
     <div
       className={classes.root}
-      style={{ ...props.style, display: props.message ? "block" : "none" }}
+      style={{ ...props.style}}
     >
       <Alert severity="error" message={props.message}></Alert>
     </div>

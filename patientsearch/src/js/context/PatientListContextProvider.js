@@ -2,9 +2,9 @@ import React, { useContext, useRef } from "react";
 import jsonpath from "jsonpath";
 import DOMPurify from "dompurify";
 import PropTypes from "prop-types";
-import { useTheme } from "@material-ui/core/styles";
-import CircularProgress from "@material-ui/core/CircularProgress";
-import MoreHorizIcon from "@material-ui/icons/MoreHoriz";
+import { useTheme } from "@mui/material/styles";
+import CircularProgress from "@mui/material/CircularProgress";
+import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import { useSettingContext } from "./SettingContextProvider";
 import { useUserContext } from "./UserContextProvider";
 import * as constants from "../constants/consts";
@@ -38,9 +38,11 @@ let filterIntervalId = 0;
 export default function PatientListContextProvider({ children }) {
   const settingsCxt = useSettingContext();
   const theme = useTheme();
-  const { appSettings, hasAppSettings, getAppSettingByKey } = settingsCxt
-    ? settingsCxt
-    : {};
+  const {
+    appSettings = {},
+    hasAppSettings = () => false,
+    getAppSettingByKey = () => null,
+  } = settingsCxt ? settingsCxt : {};
   const { user, userError } = useUserContext();
   const { userName, roles } = user || {};
   const appClients = getClientsByRequiredRoles(
@@ -802,7 +804,11 @@ export default function PatientListContextProvider({ children }) {
             setOpenLoadingModal(false);
             //no result from lookup
             handleErrorCallback(
-              _getFetchErrorMessage("Search returns no match", true, isExternalLookup)
+              _getFetchErrorMessage(
+                "Search returns no match",
+                true,
+                isExternalLookup
+              )
             );
             return;
           }
@@ -903,7 +909,9 @@ export default function PatientListContextProvider({ children }) {
             //log error to console
             console.log(`Patient search error: ${e}`);
             setOpenLoadingModal(false);
-            handleLaunchError(_getFetchErrorMessage(e, false, isExternalLookup));
+            handleLaunchError(
+              _getFetchErrorMessage(e, false, isExternalLookup)
+            );
           });
       })
       .catch((e) => {

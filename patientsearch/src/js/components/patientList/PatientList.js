@@ -1,7 +1,8 @@
 import React from "react";
+//import MaterialTable, {MTableActions} from "@material-table/core";
 import MaterialTable from "@material-table/core";
-import CircularProgress from "@material-ui/core/CircularProgress";
-import Container from "@material-ui/core/Container";
+import CircularProgress from "@mui/material/CircularProgress";
+import Container from "@mui/material/Container";
 import { usePatientListContext } from "../../context/PatientListContextProvider";
 import DropdownMenu from "./DropdownMenu";
 import Error from "../Error";
@@ -29,6 +30,7 @@ export default function PatientListTable() {
     tableProps,
     //methods
     getAppSettingByKey,
+    getColumns,
     getPatientList,
     shouldHideMoreMenu,
     shouldShowLegend,
@@ -38,21 +40,18 @@ export default function PatientListTable() {
     setOpenLoadingModal,
   } = usePatientListContext();
 
+  const columns = getColumns();
+
   const renderTitle = () => {
-    const title = appSettings["SEARCH_TITLE_TEXT"]
-      ? appSettings["SEARCH_TITLE_TEXT"]
-      : null;
+    const title =
+      appSettings && appSettings["SEARCH_TITLE_TEXT"]
+        ? appSettings["SEARCH_TITLE_TEXT"]
+        : null;
     if (!title) return false;
     return <h2>{title}</h2>;
   };
 
-  const renderPatientSearchRow = () => (
-    <table className="bottom-gap">
-      <tbody>
-        <FilterRow ref={filterRowRef}/>
-      </tbody>
-    </table>
-  );
+  const renderPatientSearchRow = () => <FilterRow ref={filterRowRef} />;
 
   const renderTestPatientsCheckbox = () => {
     if (!getAppSettingByKey("ENABLE_FILTER_FOR_TEST_PATIENTS")) return false;
@@ -88,48 +87,53 @@ export default function PatientListTable() {
   if (Object.keys(patientListCtx).length === 0)
     return <Error message="patient context error"></Error>;
   return (
-    <Container className="container" id="patientList">
-      {renderTitle()}
-      <Error message={errorMessage} />
-      <div className="flex">
-        {/* patient search row */}
-        {renderPatientSearchRow()}
-        <div className="bottom-gap-2x">
-          {renderMyPatientCheckbox()}
-          {renderTestPatientsCheckbox()}
+    <>
+      <Container className="container" id="patientList">
+        {renderTitle()}
+        <Error message={errorMessage} />
+        <div className="flex">
+          {/* patient search row */}
+          {renderPatientSearchRow()}
+          <div className="bottom-gap-2x">
+            {renderMyPatientCheckbox()}
+            {renderTestPatientsCheckbox()}
+          </div>
         </div>
-      </div>
-      {/* patient list table */}
-      <div className={`table main`} aria-label="patient list table">
-        <MaterialTable
-          data={
-            //any change in query will invoke this function
-            (query) => getPatientList(query)
-          }
-          hideSortIcon={false}
-          //overlay
-          components={{
-            OverlayLoading: () => (
-              <OverlayElement>
-                <CircularProgress></CircularProgress>
-              </OverlayElement>
-            ),
-          }}
-          icons={constants.tableIcons}
-          {...tableProps}
-        />
-      </div>
-      <LoadingModal open={openLoadingModal}></LoadingModal>
-      <div className="flex-align-start">
-        <Legend show={shouldShowLegend()}></Legend>
-        <div>
-          <RefreshButton></RefreshButton>
-          <Pagination></Pagination>
+        {/* patient list table */}
+        <div className={`table main`} aria-label="patient list table">
+          <MaterialTable
+            {...tableProps}
+            data={
+              //any change in query will invoke this function
+              (query) => getPatientList(query)
+            }
+            hideSortIcon={false}
+            //overlay
+            components={{
+              OverlayLoading: () => (
+                <OverlayElement>
+                  <CircularProgress></CircularProgress>
+                </OverlayElement>
+              ),
+              // Actions: (props) => {
+              //   return <MTableActions {...props} columns={columns} onColumnsChanged={() => true}></MTableActions>
+              // }
+            }}
+            icons={constants.tableIcons}
+          />
         </div>
-      </div>
-      <LaunchDialog></LaunchDialog>
-      <ReactivatingModal></ReactivatingModal>
-      {renderDropdownMenu()}
-    </Container>
+        <LoadingModal open={openLoadingModal}></LoadingModal>
+        <div className="flex-align-start">
+          <Legend show={shouldShowLegend()}></Legend>
+          <div>
+            <RefreshButton></RefreshButton>
+            <Pagination></Pagination>
+          </div>
+        </div>
+        <LaunchDialog></LaunchDialog>
+        <ReactivatingModal></ReactivatingModal>
+        {renderDropdownMenu()}
+      </Container>
+    </>
   );
 }

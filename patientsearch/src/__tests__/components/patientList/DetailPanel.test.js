@@ -1,4 +1,4 @@
-import { shallow } from "enzyme";
+import {render} from "../../../js/helpers/test-utils";
 import React from "react";
 import DetailPanel from "../../../js/components/patientList/DetailPanel";
 
@@ -9,7 +9,6 @@ describe("DetailPanel", () => {
         id: 1,
       },
     };
-    const wrapper = shallow(<DetailPanel data={data} />);
-    expect(wrapper).toBeDefined();
+    render(<DetailPanel data={data} />);
   });
 });

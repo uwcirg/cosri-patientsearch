@@ -1,19 +1,19 @@
 import React from "react";
-import { makeStyles } from "@material-ui/core/styles";
-import ClickAwayListener from "@material-ui/core/ClickAwayListener";
-import ExitToAppIcon from "@material-ui/icons/ExitToApp";
-import HowToRegIcon from "@material-ui/icons/HowToReg";
-import MenuIcon from "@material-ui/icons/Menu";
-import AppBar from "@material-ui/core/AppBar";
-import Button from "@material-ui/core/Button";
-import Avatar from "@material-ui/core/Avatar";
-import Box from "@material-ui/core/Box";
-import Fade from "@material-ui/core/Fade";
-import Link from "@material-ui/core/Link";
-import Popper from "@material-ui/core/Popper";
-import Paper from "@material-ui/core/Paper";
-import Toolbar from "@material-ui/core/Toolbar";
-import Typography from "@material-ui/core/Typography";
+import makeStyles from '@mui/styles/makeStyles';
+import ClickAwayListener from "@mui/material/ClickAwayListener";
+import ExitToAppIcon from "@mui/icons-material/ExitToApp";
+import HowToRegIcon from "@mui/icons-material/HowToReg";
+import MenuIcon from "@mui/icons-material/Menu";
+import AppBar from "@mui/material/AppBar";
+import Button from "@mui/material/Button";
+import Avatar from "@mui/material/Avatar";
+import Box from "@mui/material/Box";
+import Fade from "@mui/material/Fade";
+import Link from "@mui/material/Link";
+import Popper from "@mui/material/Popper";
+import Paper from "@mui/material/Paper";
+import Toolbar from "@mui/material/Toolbar";
+import Typography from "@mui/material/Typography";
 import SiteLogo from "./SiteLogo";
 import { imageOK, setDocumentTitle, setFavicon } from "../helpers/utility";
 import { useSettingContext } from "../context/SettingContextProvider";
@@ -59,7 +59,7 @@ const useStyles = makeStyles((theme) => ({
     alignItems: "center",
     marginRight: theme.spacing(4),
     marginLeft: theme.spacing(4),
-    [theme.breakpoints.down("sm")]: {
+    [theme.breakpoints.down('md')]: {
       display: "none",
     },
   },
@@ -221,7 +221,8 @@ export default function Header() {
         setFavicon(`/static/${appSettings["PROJECT_NAME"]}_favicon.ico`);
       }
     }
-    window.addEventListener("resize", () => setOpenPopper(false));
+    if (typeof window !== "undefined")
+      window.addEventListener("resize", () => setOpenPopper(false));
   }, [appSettings]);
 
   const logoutURL = "/logout?user_initiated=true";

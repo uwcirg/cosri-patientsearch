@@ -1,11 +1,11 @@
 import React from "react";
-import { render } from "react-dom";
+import { createRoot } from "react-dom/client";
 import ClientAppRedirect from "../components/ClientAppRedirect";
 import Layout from "../layout/Layout";
 
-render(
+const root = createRoot(document.getElementById("content"));
+root.render(
   <Layout>
     <ClientAppRedirect></ClientAppRedirect>
-  </Layout>,
-  document.getElementById("content")
+  </Layout>
 );

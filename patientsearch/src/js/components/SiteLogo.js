@@ -1,6 +1,6 @@
 import React from "react";
 import PropTypes from "prop-types";
-import { makeStyles } from "@material-ui/core/styles";
+import makeStyles from '@mui/styles/makeStyles';
 import { imageOK } from "../helpers/utility";
 import { useSettingContext } from "../context/SettingContextProvider";
 
@@ -21,7 +21,7 @@ export default function SiteLogo(props) {
   const SITE_ID_STRING = "SITE_ID";
   const getSiteId = () => {
     if (props.siteID) return props.siteID;
-    if (!Object.keys(appSettings)) return "";
+    if (!appSettings || !Object.keys(appSettings)) return "";
     return appSettings[SITE_ID_STRING];
   };
   const handleImageLoaded = (e) => {
@@ -49,7 +49,7 @@ export default function SiteLogo(props) {
     }
   };
   const getSiteImagePath = () => {
-    return "/static/" + getSiteId() + "/img/logo.png";
+    return "/static/" + String(getSiteId()).toUpperCase() + "/img/logo.png";
   };
 
   return (

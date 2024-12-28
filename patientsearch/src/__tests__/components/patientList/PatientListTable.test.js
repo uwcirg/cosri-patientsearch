@@ -1,10 +1,18 @@
-import { shallow } from "enzyme";
 import React from "react";
-import PatientListTable from "../../../js/components/patientList/PatientListTable";
+import { render } from "../../../js/helpers/test-utils";
+import PatientListTable from "../../../js/components/patientList";
 
 describe("PatientListTable", () => {
+  beforeEach(() => {
+    global.fetch = jest.fn(() =>
+      Promise.resolve({
+        json: () => Promise.resolve({ data: [] }),
+      })
+    );
+  });
+
+  //use https://testing-library.com/docs/react-testing-library/intro/
   it("Patient list renders without crashing", () => {
-    const wrapper = shallow(<PatientListTable />);
-    expect(wrapper).toBeDefined();
+    render(<PatientListTable />);
   });
 });

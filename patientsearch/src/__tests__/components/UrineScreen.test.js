@@ -1,8 +1,9 @@
-import { shallow } from "enzyme";
 import React from "react";
+import {render} from "../../js/helpers/test-utils";
 import UrineScreen from "../../js/components/UrineScreen";
 
 describe("UrineScreen", () => {
+  //functional component, use https://github.com/testing-library/react-testing-library
   it("Urine screen component renders without crashing", () => {
     const rowData = {
       id: 158,
@@ -10,7 +11,6 @@ describe("UrineScreen", () => {
       last_name: "Skywalker",
       dob: "1977-01-12"
     };
-    const wrapper = shallow(<UrineScreen rowData={rowData}/>);
-    expect(wrapper).toBeDefined();
+    render(<UrineScreen rowData={rowData}/>);
   });
 });

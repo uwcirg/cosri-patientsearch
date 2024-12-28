@@ -1,6 +1,6 @@
 import React from "react";
 import PropTypes from "prop-types";
-import { makeStyles } from "@material-ui/core/styles";
+import makeStyles from '@mui/styles/makeStyles';
 import { useSettingContext } from "../context/SettingContextProvider";
 
 const useStyles = makeStyles((theme) => ({
@@ -34,9 +34,9 @@ export default function SystemBanner(props) {
   if (!isNotProd) return null;
   return (
     /* display system type for non-production instances */
-    <div className={classes.container}>
+    (<div className={classes.container}>
       <span>{getSystemType()} version - not for clinical use</span>
-    </div>
+    </div>)
   );
 }
 SystemBanner.propTypes = {

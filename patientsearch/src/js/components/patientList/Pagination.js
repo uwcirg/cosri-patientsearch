@@ -1,5 +1,5 @@
-import { makeStyles } from "@material-ui/core/styles";
-import TablePagination from "@material-ui/core/TablePagination";
+import makeStyles from '@mui/styles/makeStyles';
+import TablePagination from "@mui/material/TablePagination";
 import { usePatientListContext } from "../../context/PatientListContextProvider";
 
 const useStyles = makeStyles((theme) => ({
@@ -51,6 +51,7 @@ export default function Pagination() {
       count={pagination.totalCount}
       size="small"
       component="div"
+      labelRowsPerPage="Rows per page"
       nextIconButtonProps={{
         disabled: pagination.disableNextButton,
         color: "primary",
@@ -59,7 +60,7 @@ export default function Pagination() {
         disabled: pagination.disablePrevButton,
         color: "primary",
       }}
-      SelectProps={{ variant: "outlined" }}
+      SelectProps={{ variant: "standard" }}
     />
   );
 }

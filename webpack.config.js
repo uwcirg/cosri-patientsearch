@@ -30,7 +30,7 @@ module.exports = (env) => {
         stream: require.resolve("stream-browserify"),
       },
     },
-    devtool: "nosources-cheap-source-map",
+    devtool: isDevelopment? "eval" : "nosources-cheap-source-map",
     mode: isDevelopment?"development":"production",
     entry: {
       index: [
@@ -46,6 +46,7 @@ module.exports = (env) => {
         path.join(__dirname, "/patientsearch/src/js/containers/Logout.js"),
       ],
     },
+    watch: isDevelopment,
     watchOptions: {
       aggregateTimeout: 300,
       poll: 1000,
@@ -107,7 +108,9 @@ module.exports = (env) => {
     },
     plugins: [
       new NodePolyfillPlugin(),
-      new CleanWebpackPlugin(),
+      // new CleanWebpackPlugin({
+      //   cleanOnceBeforeBuildPatterns: [path.join(__dirname, "/patientsearch/dist")]
+      // }),
       new HtmlWebpackPlugin({
         title: appTitle,
         template: templateFilePath,

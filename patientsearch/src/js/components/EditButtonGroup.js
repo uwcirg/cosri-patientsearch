@@ -1,14 +1,14 @@
 import React from "react";
 import PropTypes from "prop-types";
 import DOMPurify from "dompurify";
-import { makeStyles } from "@material-ui/core/styles";
-import ClearIcon from "@material-ui/icons/Clear";
-import Delete from "@material-ui/icons/Delete";
-import EditIcon from "@material-ui/icons/Edit";
-import SaveIcon from "@material-ui/icons/Save";
-import Button from "@material-ui/core/Button";
-import ButtonGroup from "@material-ui/core/ButtonGroup";
-import Modal from "@material-ui/core/Modal";
+import makeStyles from '@mui/styles/makeStyles';
+import ClearIcon from "@mui/icons-material/Clear";
+import Delete from "@mui/icons-material/Delete";
+import EditIcon from "@mui/icons-material/Edit";
+import SaveIcon from "@mui/icons-material/Save";
+import Button from "@mui/material/Button";
+import ButtonGroup from "@mui/material/ButtonGroup";
+import Modal from "@mui/material/Modal";
 
 const useStyles = makeStyles((theme) => ({
   buttonGroupContainer: {

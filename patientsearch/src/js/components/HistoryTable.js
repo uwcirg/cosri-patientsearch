@@ -1,9 +1,10 @@
 import PropTypes from 'prop-types';
 import React from "react";
-import { makeStyles, useTheme} from "@material-ui/core/styles";
+import { useTheme } from "@mui/material/styles";
+import makeStyles from '@mui/styles/makeStyles';
 import MaterialTable from "@material-table/core";
-import TablePagination from "@material-ui/core/TablePagination";
-import CircularProgress from "@material-ui/core/CircularProgress";
+import TablePagination from "@mui/material/TablePagination";
+import CircularProgress from "@mui/material/CircularProgress";
 import Error from "./Error";
 import {fetchData} from "../helpers/utility";
 import {tableIcons} from "../constants/consts";
@@ -92,7 +93,7 @@ export default function HistoryTable(props) {
       },
     },
     pagination: {
-      labelRowsSelect: "records",
+      labelDisplayedRows: "records",
       labelRowsPerPage: "Records per page",
     },
   };
