@@ -58,7 +58,6 @@
     "css-minimizer-webpack-plugin": "^4.2.2",
     "dotenv": "^8.6.0",
     "eslint": "^7.32.0",
-    "eslint-plugin-compat": "^6.0.2",
     "eslint-plugin-react": "^7.32.1",
     "eslint-plugin-react-hooks": "^4.6.0",
     "filemanager-webpack-plugin": "^7.0.0",
