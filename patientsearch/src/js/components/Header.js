@@ -128,7 +128,7 @@ export default function Header() {
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [openPopper, setOpenPopper] = React.useState(false);
   const hasUserInfo = () => {
-    return userInfo && (userInfo.name || userInfo.email);
+    return userInfo && (userInfo.username || userInfo.name || userInfo.email);
   };
   const getLogoURL = () => {
     if (!projectName) return "";

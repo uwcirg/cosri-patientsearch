@@ -86,11 +86,6 @@ module.exports = (env) => {
           use: "babel-loader",
         },
         {
-          test: /\.json$/,
-          use: "json-loader",
-          type: "javascript/auto",
-        },
-        {
           test: /\.s[ac]ss$/i,
           use: [
             // Creates `style` nodes from JS strings
