@@ -496,17 +496,6 @@ export default function Agreement(props) {
               className: classes.dateInput
             },
           }}
-          // renderInput={(props) => (
-          //   <TextField
-          //     {...props}
-          //     inputProps={{
-          //       placeholder: "MM-DD-YYYY",
-          //     }}
-          //     inputFormat="MM-DD-YYYY"
-          //     className={classes.dateInput}
-          //     variant="standard"
-          //   />
-          // )}
           clearable={true}
           format="YYYY-MM-DD"
           minDate={dayjs("1950-01-01")}

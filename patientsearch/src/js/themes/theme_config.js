@@ -3,7 +3,7 @@ import {cyan, teal, deepPurple} from "@mui/material/colors";
 
 
 const feedbackColors = {
-  disabled: "#f2f6f2",
+  disabled: "#f9f6f6",
   success: "green",
   warning: "#a56906",
   warningLight: "rgba(250,194,25,.7)",

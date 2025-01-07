@@ -77,13 +77,14 @@ export default function Dropdown(props) {
   const menuItems = props.menuItems ? props.menuItems : null;
 
   if (!menuItems) return null;
+  if (!props.anchorEl) return null;
 
   return (
     <StyledMenu
       id="dropdownMenu"
       anchorEl={props.anchorEl}
       keepMounted
-      open={Boolean(props.anchorEl)}
+      open={!!props.open}
       onClose={(event) => handleMenuClose(event)}
       transformOrigin={{
         vertical: "top",

@@ -104,7 +104,6 @@ export default function PatientListContextProvider({ children }) {
     React.useState(false);
   const [openLaunchInfoModal, setOpenLaunchInfoModal] = React.useState(false);
   const [containNoPMPRow, setContainNoPMPRow] = React.useState(false);
-  const [anchorEl, setAnchorEl] = React.useState(false);
   const [selectedMenuItem, setSelectedMenuItem] = React.useState("");
   const [currentRow, setCurrentRow] = React.useState(null);
   const [actionLabel, setActionLabel] = React.useState(
@@ -290,11 +289,10 @@ export default function PatientListContextProvider({ children }) {
   };
   const handleMenuClick = (event, rowData) => {
     event.stopPropagation();
-    setAnchorEl(event.currentTarget);
     setCurrentRow(rowData);
   };
   const handleMenuClose = () => {
-    setAnchorEl(null);
+    setCurrentRow(null);
   };
   const handleMenuSelect = (event) => {
     event.stopPropagation();
@@ -306,6 +304,16 @@ export default function PatientListContextProvider({ children }) {
       currentRow.tableData.showDetailPanel = true;
       handleToggleDetailPanel(currentRow);
     }, 200);
+  };
+  const handleToggleDetailPanel = (rowData) => {
+    tableRef.current.onToggleDetailPanel(
+      [
+        tableRef.current.dataManager.sortedData.findIndex(
+          (item) => item.id === rowData.id
+        ),
+      ],
+      tableRef.current.props.detailPanel[0].render
+    );
   };
   const getDetailPanelContent = (data) =>
     _getSelectedItemComponent(selectedMenuItem, data.rowData);
@@ -327,16 +335,6 @@ export default function PatientListContextProvider({ children }) {
     return (
       arrMenu.filter((item) => item.toLowerCase() === id.toLowerCase()).length >
       0
-    );
-  };
-  const handleToggleDetailPanel = (rowData) => {
-    tableRef.current.onToggleDetailPanel(
-      [
-        tableRef.current.dataManager.sortedData.findIndex(
-          (item) => item.id === rowData.id
-        ),
-      ],
-      tableRef.current.props.detailPanel[0].render
     );
   };
   const onTestPatientsCheckboxChange = (event) => {
@@ -633,10 +631,11 @@ export default function PatientListContextProvider({ children }) {
       padding: theme.spacing(1, 2, 1),
     },
     rowStyle: (rowData) => ({
-      backgroundColor:
-        needExternalAPILookup() && !_inPDMP(rowData)
-          ? theme.palette.primary.disabled
-          : "#FFF",
+      // backgroundColor:
+      //   needExternalAPILookup() && !_inPDMP(rowData)
+      //     ? theme.palette.primary.disabled
+      //     : "#FFF",
+      backgroundColor: "#FFF"
     }),
     actionsCellStyle: {
       paddingLeft: theme.spacing(1),
@@ -778,9 +777,11 @@ export default function PatientListContextProvider({ children }) {
         console.log("Error status? ", status);
         const badSearchError =
           status && parseInt(status) > 300 && parseInt(status) < 500;
-        const errorMessage = badSearchError
-          ? _getFetchErrorMessage(e, true, isExternalLookup)
-          : _getFetchErrorMessage(e, false, isExternalLookup);
+        const errorMessage = _getFetchErrorMessage(
+          e,
+          badSearchError,
+          isExternalLookup
+        );
         handleErrorCallback(errorMessage);
         return;
       }
@@ -944,9 +945,9 @@ export default function PatientListContextProvider({ children }) {
             resolve(defaults);
             return;
           }
-          if (needExternalAPILookup()) {
-            _setNoPMPFlag(response.entry);
-          }
+          // if (needExternalAPILookup()) {
+          //   _setNoPMPFlag(response.entry);
+          // }
           const { nextURL, previouURL, selfURL } =
             _getLinksFromResponse(response);
           let responsePageoffset = 0;
@@ -1150,7 +1151,6 @@ export default function PatientListContextProvider({ children }) {
         shouldShowMenuItem,
         // exposed states/set state methods
         actionLabel,
-        anchorEl,
         currentRow,
         data,
         errorMessage,

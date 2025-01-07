@@ -1,6 +1,5 @@
 import React from "react";
-//import MaterialTable, {MTableActions} from "@material-table/core";
-import MaterialTable from "@material-table/core";
+import MaterialTable, { MTableActions } from "@material-table/core";
 import CircularProgress from "@mui/material/CircularProgress";
 import Container from "@mui/material/Container";
 import { usePatientListContext } from "../../context/PatientListContextProvider";
@@ -72,9 +71,14 @@ export default function PatientListTable() {
     );
   };
 
-  const renderDropdownMenu = () => {
+  const renderDropdownMenu = (props) => {
     if (shouldHideMoreMenu()) return false;
-    return <DropdownMenu></DropdownMenu>;
+    return (
+      <DropdownMenu
+        {...props}
+        anchorEl={document.querySelector("#actions_" + props.data?.id)}
+      ></DropdownMenu>
+    );
   };
 
   React.useEffect(() => {
@@ -115,9 +119,16 @@ export default function PatientListTable() {
                   <CircularProgress></CircularProgress>
                 </OverlayElement>
               ),
-              // Actions: (props) => {
-              //   return <MTableActions {...props} columns={columns} onColumnsChanged={() => true}></MTableActions>
-              // }
+              Actions: (props) => (
+                <div id={`actions_${props.data.id}`}>
+                  <MTableActions
+                    {...props}
+                    columns={getColumns()}
+                    onColumnsChanged={() => false}
+                  ></MTableActions>
+                  {renderDropdownMenu(props)}
+                </div>
+              ),
             }}
             icons={constants.tableIcons}
           />
@@ -132,7 +143,7 @@ export default function PatientListTable() {
         </div>
         <LaunchDialog></LaunchDialog>
         <ReactivatingModal></ReactivatingModal>
-        {renderDropdownMenu()}
+        {/* {renderDropdownMenu()} */}
       </Container>
     </>
   );

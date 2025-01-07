@@ -444,10 +444,12 @@ export default function UrineScreen(props) {
       }
     )
       .then(() => {
-        if (!snackOpen || !setHistoryInitialized)
-          setSnackOpen(true);
+        setSnackOpen(true);
         setTimeout(() => {
-          getHistory(callback);
+          getHistory(() => {
+            setSnackOpen(false);
+            callback();
+          });
         }, 150);
       })
       .catch((e) => {
@@ -607,36 +609,6 @@ export default function UrineScreen(props) {
       );
     });
   };
-  const getColumns = () => [
-    {
-      field: "id",
-      hidden: true,
-    },
-    {
-      title: "Urine Drug Screen Name",
-      field: "type",
-      emptyValue: "--",
-      cellStyle: {
-        padding: "4px 24px 4px 16px",
-      },
-      lookup: getSelectLookupTypes(),
-      editable: !onlyOneUrineScreenType() ? "always" : "never",
-    },
-    {
-      title: "Order Date",
-      field: "date",
-      emptyValue: "--",
-      cellStyle: {
-        padding: "4px 24px 4px 16px",
-      },
-      editComponent: (params) => (
-        <FormattedInput
-          defaultValue={params.value}
-          handleChange={(e) => params.onChange(e.target.value)}
-        ></FormattedInput>
-      ),
-    },
-  ];
   const getSelectLookupTypes = () => {
     if (!urineScreenTypes) return;
     let types = {};
@@ -785,6 +757,36 @@ export default function UrineScreen(props) {
       />
     </div>
   );
+  const columns = [
+    {
+      field: "id",
+      hidden: true,
+    },
+    {
+      title: "Urine Drug Screen Name",
+      field: "type",
+      emptyValue: "--",
+      cellStyle: {
+        padding: "4px 24px 4px 16px",
+      },
+      lookup: getSelectLookupTypes(),
+      editable: !onlyOneUrineScreenType() ? "always" : "never",
+    },
+    {
+      title: "Order Date",
+      field: "date",
+      emptyValue: "--",
+      cellStyle: {
+        padding: "4px 24px 4px 16px",
+      },
+      editComponent: (params) => (
+        <FormattedInput
+          defaultValue={params.value}
+          handleChange={(e) => params.onChange(e.target.value)}
+        ></FormattedInput>
+      ),
+    },
+  ];
   const renderMostRecentHistory = () => (
     <React.Fragment>
       <Typography
@@ -876,11 +878,17 @@ export default function UrineScreen(props) {
           <div className="history-table">
             <HistoryTable
               data={history}
-              columns={getColumns()}
+              columns={columns}
               APIURL="/fhir/ServiceRequest/"
               submitDataFormatter={submitDataFormatter}
               onRowUpdate={() => getHistory()}
               onRowDelete={() => getHistory()}
+              options={{
+                actionsCellStyle: {
+                  width: "60%",
+                  textAlign: "left",
+                },
+              }}
             ></HistoryTable>
           </div>
         )}

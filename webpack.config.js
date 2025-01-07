@@ -2,7 +2,7 @@ const webpack = require("webpack");
 const path = require("path");
 const TerserWebpackPlugin = require("terser-webpack-plugin");
 const CssMinimizerPlugin = require("css-minimizer-webpack-plugin");
-//const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+const { CleanWebpackPlugin } = require("clean-webpack-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const FileManagerPlugin = require("filemanager-webpack-plugin");
 const NodePolyfillPlugin = require("node-polyfill-webpack-plugin");
@@ -100,6 +100,7 @@ module.exports = (env) => {
     },
     plugins: [
       new NodePolyfillPlugin(),
+      new CleanWebpackPlugin(),
       new HtmlWebpackPlugin({
         title: appTitle,
         template: templateFilePath,
