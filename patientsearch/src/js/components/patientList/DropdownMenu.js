@@ -3,25 +3,22 @@ import { usePatientListContext } from "../../context/PatientListContextProvider"
 
 export default function DropdownMenu(props) {
   let {
-   // anchorEl,
-    currentRow,
-    getMenuItems = function () {
-      return null;
-    },
-    handleMenuClose = function () {},
-    handleMenuSelect = function () {},
+    menuProps = {},
   } = usePatientListContext();
   if (!props.anchorEl) return null;
+  const {menuItems, handleMenuClose, handleMenuSelect} = menuProps;
   return (
-    (
-      <Dropdown
-        anchorEl={props.anchorEl}
-        open={props.data.id === currentRow?.id}
-        handleMenuClose={handleMenuClose}
-        handleMenuSelect={handleMenuSelect}
-        menuItems={getMenuItems()}
-        {...props}
-      ></Dropdown>
-    )
+    <Dropdown
+      anchorEl={props.anchorEl}
+      open={
+        menuProps.open &&
+        props.data.id === menuProps.currentRowId &&
+        props.anchorEl
+      }
+      handleMenuClose={handleMenuClose}
+      handleMenuSelect={handleMenuSelect}
+      menuItems={menuItems}
+      {...props}
+    ></Dropdown>
   );
 }

@@ -48,17 +48,10 @@ const useStyles = makeStyles((theme) => ({
 
 export default forwardRef((props, ref) => {
   let {
-    //methods
-    handleSearch = function () {
-      console.log("handleSearch is not defined.  Unable to search.");
-    },
-    onFiltersDidChange = function () {
-      console.log("onFiltersDidChange is not defined.");
-    },
-    //states/set state methods
-    actionLabel,
+    filterRowProps = {},
   } = usePatientListContext();
 
+  const {actionLabel, handleSearch, onFiltersDidChange} = filterRowProps;
   const classes = useStyles();
   const LAUNCH_BUTTON_LABEL = "VIEW";
   const [filters, setFilters] = React.useState({
@@ -121,7 +114,7 @@ export default forwardRef((props, ref) => {
       birthDate: null,
     });
   };
-  const getLaunchButtonLabel = () => {
+  const getLaunchButtonLabel = (actionLabel) => {
     return actionLabel ? actionLabel : LAUNCH_BUTTON_LABEL;
   };
   const handleKeyDown = (e) => {
@@ -252,7 +245,7 @@ export default forwardRef((props, ref) => {
       variant="contained"
       onClick={() => handleSearch(getFilterData())}
     >
-      {getLaunchButtonLabel()}
+      {getLaunchButtonLabel(actionLabel)}
     </Button>
   );
   const renderClearButton = () => (

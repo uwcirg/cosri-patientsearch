@@ -26,9 +26,9 @@ const useStyles = makeStyles((theme) => ({
 export default function DetailPanel({ data }) {
   const classes = useStyles();
   let {
-    getDetailPanelContent = function () {},
-    onDetailPanelClose = function () {},
+    detailPanelProps = {}
   } = usePatientListContext();
+  const {getDetailPanelContent = function() {}, onDetailPanelClose = function() {}} = detailPanelProps ;
 
   return (
     <div className={classes.detailPanelWrapper}>

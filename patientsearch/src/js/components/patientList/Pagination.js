@@ -13,7 +13,7 @@ const useStyles = makeStyles((theme) => ({
 export default function Pagination() {
   const classes = useStyles();
   const {
-    data,
+    contextState,
     pagination,
     paginationDispatch = function () {},
     tableRef,
@@ -38,7 +38,7 @@ export default function Pagination() {
     });
     if (tableRef && tableRef.current) tableRef.current.onQueryChange();
   };
-  if (!data || !data.length) return null;
+  if (!contextState.data || !contextState.data.length) return null;
   return (
     <TablePagination
       id="patientListPagination"

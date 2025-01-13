@@ -21,31 +21,29 @@ import { addMamotoTracking, hasFlagForCheckbox } from "../../helpers/utility";
 export default function PatientListTable() {
   const patientListCtx = usePatientListContext();
   const {
-    // constants
-    appSettings,
+    patientListProps = {},
+    tableProps = {},
+    contextState,
+  } = usePatientListContext();
+  const {
+    searchTitle,
+    columns,
     userName,
     filterRowRef,
-    // table props
-    tableProps,
-    //methods
-    getAppSettingByKey,
-    getColumns,
     getPatientList,
     shouldHideMoreMenu,
     shouldShowLegend,
-    //states
+    matomoSiteID,
+    onUnload,
     errorMessage,
-    openLoadingModal,
-    setOpenLoadingModal,
-  } = usePatientListContext();
-
-  const columns = getColumns();
+    enableFilterByTestPatients,
+    filterByTestPatientsLabel,
+    enableProviderFilter,
+    myPatientsFilterLabel,
+  } = patientListProps;
 
   const renderTitle = () => {
-    const title =
-      appSettings && appSettings["SEARCH_TITLE_TEXT"]
-        ? appSettings["SEARCH_TITLE_TEXT"]
-        : null;
+    const title = searchTitle ? searchTitle : null;
     if (!title) return false;
     return <h2>{title}</h2>;
   };
@@ -53,19 +51,19 @@ export default function PatientListTable() {
   const renderPatientSearchRow = () => <FilterRow ref={filterRowRef} />;
 
   const renderTestPatientsCheckbox = () => {
-    if (!getAppSettingByKey("ENABLE_FILTER_FOR_TEST_PATIENTS")) return false;
+    if (!enableFilterByTestPatients) return false;
     return (
       <TestPatientsCheckbox
-        label={getAppSettingByKey("FILTER_FOR_TEST_PATIENTS_LABEL")}
+        label={filterByTestPatientsLabel}
       ></TestPatientsCheckbox>
     );
   };
 
   const renderMyPatientCheckbox = () => {
-    if (!getAppSettingByKey("ENABLE_PROVIDER_FILTER")) return false;
+    if (!enableProviderFilter) return false;
     return (
       <MyPatientsCheckbox
-        label={getAppSettingByKey("MY_PATIENTS_FILTER_LABEL")}
+        label={myPatientsFilterLabel}
         checked={hasFlagForCheckbox(constants.FOLLOWING_FLAG)}
       ></MyPatientsCheckbox>
     );
@@ -82,11 +80,11 @@ export default function PatientListTable() {
   };
 
   React.useEffect(() => {
-    if (appSettings) {
-      addMamotoTracking(appSettings["MATOMO_SITE_ID"], userName);
+    if (matomoSiteID) {
+      addMamotoTracking(matomoSiteID, userName);
     }
-    window.addEventListener("unload", () => setOpenLoadingModal(false));
-  }, [userName, appSettings, setOpenLoadingModal]); //retrieval of settings should occur prior to patient list being rendered/initialized
+    window.addEventListener("unload", () => onUnload());
+  }, [userName, matomoSiteID, onUnload]); //retrieval of settings should occur prior to patient list being rendered/initialized
 
   if (Object.keys(patientListCtx).length === 0)
     return <Error message="patient context error"></Error>;
@@ -123,7 +121,7 @@ export default function PatientListTable() {
                 <div id={`actions_${props.data.id}`}>
                   <MTableActions
                     {...props}
-                    columns={getColumns()}
+                    columns={columns}
                     onColumnsChanged={() => false}
                   ></MTableActions>
                   {renderDropdownMenu(props)}
@@ -133,7 +131,7 @@ export default function PatientListTable() {
             icons={constants.tableIcons}
           />
         </div>
-        <LoadingModal open={openLoadingModal}></LoadingModal>
+        <LoadingModal open={contextState.openLoadingModal}></LoadingModal>
         <div className="flex-align-start">
           <Legend show={shouldShowLegend()}></Legend>
           <div>

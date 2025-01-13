@@ -52,15 +52,6 @@ export default function PatientListContextProvider({ children }) {
   const tableRef = useRef();
   const filterRowRef = useRef();
   const menuItems = constants.defaultMenuItems;
-  const [data, setData] = React.useState([]);
-  const [patientIdsByCareTeamParticipant, setPatientIdsByCareTeamParticipant] =
-    React.useState(
-      hasFlagForCheckbox(constants.FOLLOWING_FLAG)
-        ? user && user.followingPatientIds
-          ? user.followingPatientIds
-          : null
-        : null
-    );
   const paginationReducer = (state, action) => {
     if (action.type === "empty") {
       return {
@@ -91,27 +82,47 @@ export default function PatientListContextProvider({ children }) {
     paginationReducer,
     constants.defaultPagination
   );
-  const [currentFilters, setCurrentFilters] = React.useState(
-    constants.defaultFilters
+  const contextReducer = (contextState, action) => {
+    if (!action) return contextState;
+    const keys = Object.keys(action);
+    if (!keys || !keys.length) return contextState;
+    let updatedVars = {};
+    keys.forEach((key) => {
+      updatedVars[key] = action[key];
+    });
+    return {
+      ...contextState,
+      ...updatedVars,
+    };
+  };
+  const [contextState, contextStateDispatch] = React.useReducer(
+    contextReducer,
+    {
+      data: [],
+      patientIdsByCareTeamParticipant: hasFlagForCheckbox(
+        constants.FOLLOWING_FLAG
+      )
+        ? user && user.followingPatientIds
+          ? user.followingPatientIds
+          : null
+        : null,
+      openLoadingModal: false,
+      openReactivatingModal: false,
+      openLaunchInfoModal: false,
+      containNoPMPRow: false,
+      selectedMenuItem: "",
+      currentRow: null,
+      currentFilters: constants.defaultFilters,
+      filterByTestPatients: false,
+      errorMessage:
+        !appClients || !appClients.length
+          ? "No SoF client match the user role(s) found"
+          : "",
+      actionLabel: constants.LAUNCH_BUTTON_LABEL,
+      noDataText: "No record found.",
+    }
   );
-  const [errorMessage, setErrorMessage] = React.useState(
-    !appClients || !appClients.length
-      ? "No SoF client match the user role(s) found"
-      : ""
-  );
-  const [openLoadingModal, setOpenLoadingModal] = React.useState(false);
-  const [openReactivatingModal, setOpenReactivatingModal] =
-    React.useState(false);
-  const [openLaunchInfoModal, setOpenLaunchInfoModal] = React.useState(false);
-  const [containNoPMPRow, setContainNoPMPRow] = React.useState(false);
-  const [selectedMenuItem, setSelectedMenuItem] = React.useState("");
-  const [currentRow, setCurrentRow] = React.useState(null);
-  const [actionLabel, setActionLabel] = React.useState(
-    constants.LAUNCH_BUTTON_LABEL
-  );
-  const [noDataText, setNoDataText] = React.useState("No record found.");
-  const [filterByTestPatients, setFilterByTestPatients] = React.useState(false);
-
+  
   const getColumns = () => {
     const configColumns = getAppSettingByKey("DASHBOARD_COLUMNS");
     const defaultSearchFields = constants.defaultSearchableFields;
@@ -201,8 +212,10 @@ export default function PatientListContextProvider({ children }) {
     // if no launch params specifieid, need to handle multiple SoF clients that can be launched
     // open a dialog here so user can select which one to launch?
     if (!launchParams && hasMultipleSoFClients()) {
-      setCurrentRow(rowData);
-      setOpenLaunchInfoModal(true);
+      contextStateDispatch({
+        currentRow: rowData,
+        openLaunchInfoModal: true,
+      });
       return;
     }
     let launchURL = _getLaunchURL(rowData.id, launchParams);
@@ -212,29 +225,40 @@ export default function PatientListContextProvider({ children }) {
       );
       return false;
     }
-    setOpenLoadingModal(true);
+    contextStateDispatch({
+      openLoadingModal: true,
+    });
     sessionStorage.clear();
     window.location = launchURL;
   };
   const handleLaunchError = (message) => {
-    setErrorMessage(message || "Unable to launch application.");
+    contextStateDispatch({
+      errorMessage: message || "Unable to launch application.",
+    });
     toTop();
     return false;
   };
   const onLaunchDialogClose = () => {
-    setOpenLaunchInfoModal(false);
+    contextStateDispatch({
+      openLaunchInfoModal: false,
+      currentRow: null,
+    });
   };
   const onFiltersDidChange = (filters) => {
     clearTimeout(filterIntervalId);
     filterIntervalId = setTimeout(function () {
-      setErrorMessage("");
+      contextStateDispatch({
+        errorMessage: "",
+      });
       _handleNoDataText(filters);
       _handleActionLabel(filters);
       if (!filters || !filters.length || _containEmptyFilter(filters)) {
         _handleRefresh();
         return filters;
       }
-      setCurrentFilters(filters);
+      contextStateDispatch({
+        currentFilters: filters,
+      });
       _resetPaging();
       if (tableRef && tableRef.current) tableRef.current.onQueryChange();
       return filters;
@@ -242,11 +266,12 @@ export default function PatientListContextProvider({ children }) {
   };
   const _handleActionLabel = (filters) => {
     const totalFilterCount = getSearchableFields().length;
-    setActionLabel(
-      _getNonEmptyFilters(filters).length === totalFilterCount
-        ? constants.CREATE_BUTTON_LABEL
-        : constants.LAUNCH_BUTTON_LABEL
-    );
+    contextStateDispatch({
+      actionLabel:
+        _getNonEmptyFilters(filters).length === totalFilterCount
+          ? constants.CREATE_BUTTON_LABEL
+          : constants.LAUNCH_BUTTON_LABEL,
+    });
   };
   const _handleNoDataText = (filters) => {
     let text = "No matching record found.<br/>";
@@ -261,26 +286,32 @@ export default function PatientListContextProvider({ children }) {
     } else if (nonEmptyFilters.length === totalFilterCount) {
       text += `Click on ${constants.CREATE_BUTTON_LABEL} button to create new patient`;
     }
-    setNoDataText(text);
+    contextStateDispatch({
+      noDataText: text,
+    });
   };
   const handleErrorCallback = (e) => {
     if (e && e.status === 401) {
-      setErrorMessage("Unauthorized.");
+      contextStateDispatch({
+        errorMessage: "Unauthorized.",
+      });
       window.location = "/logout?unauthorized=true";
       return;
     }
     if (e && e.status === 403) {
-      setErrorMessage("Forbidden.");
+      contextStateDispatch({
+        errorMessage: "Forbidden.",
+      });
       window.location = "/logout?forbidden=true";
       return;
     }
-    setErrorMessage(
-      isString(e)
+    contextStateDispatch({
+      errorMessage: isString(e)
         ? e
         : e && e.message
         ? e.message
-        : "Error occurred processing data"
-    );
+        : "Error occurred processing data",
+    });
   };
   const getMenuItems = () => {
     return menuItems && menuItems.length
@@ -289,20 +320,26 @@ export default function PatientListContextProvider({ children }) {
   };
   const handleMenuClick = (event, rowData) => {
     event.stopPropagation();
-    setCurrentRow(rowData);
+    contextStateDispatch({
+      currentRow: rowData,
+    });
   };
   const handleMenuClose = () => {
-    setCurrentRow(null);
+    contextStateDispatch({
+      currentRow: null,
+    });
   };
   const handleMenuSelect = (event) => {
     event.stopPropagation();
     const selectedTarget = event.currentTarget.getAttribute("datatopic");
     if (!selectedTarget) return;
-    setSelectedMenuItem(selectedTarget);
-    if (!currentRow) return;
-    setTimeout(function () {
-      currentRow.tableData.showDetailPanel = true;
-      handleToggleDetailPanel(currentRow);
+    contextStateDispatch({
+      selectedMenuItem: selectedTarget,
+    });
+    if (!contextState.currentRow) return;
+    setTimeout(() => {
+      contextState.currentRow.tableData.showDetailPanel = true;
+      handleToggleDetailPanel(contextState.currentRow);
     }, 200);
   };
   const handleToggleDetailPanel = (rowData) => {
@@ -316,7 +353,7 @@ export default function PatientListContextProvider({ children }) {
     );
   };
   const getDetailPanelContent = (data) =>
-    _getSelectedItemComponent(selectedMenuItem, data.rowData);
+    _getSelectedItemComponent(contextState.selectedMenuItem, data.rowData);
   const onDetailPanelClose = (data) => {
     handleToggleDetailPanel(data.rowData);
     handleMenuClose();
@@ -339,27 +376,33 @@ export default function PatientListContextProvider({ children }) {
   };
   const onTestPatientsCheckboxChange = (event) => {
     _resetPaging();
-    setFilterByTestPatients(event.target.checked);
+    contextStateDispatch({
+      filterByTestPatients: event.target.checked,
+    });
     if (tableRef.current) tableRef.current.onQueryChange();
   };
   const onMyPatientsCheckboxChange = (event, changeEvent) => {
     _resetPaging();
     if (event && event.target && !event.target.checked) {
-      setPatientIdsByCareTeamParticipant(null);
+      contextStateDispatch({
+        patientIdsByCareTeamParticipant: null,
+      });
       if (tableRef.current) tableRef.current.onQueryChange();
       if (changeEvent) changeEvent();
       return;
     }
     if (user && user.followingPatientIds) {
-      setPatientIdsByCareTeamParticipant(user.followingPatientIds);
+      contextStateDispatch({
+        patientIdsByCareTeamParticipant: user.followingPatientIds,
+      });
       if (tableRef.current) tableRef.current.onQueryChange();
       if (changeEvent) changeEvent();
     }
   };
-  const shouldShowLegend = () => containNoPMPRow;
+  const shouldShowLegend = () => contextState.containNoPMPRow;
   const _getSelectedItemComponent = (selectedMenuItem, rowData) => {
     let selected = menuItems.filter(
-      (item) => item.id.toLowerCase() === selectedMenuItem.toLowerCase()
+      (item) => item.id.toLowerCase() === String(selectedMenuItem).toLowerCase()
     );
     if (selected.length) {
       return selected[0].component(rowData);
@@ -377,7 +420,9 @@ export default function PatientListContextProvider({ children }) {
     paginationDispatch({ type: "reset" });
   };
   const _handleRefresh = () => {
-    setCurrentFilters(constants.defaultFilters);
+    contextStateDispatch({
+      currentFilters: constants.defaultFilters,
+    });
     _resetPaging();
     if (tableRef && tableRef.current) tableRef.current.onQueryChange();
   };
@@ -479,28 +524,29 @@ export default function PatientListContextProvider({ children }) {
   const _containEmptyFilter = (filters) =>
     _getNonEmptyFilters(filters).length === 0;
   const _getNonEmptyFilters = (filters) => {
-    if (!filters) return [];
+    if (isEmptyArray(filters)) return [];
     return filters.filter((item) => item.value && item.value !== "");
   };
   const _inPDMP = (rowData) => {
     if (!rowData) return false;
     return (
-      rowData.identifier &&
-      Array.isArray(rowData.identifier) &&
+      !isEmptyArray(rowData.identifier) &&
       rowData.identifier.filter((item) => {
         return item.system === constants.PDMP_SYSTEM_IDENTIFIER && item.value;
       }).length > 0
     );
   };
   const _setNoPMPFlag = (data) => {
-    if (!data || !data.length) return false;
+    if (isEmptyArray(data)) return false;
     let hasNoPMPRow =
       data.filter((rowData) => {
         return !_inPDMP(rowData);
       }).length > 0;
     //legend will display if contain no pmp row flag is set
     if (hasNoPMPRow) {
-      setContainNoPMPRow(true);
+      contextStateDispatch({
+        containNoPMPRow: true,
+      });
     }
   };
   const _getSortDirectives = (orderByCollection) => {
@@ -537,8 +583,8 @@ export default function PatientListContextProvider({ children }) {
   };
   const _getSearchString = () => {
     let filterBy = [];
-    if (currentFilters && currentFilters.length) {
-      currentFilters.forEach((item) => {
+    if (!isEmptyArray(contextState.currentFilters)) {
+      contextState.currentFilters.forEach((item) => {
         if (item.value) {
           filterBy.push(
             `${constants.fieldNameMaps[item.field]}${
@@ -561,14 +607,13 @@ export default function PatientListContextProvider({ children }) {
     const sortMinus = sortField && sortDirection !== "asc" ? "-" : "";
     const searchString = _getSearchString();
     let apiURL = `/fhir/Patient?_include=Patient:link&_total=accurate&_count=${pagination.pageSize}`;
-    if (
-      patientIdsByCareTeamParticipant &&
-      patientIdsByCareTeamParticipant.length
-    ) {
-      apiURL += `&_id=${patientIdsByCareTeamParticipant.join(",")}`;
+    if (!isEmptyArray(contextState.patientIdsByCareTeamParticipant)) {
+      apiURL += `&_id=${contextState.patientIdsByCareTeamParticipant.join(
+        ","
+      )}`;
     }
     if (getAppSettingByKey("ENABLE_FILTER_FOR_TEST_PATIENTS")) {
-      if (!filterByTestPatients) {
+      if (!contextState.filterByTestPatients) {
         apiURL += `&_security:not=HTEST`;
       }
     }
@@ -635,7 +680,7 @@ export default function PatientListContextProvider({ children }) {
       //   needExternalAPILookup() && !_inPDMP(rowData)
       //     ? theme.palette.primary.disabled
       //     : "#FFF",
-      backgroundColor: "#FFF"
+      backgroundColor: "#FFF",
     }),
     actionsCellStyle: {
       paddingLeft: theme.spacing(1),
@@ -704,12 +749,16 @@ export default function PatientListContextProvider({ children }) {
             const target = dataDelete.find((el) => el.id === oldData.id);
             const index = dataDelete.indexOf(target);
             dataDelete.splice(index, 1);
-            setData([...dataDelete]);
-            setErrorMessage("");
+            contextStateDispatch({
+              data: [...dataDelete],
+              errorMessage: "",
+            });
           }, 500);
         })
         .catch(() => {
-          setErrorMessage("Unable to remove patient from the list.");
+          contextStateDispatch({
+            errorMessage: "Unable to remove patient from the list.",
+          });
         }),
   });
   const getTableRowEvent = (event, rowData) => {
@@ -737,7 +786,7 @@ export default function PatientListContextProvider({ children }) {
           id="emptyDataContainer"
           className="flex-center warning notice"
           dangerouslySetInnerHTML={{
-            __html: DOMPurify.sanitize(noDataText),
+            __html: DOMPurify.sanitize(contextState.noDataText),
           }}
         ></div>
       ),
@@ -758,7 +807,7 @@ export default function PatientListContextProvider({ children }) {
       typeof e === "string" ? e : e && e.message ? e.message : "";
     return (
       fetchErrorMessage +
-      (errorMessage
+      (contextState.errorMessage
         ? `<p>Response from the system: ${errorMessage}</p>`
         : `<p>See console for detail.</p>`)
     );
@@ -791,18 +840,25 @@ export default function PatientListContextProvider({ children }) {
       handleLaunchError("No patient data to proceed.");
       return false;
     }
-    setCurrentRow(rowData);
     const isReactivate = params && params.reactivate;
     const isCreateNew = params && params.createNew;
     const isExternalLookup = needExternalAPILookup();
-    setOpenLoadingModal(true);
+    contextStateDispatch({
+      currentRow: rowData,
+      openLoadingModal: true,
+    });
     _getFHIRPatientData(rowData, isExternalLookup)
       .then((bundleResult) => {
-        setErrorMessage("");
+        contextStateDispatch({
+          errorMessage: "",
+        });
         if (isEmptyArray(bundleResult?.entry)) {
           if (isExternalLookup) {
             _handleRefresh();
-            setOpenLoadingModal(false);
+            contextStateDispatch({
+              openLoadingModal: false,
+              currentRow: null
+            });
             //no result from lookup
             handleErrorCallback(
               _getFetchErrorMessage(
@@ -822,14 +878,20 @@ export default function PatientListContextProvider({ children }) {
             isInactive && getAppSettingByKey("REACTIVATE_PATIENT");
 
           if (activeEntries.length > 1) {
-            setOpenLoadingModal(false);
+            contextStateDispatch({
+              openLoadingModal: false,
+              currentRow: null
+            });
             handleErrorCallback("Multiple matched entries found.");
             return;
           }
           if (activeEntries.length > 0) {
             const targetEntry = _formatData(activeEntries[0])[0];
             if (!isCreateNew && canLaunchApp()) {
-              setOpenLoadingModal(false);
+              contextStateDispatch({
+                openLoadingModal: false,
+                currentRow: null
+              });
               // found patient, not need to update/create it again
               handleLaunchApp(targetEntry);
               return;
@@ -837,23 +899,33 @@ export default function PatientListContextProvider({ children }) {
             if (isExternalLookup) {
               //refresh table to show new table row
               _handleRefresh();
-              setOpenLoadingModal(false);
+              contextStateDispatch({
+                openLoadingModal: false,
+                currentRow: null
+              });
               return;
             }
           } else {
             if (!isCreateNew && !isReactivate) {
               if (shouldShowReactivatePopup) {
-                setOpenReactivatingModal(true);
-                setOpenLoadingModal(false);
+                contextStateDispatch({
+                  openReactivatingModal: true,
+                  openLoadingModal: false,
+                });
                 return;
               }
               if (inactiveEntries.length > 1) {
                 handleErrorCallback("Multiple matched entries found.");
-                setOpenLoadingModal(false);
+                contextStateDispatch({
+                  openLoadingModal: false,
+                });
                 return;
               }
               if (inactiveEntries.length) {
-                setOpenLoadingModal(false);
+                contextStateDispatch({
+                  openLoadingModal: false,
+                  currentRow: null
+                });
                 // found patient, not need to update/create it again
                 handleLaunchApp(_formatData(inactiveEntries[0])[0]);
                 return;
@@ -883,12 +955,18 @@ export default function PatientListContextProvider({ children }) {
             method: isUpdate ? "PUT" : "POST",
           },
           (e) => {
-            setOpenLoadingModal(false);
+            contextStateDispatch({
+              openLoadingModal: false,
+              currentRow: null
+            });
             handleErrorCallback(e);
           }
         )
           .then((result) => {
-            setOpenLoadingModal(false);
+            contextStateDispatch({
+              openLoadingModal: false,
+              currentRow: null
+            });
             let response = getFirstResourceFromFhirBundle(result);
             console.log("Patient update result: ", response);
             if (!response || !response.id) {
@@ -909,14 +987,21 @@ export default function PatientListContextProvider({ children }) {
           .catch((e) => {
             //log error to console
             console.log(`Patient search error: ${e}`);
-            setOpenLoadingModal(false);
+            contextStateDispatch({
+              openLoadingModal: false,
+              currentRow: null
+            });
             handleLaunchError(
               _getFetchErrorMessage(e, false, isExternalLookup)
             );
           });
       })
       .catch((e) => {
-        setOpenLoadingModal(false);
+        // setOpenLoadingModal(false);
+        contextStateDispatch({
+          openLoadingModal: false,
+          currentRow: null
+        });
         handleErrorCallback(_getFetchErrorMessage(e, false, isExternalLookup));
         console.log("fetch FHIR patient error ", e);
       });
@@ -989,7 +1074,9 @@ export default function PatientListContextProvider({ children }) {
             totalCount: response.total,
           };
           if (isEmptyArray(eligibleRequests)) {
-            setData(responseData);
+            contextStateDispatch({
+              data: responseData,
+            });
             resolve(resolvedData);
             return;
           }
@@ -1058,7 +1145,9 @@ export default function PatientListContextProvider({ children }) {
             .then((data) => {
               console.log("query result data ", data);
               const resultData = _formatData(data);
-              setData(resultData || []);
+              contextStateDispatch({
+                data: resultData || [],
+              });
               resolve({
                 data: resultData,
                 page: currentPage,
@@ -1066,11 +1155,12 @@ export default function PatientListContextProvider({ children }) {
               });
             })
             .catch((e) => {
-              setErrorMessage(
-                "Error retrieving additional FHIR resources.  See console for detail."
-              );
               console.log(e);
-              setData(responseData);
+              contextStateDispatch({
+                data: responseData,
+                errorMessage:
+                  "Error retrieving additional FHIR resources.  See console for detail.",
+              });
               resolve(resolvedData);
             });
         })
@@ -1078,29 +1168,89 @@ export default function PatientListContextProvider({ children }) {
           console.log("Failed to retrieve data", error);
           //unauthorized error
           handleErrorCallback(error);
-          setErrorMessage(
-            `Error retrieving data: ${
+          contextStateDispatch({
+            errorMessage: `Error retrieving data: ${
               typeof error === "string"
                 ? error
                 : error && error.status
                 ? "Error status " + error.status
                 : error
-            }`
-          );
+            }`,
+          });
           resolve(defaults);
         });
     });
+  };
+  const patientListProps = {
+    searchTitle: appSettings["SEARCH_TITLE_TEXT"],
+    columns: getColumns(),
+    userName: userName,
+    filterRowRef: filterRowRef,
+    getPatientList: getPatientList,
+    shouldHideMoreMenu: shouldHideMoreMenu,
+    shouldShowLegend: shouldShowLegend,
+    matomoSiteID: appSettings["MATOMO_SITE_ID"],
+    onUnload: () => contextStateDispatch({openLoadingModal: false}),
+    errorMessage: contextState.errorMessage,
+    enableFilterByTestPatients: getAppSettingByKey("ENABLE_FILTER_FOR_TEST_PATIENTS"),
+    filterByTestPatientsLabel: getAppSettingByKey("FILTER_FOR_TEST_PATIENTS_LABEL"),
+    enableProviderFilter: getAppSettingByKey("ENABLE_PROVIDER_FILTER"),
+    myPatientsFilterLabel: getAppSettingByKey("MY_PATIENTS_FILTER_LABEL")
+  }
+  const menuProps = {
+    open: !contextState.openLaunchInfoModal,
+    menuItems: getMenuItems(),
+    handleMenuClose: handleMenuClose,
+    handleMenuSelect: handleMenuSelect,
+    currentRowId: contextState.currentRow?.id,
+  };
+  const launchDialogProps = {
+    title: `${
+      contextState.currentRow
+        ? `${contextState.currentRow.last_name}, ${contextState.currentRow.first_name}`
+        : ""
+    }`,
+    open: contextState.openLaunchInfoModal,
+    appClients: appClients,
+    handleLaunchApp: (appClient) =>
+      handleLaunchApp(contextState.currentRow, appClient),
+    onLaunchDialogClose: onLaunchDialogClose,
+  };
+  const filterRowProps = {
+    actionLabel: contextState.actionLabel,
+    onFiltersDidChange: onFiltersDidChange,
+    handleSearch: handleSearch,
+  };
+  const detailPanelProps = {
+    getDetailPanelContent: getDetailPanelContent,
+    onDetailPanelClose: onDetailPanelClose,
+  };
+  const myPatientsProps = {
+    onMyPatientsCheckboxChange: onMyPatientsCheckboxChange,
+    userError: userError,
+  };
+  const reactivateProps = {
+    onSubmit: () =>
+      contextStateDispatch({
+        openReactivatingModal: false,
+      }),
+    onModalClose: () => {
+      if (filterRowRef.current) {
+        filterRowRef.current.clear();
+      }
+    },
+    currentRow: contextState.currentRow,
+    patientLabel: getAppSettingByKey("MY_PATIENTS_FILTER_LABEL"),
+    modalOpen: contextState.openReactivatingModal,
+    handleSearch: handleSearch
   };
   return (
     <PatientListContext.Provider
       value={{
         // exposed constants
-        appClients,
         appSettings,
-        menuItems,
         user,
         userName,
-        userError,
         tableRef,
         filterRowRef,
         // table props
@@ -1125,44 +1275,18 @@ export default function PatientListContextProvider({ children }) {
           tableRef: tableRef,
         },
         // exposed methods
-        handleErrorCallback,
-        handleLaunchApp,
-        handleLaunchError,
-        handleMenuClose,
-        handleMenuSelect,
-        handleSearch,
-        hasMultipleSoFClients,
-        hasSoFClients,
-        getAppSettingByKey,
-        getColumns,
-        getDetailPanelContent,
-        getPatientList,
-        getSearchableFields,
-        shouldSearchByField,
-        getMenuItems,
-        needExternalAPILookup,
-        onDetailPanelClose,
-        onFiltersDidChange,
-        onLaunchDialogClose,
-        onMyPatientsCheckboxChange,
+        detailPanelProps,
+        filterRowProps,
+        menuProps,
+        myPatientsProps,
+        launchDialogProps,
+        patientListProps,
+        reactivateProps,
         onTestPatientsCheckboxChange,
-        shouldShowLegend,
-        shouldHideMoreMenu,
-        shouldShowMenuItem,
-        // exposed states/set state methods
-        actionLabel,
-        currentRow,
-        data,
-        errorMessage,
-        openLoadingModal,
-        setOpenLoadingModal,
-        openReactivatingModal,
-        setOpenReactivatingModal,
-        openLaunchInfoModal,
+        contextState,
+        contextStateDispatch,
         pagination,
         paginationDispatch,
-        patientIdsByCareTeamParticipant,
-        setPatientIdsByCareTeamParticipant,
       }}
     >
       <PatientListContext.Consumer>

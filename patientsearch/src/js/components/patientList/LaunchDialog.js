@@ -1,7 +1,8 @@
 import { Button } from "@mui/material";
-import makeStyles from '@mui/styles/makeStyles';
+import makeStyles from "@mui/styles/makeStyles";
 import DialogBox from "../DialogBox";
 import { usePatientListContext } from "../../context/PatientListContextProvider";
+import { isEmptyArray } from "../../helpers/utility";
 
 const useStyles = makeStyles((theme) => ({
   flex: {
@@ -17,32 +18,20 @@ const useStyles = makeStyles((theme) => ({
 
 export default function LaunchDialog() {
   const classes = useStyles();
-  let {
-    //consts
-    appClients,
-    currentRow,
-    openLaunchInfoModal,
-    //methods
-    handleLaunchApp = function () {
-      console.log("handleLaunchApp is not defined.  Unable to launch app.");
-    },
-    hasSoFClients = function () {
-      console.log("hasSoFClients is not defined. Unable to check.");
-      return false;
-    },
-    onLaunchDialogClose = function () {},
-  } = usePatientListContext();
+  let { launchDialogProps = {} } = usePatientListContext();
+  const { title, appClients, onLaunchDialogClose, handleLaunchApp, open } =
+    launchDialogProps;
   return (
     <DialogBox
-      open={openLaunchInfoModal}
+      open={open}
       onClose={() => onLaunchDialogClose()}
-      title={`${
-        currentRow ? `${currentRow.last_name}, ${currentRow.first_name}` : ""
-      }`}
+      title={title}
       body={
         <div className={classes.flex}>
-          {!hasSoFClients() && <div>No client application is defined.</div>}
-          {hasSoFClients() &&
+          {isEmptyArray(appClients) && (
+            <div>No client application is defined.</div>
+          )}
+          {!isEmptyArray(appClients) &&
             appClients.map((appClient, index) => {
               return (
                 <Button
@@ -52,7 +41,7 @@ export default function LaunchDialog() {
                   className={classes.flexButton}
                   onClick={(e) => {
                     e.stopPropagation();
-                    handleLaunchApp(currentRow, appClient);
+                    handleLaunchApp(appClient);
                   }}
                 >{`Launch ${appClient.id}`}</Button>
               );
