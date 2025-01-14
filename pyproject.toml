@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "patientsearch"
-version = { attr = "setuptools_scm.get_version" }
+dynamic = ["version"]
 dependencies = [
     "flask",
     "flask-jwt-extended",
@@ -25,10 +25,8 @@ dev = [
     "pytest-mock",
 ]
 
-[tool.setuptools.packages.find]
-include = ["patientsearch"]
-zip-safe = false
-include-package-data = true
+[tool.setuptools]
+packages = ["patientsearch"]
 
 [tool.flake8]
 max-line-length = 100
