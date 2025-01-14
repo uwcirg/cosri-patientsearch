@@ -28,9 +28,6 @@ dev = [
 [tool.setuptools]
 packages = ["patientsearch"]
 
-[tool.flake8]
-max-line-length = 100
-
 [tool.pytest.ini_options]
 addopts = "--color yes --verbose"
 console_output_style = "classic"
