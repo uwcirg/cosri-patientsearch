@@ -184,12 +184,6 @@ export default function PatientListContextProvider({ children }) {
     if (!columns) return [];
     return columns.filter((column) => column.searchable);
   };
-  const shouldSearchByField = (fieldname) => {
-    const fields = getSearchableFields();
-    return fields.find(
-      (col) => String(col.field).toLowerCase() === fieldname && !!col.searchable
-    );
-  };
   const needExternalAPILookup = () => {
     return getAppSettingByKey("EXTERNAL_FHIR_API");
   };
@@ -314,7 +308,7 @@ export default function PatientListContextProvider({ children }) {
     });
   };
   const getMenuItems = () => {
-    return menuItems && menuItems.length
+    return !isEmptyArray(menuItems)
       ? menuItems.filter((item) => shouldShowMenuItem(item.id))
       : [];
   };
@@ -368,7 +362,7 @@ export default function PatientListContextProvider({ children }) {
   };
   const shouldShowMenuItem = (id) => {
     let arrMenu = getAppSettingByKey(constants.MORE_MENU_KEY);
-    if (!Array.isArray(arrMenu)) return false;
+    if (isEmptyArray(arrMenu)) return false;
     return (
       arrMenu.filter((item) => item.toLowerCase() === id.toLowerCase()).length >
       0
@@ -484,7 +478,7 @@ export default function PatientListContextProvider({ children }) {
     if (!Array.isArray(data)) {
       data = [data];
     }
-    return data && Array.isArray(data)
+    return !isEmptyArray(data)
       ? data.map((item) => {
           const source = item.resource ? item.resource : item;
           const cols = getColumns();

@@ -83,12 +83,12 @@ export default function Dropdown(props) {
     <StyledMenu
       id="dropdownMenu"
       anchorEl={props.anchorEl}
-      keepMounted
+     // keepMounted
       open={!!props.open}
       onClose={(event) => handleMenuClose(event)}
       transformOrigin={{
         vertical: "top",
-        horizontal: "center",
+        horizontal: "left",
       }}
       elevation={2}
     >
