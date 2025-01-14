@@ -469,7 +469,9 @@ export function isInPast(dateString) {
   const targetDate = new Date(dateString);
   if (!isValid(targetDate)) return false;
   const diff = (today - targetDate); // in miniseconds
-  return diff > (1000 * 60 * 5); // this will check if diff is 5 minutes or more
+  // this will check if diff is 5 minutes or more
+  // e.g. pad by 5 mins to give system time to transmit message, rather than indicate no next message time during processing
+  return diff > (1000 * 60 * 5); 
 }
 
 /*
