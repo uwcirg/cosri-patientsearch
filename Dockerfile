@@ -11,7 +11,7 @@ COPY . .
 RUN npm run build
 
 # -----------------------------------------------------------------------------
-FROM python:3.11 as backend
+FROM python:3.10 as backend
 
 RUN mkdir /opt/cosri-patientsearch
 WORKDIR /opt/cosri-patientsearch
