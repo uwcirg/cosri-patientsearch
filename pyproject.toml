@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "patientsearch"
+dynamic = ["version"]
+dependencies = [
+    "flask",
+    "flask-jwt-extended",
+    "flask-session",
+    "gunicorn",
+    "requests",
+    "redis",
+    "redis-dict",
+    "jmespath",
+    "python-json-logger",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-flask",
+    "pytest-datadir",
+    "pytest-mock",
+]
+
+[tool.setuptools]
+packages = ["patientsearch"]
+
+[tool.pytest.ini_options]
+addopts = "--color yes --verbose"
+console_output_style = "classic"
+filterwarnings = [
+    "module",  # Only print each warning once per module
+    "ignore:^\"localhost\" is not a valid cookie domain, it must contain a.*:Warning",
+    "ignore::DeprecationWarning:dogpile",  # Specific dependency warning
+    "ignore::DeprecationWarning:flask_user",  # Specific dependency warning
+    "error:.*assertion is always true.*",  # Error on bad assertions
+]
