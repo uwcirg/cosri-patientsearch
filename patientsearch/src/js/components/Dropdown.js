@@ -129,4 +129,5 @@ Dropdown.propTypes = {
   anchorEl: PropTypes.oneOfType([PropTypes.bool, PropTypes.object]),
   handleMenuClose: PropTypes.func,
   handleMenuSelect: PropTypes.func,
+  open: PropTypes.bool
 };

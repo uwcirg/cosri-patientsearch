@@ -122,7 +122,7 @@ export default function PatientListContextProvider({ children }) {
       noDataText: "No record found.",
     }
   );
-  
+
   const getColumns = () => {
     const configColumns = getAppSettingByKey("DASHBOARD_COLUMNS");
     const defaultSearchFields = constants.defaultSearchableFields;
@@ -521,28 +521,28 @@ export default function PatientListContextProvider({ children }) {
     if (isEmptyArray(filters)) return [];
     return filters.filter((item) => item.value && item.value !== "");
   };
-  const _inPDMP = (rowData) => {
-    if (!rowData) return false;
-    return (
-      !isEmptyArray(rowData.identifier) &&
-      rowData.identifier.filter((item) => {
-        return item.system === constants.PDMP_SYSTEM_IDENTIFIER && item.value;
-      }).length > 0
-    );
-  };
-  const _setNoPMPFlag = (data) => {
-    if (isEmptyArray(data)) return false;
-    let hasNoPMPRow =
-      data.filter((rowData) => {
-        return !_inPDMP(rowData);
-      }).length > 0;
-    //legend will display if contain no pmp row flag is set
-    if (hasNoPMPRow) {
-      contextStateDispatch({
-        containNoPMPRow: true,
-      });
-    }
-  };
+  // const _inPDMP = (rowData) => {
+  //   if (!rowData) return false;
+  //   return (
+  //     !isEmptyArray(rowData.identifier) &&
+  //     rowData.identifier.filter((item) => {
+  //       return item.system === constants.PDMP_SYSTEM_IDENTIFIER && item.value;
+  //     }).length > 0
+  //   );
+  // };
+  // const _setNoPMPFlag = (data) => {
+  //   if (isEmptyArray(data)) return false;
+  //   let hasNoPMPRow =
+  //     data.filter((rowData) => {
+  //       return !_inPDMP(rowData);
+  //     }).length > 0;
+  //   //legend will display if contain no pmp row flag is set
+  //   if (hasNoPMPRow) {
+  //     contextStateDispatch({
+  //       containNoPMPRow: true,
+  //     });
+  //   }
+  // };
   const _getSortDirectives = (orderByCollection) => {
     let sortField = null,
       sortDirection = null;
@@ -669,7 +669,7 @@ export default function PatientListContextProvider({ children }) {
       backgroundColor: theme.palette.primary.lightest,
       padding: theme.spacing(1, 2, 1),
     },
-    rowStyle: (rowData) => ({
+    rowStyle: () => ({
       // backgroundColor:
       //   needExternalAPILookup() && !_inPDMP(rowData)
       //     ? theme.palette.primary.disabled
@@ -739,7 +739,7 @@ export default function PatientListContextProvider({ children }) {
       })
         .then(() => {
           setTimeout(() => {
-            const dataDelete = [...data];
+            const dataDelete = [...contextState.data];
             const target = dataDelete.find((el) => el.id === oldData.id);
             const index = dataDelete.indexOf(target);
             dataDelete.splice(index, 1);
@@ -851,7 +851,7 @@ export default function PatientListContextProvider({ children }) {
             _handleRefresh();
             contextStateDispatch({
               openLoadingModal: false,
-              currentRow: null
+              currentRow: null,
             });
             //no result from lookup
             handleErrorCallback(
@@ -874,7 +874,7 @@ export default function PatientListContextProvider({ children }) {
           if (activeEntries.length > 1) {
             contextStateDispatch({
               openLoadingModal: false,
-              currentRow: null
+              currentRow: null,
             });
             handleErrorCallback("Multiple matched entries found.");
             return;
@@ -884,7 +884,7 @@ export default function PatientListContextProvider({ children }) {
             if (!isCreateNew && canLaunchApp()) {
               contextStateDispatch({
                 openLoadingModal: false,
-                currentRow: null
+                currentRow: null,
               });
               // found patient, not need to update/create it again
               handleLaunchApp(targetEntry);
@@ -895,7 +895,7 @@ export default function PatientListContextProvider({ children }) {
               _handleRefresh();
               contextStateDispatch({
                 openLoadingModal: false,
-                currentRow: null
+                currentRow: null,
               });
               return;
             }
@@ -918,7 +918,7 @@ export default function PatientListContextProvider({ children }) {
               if (inactiveEntries.length) {
                 contextStateDispatch({
                   openLoadingModal: false,
-                  currentRow: null
+                  currentRow: null,
                 });
                 // found patient, not need to update/create it again
                 handleLaunchApp(_formatData(inactiveEntries[0])[0]);
@@ -951,7 +951,7 @@ export default function PatientListContextProvider({ children }) {
           (e) => {
             contextStateDispatch({
               openLoadingModal: false,
-              currentRow: null
+              currentRow: null,
             });
             handleErrorCallback(e);
           }
@@ -959,7 +959,7 @@ export default function PatientListContextProvider({ children }) {
           .then((result) => {
             contextStateDispatch({
               openLoadingModal: false,
-              currentRow: null
+              currentRow: null,
             });
             let response = getFirstResourceFromFhirBundle(result);
             console.log("Patient update result: ", response);
@@ -983,7 +983,7 @@ export default function PatientListContextProvider({ children }) {
             console.log(`Patient search error: ${e}`);
             contextStateDispatch({
               openLoadingModal: false,
-              currentRow: null
+              currentRow: null,
             });
             handleLaunchError(
               _getFetchErrorMessage(e, false, isExternalLookup)
@@ -994,7 +994,7 @@ export default function PatientListContextProvider({ children }) {
         // setOpenLoadingModal(false);
         contextStateDispatch({
           openLoadingModal: false,
-          currentRow: null
+          currentRow: null,
         });
         handleErrorCallback(_getFetchErrorMessage(e, false, isExternalLookup));
         console.log("fetch FHIR patient error ", e);
@@ -1184,13 +1184,17 @@ export default function PatientListContextProvider({ children }) {
     shouldHideMoreMenu: shouldHideMoreMenu,
     shouldShowLegend: shouldShowLegend,
     matomoSiteID: appSettings["MATOMO_SITE_ID"],
-    onUnload: () => contextStateDispatch({openLoadingModal: false}),
+    onUnload: () => contextStateDispatch({ openLoadingModal: false }),
     errorMessage: contextState.errorMessage,
-    enableFilterByTestPatients: getAppSettingByKey("ENABLE_FILTER_FOR_TEST_PATIENTS"),
-    filterByTestPatientsLabel: getAppSettingByKey("FILTER_FOR_TEST_PATIENTS_LABEL"),
+    enableFilterByTestPatients: getAppSettingByKey(
+      "ENABLE_FILTER_FOR_TEST_PATIENTS"
+    ),
+    filterByTestPatientsLabel: getAppSettingByKey(
+      "FILTER_FOR_TEST_PATIENTS_LABEL"
+    ),
     enableProviderFilter: getAppSettingByKey("ENABLE_PROVIDER_FILTER"),
-    myPatientsFilterLabel: getAppSettingByKey("MY_PATIENTS_FILTER_LABEL")
-  }
+    myPatientsFilterLabel: getAppSettingByKey("MY_PATIENTS_FILTER_LABEL"),
+  };
   const menuProps = {
     open: !contextState.openLaunchInfoModal,
     menuItems: getMenuItems(),
@@ -1236,7 +1240,7 @@ export default function PatientListContextProvider({ children }) {
     currentRow: contextState.currentRow,
     patientLabel: getAppSettingByKey("MY_PATIENTS_FILTER_LABEL"),
     modalOpen: contextState.openReactivatingModal,
-    handleSearch: handleSearch
+    handleSearch: handleSearch,
   };
   return (
     <PatientListContext.Provider

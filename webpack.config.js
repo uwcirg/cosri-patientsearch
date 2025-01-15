@@ -56,7 +56,7 @@ module.exports = (env) => {
       /*
        * create a new hash for each new build
        */
-      filename: "app.bundle.[name]-[hash:6].js",
+      filename: "app.bundle.[name]-[contenthash].js",
       publicPath: "/static/js/",
     },
     module: {
