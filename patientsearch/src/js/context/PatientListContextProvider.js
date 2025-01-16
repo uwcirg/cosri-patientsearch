@@ -45,10 +45,9 @@ export default function PatientListContextProvider({ children }) {
   } = settingsCxt ? settingsCxt : {};
   const { user, userError } = useUserContext();
   const { userName, roles } = user || {};
-  const appClients = getClientsByRequiredRoles(
-    appSettings ? appSettings["SOF_CLIENTS"] : null,
-    roles
-  );
+  const appClients = appSettings
+    ? getClientsByRequiredRoles(appSettings["SOF_CLIENTS"], roles)
+    : null;
   const tableRef = useRef();
   const filterRowRef = useRef();
   const menuItems = constants.defaultMenuItems;
@@ -114,10 +113,9 @@ export default function PatientListContextProvider({ children }) {
       currentRow: null,
       currentFilters: constants.defaultFilters,
       filterByTestPatients: false,
-      errorMessage:
-        !appClients || !appClients.length
-          ? "No SoF client match the user role(s) found"
-          : "",
+      errorMessage: isEmptyArray(appClients)
+        ? "No SoF client match the user role(s) found"
+        : "",
       actionLabel: constants.LAUNCH_BUTTON_LABEL,
       noDataText: "No record found.",
     }
@@ -126,7 +124,7 @@ export default function PatientListContextProvider({ children }) {
   const getColumns = () => {
     const configColumns = getAppSettingByKey("DASHBOARD_COLUMNS");
     const defaultSearchFields = constants.defaultSearchableFields;
-    const isValidConfig = configColumns && Array.isArray(configColumns);
+    const isValidConfig = !isEmptyArray(configColumns);
     let cols = isValidConfig ? configColumns : constants.defaultColumns;
     if (!isValidConfig) {
       console.log("invalid columns via config. Null or not an array.");
@@ -188,10 +186,10 @@ export default function PatientListContextProvider({ children }) {
     return getAppSettingByKey("EXTERNAL_FHIR_API");
   };
   const hasSoFClients = () => {
-    return appClients && appClients.length > 0;
+    return !isEmptyArray(appClients);
   };
   const hasMultipleSoFClients = () => {
-    return appClients && appClients.length > 1;
+    return hasSoFClients() && appClients.length > 1;
   };
   // if only one SoF client, use its launch params
   // or param specified launching first client app
@@ -212,7 +210,7 @@ export default function PatientListContextProvider({ children }) {
       });
       return;
     }
-    let launchURL = _getLaunchURL(rowData.id, launchParams);
+    let launchURL = _getLaunchURL(rowData?.id, launchParams);
     if (!launchURL) {
       handleLaunchError(
         "Unable to launch application. Missing launch URL. Missing configurations."
@@ -241,33 +239,28 @@ export default function PatientListContextProvider({ children }) {
   const onFiltersDidChange = (filters) => {
     clearTimeout(filterIntervalId);
     filterIntervalId = setTimeout(function () {
-      contextStateDispatch({
-        errorMessage: "",
-      });
-      _handleNoDataText(filters);
-      _handleActionLabel(filters);
-      if (!filters || !filters.length || _containEmptyFilter(filters)) {
+      if (isEmptyArray(filters) || _containEmptyFilter(filters)) {
         _handleRefresh();
         return filters;
       }
       contextStateDispatch({
+        errorMessage: "",
         currentFilters: filters,
+        noDataText: getNoDataText(filters),
+        actionLabel: getActionLabel(filters),
       });
       _resetPaging();
       if (tableRef && tableRef.current) tableRef.current.onQueryChange();
       return filters;
     }, 200);
   };
-  const _handleActionLabel = (filters) => {
+  const getActionLabel = (filters) => {
     const totalFilterCount = getSearchableFields().length;
-    contextStateDispatch({
-      actionLabel:
-        _getNonEmptyFilters(filters).length === totalFilterCount
-          ? constants.CREATE_BUTTON_LABEL
-          : constants.LAUNCH_BUTTON_LABEL,
-    });
+    return _getNonEmptyFilters(filters).length === totalFilterCount
+      ? constants.CREATE_BUTTON_LABEL
+      : constants.LAUNCH_BUTTON_LABEL;
   };
-  const _handleNoDataText = (filters) => {
+  const getNoDataText = (filters) => {
     let text = "No matching record found.<br/>";
     const nonEmptyFilters = _getNonEmptyFilters(filters);
     const searchFields = getSearchableFields();
@@ -280,9 +273,7 @@ export default function PatientListContextProvider({ children }) {
     } else if (nonEmptyFilters.length === totalFilterCount) {
       text += `Click on ${constants.CREATE_BUTTON_LABEL} button to create new patient`;
     }
-    contextStateDispatch({
-      noDataText: text,
-    });
+    return text;
   };
   const handleErrorCallback = (e) => {
     if (e && e.status === 401) {
@@ -355,18 +346,14 @@ export default function PatientListContextProvider({ children }) {
   const shouldHideMoreMenu = () => {
     if (!hasAppSettings()) return true;
     return (
-      !appSettings[constants.MORE_MENU_KEY] ||
-      appSettings[constants.MORE_MENU_KEY].filter((item) => item && item !== "")
-        .length === 0
+      isEmptyArray(appSettings[constants.MORE_MENU_KEY]) ||
+      !appSettings[constants.MORE_MENU_KEY].find((item) => item && item !== "")
     );
   };
   const shouldShowMenuItem = (id) => {
     let arrMenu = getAppSettingByKey(constants.MORE_MENU_KEY);
     if (isEmptyArray(arrMenu)) return false;
-    return (
-      arrMenu.filter((item) => item.toLowerCase() === id.toLowerCase()).length >
-      0
-    );
+    return !!arrMenu.find((item) => item.toLowerCase() === id.toLowerCase());
   };
   const onTestPatientsCheckboxChange = (event) => {
     _resetPaging();
@@ -381,33 +368,29 @@ export default function PatientListContextProvider({ children }) {
       contextStateDispatch({
         patientIdsByCareTeamParticipant: null,
       });
-      if (tableRef.current) tableRef.current.onQueryChange();
-      if (changeEvent) changeEvent();
-      return;
-    }
-    if (user && user.followingPatientIds) {
+    } else if (user && user.followingPatientIds) {
       contextStateDispatch({
         patientIdsByCareTeamParticipant: user.followingPatientIds,
       });
-      if (tableRef.current) tableRef.current.onQueryChange();
-      if (changeEvent) changeEvent();
     }
+    if (tableRef.current) tableRef.current.onQueryChange();
+    if (changeEvent) changeEvent();
   };
   const shouldShowLegend = () => contextState.containNoPMPRow;
   const _getSelectedItemComponent = (selectedMenuItem, rowData) => {
     let selected = menuItems.filter(
       (item) => item.id.toLowerCase() === String(selectedMenuItem).toLowerCase()
     );
-    if (selected.length) {
+    if (selected.length > 0) {
       return selected[0].component(rowData);
     }
     return null;
   };
   const _getDefaultSortColumn = () => {
     const cols = getColumns();
-    if (!cols) return null;
+    if (isEmptyArray(cols)) return null;
     const defaultSortFields = cols.filter((column) => column.defaultSort);
-    if (defaultSortFields.length) return defaultSortFields[0];
+    if (defaultSortFields.length > 0) return defaultSortFields[0];
     return null;
   };
   const _resetPaging = () => {
@@ -416,6 +399,7 @@ export default function PatientListContextProvider({ children }) {
   const _handleRefresh = () => {
     contextStateDispatch({
       currentFilters: constants.defaultFilters,
+      errorMessage: "",
     });
     _resetPaging();
     if (tableRef && tableRef.current) tableRef.current.onQueryChange();
@@ -481,7 +465,7 @@ export default function PatientListContextProvider({ children }) {
     return !isEmptyArray(data)
       ? data.map((item) => {
           const source = item.resource ? item.resource : item;
-          const cols = getColumns();
+          const cols = getColumns() ?? [];
           let rowData = {
             id: jsonpath.value(source, "$.id"),
             resource: source,
@@ -496,8 +480,9 @@ export default function PatientListContextProvider({ children }) {
               console.log("JSON path source ", source);
               console.log("Error interpreting JSON path ", e);
             }
-            let value =
-              nodes && nodes.length ? nodes[nodes.length - 1].value : null;
+            let value = !isEmptyArray(nodes)
+              ? nodes[nodes.length - 1].value
+              : null;
 
             if (dataType === "date") {
               value = value ? getLocalDateTimeString(value) : "--";
@@ -546,7 +531,7 @@ export default function PatientListContextProvider({ children }) {
   const _getSortDirectives = (orderByCollection) => {
     let sortField = null,
       sortDirection = null;
-    if (orderByCollection && orderByCollection.length) {
+    if (!isEmptyArray(orderByCollection)) {
       const cols = getColumns();
       const orderField = orderByCollection[0];
       const orderByField = cols[orderField.orderBy]; // orderBy is the index of the column
@@ -556,14 +541,16 @@ export default function PatientListContextProvider({ children }) {
         );
         if (matchedColumn.length && matchedColumn[0].sortBy) {
           sortField = matchedColumn[0].sortBy;
-        } else sortField = constants.fieldNameMaps[orderByField.field]; // translate to fhir field name
+        } else
+          sortField =
+            constants.fieldNameMaps[orderByField.field] ?? orderByField.field; // translate to fhir field name
         if (sortField) sortDirection = orderField.orderDirection;
       }
     }
     if (!sortField) {
       const returnObj = _getDefaultSortColumn();
       sortField = returnObj
-        ? constants.fieldNameMaps[returnObj.field]
+        ? constants.fieldNameMaps[returnObj.field] ?? returnObj.field
         : "_lastUpdated";
       sortDirection = returnObj ? returnObj.defaultSort : "desc";
     }
@@ -581,7 +568,7 @@ export default function PatientListContextProvider({ children }) {
       contextState.currentFilters.forEach((item) => {
         if (item.value) {
           filterBy.push(
-            `${constants.fieldNameMaps[item.field]}${
+            `${constants.fieldNameMaps[item.field] ?? item.field}${
               constants.defaultSearchableFields.indexOf(
                 item.field.toLowerCase()
               ) !== -1
@@ -630,24 +617,24 @@ export default function PatientListContextProvider({ children }) {
   };
   const _getLinksFromResponse = (response) => {
     if (!response) return {};
-    let responseSelfLink = response.link
+    let responseSelfLink = !isEmptyArray(response.link)
       ? response.link.filter((item) => {
           return item.relation === "self";
         })
-      : 0;
-    let responseNextLink = response.link
+      : null;
+    let responseNextLink = !isEmptyArray(response.link)
       ? response.link.filter((item) => {
           return item.relation === "next";
         })
-      : 0;
-    let responsePrevLink = response.link
+      : null;
+    let responsePrevLink = !isEmptyArray(response.link)
       ? response.link.filter((item) => {
           return item.relation === "previous";
         })
-      : 0;
-    let hasSelfLink = responseSelfLink && responseSelfLink.length;
-    let hasNextLink = responseNextLink && responseNextLink.length;
-    let hasPrevLink = responsePrevLink && responsePrevLink.length;
+      : null;
+    let hasSelfLink = !isEmptyArray(responseSelfLink);
+    let hasNextLink = !isEmptyArray(responseNextLink);
+    let hasPrevLink = !isEmptyArray(responsePrevLink);
     let newNextURL = hasNextLink ? responseNextLink[0].url : "";
     let newPrevURL = hasPrevLink
       ? responsePrevLink[0].url
@@ -657,10 +644,7 @@ export default function PatientListContextProvider({ children }) {
     return {
       nextURL: newNextURL,
       previouURL: newPrevURL,
-      selfURL:
-        responseSelfLink && responseSelfLink.length
-          ? responseSelfLink[0].url
-          : "",
+      selfURL: !isEmptyArray(responseSelfLink) ? responseSelfLink[0].url : "",
     };
   };
   const getTableOptions = (theme) => ({
@@ -693,7 +677,7 @@ export default function PatientListContextProvider({ children }) {
         },
       ];
     }
-    if (!appClients || !appClients.length) return actions;
+    if (isEmptyArray(appClients)) return actions;
     const appActions = appClients.map((client, index) => {
       return {
         icon: () => (
@@ -801,7 +785,7 @@ export default function PatientListContextProvider({ children }) {
       typeof e === "string" ? e : e && e.message ? e.message : "";
     return (
       fetchErrorMessage +
-      (contextState.errorMessage
+      (errorMessage
         ? `<p>Response from the system: ${errorMessage}</p>`
         : `<p>See console for detail.</p>`)
     );
@@ -822,7 +806,7 @@ export default function PatientListContextProvider({ children }) {
           status && parseInt(status) > 300 && parseInt(status) < 500;
         const errorMessage = _getFetchErrorMessage(
           e,
-          badSearchError,
+          badSearchError?false:true,
           isExternalLookup
         );
         handleErrorCallback(errorMessage);
@@ -840,12 +824,10 @@ export default function PatientListContextProvider({ children }) {
     contextStateDispatch({
       currentRow: rowData,
       openLoadingModal: true,
+      errorMessage: ""
     });
     _getFHIRPatientData(rowData, isExternalLookup)
       .then((bundleResult) => {
-        contextStateDispatch({
-          errorMessage: "",
-        });
         if (isEmptyArray(bundleResult?.entry)) {
           if (isExternalLookup) {
             _handleRefresh();
@@ -867,7 +849,7 @@ export default function PatientListContextProvider({ children }) {
           const entries = getSortedEntriesFromBundle(bundleResult?.entry);
           const activeEntries = getActiveEntriesFromPatientBundle(entries);
           const inactiveEntries = getInactiveEntriesFromPatientBundle(entries);
-          const isInactive = inactiveEntries.length > 0;
+          const isInactive = !isEmptyArray(inactiveEntries);
           const shouldShowReactivatePopup =
             isInactive && getAppSettingByKey("REACTIVATE_PATIENT");
 
@@ -912,6 +894,7 @@ export default function PatientListContextProvider({ children }) {
                 handleErrorCallback("Multiple matched entries found.");
                 contextStateDispatch({
                   openLoadingModal: false,
+                  currentRow: null
                 });
                 return;
               }
@@ -968,12 +951,7 @@ export default function PatientListContextProvider({ children }) {
               handleLaunchError(_getFetchErrorMessage(errorText, !errorText));
               return false;
             }
-            try {
-              // show new patient row by refreshing table
-              _handleRefresh();
-            } catch (e) {
-              console.log("Error occurred adding row to table ", e);
-            }
+            _handleRefresh();
             if (canLaunchApp()) {
               handleLaunchApp(_formatData(response)[0]);
             }
@@ -991,7 +969,6 @@ export default function PatientListContextProvider({ children }) {
           });
       })
       .catch((e) => {
-        // setOpenLoadingModal(false);
         contextStateDispatch({
           openLoadingModal: false,
           currentRow: null,
@@ -1019,7 +996,7 @@ export default function PatientListContextProvider({ children }) {
         }
       )
         .then((response) => {
-          if (!response || !response.entry || !response.entry.length) {
+          if (!response || isEmptyArray(response.entry)) {
             paginationDispatch({ type: "empty" });
             resolve(defaults);
             return;

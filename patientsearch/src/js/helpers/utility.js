@@ -357,7 +357,7 @@ export function getPreferredUserNameFromToken(tokenObj) {
 
 export function getClientsByRequiredRoles(sofClients, currentRoles) {
   if (!sofClients) {
-    return;
+    return null;
   }
   //CHECK user role(s) against each SoF client app's REQUIRED_ROLES
   return sofClients.filter((item) => {

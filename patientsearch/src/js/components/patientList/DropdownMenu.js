@@ -13,7 +13,7 @@ export default function DropdownMenu(props) {
       open={
         menuProps.open &&
         props.data.id === menuProps.currentRowId &&
-        props.anchorEl
+        !!props.anchorEl
       }
       handleMenuClose={handleMenuClose}
       handleMenuSelect={handleMenuSelect}
