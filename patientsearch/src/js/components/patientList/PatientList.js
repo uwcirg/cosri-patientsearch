@@ -141,7 +141,6 @@ export default function PatientListTable() {
         </div>
         <LaunchDialog></LaunchDialog>
         <ReactivatingModal></ReactivatingModal>
-        {/* {renderDropdownMenu()} */}
       </Container>
     </>
   );

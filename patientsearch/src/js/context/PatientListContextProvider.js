@@ -129,7 +129,7 @@ export default function PatientListContextProvider({ children }) {
     if (!isValidConfig) {
       console.log("invalid columns via config. Null or not an array.");
     }
-    const hasIdField = cols.filter((col) => col.field === "id").length > 0;
+    const hasIdField = cols.find((col) => col.field === "id");
     //columns must include an id field, add if not present
     if (!hasIdField)
       cols.push({
@@ -137,10 +137,13 @@ export default function PatientListContextProvider({ children }) {
         hidden: true,
         expr: "$.id",
       });
-    let returnColumns = cols.map((column) => {
+    let returnColumns = cols.map((column, index) => {
       const fieldName = column.label.toLowerCase().replace(/\s/g, "_");
       column.title = column.label;
       column.field = fieldName;
+      if (fieldName === "id" && !hasIdField) {
+        column.defaultValue = index;
+      }
       /* eslint-disable react/no-unknown-property */
       column.emptyValue = () => <div datacolumn={`${column.label}`}>--</div>;
       column.render = (rowData) => (
@@ -463,11 +466,11 @@ export default function PatientListContextProvider({ children }) {
       data = [data];
     }
     return !isEmptyArray(data)
-      ? data.map((item) => {
+      ? data.map((item, index) => {
           const source = item.resource ? item.resource : item;
           const cols = getColumns() ?? [];
           let rowData = {
-            id: jsonpath.value(source, "$.id"),
+            id: jsonpath.value(source, "$.id") ?? index,
             resource: source,
             identifier: jsonpath.value(source, "$.identifier") || [],
           };
@@ -494,14 +497,13 @@ export default function PatientListContextProvider({ children }) {
               // TODO maybe a specific data type to handle not displaying past message?
               value = isInPast(value) ? "--" : getLocalDateTimeString(value);
             }
-            if (col.field) rowData[col.field] = value;
+            if (col.field) rowData[col.field] = value ?? col.defaultValue;
           });
           return rowData;
         })
       : data;
   };
-  const _containEmptyFilter = (filters) =>
-    _getNonEmptyFilters(filters).length === 0;
+  const _containEmptyFilter = (filters) => !_getNonEmptyFilters(filters).length;
   const _getNonEmptyFilters = (filters) => {
     if (isEmptyArray(filters)) return [];
     return filters.filter((item) => item.value && item.value !== "");
@@ -536,11 +538,11 @@ export default function PatientListContextProvider({ children }) {
       const orderField = orderByCollection[0];
       const orderByField = cols[orderField.orderBy]; // orderBy is the index of the column
       if (orderByField) {
-        const matchedColumn = cols.filter(
+        const matchedColumn = cols.find(
           (col) => col.field === orderByField.field
         );
-        if (matchedColumn.length && matchedColumn[0].sortBy) {
-          sortField = matchedColumn[0].sortBy;
+        if (matchedColumn && matchedColumn.sortBy) {
+          sortField = matchedColumn.sortBy;
         } else
           sortField =
             constants.fieldNameMaps[orderByField.field] ?? orderByField.field; // translate to fhir field name
@@ -806,7 +808,7 @@ export default function PatientListContextProvider({ children }) {
           status && parseInt(status) > 300 && parseInt(status) < 500;
         const errorMessage = _getFetchErrorMessage(
           e,
-          badSearchError?false:true,
+          badSearchError ? false : true,
           isExternalLookup
         );
         handleErrorCallback(errorMessage);
@@ -824,7 +826,7 @@ export default function PatientListContextProvider({ children }) {
     contextStateDispatch({
       currentRow: rowData,
       openLoadingModal: true,
-      errorMessage: ""
+      errorMessage: "",
     });
     _getFHIRPatientData(rowData, isExternalLookup)
       .then((bundleResult) => {
@@ -894,7 +896,7 @@ export default function PatientListContextProvider({ children }) {
                 handleErrorCallback("Multiple matched entries found.");
                 contextStateDispatch({
                   openLoadingModal: false,
-                  currentRow: null
+                  currentRow: null,
                 });
                 return;
               }

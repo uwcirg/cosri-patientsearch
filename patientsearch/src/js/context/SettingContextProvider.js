@@ -14,16 +14,14 @@ export default function SettingContextProvider({ children }) {
   );
   const getAppSettingByKey = useCallback(
     (key) => {
-      if (!hasAppSettings()) return "";
+      if (!hasAppSettings()) return null;
       return appSettings[key];
     },
     [appSettings, hasAppSettings]
   );
   useEffect(() => {
     getSettings((data) => {
-      if (data && !data.error) {
-        setAppSettings(data);
-      }
+      setAppSettings(data && !data.error ? data : {});
     });
   }, []);
   return (
