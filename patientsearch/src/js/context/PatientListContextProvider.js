@@ -242,7 +242,7 @@ export default function PatientListContextProvider({ children }) {
   const onFiltersDidChange = (filters) => {
     clearTimeout(filterIntervalId);
     filterIntervalId = setTimeout(function () {
-      if (isEmptyArray(filters) || _containEmptyFilter(filters)) {
+      if (_containEmptyFilter(filters)) {
         _handleRefresh();
         return filters;
       }
@@ -319,7 +319,7 @@ export default function PatientListContextProvider({ children }) {
   };
   const handleMenuSelect = (event) => {
     event.stopPropagation();
-    const selectedTarget = event.currentTarget.getAttribute("datatopic");
+    const selectedTarget = event.currentTarget?.getAttribute("datatopic");
     if (!selectedTarget) return;
     contextStateDispatch({
       selectedMenuItem: selectedTarget,
@@ -356,7 +356,9 @@ export default function PatientListContextProvider({ children }) {
   const shouldShowMenuItem = (id) => {
     let arrMenu = getAppSettingByKey(constants.MORE_MENU_KEY);
     if (isEmptyArray(arrMenu)) return false;
-    return !!arrMenu.find((item) => item.toLowerCase() === id.toLowerCase());
+    return !!arrMenu.find(
+      (item) => String(item).toLowerCase() === String(id).toLowerCase()
+    );
   };
   const onTestPatientsCheckboxChange = (event) => {
     _resetPaging();
@@ -380,20 +382,23 @@ export default function PatientListContextProvider({ children }) {
     if (changeEvent) changeEvent();
   };
   const shouldShowLegend = () => contextState.containNoPMPRow;
-  const _getSelectedItemComponent = (selectedMenuItem, rowData) => {
-    let selected = menuItems.filter(
-      (item) => item.id.toLowerCase() === String(selectedMenuItem).toLowerCase()
+  const _getSelectedItemComponent = (selectedMenuItemKey, rowData) => {
+    if (!selectedMenuItemKey) return null;
+    let selectedItem = menuItems.find(
+      (item) =>
+        String(item.id).toLowerCase() ===
+        String(selectedMenuItemKey).toLowerCase()
     );
-    if (selected.length > 0) {
-      return selected[0].component(rowData);
+    if (selectedItem) {
+      return selectedItem.component(rowData);
     }
     return null;
   };
   const _getDefaultSortColumn = () => {
     const cols = getColumns();
     if (isEmptyArray(cols)) return null;
-    const defaultSortFields = cols.filter((column) => column.defaultSort);
-    if (defaultSortFields.length > 0) return defaultSortFields[0];
+    const defaultSortColumn = cols.find((column) => column.defaultSort);
+    if (defaultSortColumn) return defaultSortColumn;
     return null;
   };
   const _resetPaging = () => {
@@ -461,8 +466,7 @@ export default function PatientListContextProvider({ children }) {
     return url;
   };
   const _formatData = (data) => {
-    if (!data) return false;
-    if (!Array.isArray(data)) {
+    if (data && !Array.isArray(data)) {
       data = [data];
     }
     return !isEmptyArray(data)
@@ -501,7 +505,7 @@ export default function PatientListContextProvider({ children }) {
           });
           return rowData;
         })
-      : data;
+      : [];
   };
   const _containEmptyFilter = (filters) => !_getNonEmptyFilters(filters).length;
   const _getNonEmptyFilters = (filters) => {
@@ -1030,7 +1034,7 @@ export default function PatientListContextProvider({ children }) {
           let patientResources = response.entry.filter(
             (item) => item.resource && item.resource.resourceType === "Patient"
           );
-          let responseData = _formatData(patientResources) || [];
+          let responseData = _formatData(patientResources);
           const additionalParams = getAppSettingByKey(
             "FHIR_REST_EXTRA_PARAMS_LIST"
           );
@@ -1119,7 +1123,7 @@ export default function PatientListContextProvider({ children }) {
               console.log("query result data ", data);
               const resultData = _formatData(data);
               contextStateDispatch({
-                data: resultData || [],
+                data: resultData,
               });
               resolve({
                 data: resultData,
