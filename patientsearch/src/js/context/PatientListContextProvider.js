@@ -263,14 +263,14 @@ export default function PatientListContextProvider({ children }) {
     setNoDataText(text);
   };
   const handleErrorCallback = (e) => {
-    if (e && e.status === 401) {
-      setErrorMessage("Unauthorized.");
-      window.location = "/logout?unauthorized=true";
+    if (e && e.status === constants.HTTP_UNAUTHORIZED_STATUS_CODE) {
+      setErrorMessage("Unauthorized. Logging out...");
+      window.location = constants.UNAUTHORIZED_LOGOUT_URL;
       return;
     }
-    if (e && e.status === 403) {
-      setErrorMessage("Forbidden.");
-      window.location = "/logout?forbidden=true";
+    if (e && e.status === constants. HTTP_FORBIDDEN_STATUS_CODE) {
+      setErrorMessage("Forbidden. Logging out...");
+      window.location = constants.FORBIDDEN_LOGOUT_URL;
       return;
     }
     setErrorMessage(

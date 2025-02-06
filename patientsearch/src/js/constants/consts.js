@@ -155,3 +155,7 @@ export const REALM_ACCESS_TOKEN_KEY = "realm_access";
 export const MAX_MAIN_TABLE_WIDTH = "1280px";
 export const FOLLOWING_FLAG = "following";
 export const MIN_QUERY_COUNT = 500;
+export const HTTP_FORBIDDEN_STATUS_CODE = 403;
+export const HTTP_UNAUTHORIZED_STATUS_CODE = 401;
+export const FORBIDDEN_LOGOUT_URL = "/logout?forbidden=true";
+export const UNAUTHORIZED_LOGOUT_URL = "/logout?unauthorized=true";
