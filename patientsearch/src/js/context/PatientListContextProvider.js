@@ -1067,7 +1067,7 @@ export default function PatientListContextProvider({ children }) {
         })
         .catch((error) => {
           console.log("Failed to retrieve data", error);
-          //display error message or redirect based on error status
+          // set error message or redirect based on error status
           handleErrorCallback(error);
           resolve(defaults);
         });
