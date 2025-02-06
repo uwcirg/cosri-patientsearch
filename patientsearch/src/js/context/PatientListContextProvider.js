@@ -1067,17 +1067,8 @@ export default function PatientListContextProvider({ children }) {
         })
         .catch((error) => {
           console.log("Failed to retrieve data", error);
-          //unauthorized error
+          //display error message or redirect based on error status
           handleErrorCallback(error);
-          setErrorMessage(
-            `Error retrieving data: ${
-              typeof error === "string"
-                ? error
-                : error && error.status
-                ? "Error status " + error.status
-                : error
-            }`
-          );
           resolve(defaults);
         });
     });
