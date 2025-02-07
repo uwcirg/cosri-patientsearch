@@ -263,14 +263,10 @@ export default function PatientListContextProvider({ children }) {
     setNoDataText(text);
   };
   const handleErrorCallback = (e) => {
-    if (e && e.status === constants.HTTP_UNAUTHORIZED_STATUS_CODE) {
-      setErrorMessage("Unauthorized. Logging out...");
-      window.location = constants.UNAUTHORIZED_LOGOUT_URL;
-      return;
-    }
-    if (e && e.status === constants. HTTP_FORBIDDEN_STATUS_CODE) {
-      setErrorMessage("Forbidden. Logging out...");
-      window.location = constants.FORBIDDEN_LOGOUT_URL;
+    const oStatus = constants.objErrorStatus[parseInt(e?.status)];
+    if (oStatus) {
+      setErrorMessage(`${oStatus.text}. Logging out...`);
+      window.location = oStatus.logoutURL;
       return;
     }
     setErrorMessage(

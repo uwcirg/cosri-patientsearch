@@ -14,10 +14,7 @@ import {
 } from "../helpers/utility";
 import {
   noCacheParam,
-  HTTP_FORBIDDEN_STATUS_CODE,
-  HTTP_UNAUTHORIZED_STATUS_CODE,
-  FORBIDDEN_LOGOUT_URL,
-  UNAUTHORIZED_LOGOUT_URL,
+  objErrorStatus
  } from "../constants/consts";
 const UserContext = React.createContext({});
 /*
@@ -28,12 +25,9 @@ export default function UserContextProvider({ children }) {
   const [errorMessage, setErrorMessage] = useState("");
   const handleErrorCallback = (e) => {
     const status = parseInt(e?.status);
-    if (status === HTTP_UNAUTHORIZED_STATUS_CODE) {
-      window.location = UNAUTHORIZED_LOGOUT_URL;
-      return;
-    }
-    if (status === HTTP_FORBIDDEN_STATUS_CODE) {
-      window.location = FORBIDDEN_LOGOUT_URL;
+    const oStatus = objErrorStatus[status];
+    if (oStatus) {
+      window.location = oStatus.logoutURL;
       return;
     }
     setErrorMessage(
