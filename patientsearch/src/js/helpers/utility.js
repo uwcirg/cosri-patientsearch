@@ -90,6 +90,10 @@ export async function fetchData(url, params, errorCallback) {
     console.log("no results returned ", results);
     if (!results.ok) {
       console.log("Error results ", results);
+      if (results && results.status) {
+        // raise error here to allow callee to catch it as needed
+        throw results;
+      }
       const errorMessage =
         json && json.message
           ? json.message

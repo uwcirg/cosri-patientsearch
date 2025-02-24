@@ -263,14 +263,10 @@ export default function PatientListContextProvider({ children }) {
     setNoDataText(text);
   };
   const handleErrorCallback = (e) => {
-    if (e && e.status === 401) {
-      setErrorMessage("Unauthorized.");
-      window.location = "/logout?unauthorized=true";
-      return;
-    }
-    if (e && e.status === 403) {
-      setErrorMessage("Forbidden.");
-      window.location = "/logout?forbidden=true";
+    const oStatus = constants.objErrorStatus[parseInt(e?.status)];
+    if (oStatus) {
+      setErrorMessage(`${oStatus.text}. Logging out...`);
+      window.location = oStatus.logoutURL;
       return;
     }
     setErrorMessage(
@@ -1067,17 +1063,8 @@ export default function PatientListContextProvider({ children }) {
         })
         .catch((error) => {
           console.log("Failed to retrieve data", error);
-          //unauthorized error
+          // set error message or redirect based on error status
           handleErrorCallback(error);
-          setErrorMessage(
-            `Error retrieving data: ${
-              typeof error === "string"
-                ? error
-                : error && error.status
-                ? "Error status " + error.status
-                : error
-            }`
-          );
           resolve(defaults);
         });
     });
