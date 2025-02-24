@@ -10,9 +10,12 @@ import {
   getRolesFromToken,
   getAccessToken,
   isString,
-  validateToken,
+  validateToken
 } from "../helpers/utility";
-import { noCacheParam } from "../constants/consts";
+import {
+  noCacheParam,
+  objErrorStatus
+ } from "../constants/consts";
 const UserContext = React.createContext({});
 /*
  * context component that allows user info to be accessible to its children component(s)
@@ -21,9 +24,10 @@ export default function UserContextProvider({ children }) {
   const [user, setUser] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");
   const handleErrorCallback = (e) => {
-    if (parseInt(e) === 401) {
-      setErrorMessage("Unauthorized");
-      window.location = "/logout?unauthorized=true";
+    const status = parseInt(e?.status);
+    const oStatus = objErrorStatus[status];
+    if (oStatus) {
+      window.location = oStatus.logoutURL;
       return;
     }
     setErrorMessage(
@@ -31,7 +35,7 @@ export default function UserContextProvider({ children }) {
         ? e
         : e && e.message
         ? e.message
-        : "Error occurred processing user data"
+        : "Error occurred processing requested data"
     );
   };
   useEffect(() => {
@@ -105,12 +109,12 @@ export default function UserContextProvider({ children }) {
       },
       (e) => {
         console.log("token validation error ", e);
-        handleErrorCallback(401);
+        handleErrorCallback(e);
       }
     );
   }, []);
   return (
-    <UserContext.Provider value={{ user: user, userError: errorMessage }}>
+    <UserContext.Provider value={{ user: user, userError: errorMessage}}>
       <UserContext.Consumer>
         {({ user, userError }) => {
           if (user || userError) return children;

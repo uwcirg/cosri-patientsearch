@@ -279,18 +279,12 @@ export default function PatientListContextProvider({ children }) {
     return text;
   };
   const handleErrorCallback = (e) => {
-    if (e && e.status === 401) {
+    const oStatus = constants.objErrorStatus[parseInt(e?.status)];
+    if (oStatus) {
       contextStateDispatch({
-        errorMessage: "Unauthorized.",
+        errorMessage: `${oStatus.text}. Logging out...`
       });
-      window.location = "/logout?unauthorized=true";
-      return;
-    }
-    if (e && e.status === 403) {
-      contextStateDispatch({
-        errorMessage: "Forbidden.",
-      });
-      window.location = "/logout?forbidden=true";
+      window.location = oStatus.logoutURL;
       return;
     }
     contextStateDispatch({
@@ -664,7 +658,7 @@ export default function PatientListContextProvider({ children }) {
       //   needExternalAPILookup() && !_inPDMP(rowData)
       //     ? theme.palette.primary.disabled
       //     : "#FFF",
-      backgroundColor: "#FFF",
+      backgroundColor: "transparent",
     }),
     actionsCellStyle: {
       paddingLeft: theme.spacing(1),
@@ -1143,17 +1137,8 @@ export default function PatientListContextProvider({ children }) {
         })
         .catch((error) => {
           console.log("Failed to retrieve data", error);
-          //unauthorized error
+          // set error message or redirect based on error status
           handleErrorCallback(error);
-          contextStateDispatch({
-            errorMessage: `Error retrieving data: ${
-              typeof error === "string"
-                ? error
-                : error && error.status
-                ? "Error status " + error.status
-                : error
-            }`,
-          });
           resolve(defaults);
         });
     });

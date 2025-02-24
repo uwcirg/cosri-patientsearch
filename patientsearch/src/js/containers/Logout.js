@@ -8,10 +8,12 @@ import { getUrlParameter } from "../helpers/utility";
 import { useSettingContext } from "../context/SettingContextProvider";
 import "../../styles/app.scss";
 
+
+const isForbidden = getUrlParameter("forbidden");
 // Error message, e.g. forbidden error
 const AlertMessage = () => {
   const appSettings = useSettingContext().appSettings;
-  if (!getUrlParameter("forbidden")) return ""; // look for forbidden message for now, can be others as well
+  if (!isForbidden) return ""; // look for forbidden message for now, can be others as well
   const message =
     appSettings && appSettings["FORBIDDEN_TEXT"]
       ? appSettings["FORBIDDEN_TEXT"]
@@ -42,15 +44,17 @@ root.render(
       </Typography>
       <AlertMessage></AlertMessage>
       <br />
-      <Button
-        color="primary"
-        href="/home"
-        align="center"
-        variant="outlined"
-        size="large"
-      >
-        Click here to log in
-      </Button>
+      {!isForbidden && 
+        <Button
+          color="primary"
+          href="/home"
+          align="center"
+          variant="outlined"
+          size="large"
+        >
+          Click here to log in
+        </Button>
+      }
     </div>
   </Layout>
 );
