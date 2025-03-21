@@ -22,10 +22,9 @@ jobs:
         run: npm ci
 
       - name: Run linters
-        run: npm run lint:js
-        # uses: wearerequired/lint-action@v1
-        # with:
-          # eslint: true
+        uses: rkuykendall/lint-action@master
+        with:
+          eslint: true
 
   run-python-linters:
     name: Run python linters
