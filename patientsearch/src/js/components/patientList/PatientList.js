@@ -149,4 +149,4 @@ export default function PatientListTable() {
 
 PatientListTable.propTypes = {
   data: PropTypes.object
-}
+};

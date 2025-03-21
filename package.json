@@ -8,8 +8,7 @@
     "postbuild": "npm run test",
     "start": "cross-env NODE_ENV=development webpack-dev-server --env development",
     "watch": "cross-env NODE_ENV=development concurrently \"npm run lint:js\" \"webpack --config webpack.config.js --watch --progress --env development\"",
-    "lint:js": "eslint ./*.js ./patientsearch/src/js/**/*.js",
-    "lint:js:fix": "eslint ./*.js ./patientsearch/src/js/**/*.js --fix; exit 0",
+    "lint": "npx eslint ./patientsearch/src",
     "test": "jest",
     "test:watch": "jest --watch"
   },

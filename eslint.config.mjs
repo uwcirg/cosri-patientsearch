@@ -25,7 +25,7 @@ export default [...compat.extends(
         react,
         "react-hooks": fixupPluginRules(reactHooks),
     },
-
+    files: ["**/*.{js,mjs,cjs,jsx}"],
     languageOptions: {
         globals: {
             ...globals.browser,
@@ -43,7 +43,6 @@ export default [...compat.extends(
             },
         },
     },
-
     settings: {
         react: {
             pragma: "React",
