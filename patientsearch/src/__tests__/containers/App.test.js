@@ -1,5 +1,5 @@
 import React from "react";
-import {render, act} from "../../js/helpers/test-utils";
+import {render} from "../../js/helpers/test-utils";
 import App from "../../js/containers/App";
 
 describe("App", () => {

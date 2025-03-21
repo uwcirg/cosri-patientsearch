@@ -1,4 +1,5 @@
 import React from "react";
+import PropTypes from "prop-types";
 import MaterialTable, { MTableActions } from "@material-table/core";
 import CircularProgress from "@mui/material/CircularProgress";
 import Container from "@mui/material/Container";
@@ -144,4 +145,8 @@ export default function PatientListTable() {
       </Container>
     </>
   );
+}
+
+PatientListTable.propTypes = {
+  data: PropTypes.object
 }

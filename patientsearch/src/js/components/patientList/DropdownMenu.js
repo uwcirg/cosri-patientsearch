@@ -1,3 +1,4 @@
+import PropTypes from "prop-types";
 import Dropdown from "../Dropdown";
 import { usePatientListContext } from "../../context/PatientListContextProvider";
 
@@ -22,3 +23,8 @@ export default function DropdownMenu(props) {
     ></Dropdown>
   );
 }
+
+DropdownMenu.propTypes = {
+  data: PropTypes.object,
+  anchorEl: PropTypes.oneOfType([PropTypes.bool, PropTypes.object]),
+};
