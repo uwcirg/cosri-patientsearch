@@ -182,7 +182,7 @@ export default function PatientListContextProvider({ children }) {
   };
   const getSearchableFields = () => {
     const columns = getColumns();
-    if (!columns) return [];
+    if (isEmptyArray(columns)) return [];
     return columns.filter((column) => column.searchable);
   };
   const needExternalAPILookup = () => {
@@ -282,7 +282,7 @@ export default function PatientListContextProvider({ children }) {
     const oStatus = constants.objErrorStatus[parseInt(e?.status)];
     if (oStatus) {
       contextStateDispatch({
-        errorMessage: `${oStatus.text}. Logging out...`
+        errorMessage: `${oStatus.text}. Logging out...`,
       });
       window.location = oStatus.logoutURL;
       return;
@@ -506,28 +506,33 @@ export default function PatientListContextProvider({ children }) {
     if (isEmptyArray(filters)) return [];
     return filters.filter((item) => item.value && item.value !== "");
   };
-  // const _inPDMP = (rowData) => {
-  //   if (!rowData) return false;
-  //   return (
-  //     !isEmptyArray(rowData.identifier) &&
-  //     rowData.identifier.filter((item) => {
-  //       return item.system === constants.PDMP_SYSTEM_IDENTIFIER && item.value;
-  //     }).length > 0
-  //   );
-  // };
-  // const _setNoPMPFlag = (data) => {
-  //   if (isEmptyArray(data)) return false;
-  //   let hasNoPMPRow =
-  //     data.filter((rowData) => {
-  //       return !_inPDMP(rowData);
-  //     }).length > 0;
-  //   //legend will display if contain no pmp row flag is set
-  //   if (hasNoPMPRow) {
-  //     contextStateDispatch({
-  //       containNoPMPRow: true,
-  //     });
-  //   }
-  // };
+  const _notInPDMP = (rowData) => {
+    if (!rowData) return false;
+    if (isEmptyArray(rowData.identifier)) return false;
+    // no identifier to compare with
+    if (
+      !rowData.identifier.find((item) => {
+        return item.system === constants.PDMP_SYSTEM_IDENTIFIER;
+      })
+    )
+      return false;
+    return !rowData.identifier.find((item) => {
+      return item.system === constants.PDMP_SYSTEM_IDENTIFIER && item.value;
+    });
+  };
+  const _setNoPMPFlag = (data) => {
+    if (isEmptyArray(data)) return false;
+    let hasNoPMPRow =
+      data.filter((rowData) => {
+        return _notInPDMP(rowData);
+      }).length > 0;
+    //legend will display if contain no pmp row flag is set
+    if (hasNoPMPRow) {
+      contextStateDispatch({
+        containNoPMPRow: true,
+      });
+    }
+  };
   const _getSortDirectives = (orderByCollection) => {
     let sortField = null,
       sortDirection = null;
@@ -1001,9 +1006,9 @@ export default function PatientListContextProvider({ children }) {
             resolve(defaults);
             return;
           }
-          // if (needExternalAPILookup()) {
-          //   _setNoPMPFlag(response.entry);
-          // }
+          if (needExternalAPILookup()) {
+            _setNoPMPFlag(response.entry);
+          }
           const { nextURL, previouURL, selfURL } =
             _getLinksFromResponse(response);
           let responsePageoffset = 0;
