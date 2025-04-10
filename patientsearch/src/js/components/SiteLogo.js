@@ -4,7 +4,7 @@ import makeStyles from '@mui/styles/makeStyles';
 import { imageOK } from "../helpers/utility";
 import { useSettingContext } from "../context/SettingContextProvider";
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles(() => ({
   container: {
     textAlign: "center",
   },

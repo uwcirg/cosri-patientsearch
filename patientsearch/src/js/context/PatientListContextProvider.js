@@ -515,7 +515,6 @@ export default function PatientListContextProvider({ children }) {
   };
   const _setNoPMPFlag = (data) => {
     if (isEmptyArray(data)) return false;
-    console.log("HERE ", data)
     let hasNoPMPRow =
       data.filter((rowData) => {
         return _notInPDMP(rowData);
