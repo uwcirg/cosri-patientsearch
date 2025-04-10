@@ -508,20 +508,14 @@ export default function PatientListContextProvider({ children }) {
   };
   const _notInPDMP = (rowData) => {
     if (!rowData) return false;
-    if (isEmptyArray(rowData.identifier)) return false;
-    // no identifier to compare with
-    if (
-      !rowData.identifier.find((item) => {
-        return item.system === constants.PDMP_SYSTEM_IDENTIFIER;
-      })
-    )
-      return false;
+    if (isEmptyArray(rowData.identifier)) return true;
     return !rowData.identifier.find((item) => {
       return item.system === constants.PDMP_SYSTEM_IDENTIFIER && item.value;
     });
   };
   const _setNoPMPFlag = (data) => {
     if (isEmptyArray(data)) return false;
+    console.log("HERE ", data)
     let hasNoPMPRow =
       data.filter((rowData) => {
         return _notInPDMP(rowData);

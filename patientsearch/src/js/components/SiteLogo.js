@@ -7,8 +7,6 @@ import { useSettingContext } from "../context/SettingContextProvider";
 const useStyles = makeStyles((theme) => ({
   container: {
     textAlign: "center",
-    marginLeft: theme.spacing(2),
-    marginRight: theme.spacing(2),
   },
 }));
 

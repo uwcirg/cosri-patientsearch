@@ -26,6 +26,7 @@ export const themes = {
       dark: {
         main: "#024144",
         secondary: cyan[900],
+        disabled: "#e9e7e7"
       },
       primary: {
         lightest: teal[50],

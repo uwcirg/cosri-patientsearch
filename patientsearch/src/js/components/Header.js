@@ -30,6 +30,7 @@ const useStyles = makeStyles((theme) => ({
     flexDirection: "row",
     justifyContent: "space-between",
     flexWrap: "wrap",
+    gap: theme.spacing(1)
   },
   toolbarIcon: {
     display: "flex",
@@ -48,7 +49,7 @@ const useStyles = makeStyles((theme) => ({
   //logo styling
   logo: {
     width: "180px",
-    marginLeft: theme.spacing(3),
+   // marginLeft: theme.spacing(3),
   },
   title: {
     width: "100%",
@@ -69,8 +70,6 @@ const useStyles = makeStyles((theme) => ({
     flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
-    marginRight: theme.spacing(4),
-    marginLeft: theme.spacing(4),
     [theme.breakpoints.up("md")]: {
       display: "none",
     },

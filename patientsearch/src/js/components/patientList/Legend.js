@@ -6,7 +6,7 @@ const useStyles = makeStyles((theme) => ({
     marginTop: theme.spacing(2.5),
   },
   legendIcon: {
-    backgroundColor: theme.palette.primary.disabled,
+    backgroundColor: theme.palette.dark.disabled,
     width: theme.spacing(6),
     height: theme.spacing(3),
     marginRight: theme.spacing(0.5),
