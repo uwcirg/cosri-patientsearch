@@ -658,12 +658,11 @@ export default function PatientListContextProvider({ children }) {
       backgroundColor: theme.palette.primary.lightest,
       padding: theme.spacing(1, 2, 1),
     },
-    rowStyle: () => ({
-      // backgroundColor:
-      //   needExternalAPILookup() && !_inPDMP(rowData)
-      //     ? theme.palette.primary.disabled
-      //     : "#FFF",
-      backgroundColor: "transparent",
+    rowStyle: (rowData) => ({
+      backgroundColor:
+        needExternalAPILookup() && _notInPDMP(rowData)
+          ? theme.palette.primary.disabled
+          : "#FFF",
     }),
     actionsCellStyle: {
       paddingLeft: theme.spacing(1),
