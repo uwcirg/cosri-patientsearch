@@ -29,7 +29,7 @@ export default function DetailPanel({ data }) {
   const {
     getDetailPanelContent = function () {},
     onDetailPanelClose = function () {},
-  } = childrenProps["detailPanel"];
+  } = (childrenProps["detailPanel"] ?? {});
 
   return (
     <div className={classes.detailPanelWrapper}>

@@ -26,7 +26,7 @@ export default function TestPatientsCheckbox({ label, changeEvent }) {
   const { childrenProps } = usePatientListContext();
   const checkboxClasses = checkBoxStyles();
   const formControlClasses = formControlStyles();
-  const {onTestPatientsCheckboxChange} = childrenProps["testPatient"];
+  const {onTestPatientsCheckboxChange = function() {}} = (childrenProps["testPatient"] ?? {});
   const handleChange = (event) => {
     if (onTestPatientsCheckboxChange) onTestPatientsCheckboxChange(event);
     if (changeEvent) changeEvent(event.target.checked);

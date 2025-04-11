@@ -13,8 +13,12 @@ const useStyles = makeStyles((theme) => ({
 export default function Pagination() {
   const classes = useStyles();
   const { childrenProps } = usePatientListContext();
-  const { pagination, dispatch, tableRef, disabled } =
-    childrenProps["pagination"];
+  const {
+    pagination = {},
+    dispatch = function () {},
+    tableRef,
+    disabled,
+  } = childrenProps["pagination"] ?? {};
   const handleChangePage = (event, newPage) => {
     if (event) event.stopPropagation();
     dispatch({

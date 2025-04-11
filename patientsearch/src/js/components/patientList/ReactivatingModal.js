@@ -33,13 +33,13 @@ export default function ReactivatingModal() {
 
   const [open, setOpen] = React.useState(false);
   const {
-    onSubmit,
-    onModalClose,
+    onSubmit = function () {},
+    onModalClose = function () {},
     currentRow,
     patientLabel,
     modalOpen,
-    handleSearch,
-  } = childrenProps["reactivate"];
+    handleSearch = function () {},
+  } = (childrenProps["reactivate"] ?? {});
 
   const onAfterButtonClick = () => {
     setOpen(false);

@@ -19,8 +19,13 @@ const useStyles = makeStyles((theme) => ({
 export default function LaunchDialog() {
   const classes = useStyles();
   let { childrenProps = {} } = usePatientListContext();
-  const { title, appClients, onLaunchDialogClose, handleLaunchApp, open } =
-    childrenProps["launchDialog"];
+  const {
+    title,
+    appClients,
+    onLaunchDialogClose = function () {},
+    handleLaunchApp = function () {},
+    open,
+  } = childrenProps["launchDialog"] ?? {};
   return (
     <DialogBox
       open={open}
