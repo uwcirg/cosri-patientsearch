@@ -29,9 +29,7 @@ const useStyles = makeStyles((theme) => ({
 export default function ReactivatingModal() {
   const classes = useStyles();
 
-  let {
-    reactivateProps = {}
-  } = usePatientListContext();
+  let { childrenProps = {} } = usePatientListContext();
 
   const [open, setOpen] = React.useState(false);
   const {
@@ -41,7 +39,7 @@ export default function ReactivatingModal() {
     patientLabel,
     modalOpen,
     handleSearch,
-  } = reactivateProps;
+  } = childrenProps["reactivate"];
 
   const onAfterButtonClick = () => {
     setOpen(false);
@@ -66,9 +64,7 @@ export default function ReactivatingModal() {
     onModalClose();
   };
   const getSubjectReferenceText = () =>
-    String(patientLabel)
-      .toLowerCase()
-      .includes("recipient")
+    String(patientLabel).toLowerCase().includes("recipient")
       ? "recipient"
       : "patient";
   const getSubjectDataFromFilters = () => {

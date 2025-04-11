@@ -50,7 +50,7 @@ export function sendRequest(url, params) {
  * helper function for retrieving data via ajax
  */
 export async function fetchData(url, params, errorCallback) {
-  const MAX_WAIT_TIME = 20000;
+  const MAX_WAIT_TIME = 50000;
   params = params || {};
   errorCallback = errorCallback || function () {};
   // Create a promise that rejects in maximum wait time in milliseconds
@@ -65,7 +65,8 @@ export async function fetchData(url, params, errorCallback) {
    * then the timeout promise will kick in
    */
   let json = null;
-  let results = await Promise.race([fetch(url, params), timeoutPromise]).catch(
+  let results = await Promise.race([fetch(url, params), timeoutPromise])
+  .catch(
     (e) => {
       console.log("url ", url);
       console.log("params ", params);

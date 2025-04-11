@@ -1,5 +1,5 @@
 import { useState } from "react";
-import makeStyles from '@mui/styles/makeStyles';
+import makeStyles from "@mui/styles/makeStyles";
 import PropTypes from "prop-types";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Checkbox from "@mui/material/Checkbox";
@@ -39,8 +39,8 @@ export default function MyPatientsCheckbox({
   label,
   checked,
 }) {
-  const { myPatientsProps = {} } = usePatientListContext();
-  const { onMyPatientsCheckboxChange, userError} = myPatientsProps;
+  const { childrenProps = {} } = usePatientListContext();
+  const { onMyPatientsCheckboxChange, userError } = childrenProps["myPatients"];
   const checkboxClasses = checkBoxStyles();
   const formControlClasses = formControlStyles();
   const [state, setState] = useState(checked);

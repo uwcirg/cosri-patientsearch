@@ -47,11 +47,9 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export default forwardRef((props, ref) => {
-  let {
-    filterRowProps = {},
-  } = usePatientListContext();
+  let { childrenProps = {} } = usePatientListContext();
 
-  const {actionLabel, handleSearch, onFiltersDidChange} = filterRowProps;
+  const { actionLabel, handleSearch, onFiltersDidChange } = childrenProps["filterRow"];
   const classes = useStyles();
   const LAUNCH_BUTTON_LABEL = "VIEW";
   const [filters, setFilters] = React.useState({

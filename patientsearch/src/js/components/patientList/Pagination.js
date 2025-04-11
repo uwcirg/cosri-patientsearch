@@ -1,4 +1,4 @@
-import makeStyles from '@mui/styles/makeStyles';
+import makeStyles from "@mui/styles/makeStyles";
 import TablePagination from "@mui/material/TablePagination";
 import { usePatientListContext } from "../../context/PatientListContextProvider";
 
@@ -12,23 +12,22 @@ const useStyles = makeStyles((theme) => ({
 
 export default function Pagination() {
   const classes = useStyles();
-  const {
-    contextState,
-    pagination,
-    paginationDispatch = function () {},
-    tableRef,
-  } = usePatientListContext();
+  const { childrenProps } = usePatientListContext();
+  const { pagination, dispatch, tableRef, disabled } =
+    childrenProps["pagination"];
   const handleChangePage = (event, newPage) => {
-    paginationDispatch({
+    if (event) event.stopPropagation();
+    dispatch({
       payload: {
         prevPageNumber: pagination.pageNumber,
         pageNumber: newPage,
       },
     });
-    if (tableRef && tableRef.current) tableRef.current.onQueryChange();
+    if (tableRef) tableRef.onQueryChange();
   };
   const handleChangeRowsPerPage = (event) => {
-    paginationDispatch({
+    if (event) event.stopPropagation();
+    dispatch({
       payload: {
         pageSize: parseInt(event.target.value, 10),
         nextPageURL: "",
@@ -36,9 +35,9 @@ export default function Pagination() {
         pageNumber: 0,
       },
     });
-    if (tableRef && tableRef.current) tableRef.current.onQueryChange();
+    if (tableRef) tableRef.onQueryChange();
   };
-  if (!contextState.data || !contextState.data.length) return null;
+  if (disabled) return null;
   return (
     <TablePagination
       id="patientListPagination"

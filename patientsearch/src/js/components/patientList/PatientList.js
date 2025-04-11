@@ -22,11 +22,10 @@ import { addMamotoTracking, hasFlagForCheckbox } from "../../helpers/utility";
 export default function PatientListTable() {
   const patientListCtx = usePatientListContext();
   const {
-    patientListProps = {},
-    tableProps = {},
-    contextState,
+    childrenProps = {},
   } = usePatientListContext();
   const {
+    tableProps,
     searchTitle,
     columns,
     userName,
@@ -41,7 +40,8 @@ export default function PatientListTable() {
     filterByTestPatientsLabel,
     enableProviderFilter,
     myPatientsFilterLabel,
-  } = patientListProps;
+    isLoading
+  } = childrenProps["patientList"];
 
   const renderTitle = () => {
     const title = searchTitle ? searchTitle : null;
@@ -132,7 +132,7 @@ export default function PatientListTable() {
             icons={constants.tableIcons}
           />
         </div>
-        <LoadingModal open={contextState.openLoadingModal}></LoadingModal>
+        <LoadingModal open={isLoading}></LoadingModal>
         <div className="flex-align-start">
           <Legend show={shouldShowLegend()}></Legend>
           <div>

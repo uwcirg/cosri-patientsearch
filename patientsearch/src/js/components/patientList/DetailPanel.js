@@ -2,7 +2,7 @@ import React from "react";
 import PropTypes from "prop-types";
 import Button from "@mui/material/Button";
 import Paper from "@mui/material/Paper";
-import makeStyles from '@mui/styles/makeStyles';
+import makeStyles from "@mui/styles/makeStyles";
 import { usePatientListContext } from "../../context/PatientListContextProvider";
 
 const useStyles = makeStyles((theme) => ({
@@ -25,17 +25,15 @@ const useStyles = makeStyles((theme) => ({
 
 export default function DetailPanel({ data }) {
   const classes = useStyles();
-  let {
-    detailPanelProps = {}
-  } = usePatientListContext();
-  const {getDetailPanelContent = function() {}, onDetailPanelClose = function() {}} = detailPanelProps ;
+  let { childrenProps = {} } = usePatientListContext();
+  const {
+    getDetailPanelContent = function () {},
+    onDetailPanelClose = function () {},
+  } = childrenProps["detailPanel"];
 
   return (
     <div className={classes.detailPanelWrapper}>
-      <Paper
-        elevation={1}
-        className={classes.detailPanelContainer}
-      >
+      <Paper elevation={1} className={classes.detailPanelContainer}>
         {getDetailPanelContent(data)}
         <Button
           onClick={() => {

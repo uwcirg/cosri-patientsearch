@@ -1,4 +1,4 @@
-import makeStyles from '@mui/styles/makeStyles';
+import makeStyles from "@mui/styles/makeStyles";
 import PropTypes from "prop-types";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Checkbox from "@mui/material/Checkbox";
@@ -23,10 +23,10 @@ const formControlStyles = makeStyles((theme) => {
 });
 
 export default function TestPatientsCheckbox({ label, changeEvent }) {
-  const { onTestPatientsCheckboxChange } =
-    usePatientListContext();
+  const { childrenProps } = usePatientListContext();
   const checkboxClasses = checkBoxStyles();
   const formControlClasses = formControlStyles();
+  const {onTestPatientsCheckboxChange} = childrenProps["testPatient"];
   const handleChange = (event) => {
     if (onTestPatientsCheckboxChange) onTestPatientsCheckboxChange(event);
     if (changeEvent) changeEvent(event.target.checked);
@@ -47,11 +47,7 @@ export default function TestPatientsCheckbox({ label, changeEvent }) {
           }}
         />
       }
-      label={
-        <Typography variant="body2">
-          {label}
-        </Typography>
-      }
+      label={<Typography variant="body2">{label}</Typography>}
     />
   );
 }

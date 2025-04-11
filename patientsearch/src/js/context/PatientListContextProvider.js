@@ -1141,6 +1141,26 @@ export default function PatientListContextProvider({ children }) {
     });
   };
   const patientListProps = {
+    tableProps: {
+      columns: getColumns(),
+      detailPanel: [
+        {
+          render: (data) => {
+            if (shouldHideMoreMenu()) return false;
+            return <DetailPanel data={data}></DetailPanel>;
+          },
+          isFreeAction: false,
+        },
+      ],
+      actions: getTableActions(),
+      editable: getTableEditableOptions(),
+      localization: getTableLocalizations(),
+      options: getTableOptions(theme),
+      onRowClick: (event, rowData) => {
+        getTableRowEvent(event, rowData);
+      },
+      tableRef: tableRef,
+    },
     searchTitle: appSettings["SEARCH_TITLE_TEXT"],
     columns: getColumns(),
     userName: userName,
@@ -1159,6 +1179,7 @@ export default function PatientListContextProvider({ children }) {
     ),
     enableProviderFilter: getAppSettingByKey("ENABLE_PROVIDER_FILTER"),
     myPatientsFilterLabel: getAppSettingByKey("MY_PATIENTS_FILTER_LABEL"),
+    isLoading: contextState.openLoadingModal,
   };
   const menuProps = {
     open: !contextState.openLaunchInfoModal,
@@ -1207,6 +1228,26 @@ export default function PatientListContextProvider({ children }) {
     modalOpen: contextState.openReactivatingModal,
     handleSearch: handleSearch,
   };
+  const testPatientProps = {
+    onTestPatientsCheckboxChange: onTestPatientsCheckboxChange,
+  };
+  const paginationProps = {
+    pagination: pagination,
+    dispatch: paginationDispatch,
+    disabled: isEmptyArray(contextState.data),
+    tableRef: tableRef.current
+  };
+  const childrenProps = {
+    patientList: patientListProps,
+    detailPanel: detailPanelProps,
+    filterRow: filterRowProps,
+    launchDialog: launchDialogProps,
+    menu: menuProps,
+    myPatients: myPatientsProps,
+    reactivate: reactivateProps,
+    testPatient: testPatientProps,
+    pagination: paginationProps
+  };
   return (
     <PatientListContext.Provider
       value={{
@@ -1216,40 +1257,9 @@ export default function PatientListContextProvider({ children }) {
         userName,
         tableRef,
         filterRowRef,
-        // table props
-        tableProps: {
-          columns: getColumns(),
-          detailPanel: [
-            {
-              render: (data) => {
-                if (shouldHideMoreMenu()) return false;
-                return <DetailPanel data={data}></DetailPanel>;
-              },
-              isFreeAction: false,
-            },
-          ],
-          actions: getTableActions(),
-          editable: getTableEditableOptions(),
-          localization: getTableLocalizations(),
-          options: getTableOptions(theme),
-          onRowClick: (event, rowData) => {
-            getTableRowEvent(event, rowData);
-          },
-          tableRef: tableRef,
-        },
-        // exposed methods
-        detailPanelProps,
-        filterRowProps,
-        menuProps,
-        myPatientsProps,
-        launchDialogProps,
-        patientListProps,
-        reactivateProps,
-        onTestPatientsCheckboxChange,
+        childrenProps,
         contextState,
         contextStateDispatch,
-        pagination,
-        paginationDispatch,
       }}
     >
       <PatientListContext.Consumer>
