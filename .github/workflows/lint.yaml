@@ -22,7 +22,8 @@ jobs:
         run: npm ci
 
       - name: Run linters
-        uses: rkuykendall/lint-action@master
+        # TODO switch back to wearerequired/lint-action when node 20 supported
+        uses: rkuykendall/lint-action@3402def6dea8dbcf0b8ec42431d9345ee3f69c4d
         with:
           eslint: true
 
