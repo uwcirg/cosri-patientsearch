@@ -832,6 +832,7 @@ export default function PatientListContextProvider({ children }) {
         if (isEmptyArray(bundleResult?.entry)) {
           if (isExternalLookup) {
             //no result from lookup
+            _handleRefresh();
             handleErrorCallback(
               _getFetchErrorMessage(
                 "Search returns no match",
