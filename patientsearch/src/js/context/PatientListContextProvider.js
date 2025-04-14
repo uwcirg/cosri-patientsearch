@@ -221,6 +221,7 @@ export default function PatientListContextProvider({ children }) {
       return false;
     }
     contextStateDispatch({
+      currentRow: null,
       openLoadingModal: true,
     });
     sessionStorage.clear();
@@ -278,16 +279,18 @@ export default function PatientListContextProvider({ children }) {
     }
     return text;
   };
-  const handleErrorCallback = (e) => {
+  const handleErrorCallback = (e, contextParams = {}) => {
     const oStatus = constants.objErrorStatus[parseInt(e?.status)];
     if (oStatus) {
       contextStateDispatch({
+        ...contextParams,
         errorMessage: `${oStatus.text}. Logging out...`,
       });
       window.location = oStatus.logoutURL;
       return;
     }
     contextStateDispatch({
+      ...contextParams,
       errorMessage: isString(e)
         ? e
         : e && e.message
@@ -398,10 +401,12 @@ export default function PatientListContextProvider({ children }) {
   const _resetPaging = () => {
     paginationDispatch({ type: "reset" });
   };
-  const _handleRefresh = () => {
+  const _handleRefresh = (contextParams = {}) => {
     contextStateDispatch({
+      currentRow: null,
       currentFilters: constants.defaultFilters,
       errorMessage: "",
+      ...contextParams
     });
     _resetPaging();
     if (tableRef && tableRef.current) tableRef.current.onQueryChange();
@@ -798,7 +803,6 @@ export default function PatientListContextProvider({ children }) {
         method: isExternalLookup ? "PUT" : "GET",
       },
       (e, status) => {
-        console.log("Error status? ", status);
         const badSearchError =
           status && parseInt(status) > 300 && parseInt(status) < 500;
         const errorMessage = _getFetchErrorMessage(
@@ -827,18 +831,17 @@ export default function PatientListContextProvider({ children }) {
       .then((bundleResult) => {
         if (isEmptyArray(bundleResult?.entry)) {
           if (isExternalLookup) {
-            _handleRefresh();
-            contextStateDispatch({
-              openLoadingModal: false,
-              currentRow: null,
-            });
             //no result from lookup
             handleErrorCallback(
               _getFetchErrorMessage(
                 "Search returns no match",
                 true,
                 isExternalLookup
-              )
+              ),
+              {
+                openLoadingModal: false,
+                currentRow: null,
+              }
             );
             return;
           }
@@ -851,28 +854,22 @@ export default function PatientListContextProvider({ children }) {
             isInactive && getAppSettingByKey("REACTIVATE_PATIENT");
 
           if (activeEntries.length > 1) {
-            contextStateDispatch({
+            handleErrorCallback("Multiple matched entries found.", {
               openLoadingModal: false,
               currentRow: null,
             });
-            handleErrorCallback("Multiple matched entries found.");
             return;
           }
           if (activeEntries.length > 0) {
             const targetEntry = _formatData(activeEntries[0])[0];
             if (!isCreateNew && canLaunchApp()) {
-              contextStateDispatch({
-                openLoadingModal: false,
-                currentRow: null,
-              });
               // found patient, not need to update/create it again
               handleLaunchApp(targetEntry);
               return;
             }
             if (isExternalLookup) {
               //refresh table to show new table row
-              _handleRefresh();
-              contextStateDispatch({
+              _handleRefresh({
                 openLoadingModal: false,
                 currentRow: null,
               });
@@ -888,18 +885,13 @@ export default function PatientListContextProvider({ children }) {
                 return;
               }
               if (inactiveEntries.length > 1) {
-                handleErrorCallback("Multiple matched entries found.");
-                contextStateDispatch({
+                handleErrorCallback("Multiple matched entries found.", {
                   openLoadingModal: false,
                   currentRow: null,
                 });
                 return;
               }
               if (inactiveEntries.length) {
-                contextStateDispatch({
-                  openLoadingModal: false,
-                  currentRow: null,
-                });
                 // found patient, not need to update/create it again
                 handleLaunchApp(_formatData(inactiveEntries[0])[0]);
                 return;
@@ -929,48 +921,44 @@ export default function PatientListContextProvider({ children }) {
             method: isUpdate ? "PUT" : "POST",
           },
           (e) => {
-            contextStateDispatch({
+            handleErrorCallback(e, {
               openLoadingModal: false,
               currentRow: null,
             });
-            handleErrorCallback(e);
           }
         )
           .then((result) => {
-            contextStateDispatch({
+            const contextParams = {
               openLoadingModal: false,
               currentRow: null,
-            });
+            };
             let response = getFirstResourceFromFhirBundle(result);
             console.log("Patient update result: ", response);
             if (!response || !response.id) {
               const errorText = getErrorDiagnosticTextFromResponse(response);
-              handleLaunchError(_getFetchErrorMessage(errorText, !errorText));
+              handleErrorCallback(_getFetchErrorMessage(errorText, !errorText), contextParams);
               return false;
             }
-            _handleRefresh();
             if (canLaunchApp()) {
               handleLaunchApp(_formatData(response)[0]);
+              return;
             }
+            _handleRefresh(contextParams);
           })
           .catch((e) => {
             //log error to console
             console.log(`Patient search error: ${e}`);
-            contextStateDispatch({
+            handleErrorCallback(_getFetchErrorMessage(e, false, isExternalLookup), {
               openLoadingModal: false,
               currentRow: null,
             });
-            handleLaunchError(
-              _getFetchErrorMessage(e, false, isExternalLookup)
-            );
           });
       })
       .catch((e) => {
-        contextStateDispatch({
+        handleErrorCallback(_getFetchErrorMessage(e, false, isExternalLookup), {
           openLoadingModal: false,
           currentRow: null,
         });
-        handleErrorCallback(_getFetchErrorMessage(e, false, isExternalLookup));
         console.log("fetch FHIR patient error ", e);
       });
   };
@@ -1235,7 +1223,7 @@ export default function PatientListContextProvider({ children }) {
     pagination: pagination,
     dispatch: paginationDispatch,
     disabled: isEmptyArray(contextState.data),
-    tableRef: tableRef.current
+    tableRef: tableRef.current,
   };
   const childrenProps = {
     patientList: patientListProps,
@@ -1246,7 +1234,7 @@ export default function PatientListContextProvider({ children }) {
     myPatients: myPatientsProps,
     reactivate: reactivateProps,
     testPatient: testPatientProps,
-    pagination: paginationProps
+    pagination: paginationProps,
   };
   return (
     <PatientListContext.Provider
@@ -1288,3 +1276,4 @@ export function usePatientListContext() {
   }
   return context;
 }
+
