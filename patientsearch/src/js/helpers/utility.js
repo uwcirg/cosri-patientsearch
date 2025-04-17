@@ -50,7 +50,7 @@ export function sendRequest(url, params) {
  * helper function for retrieving data via ajax
  */
 export async function fetchData(url, params, errorCallback) {
-  const MAX_WAIT_TIME = 20000;
+  const MAX_WAIT_TIME = 50000;
   params = params || {};
   errorCallback = errorCallback || function () {};
   // Create a promise that rejects in maximum wait time in milliseconds
@@ -65,7 +65,8 @@ export async function fetchData(url, params, errorCallback) {
    * then the timeout promise will kick in
    */
   let json = null;
-  let results = await Promise.race([fetch(url, params), timeoutPromise]).catch(
+  let results = await Promise.race([fetch(url, params), timeoutPromise])
+  .catch(
     (e) => {
       console.log("url ", url);
       console.log("params ", params);
@@ -120,7 +121,7 @@ export async function getSettings(callback, noCache) {
     pad(today.getMonth()) +
     pad(today.getDate()) +
     pad(today.getMinutes());
-  if (!noCache && sessionStorage.getItem(settingStorageKey)) {
+  if (!noCache && typeof sessionStorage !== "undefined" && sessionStorage.getItem(settingStorageKey)) {
     let cachedSetting = JSON.parse(sessionStorage.getItem(settingStorageKey));
     callback(cachedSetting);
     return cachedSetting;
@@ -134,7 +135,7 @@ export async function getSettings(callback, noCache) {
   } catch (e) {
     callback({ error: e });
   }
-  if (data && Object.keys(data).length) {
+  if (typeof sessionStorage !== "undefined" && data && Object.keys(data).length) {
     sessionStorage.setItem(settingStorageKey, JSON.stringify(data));
   }
   callback(data);
@@ -176,7 +177,7 @@ export function imageOK(img) {
 export function getUrlParameter(name, queryString) {
   name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
   var regex = new RegExp("[\\?&]" + name + "=([^&#]*)");
-  var results = regex.exec(queryString ? queryString : location.search);
+  var results = regex.exec(queryString ? queryString : typeof location !== "undefined" ? location.search : null);
   return results === null
     ? ""
     : decodeURIComponent(results[1].replace(/\+/g, " "));
@@ -361,7 +362,7 @@ export function getPreferredUserNameFromToken(tokenObj) {
 
 export function getClientsByRequiredRoles(sofClients, currentRoles) {
   if (!sofClients) {
-    return;
+    return null;
   }
   //CHECK user role(s) against each SoF client app's REQUIRED_ROLES
   return sofClients.filter((item) => {

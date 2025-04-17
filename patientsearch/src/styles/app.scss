@@ -13,9 +13,16 @@ $small-font-size: 14px;
 $table-header-bg-color: rgb(224, 242, 241);
 
 body {
+  color: rgba(0, 0, 0, 0.87);
   box-sizing: border-box;
   padding: 0;
   margin: 0;
+  font-size: 0.875rem;
+  font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+  font-weight: 400;
+  line-height: 1.43;
+  letter-spacing: 0.01071em;
+  background-color: #fafafa;
 }
 html {
   scroll-behavior: smooth;
@@ -251,7 +258,8 @@ button.disabled:focus,
     color: #444 !important;
   }
 }
-.MuiTableSortLabel-root.MuiTableSortLabel-active {
+.MuiTableSortLabel-root.MuiTableSortLabel-active,
+.MuiTableSortLabel-root.Mui-active {
   .MuiTableSortLabel-iconDirectionAsc {
     .up {
       fill: $color-muter !important;
@@ -271,10 +279,16 @@ button.disabled:focus,
   }
 }
 
+.MuiTablePagination-selectLabel {
+  margin-right: 8px;
+}
+
 #patientList {
   input,
   .MuiInputLabel-formControl {
     font-size: $small-font-size;
+    outline: none;
+    border: 0
   }
   .main {
     tbody {

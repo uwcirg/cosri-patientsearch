@@ -1,12 +1,12 @@
 import PropTypes from "prop-types";
-import { makeStyles } from "@material-ui/core/styles";
+import makeStyles from '@mui/styles/makeStyles';
 
 const useStyles = makeStyles((theme) => ({
   legend: {
     marginTop: theme.spacing(2.5),
   },
   legendIcon: {
-    backgroundColor: theme.palette.primary.disabled,
+    backgroundColor: theme.palette.dark.disabled,
     width: theme.spacing(6),
     height: theme.spacing(3),
     marginRight: theme.spacing(0.5),

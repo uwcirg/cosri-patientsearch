@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import CircularProgress from "@material-ui/core/CircularProgress";
+import CircularProgress from "@mui/material/CircularProgress";
 import { useSettingContext } from "../context/SettingContextProvider";
 import { getAppLaunchURL, getUrlParameter } from "../helpers/utility";
 import Alert from "../components/Alert";
@@ -55,12 +55,10 @@ export default function ClientAppRedirect() {
         renderError(
           "Invalid or mis-configured SOF client specified.  Unable to retrieve launch URL."
         )}
-      {allowToLaunch && (
-        <div className="flex">
+      {allowToLaunch && <div className="flex">
           <CircularProgress></CircularProgress>
           <div>Loading...</div>
-        </div>
-      )}
+        </div>}
     </div>
   );
 }

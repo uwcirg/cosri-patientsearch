@@ -9,7 +9,7 @@ import "../../styles/app.scss";
 
 export default function Layout({children}) {
   return (
-    <React.Fragment>
+    <>
       <SettingContextProvider>
         <ProjectThemeProvider>
           <UserContextProvider>
@@ -19,7 +19,7 @@ export default function Layout({children}) {
           </UserContextProvider>
         </ProjectThemeProvider>
       </SettingContextProvider>
-    </React.Fragment>
+    </>
   );
 }
 Layout.propTypes = {

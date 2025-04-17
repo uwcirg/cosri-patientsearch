@@ -1,12 +1,13 @@
-import PropTypes from 'prop-types';
+import PropTypes from "prop-types";
 import React from "react";
-import { makeStyles, useTheme} from "@material-ui/core/styles";
-import MaterialTable from "@material-table/core";
-import TablePagination from "@material-ui/core/TablePagination";
-import CircularProgress from "@material-ui/core/CircularProgress";
+import { useTheme } from "@mui/material/styles";
+import makeStyles from "@mui/styles/makeStyles";
+import MaterialTable, { MTableActions, MTableAction } from "@material-table/core";
+import TablePagination from "@mui/material/TablePagination";
+import CircularProgress from "@mui/material/CircularProgress";
 import Error from "./Error";
-import {fetchData} from "../helpers/utility";
-import {tableIcons} from "../constants/consts";
+import { fetchData } from "../helpers/utility";
+import { tableIcons } from "../constants/consts";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -92,7 +93,7 @@ export default function HistoryTable(props) {
       },
     },
     pagination: {
-      labelRowsSelect: "records",
+      labelDisplayedRows: "records",
       labelRowsPerPage: "Records per page",
     },
   };
@@ -132,12 +133,13 @@ export default function HistoryTable(props) {
       <Error message={errorMessage} style={errorStyle} />
     </div>
   );
+  const columns = props.columns ?? [];
   return (
     <React.Fragment>
       <div className={classes.root}>
         <MaterialTable
           className="history"
-          columns={props.columns}
+          columns={columns}
           data={data}
           options={{
             ...defaultOptions,
@@ -150,6 +152,21 @@ export default function HistoryTable(props) {
           components={{
             OverlayLoading: () => renderOverloadingComponent(),
             Pagination: (parentProps) => renderTablePagination(parentProps),
+            Actions: (props) => (
+              <MTableActions
+                {...props}
+                columns={columns}
+                onColumnsChanged={() => false}
+                index={props?.data?.id}
+              ></MTableActions>
+            ),
+            Action: (props) => (
+              <MTableAction
+                {...props}
+                columns={columns}
+                onColumnsChanged={() => false}
+              ></MTableAction>
+            ),
           }}
           editable={{
             onRowUpdate: (newData, oldData) => {
@@ -207,11 +224,11 @@ export default function HistoryTable(props) {
   );
 }
 HistoryTable.propTypes = {
-    data: PropTypes.array.isRequired,
-    columns: PropTypes.array.isRequired,
-    APIURL: PropTypes.string.isRequired,
-    submitDataFormatter: PropTypes.func,
-    onRowUpdate: PropTypes.func,
-    onRowDelete: PropTypes.func,
-    options: PropTypes.object
+  data: PropTypes.array.isRequired,
+  columns: PropTypes.array.isRequired,
+  APIURL: PropTypes.string.isRequired,
+  submitDataFormatter: PropTypes.func,
+  onRowUpdate: PropTypes.func,
+  onRowDelete: PropTypes.func,
+  options: PropTypes.object,
 };

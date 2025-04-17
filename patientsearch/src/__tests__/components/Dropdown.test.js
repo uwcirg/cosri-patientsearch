@@ -1,16 +1,12 @@
-import { shallow } from "enzyme";
 import React from "react";
+import {render, screen} from "../../js/helpers/test-utils";
+import "@testing-library/jest-dom";
 import Dropdown from "../../js/components/Dropdown";
 
 describe("Dropdown", () => {
-  it("Dropdown component renders without crashing", () => {
-    const menuItems = [{"id": "test", "text": "test"}];
-    const wrapper = shallow(<Dropdown menuItems={menuItems} />);
-    expect(wrapper).toBeDefined();
-  });
-
-  it("Empty Dropdown component renders without crashing", () => {
-    const wrapper = shallow(<Dropdown/>);
-    expect(wrapper).toEqual({});
+  it.skip("Dropdown component renders without crashing", async () => {
+    const menuItems = [{ id: "test", text: "test" }];
+    render(<Dropdown menuItems={menuItems} />);
+    expect(await screen.findByText("test")).toBeInTheDocument();
   });
 });

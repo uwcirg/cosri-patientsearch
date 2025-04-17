@@ -1,8 +1,8 @@
 import React from "react";
 import PropTypes from "prop-types";
-import Button from "@material-ui/core/Button";
-import Paper from "@material-ui/core/Paper";
-import { makeStyles } from "@material-ui/core/styles";
+import Button from "@mui/material/Button";
+import Paper from "@mui/material/Paper";
+import makeStyles from "@mui/styles/makeStyles";
 import { usePatientListContext } from "../../context/PatientListContextProvider";
 
 const useStyles = makeStyles((theme) => ({
@@ -25,18 +25,15 @@ const useStyles = makeStyles((theme) => ({
 
 export default function DetailPanel({ data }) {
   const classes = useStyles();
-  let {
+  let { childrenProps = {} } = usePatientListContext();
+  const {
     getDetailPanelContent = function () {},
     onDetailPanelClose = function () {},
-  } = usePatientListContext();
+  } = (childrenProps["detailPanel"] ?? {});
 
   return (
     <div className={classes.detailPanelWrapper}>
-      <Paper
-        elevation={1}
-        variant="outlined"
-        className={classes.detailPanelContainer}
-      >
+      <Paper elevation={1} className={classes.detailPanelContainer}>
         {getDetailPanelContent(data)}
         <Button
           onClick={() => {

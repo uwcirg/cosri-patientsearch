@@ -1,15 +1,15 @@
-import { forwardRef, lazy, Suspense } from "react";
-import Check from "@material-ui/icons/Check";
-import ChevronLeft from "@material-ui/icons/ChevronLeft";
-import ChevronRight from "@material-ui/icons/ChevronRight";
-import ClearIcon from "@material-ui/icons/Clear";
-import Delete from "@material-ui/icons/Delete";
-import Edit from "@material-ui/icons/Edit";
-import FirstPage from "@material-ui/icons/FirstPage";
-import ArrowDownIcon from "@material-ui/icons/ArrowDropUp";
-import ArrowUpIcon from "@material-ui/icons/ArrowDropDown";
-import LastPage from "@material-ui/icons/LastPage";
-import Search from "@material-ui/icons/Search";
+import React, { forwardRef, lazy, Suspense } from "react";
+import Check from "@mui/icons-material/Check";
+import ChevronLeft from "@mui/icons-material/ChevronLeft";
+import ChevronRight from "@mui/icons-material/ChevronRight";
+import ClearIcon from "@mui/icons-material/Clear";
+import Delete from "@mui/icons-material/Delete";
+import Edit from "@mui/icons-material/Edit";
+import FirstPage from "@mui/icons-material/FirstPage";
+import ArrowDownIcon from "@mui/icons-material/ArrowDropUp";
+import ArrowUpIcon from "@mui/icons-material/ArrowDropDown";
+import LastPage from "@mui/icons-material/LastPage";
+import Search from "@mui/icons-material/Search";
 import RowData from "../models/RowData";
 
 export const tableIcons = {
@@ -152,7 +152,7 @@ export const CREATE_BUTTON_LABEL = "CREATE";
 export const MORE_MENU_KEY = "MORE_MENU";
 export const ACCESS_TOKEN_KEY = "access_token";
 export const REALM_ACCESS_TOKEN_KEY = "realm_access";
-export const MAX_MAIN_TABLE_WIDTH = "1280px";
+export const MAX_MAIN_TABLE_WIDTH = "1200px";
 export const FOLLOWING_FLAG = "following";
 export const MIN_QUERY_COUNT = 500;
 export const objErrorStatus = {

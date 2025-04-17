@@ -1,9 +1,9 @@
 import React from "react";
-import Modal from "@material-ui/core/Modal";
-import { makeStyles } from "@material-ui/core/styles";
-import Button from "@material-ui/core/Button";
-import Box from "@material-ui/core/Box";
-import { Alert } from "@material-ui/lab";
+import Modal from "@mui/material/Modal";
+import makeStyles from "@mui/styles/makeStyles";
+import Button from "@mui/material/Button";
+import Box from "@mui/material/Box";
+import { Alert } from "@mui/material";
 import { usePatientListContext } from "../../context/PatientListContextProvider";
 import RowData from "../../models/RowData";
 
@@ -18,7 +18,7 @@ const useStyles = makeStyles((theme) => ({
     left: "calc(50% - 240px)",
   },
   buttonsContainer: {
-    padding: theme.spacing(2,2,1),
+    padding: theme.spacing(2, 2, 1),
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
@@ -28,21 +28,22 @@ const useStyles = makeStyles((theme) => ({
 
 export default function ReactivatingModal() {
   const classes = useStyles();
-  let {
-    //consts
-    getAppSettingByKey,
-    openReactivatingModal,
-    setOpenReactivatingModal,
-    currentRow,
-    filterRowRef,
-    handleSearch,
-  } = usePatientListContext();
+
+  let { childrenProps = {} } = usePatientListContext();
 
   const [open, setOpen] = React.useState(false);
+  const {
+    onSubmit = function () {},
+    onModalClose = function () {},
+    currentRow,
+    patientLabel,
+    modalOpen,
+    handleSearch = function () {},
+  } = (childrenProps["reactivate"] ?? {});
 
   const onAfterButtonClick = () => {
     setOpen(false);
-    setOpenReactivatingModal(false);
+    onSubmit();
   };
 
   const onReactivate = () => {
@@ -60,14 +61,10 @@ export default function ReactivatingModal() {
   const onClose = (event, reason) => {
     if (reason && reason === "backdropClick") return;
     onAfterButtonClick();
-    if (filterRowRef.current) {
-      filterRowRef.current.clear();
-    }
+    onModalClose();
   };
   const getSubjectReferenceText = () =>
-    String(getAppSettingByKey("MY_PATIENTS_FILTER_LABEL"))
-      .toLowerCase()
-      .includes("recipient")
+    String(patientLabel).toLowerCase().includes("recipient")
       ? "recipient"
       : "patient";
   const getSubjectDataFromFilters = () => {
@@ -83,8 +80,8 @@ export default function ReactivatingModal() {
   };
 
   React.useEffect(() => {
-    setOpen(openReactivatingModal);
-  }, [openReactivatingModal]);
+    setOpen(modalOpen);
+  }, [modalOpen]);
 
   return (
     <Modal

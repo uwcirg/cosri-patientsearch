@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { makeStyles } from "@material-ui/core/styles";
+import makeStyles from "@mui/styles/makeStyles";
 import PropTypes from "prop-types";
-import FormControlLabel from "@material-ui/core/FormControlLabel";
-import Checkbox from "@material-ui/core/Checkbox";
-import ErrorIcon from "@material-ui/icons/ReportProblemOutlined";
-import Tooltip from "@material-ui/core/Tooltip";
-import Typography from "@material-ui/core/Typography";
+import FormControlLabel from "@mui/material/FormControlLabel";
+import Checkbox from "@mui/material/Checkbox";
+import ErrorIcon from "@mui/icons-material/ReportProblemOutlined";
+import Tooltip from "@mui/material/Tooltip";
+import Typography from "@mui/material/Typography";
 import { usePatientListContext } from "../../context/PatientListContextProvider";
 
 const checkBoxStyles = makeStyles((theme) => {
@@ -39,7 +39,8 @@ export default function MyPatientsCheckbox({
   label,
   checked,
 }) {
-  const { onMyPatientsCheckboxChange, userError } = usePatientListContext();
+  const { childrenProps = {} } = usePatientListContext();
+  const { onMyPatientsCheckboxChange = function() {}, userError } = (childrenProps["myPatients"] ?? {});
   const checkboxClasses = checkBoxStyles();
   const formControlClasses = formControlStyles();
   const [state, setState] = useState(checked);

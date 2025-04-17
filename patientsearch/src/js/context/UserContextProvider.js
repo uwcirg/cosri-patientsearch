@@ -1,6 +1,6 @@
 import React, { useContext, useState, useEffect } from "react";
 import PropTypes from "prop-types";
-import CircularProgress from "@material-ui/core/CircularProgress";
+import CircularProgress from "@mui/material/CircularProgress";
 import Error from "../components/Error";
 import {
   fetchData,
@@ -119,10 +119,12 @@ export default function UserContextProvider({ children }) {
         {({ user, userError }) => {
           if (user || userError) return children;
           return (
-            <div style={{ display: "flex", gap: "16px 16px", padding: "24px" }}>
-              Loading ...
-              <CircularProgress color="primary"></CircularProgress>
-            </div>
+            <>
+              <div style={{ display: "flex", gap: "16px 16px", padding: "24px" }}>
+                Loading ...
+                <CircularProgress color="primary"></CircularProgress>
+              </div>
+            </>
           );
         }}
       </UserContext.Consumer>

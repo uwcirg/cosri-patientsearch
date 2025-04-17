@@ -2,7 +2,7 @@ import "core-js/stable";
 import "regenerator-runtime/runtime";
 import React, { Component } from "react";
 import Layout from "../layout/Layout";
-import PatientListTable from "../components/patientList/main";
+import PatientListTable from "../components/patientList";
 import TimeoutModal from "../components/TimeoutModal";
 import Version from "../components/Version";
 
@@ -17,14 +17,17 @@ export default class App extends Component {
     return { hasError: true };
   }
 
-  render () {
-    if (this.state.hasError) {
-      return <div className="app-error-container">
-        <h1>Application Error  - Something went wrong.</h1>
-        <h2 className="error">See console for detail</h2>
-        <div className="buttons-container"><a href="/">Refresh</a></div>
-      </div>;
-    }
+  render() {
+    if (this.state.hasError)
+      return (
+        <div className="app-error-container">
+          <h1>Application Error - Something went wrong.</h1>
+          <h2 className="error">See console for detail</h2>
+          <div className="buttons-container">
+            <a href="/">Refresh</a>
+          </div>
+        </div>
+      );
     return (
       <Layout>
         <PatientListTable />

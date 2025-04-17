@@ -1,7 +1,7 @@
 import React from "react";
-import { render } from "react-dom";
-import Button from "@material-ui/core/Button";
-import Typography from "@material-ui/core/Typography";
+import { createRoot } from "react-dom/client";
+import Button from "@mui/material/Button";
+import Typography from "@mui/material/Typography";
 import Layout from "../layout/Layout";
 import Alert from "../components/Alert";
 import { getUrlParameter } from "../helpers/utility";
@@ -35,7 +35,8 @@ const getMessage = () => {
   return "You have been logged out.";
 };
 // logout entry point
-render(
+const root = createRoot(document.getElementById("content"));
+root.render(
   <Layout>
     <div className="logout-container">
       <Typography component="h4" variant="h5" color="inherit" align="center">
@@ -55,6 +56,5 @@ render(
         </Button>
       }
     </div>
-  </Layout>,
-  document.getElementById("content")
+  </Layout>
 );

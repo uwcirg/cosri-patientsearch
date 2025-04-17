@@ -1,10 +1,9 @@
-import { createTheme } from "@material-ui/core/styles";
-import cyan from "@material-ui/core/colors/cyan";
-import teal from "@material-ui/core/colors/teal";
-import deepPurple from "@material-ui/core/colors/deepPurple";
+import { createTheme } from "@mui/material/styles";
+import {cyan, teal, deepPurple} from "@mui/material/colors";
+
 
 const feedbackColors = {
-  disabled: "rgb(231, 238, 231)",
+  disabled: "#f9f6f6",
   success: "green",
   warning: "#a56906",
   warningLight: "rgba(250,194,25,.7)",
@@ -27,6 +26,7 @@ export const themes = {
       dark: {
         main: "#024144",
         secondary: cyan[900],
+        disabled: "#e9e7e7"
       },
       primary: {
         lightest: teal[50],

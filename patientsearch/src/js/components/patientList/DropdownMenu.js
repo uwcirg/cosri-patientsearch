@@ -1,21 +1,30 @@
+import PropTypes from "prop-types";
 import Dropdown from "../Dropdown";
 import { usePatientListContext } from "../../context/PatientListContextProvider";
 
-export default function DropdownMenu() {
-  let {
-    anchorEl,
-    getMenuItems = function () {
-      return null;
-    },
+export default function DropdownMenu(props) {
+  let { childrenProps = {} } = usePatientListContext();
+  if (!props.anchorEl) return null;
+  const {
+    menuItems,
     handleMenuClose = function () {},
     handleMenuSelect = function () {},
-  } = usePatientListContext();
+    currentRowId,
+    open,
+  } = childrenProps["menu"] ?? {};
   return (
     <Dropdown
-      anchorEl={anchorEl}
+      anchorEl={props.anchorEl}
+      open={open && props.data.id === currentRowId && !!props.anchorEl}
       handleMenuClose={handleMenuClose}
       handleMenuSelect={handleMenuSelect}
-      menuItems={getMenuItems()}
+      menuItems={menuItems}
+      {...props}
     ></Dropdown>
   );
 }
+
+DropdownMenu.propTypes = {
+  data: PropTypes.object,
+  anchorEl: PropTypes.oneOfType([PropTypes.bool, PropTypes.object]),
+};

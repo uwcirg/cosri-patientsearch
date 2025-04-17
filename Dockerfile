@@ -1,4 +1,4 @@
-FROM node:12 as frontend
+FROM node:20 as frontend
 
 RUN mkdir /tmp/frontend
 WORKDIR /tmp/frontend

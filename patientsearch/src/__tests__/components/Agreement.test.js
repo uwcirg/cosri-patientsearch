@@ -1,4 +1,4 @@
-import { shallow } from "enzyme";
+import {render} from "../../js/helpers/test-utils";
 import React from "react";
 import Agreement from "../../js/components/Agreement";
 
@@ -10,7 +10,6 @@ describe("Agreement", () => {
       last_name: "Skywalker",
       dob: "1977-01-12"
     };
-    const wrapper = shallow(<Agreement rowData={rowData}/>);
-    expect(wrapper).toBeDefined();
+   render(<Agreement rowData={rowData}/>);
   });
 });

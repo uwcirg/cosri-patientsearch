@@ -20,3 +20,4 @@ patientsearch/static/favicon.ico
 patientsearch/templates/index.html
 report.*
 node_modules
+patientsearch/**/__snapshots__

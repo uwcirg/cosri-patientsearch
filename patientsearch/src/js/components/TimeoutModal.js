@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
-import { makeStyles } from "@material-ui/core/styles";
-import Button from "@material-ui/core/Button";
-import Modal from "@material-ui/core/Modal";
+import makeStyles from '@mui/styles/makeStyles';
+import Button from "@mui/material/Button";
+import Modal from "@mui/material/Modal";
 import { sendRequest } from "../helpers/utility";
 import { useSettingContext } from "../context/SettingContextProvider";
 
@@ -240,7 +240,7 @@ export default function TimeoutModal() {
   );
   useEffect(() => {
     clearExpiredIntervalId();
-    setDisabled(appSettings["ENABLE_INACTIVITY_TIMEOUT"] ? false : true);
+    setDisabled(appSettings && appSettings["ENABLE_INACTIVITY_TIMEOUT"] ? false : true);
     initTimeoutTracking();
     return () => clearExpiredIntervalId();
     /* eslint-disable react-hooks/exhaustive-deps */
