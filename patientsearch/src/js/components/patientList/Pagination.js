@@ -1,3 +1,5 @@
+import { memo } from "react";
+import PropTypes from "prop-types";
 import makeStyles from "@mui/styles/makeStyles";
 import TablePagination from "@mui/material/TablePagination";
 import { usePatientListContext } from "../../context/PatientListContextProvider";
@@ -9,6 +11,45 @@ const useStyles = makeStyles((theme) => ({
     border: "2px solid #ececec",
   },
 }));
+
+const PaginationElement = memo(function PaginationElement({
+  classes,
+  pagination,
+  handleChangePage,
+  handleChangeRowsPerPage,
+}) {
+  return (
+    <TablePagination
+      id="patientListPagination"
+      className={classes.pagination}
+      rowsPerPageOptions={[5, 10, 20, 50]}
+      onPageChange={handleChangePage}
+      page={pagination.pageNumber}
+      rowsPerPage={pagination.pageSize}
+      onRowsPerPageChange={handleChangeRowsPerPage}
+      count={pagination.totalCount}
+      size="small"
+      component="div"
+      labelRowsPerPage="Rows per page"
+      nextIconButtonProps={{
+        disabled: pagination.disableNextButton,
+        color: "primary",
+      }}
+      backIconButtonProps={{
+        disabled: pagination.disablePrevButton,
+        color: "primary",
+      }}
+      SelectProps={{ variant: "standard" }}
+    />
+  );
+});
+
+PaginationElement.propTypes = {
+  classes: PropTypes.object,
+  pagination: PropTypes.object,
+  handleChangePage: PropTypes.func,
+  handleChangeRowsPerPage: PropTypes.func,
+};
 
 export default function Pagination() {
   const classes = useStyles();
@@ -43,27 +84,11 @@ export default function Pagination() {
   };
   if (disabled) return null;
   return (
-    <TablePagination
-      id="patientListPagination"
-      className={classes.pagination}
-      rowsPerPageOptions={[5, 10, 20, 50]}
-      onPageChange={handleChangePage}
-      page={pagination.pageNumber}
-      rowsPerPage={pagination.pageSize}
-      onRowsPerPageChange={handleChangeRowsPerPage}
-      count={pagination.totalCount}
-      size="small"
-      component="div"
-      labelRowsPerPage="Rows per page"
-      nextIconButtonProps={{
-        disabled: pagination.disableNextButton,
-        color: "primary",
-      }}
-      backIconButtonProps={{
-        disabled: pagination.disablePrevButton,
-        color: "primary",
-      }}
-      SelectProps={{ variant: "standard" }}
-    />
+    <PaginationElement
+      classes={classes}
+      pagination={pagination}
+      handleChangePage={handleChangePage}
+      handleChangeRowsPerPage={handleChangeRowsPerPage}
+    ></PaginationElement>
   );
 }

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { memo, useState } from "react";
 import makeStyles from "@mui/styles/makeStyles";
 import PropTypes from "prop-types";
 import FormControlLabel from "@mui/material/FormControlLabel";
@@ -33,21 +33,15 @@ const formControlStyles = makeStyles((theme) => {
   };
 });
 
-export default function MyPatientsCheckbox({
-  shouldDisable,
-  changeEvent,
-  label,
+const CheckboxForm = memo(function CheckboxForm({
   checked,
+  disable,
+  changeEvent,
+  checkboxClasses,
+  formControlClasses,
+  label,
+  errorMessage,
 }) {
-  const { childrenProps = {} } = usePatientListContext();
-  const { onMyPatientsCheckboxChange = function() {}, userError } = (childrenProps["myPatients"] ?? {});
-  const checkboxClasses = checkBoxStyles();
-  const formControlClasses = formControlStyles();
-  const [state, setState] = useState(checked);
-  const handleChange = (event) => {
-    setState(event.target.checked);
-    onMyPatientsCheckboxChange(event, changeEvent);
-  };
   return (
     <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
       <FormControlLabel
@@ -56,12 +50,12 @@ export default function MyPatientsCheckbox({
         }}
         control={
           <Checkbox
-            checked={state}
-            onChange={handleChange}
+            checked={checked}
+            onChange={changeEvent}
             name="ckMyPatients"
             color="primary"
             size="small"
-            disabled={shouldDisable}
+            disabled={disable}
             classes={{
               root: checkboxClasses.root,
             }}
@@ -69,9 +63,9 @@ export default function MyPatientsCheckbox({
         }
         label={<Typography variant="body2">{label}</Typography>}
       />
-      {userError && (
+      {errorMessage && (
         <Tooltip
-          title={userError}
+          title={errorMessage}
           enterTouchDelay={0}
           classes={{
             tooltip: checkboxClasses.warningBg,
@@ -84,6 +78,47 @@ export default function MyPatientsCheckbox({
           />
         </Tooltip>
       )}
+    </div>
+  );
+});
+
+CheckboxForm.propTypes = {
+  checked: PropTypes.bool,
+  disable: PropTypes.bool,
+  changeEvent: PropTypes.func,
+  checkboxClasses: PropTypes.object,
+  formControlClasses: PropTypes.object,
+  label: PropTypes.string,
+  errorMessage: PropTypes.string,
+};
+
+export default function MyPatientsCheckbox({
+  shouldDisable,
+  changeEvent,
+  label,
+  checked,
+}) {
+  const { childrenProps = {} } = usePatientListContext();
+  const { onMyPatientsCheckboxChange = function () {}, userError } =
+    childrenProps["myPatients"] ?? {};
+  const checkboxClasses = checkBoxStyles();
+  const formControlClasses = formControlStyles();
+  const [state, setState] = useState(checked);
+  const handleChange = (event) => {
+    setState(event.target.checked);
+    onMyPatientsCheckboxChange(event, changeEvent);
+  };
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+      <CheckboxForm
+        checked={state}
+        disable={shouldDisable}
+        changeEvent={handleChange}
+        checkboxClasses={checkboxClasses}
+        formControlClasses={formControlClasses}
+        label={label}
+        errorMessage={userError}
+      ></CheckboxForm>
     </div>
   );
 }

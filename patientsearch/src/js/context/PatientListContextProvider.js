@@ -406,7 +406,7 @@ export default function PatientListContextProvider({ children }) {
       currentRow: null,
       currentFilters: constants.defaultFilters,
       errorMessage: "",
-      ...contextParams
+      ...contextParams,
     });
     _resetPaging();
     if (tableRef && tableRef.current) tableRef.current.onQueryChange();
@@ -705,7 +705,10 @@ export default function PatientListContextProvider({ children }) {
             putPatientData(
               rowData.id,
               rowData.resource,
-              handleErrorCallback,
+              (e) => {
+                handleErrorCallback(e);
+                handleLaunchApp(rowData, client);
+              },
               () => handleLaunchApp(rowData, client)
             );
             return;
@@ -831,6 +834,7 @@ export default function PatientListContextProvider({ children }) {
       .then((bundleResult) => {
         if (isEmptyArray(bundleResult?.entry)) {
           if (isExternalLookup) {
+            _handleRefresh();
             //no result from lookup
             _handleRefresh();
             handleErrorCallback(
@@ -937,7 +941,10 @@ export default function PatientListContextProvider({ children }) {
             console.log("Patient update result: ", response);
             if (!response || !response.id) {
               const errorText = getErrorDiagnosticTextFromResponse(response);
-              handleErrorCallback(_getFetchErrorMessage(errorText, !errorText), contextParams);
+              handleErrorCallback(
+                _getFetchErrorMessage(errorText, !errorText),
+                contextParams
+              );
               return false;
             }
             if (canLaunchApp()) {
@@ -949,10 +956,13 @@ export default function PatientListContextProvider({ children }) {
           .catch((e) => {
             //log error to console
             console.log(`Patient search error: ${e}`);
-            handleErrorCallback(_getFetchErrorMessage(e, false, isExternalLookup), {
-              openLoadingModal: false,
-              currentRow: null,
-            });
+            handleErrorCallback(
+              _getFetchErrorMessage(e, false, isExternalLookup),
+              {
+                openLoadingModal: false,
+                currentRow: null,
+              }
+            );
           });
       })
       .catch((e) => {
@@ -1277,4 +1287,3 @@ export function usePatientListContext() {
   }
   return context;
 }
-

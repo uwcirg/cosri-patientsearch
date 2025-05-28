@@ -21,9 +21,7 @@ import { addMamotoTracking, hasFlagForCheckbox } from "../../helpers/utility";
 
 export default function PatientListTable() {
   const patientListCtx = usePatientListContext();
-  const {
-    childrenProps = {},
-  } = usePatientListContext();
+  const { childrenProps = {} } = usePatientListContext();
   const {
     tableProps,
     searchTitle,
@@ -40,7 +38,7 @@ export default function PatientListTable() {
     filterByTestPatientsLabel,
     enableProviderFilter,
     myPatientsFilterLabel,
-    isLoading
+    isLoading,
   } = childrenProps["patientList"];
 
   const renderTitle = () => {
@@ -90,63 +88,61 @@ export default function PatientListTable() {
   if (Object.keys(patientListCtx).length === 0)
     return <Error message="patient context error"></Error>;
   return (
-    <>
-      <Container className="container" id="patientList">
-        {renderTitle()}
-        <Error message={errorMessage} />
-        <div className="flex">
-          {/* patient search row */}
-          {renderPatientSearchRow()}
-          <div className="bottom-gap-2x">
-            {renderMyPatientCheckbox()}
-            {renderTestPatientsCheckbox()}
-          </div>
+    <Container className="container" id="patientList">
+      {renderTitle()}
+      <Error message={errorMessage} />
+      <div className="flex">
+        {/* patient search row */}
+        {renderPatientSearchRow()}
+        <div className="bottom-gap-2x">
+          {renderMyPatientCheckbox()}
+          {renderTestPatientsCheckbox()}
         </div>
-        {/* patient list table */}
-        <div className={`table main`} aria-label="patient list table">
-          <MaterialTable
-            {...tableProps}
-            data={
-              //any change in query will invoke this function
-              (query) => getPatientList(query)
-            }
-            hideSortIcon={false}
-            //overlay
-            components={{
-              OverlayLoading: () => (
-                <OverlayElement>
-                  <CircularProgress></CircularProgress>
-                </OverlayElement>
-              ),
-              Actions: (props) => (
-                <div id={`actions_${props.data.id}`}>
-                  <MTableActions
-                    {...props}
-                    columns={columns}
-                    onColumnsChanged={() => false}
-                  ></MTableActions>
-                  {renderDropdownMenu(props)}
-                </div>
-              ),
-            }}
-            icons={constants.tableIcons}
-          />
+      </div>
+      {/* patient list table */}
+      <div className={`table main`} aria-label="patient list table">
+        <MaterialTable
+          {...tableProps}
+          data={
+            //any change in query will invoke this function
+            (query) => getPatientList(query)
+          }
+          hideSortIcon={false}
+          //overlay
+          components={{
+            OverlayLoading: () => (
+              <OverlayElement>
+                <CircularProgress></CircularProgress>
+              </OverlayElement>
+            ),
+            Actions: (props) => (
+              <div id={`actions_${props.data.id}`}>
+                <MTableActions
+                  {...props}
+                  columns={columns}
+                  onColumnsChanged={() => false}
+                ></MTableActions>
+                {renderDropdownMenu(props)}
+              </div>
+            ),
+          }}
+          icons={constants.tableIcons}
+        />
+      </div>
+      <LoadingModal open={isLoading}></LoadingModal>
+      <div className="flex-align-start">
+        <Legend show={shouldShowLegend()}></Legend>
+        <div>
+          <RefreshButton></RefreshButton>
+          <Pagination></Pagination>
         </div>
-        <LoadingModal open={isLoading}></LoadingModal>
-        <div className="flex-align-start">
-          <Legend show={shouldShowLegend()}></Legend>
-          <div>
-            <RefreshButton></RefreshButton>
-            <Pagination></Pagination>
-          </div>
-        </div>
-        <LaunchDialog></LaunchDialog>
-        <ReactivatingModal></ReactivatingModal>
-      </Container>
-    </>
+      </div>
+      <LaunchDialog></LaunchDialog>
+      <ReactivatingModal></ReactivatingModal>
+    </Container>
   );
 }
 
 PatientListTable.propTypes = {
-  data: PropTypes.object
+  data: PropTypes.object,
 };

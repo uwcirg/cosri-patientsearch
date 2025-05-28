@@ -1,3 +1,5 @@
+import { memo } from "react";
+import PropTypes from "prop-types";
 import { Button } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
 import DialogBox from "../DialogBox";
@@ -16,20 +18,18 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default function LaunchDialog() {
-  const classes = useStyles();
-  let { childrenProps = {} } = usePatientListContext();
-  const {
-    title,
-    appClients,
-    onLaunchDialogClose = function () {},
-    handleLaunchApp = function () {},
-    open,
-  } = childrenProps["launchDialog"] ?? {};
+const LaunchDialogBox = memo(function LaunchDialogBox({
+  classes,
+  appClients,
+  launchFunc,
+  onCloseFunc,
+  open,
+  title,
+}) {
   return (
     <DialogBox
       open={open}
-      onClose={() => onLaunchDialogClose()}
+      onClose={onCloseFunc}
       title={title}
       body={
         <div className={classes.flex}>
@@ -46,7 +46,7 @@ export default function LaunchDialog() {
                   className={classes.flexButton}
                   onClick={(e) => {
                     e.stopPropagation();
-                    handleLaunchApp(appClient);
+                    launchFunc(appClient);
                   }}
                 >{`Launch ${appClient.id}`}</Button>
               );
@@ -54,5 +54,37 @@ export default function LaunchDialog() {
         </div>
       }
     ></DialogBox>
+  );
+});
+
+LaunchDialogBox.propTypes = {
+  classes: PropTypes.object,
+  open: PropTypes.bool,
+  title: PropTypes.string,
+  appClients: PropTypes.array,
+  launchFunc: PropTypes.func,
+  onCloseFunc: PropTypes.func,
+};
+
+export default function LaunchDialog() {
+  const classes = useStyles();
+  let { childrenProps = {} } = usePatientListContext();
+  const {
+    title,
+    appClients,
+    onLaunchDialogClose = function () {},
+    handleLaunchApp = function () {},
+    open,
+  } = childrenProps["launchDialog"] ?? {};
+
+  return (
+    <LaunchDialogBox
+      classes={classes}
+      open={open}
+      title={title}
+      appClients={appClients}
+      launchFunc={handleLaunchApp}
+      onCloseFunc={() => onLaunchDialogClose()}
+    ></LaunchDialogBox>
   );
 }
