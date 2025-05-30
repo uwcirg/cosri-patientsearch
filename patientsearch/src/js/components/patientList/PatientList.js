@@ -17,7 +17,7 @@ import OverlayElement from "../OverlayElement";
 import TestPatientsCheckbox from "./TestPatientsCheckbox";
 import ReactivatingModal from "./ReactivatingModal";
 import * as constants from "../../constants/consts";
-import { addMamotoTracking, hasFlagForCheckbox } from "../../helpers/utility";
+import { addMamotoTracking } from "../../helpers/utility";
 
 export default function PatientListTable() {
   const patientListCtx = usePatientListContext();
@@ -29,15 +29,9 @@ export default function PatientListTable() {
     userName,
     filterRowRef,
     getPatientList,
-    shouldHideMoreMenu,
-    shouldShowLegend,
     matomoSiteID,
     onUnload,
     errorMessage,
-    enableFilterByTestPatients,
-    filterByTestPatientsLabel,
-    enableProviderFilter,
-    myPatientsFilterLabel,
     isLoading,
   } = childrenProps["patientList"];
 
@@ -50,26 +44,14 @@ export default function PatientListTable() {
   const renderPatientSearchRow = () => <FilterRow ref={filterRowRef} />;
 
   const renderTestPatientsCheckbox = () => {
-    if (!enableFilterByTestPatients) return false;
-    return (
-      <TestPatientsCheckbox
-        label={filterByTestPatientsLabel}
-      ></TestPatientsCheckbox>
-    );
+    return <TestPatientsCheckbox></TestPatientsCheckbox>;
   };
 
   const renderMyPatientCheckbox = () => {
-    if (!enableProviderFilter) return false;
-    return (
-      <MyPatientsCheckbox
-        label={myPatientsFilterLabel}
-        checked={hasFlagForCheckbox(constants.FOLLOWING_FLAG)}
-      ></MyPatientsCheckbox>
-    );
+    return <MyPatientsCheckbox></MyPatientsCheckbox>;
   };
 
   const renderDropdownMenu = (props) => {
-    if (shouldHideMoreMenu()) return false;
     return (
       <DropdownMenu
         {...props}
@@ -131,7 +113,7 @@ export default function PatientListTable() {
       </div>
       <LoadingModal open={isLoading}></LoadingModal>
       <div className="flex-align-start">
-        <Legend show={shouldShowLegend()}></Legend>
+        <Legend></Legend>
         <div>
           <RefreshButton></RefreshButton>
           <Pagination></Pagination>

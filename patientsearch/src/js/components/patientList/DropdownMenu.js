@@ -10,9 +10,13 @@ export default function DropdownMenu(props) {
     menuItems,
     handleMenuClose = function () {},
     handleMenuSelect = function () {},
+    shouldHideMoreMenu = function () {},
     currentRowId,
     open,
   } = childrenProps["menu"] ?? {};
+
+  if (shouldHideMoreMenu()) return null;
+  
   const MenuDropdown = memo(function MenuDropdown(props) {
     return (
       <Dropdown

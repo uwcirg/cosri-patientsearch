@@ -2,7 +2,7 @@ import React from "react";
 import PropTypes from "prop-types";
 import CircularProgress from "@mui/material/CircularProgress";
 import Modal from "@mui/material/Modal";
-import makeStyles from '@mui/styles/makeStyles';
+import makeStyles from "@mui/styles/makeStyles";
 
 const useStyles = makeStyles((theme) => ({
   flex: {
@@ -17,7 +17,7 @@ const useStyles = makeStyles((theme) => ({
     border: `1px solid ${theme.palette.primary.main}`,
     margin: "auto",
     padding: theme.spacing(2),
-    fontSize: "1.1rem"
+    fontSize: "1.1rem",
   },
   loadingText: {
     display: "inline-block",
@@ -25,12 +25,8 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default function LoadingModal(props) {
+export default function LoadingModal({ open }) {
   const classes = useStyles();
-  const [open, setOpen] = React.useState(false);
-  React.useEffect(() => {
-    setOpen(props.open);
-  }, [props.open]);
   return (
     <Modal
       open={open}
@@ -38,6 +34,7 @@ export default function LoadingModal(props) {
       aria-describedby="loading-modal"
       disableAutoFocus
       disableEnforceFocus
+      sx={{ border: (theme) => `1px solid ${theme.palette.primary.main}` }}
     >
       <div className={classes.flex}>
         <span className={classes.loadingText}>Loading ...</span>

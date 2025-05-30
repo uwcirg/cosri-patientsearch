@@ -57,19 +57,24 @@ CheckboxForm.propTypes = {
   formControlClasses: PropTypes.object,
 };
 
-export default function TestPatientsCheckbox({ label, changeEvent }) {
+export default function TestPatientsCheckbox({ changeEvent }) {
   const { childrenProps } = usePatientListContext();
   const checkboxClasses = checkBoxStyles();
   const formControlClasses = formControlStyles();
-  const { onTestPatientsCheckboxChange = function () {} } =
-    childrenProps["testPatient"] ?? {};
+  const {
+    enableFilterByTestPatients,
+    filterByTestPatientsLabel,
+    onTestPatientsCheckboxChange = function () {},
+  } = childrenProps["testPatient"] ?? {};
+
+  if (!enableFilterByTestPatients) return null;
   const handleChange = (event) => {
     if (onTestPatientsCheckboxChange) onTestPatientsCheckboxChange(event);
     if (changeEvent) changeEvent(event.target.checked);
   };
   return (
     <CheckboxForm
-      label={label}
+      label={filterByTestPatientsLabel}
       changeEvent={handleChange}
       checkboxClasses={checkboxClasses}
       formControlClasses={formControlClasses}

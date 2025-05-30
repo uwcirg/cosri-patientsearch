@@ -1140,6 +1140,14 @@ export default function PatientListContextProvider({ children }) {
     });
   };
   const patientListProps = {
+    columns: getColumns(),
+    errorMessage: contextState.errorMessage,
+    filterRowRef: filterRowRef,
+    getPatientList: getPatientList,
+    isLoading: contextState.openLoadingModal,
+    matomoSiteID: appSettings["MATOMO_SITE_ID"],
+    onUnload: () => contextStateDispatch({ openLoadingModal: false }),
+    searchTitle: appSettings["SEARCH_TITLE_TEXT"],
     tableProps: {
       columns: getColumns(),
       detailPanel: [
@@ -1160,59 +1168,56 @@ export default function PatientListContextProvider({ children }) {
       },
       tableRef: tableRef,
     },
-    searchTitle: appSettings["SEARCH_TITLE_TEXT"],
-    columns: getColumns(),
     userName: userName,
-    filterRowRef: filterRowRef,
-    getPatientList: getPatientList,
-    shouldHideMoreMenu: shouldHideMoreMenu,
-    shouldShowLegend: shouldShowLegend,
-    matomoSiteID: appSettings["MATOMO_SITE_ID"],
-    onUnload: () => contextStateDispatch({ openLoadingModal: false }),
-    errorMessage: contextState.errorMessage,
-    enableFilterByTestPatients: getAppSettingByKey(
-      "ENABLE_FILTER_FOR_TEST_PATIENTS"
-    ),
-    filterByTestPatientsLabel: getAppSettingByKey(
-      "FILTER_FOR_TEST_PATIENTS_LABEL"
-    ),
-    enableProviderFilter: getAppSettingByKey("ENABLE_PROVIDER_FILTER"),
-    myPatientsFilterLabel: getAppSettingByKey("MY_PATIENTS_FILTER_LABEL"),
-    isLoading: contextState.openLoadingModal,
-  };
-  const menuProps = {
-    open: !contextState.openLaunchInfoModal,
-    menuItems: getMenuItems(),
-    handleMenuClose: handleMenuClose,
-    handleMenuSelect: handleMenuSelect,
-    currentRowId: contextState.currentRow?.id,
-  };
-  const launchDialogProps = {
-    title: `${
-      contextState.currentRow
-        ? `${contextState.currentRow.last_name}, ${contextState.currentRow.first_name}`
-        : ""
-    }`,
-    open: contextState.openLaunchInfoModal,
-    appClients: appClients,
-    handleLaunchApp: (appClient) =>
-      handleLaunchApp(contextState.currentRow, appClient),
-    onLaunchDialogClose: onLaunchDialogClose,
-  };
-  const filterRowProps = {
-    actionLabel: contextState.actionLabel,
-    onFiltersDidChange: onFiltersDidChange,
-    handleSearch: handleSearch,
   };
   const detailPanelProps = {
     getDetailPanelContent: getDetailPanelContent,
     onDetailPanelClose: onDetailPanelClose,
   };
+  const filterRowProps = {
+    actionLabel: contextState.actionLabel,
+    handleSearch: handleSearch,
+    onFiltersDidChange: onFiltersDidChange,
+  };
+  const launchDialogProps = {
+    appClients: appClients,
+    handleLaunchApp: (appClient) =>
+      handleLaunchApp(contextState.currentRow, appClient),
+    onLaunchDialogClose: onLaunchDialogClose,
+    open: contextState.openLaunchInfoModal,
+    title: `${
+      contextState.currentRow
+        ? `${contextState.currentRow.last_name}, ${contextState.currentRow.first_name}`
+        : ""
+    }`,
+  };
+  const legendProps = {
+    shouldShowLegend: shouldShowLegend,
+  };
+  const menuProps = {
+    currentRowId: contextState.currentRow?.id,
+    handleMenuClose: handleMenuClose,
+    handleMenuSelect: handleMenuSelect,
+    menuItems: getMenuItems(),
+    open: !contextState.openLaunchInfoModal,
+    shouldHideMoreMenu: shouldHideMoreMenu,
+  };
   const myPatientsProps = {
+    enableProviderFilter: getAppSettingByKey("ENABLE_PROVIDER_FILTER"),
+    myPatientsFilterLabel: getAppSettingByKey("MY_PATIENTS_FILTER_LABEL"),
     onMyPatientsCheckboxChange: onMyPatientsCheckboxChange,
     userError: userError,
   };
+  const paginationProps = {
+    disabled: isEmptyArray(contextState.data),
+    dispatch: paginationDispatch,
+    pagination: pagination,
+    tableRef: tableRef.current,
+  };
   const reactivateProps = {
+    currentRow: contextState.currentRow,
+    handleSearch: handleSearch,
+    modalOpen: contextState.openReactivatingModal,
     onSubmit: () =>
       contextStateDispatch({
         openReactivatingModal: false,
@@ -1222,43 +1227,41 @@ export default function PatientListContextProvider({ children }) {
         filterRowRef.current.clear();
       }
     },
-    currentRow: contextState.currentRow,
     patientLabel: getAppSettingByKey("MY_PATIENTS_FILTER_LABEL"),
-    modalOpen: contextState.openReactivatingModal,
-    handleSearch: handleSearch,
   };
   const testPatientProps = {
+    enableFilterByTestPatients: getAppSettingByKey(
+      "ENABLE_FILTER_FOR_TEST_PATIENTS"
+    ),
+    filterByTestPatientsLabel: getAppSettingByKey(
+      "FILTER_FOR_TEST_PATIENTS_LABEL"
+    ),
     onTestPatientsCheckboxChange: onTestPatientsCheckboxChange,
   };
-  const paginationProps = {
-    pagination: pagination,
-    dispatch: paginationDispatch,
-    disabled: isEmptyArray(contextState.data),
-    tableRef: tableRef.current,
-  };
   const childrenProps = {
-    patientList: patientListProps,
     detailPanel: detailPanelProps,
     filterRow: filterRowProps,
     launchDialog: launchDialogProps,
+    legend: legendProps,
     menu: menuProps,
     myPatients: myPatientsProps,
+    pagination: paginationProps,
+    patientList: patientListProps,
     reactivate: reactivateProps,
     testPatient: testPatientProps,
-    pagination: paginationProps,
   };
   return (
     <PatientListContext.Provider
       value={{
         // exposed constants
         appSettings,
-        user,
-        userName,
-        tableRef,
-        filterRowRef,
         childrenProps,
         contextState,
         contextStateDispatch,
+        filterRowRef,
+        tableRef,
+        user,
+        userName,
       }}
     >
       <PatientListContext.Consumer>

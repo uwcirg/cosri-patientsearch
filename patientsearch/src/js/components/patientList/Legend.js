@@ -1,6 +1,7 @@
 import { memo } from "react";
 import PropTypes from "prop-types";
 import makeStyles from "@mui/styles/makeStyles";
+import { usePatientListContext } from "../../context/PatientListContextProvider";
 
 const useStyles = makeStyles((theme) => ({
   legend: {
@@ -34,9 +35,13 @@ LegendContent.propTypes = {
   show: PropTypes.bool,
   classes: PropTypes.object,
 };
-export default function Legend({ show }) {
+export default function Legend() {
+  const { childrenProps = {} } = usePatientListContext();
+  const { shouldShowLegend = function () {} } = childrenProps["legend"] ?? {};
   const classes = useStyles();
-  return <LegendContent show={show} classes={classes}></LegendContent>;
+  return (
+    <LegendContent show={shouldShowLegend()} classes={classes}></LegendContent>
+  );
 }
 
 Legend.propTypes = {

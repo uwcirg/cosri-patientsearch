@@ -6,7 +6,9 @@ import Checkbox from "@mui/material/Checkbox";
 import ErrorIcon from "@mui/icons-material/ReportProblemOutlined";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
+import * as constants from "../../constants/consts";
 import { usePatientListContext } from "../../context/PatientListContextProvider";
+import { hasFlagForCheckbox } from "../../helpers/utility";
 
 const checkBoxStyles = makeStyles((theme) => {
   return {
@@ -95,19 +97,22 @@ CheckboxForm.propTypes = {
 export default function MyPatientsCheckbox({
   shouldDisable,
   changeEvent,
-  label,
-  checked,
 }) {
   const { childrenProps = {} } = usePatientListContext();
-  const { onMyPatientsCheckboxChange = function () {}, userError } =
-    childrenProps["myPatients"] ?? {};
+  const {
+    enableProviderFilter,
+    myPatientsFilterLabel,
+    onMyPatientsCheckboxChange = function () {},
+    userError,
+  } = childrenProps["myPatients"] ?? {};
   const checkboxClasses = checkBoxStyles();
   const formControlClasses = formControlStyles();
-  const [state, setState] = useState(checked);
+  const [state, setState] = useState(hasFlagForCheckbox(constants.FOLLOWING_FLAG));
   const handleChange = (event) => {
     setState(event.target.checked);
     onMyPatientsCheckboxChange(event, changeEvent);
   };
+  if (!enableProviderFilter) return null;
   return (
     <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
       <CheckboxForm
@@ -116,7 +121,7 @@ export default function MyPatientsCheckbox({
         changeEvent={handleChange}
         checkboxClasses={checkboxClasses}
         formControlClasses={formControlClasses}
-        label={label}
+        label={myPatientsFilterLabel}
         errorMessage={userError}
       ></CheckboxForm>
     </div>
