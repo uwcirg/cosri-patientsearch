@@ -129,6 +129,8 @@ export default function Dropdown(props) {
 Dropdown.propTypes = {
   menuItems: PropTypes.array.isRequired,
   anchorEl: PropTypes.oneOfType([PropTypes.bool, PropTypes.object]),
+  anchorReference: PropTypes.string,
+  anchorPosition: PropTypes.object,
   handleMenuClose: PropTypes.func,
   handleMenuSelect: PropTypes.func,
   open: PropTypes.bool,
