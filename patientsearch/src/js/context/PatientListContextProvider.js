@@ -85,13 +85,9 @@ export default function PatientListContextProvider({ children }) {
     if (!action) return contextState;
     const keys = Object.keys(action);
     if (!keys || !keys.length) return contextState;
-    let updatedVars = {};
-    keys.forEach((key) => {
-      updatedVars[key] = action[key];
-    });
     return {
       ...contextState,
-      ...updatedVars,
+      ...action,
     };
   };
   const [contextState, contextStateDispatch] = React.useReducer(
@@ -106,18 +102,21 @@ export default function PatientListContextProvider({ children }) {
           : null
         : null,
       openLoadingModal: false,
+      openMenu: false,
       openReactivatingModal: false,
       openLaunchInfoModal: false,
       containNoPMPRow: false,
       selectedMenuItem: "",
       currentRow: null,
       currentFilters: constants.defaultFilters,
+      previousRow: null,
       filterByTestPatients: false,
       errorMessage: isEmptyArray(appClients)
         ? "No SoF client match the user role(s) found"
         : "",
       actionLabel: constants.LAUNCH_BUTTON_LABEL,
       noDataText: "No record found.",
+      anchorPosition: null,
     }
   );
 
@@ -307,11 +306,18 @@ export default function PatientListContextProvider({ children }) {
     event.stopPropagation();
     contextStateDispatch({
       currentRow: rowData,
+      openMenu: true,
+      anchorPosition: {
+        top: event.clientY,
+        left: event.clientX,
+      },
     });
   };
   const handleMenuClose = () => {
     contextStateDispatch({
+      previousRow: contextState.currentRow,
       currentRow: null,
+      openMenu: false,
     });
   };
   const handleMenuSelect = (event) => {
@@ -325,6 +331,7 @@ export default function PatientListContextProvider({ children }) {
     setTimeout(() => {
       contextState.currentRow.tableData.showDetailPanel = true;
       handleToggleDetailPanel(contextState.currentRow);
+      if (contextState.previousRow) contextState.previousRow.tableData.showDetailPanel = false;
     }, 200);
   };
   const handleToggleDetailPanel = (rowData) => {
@@ -1195,11 +1202,12 @@ export default function PatientListContextProvider({ children }) {
     shouldShowLegend: shouldShowLegend,
   };
   const menuProps = {
+    anchorPosition: contextState.anchorPosition,
     currentRowId: contextState.currentRow?.id,
     handleMenuClose: handleMenuClose,
     handleMenuSelect: handleMenuSelect,
     menuItems: getMenuItems(),
-    open: !contextState.openLaunchInfoModal,
+    open: contextState.openMenu,
     shouldHideMoreMenu: shouldHideMoreMenu,
   };
   const myPatientsProps = {
@@ -1250,6 +1258,7 @@ export default function PatientListContextProvider({ children }) {
     reactivate: reactivateProps,
     testPatient: testPatientProps,
   };
+
   return (
     <PatientListContext.Provider
       value={{

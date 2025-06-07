@@ -98,7 +98,10 @@ export default function PatientListTable() {
               </OverlayElement>
             ),
             Actions: (props) => (
-              <div id={`actions_${props.data.id}`}>
+              <div
+                id={`actions_${props.data.id}`}
+                style={{ position: "relative" }}
+              >
                 <MTableActions
                   {...props}
                   columns={columns}

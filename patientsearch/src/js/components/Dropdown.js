@@ -1,7 +1,7 @@
 import React from "react";
 import PropTypes from "prop-types";
 import { styled } from "@mui/material/styles";
-import makeStyles from '@mui/styles/makeStyles';
+import makeStyles from "@mui/styles/makeStyles";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import Button from "@mui/material/Button";
 import ListItemIcon from "@mui/material/ListItemIcon";
@@ -22,8 +22,7 @@ const useStyles = makeStyles((theme) => ({
     color: "#FFF",
   },
   menuIcon: {
-    minWidth: theme.spacing(3),
-    marginRight: theme.spacing(0.5),
+    minWidth: theme.spacing(2),
   },
   menuTitleText: {
     display: "inline-block",
@@ -43,12 +42,11 @@ export default function Dropdown(props) {
   const StyledMenu = styled((props) => <Menu {...props} />)(({ theme }) => ({
     "& .MuiPaper-root": {
       borderRadius: 0,
-     // marginTop: theme.spacing(2),
       overflow: "hidden",
       minWidth: 180,
       "& .MuiMenu-list": {
         padding: "32px 0 8px",
-        overflow: "hidden"
+        overflow: "hidden",
       },
       "& .MuiMenuItem-root": {
         paddingBottom: theme.spacing(0.5),
@@ -81,11 +79,15 @@ export default function Dropdown(props) {
 
   return (
     <StyledMenu
-      id="dropdownMenu"
+      anchorReference={props.anchorReference? props.anchorReference: "anchorEl"}
+      anchorPosition={props.anchorPosition}
       anchorEl={props.anchorEl}
-     // keepMounted
       open={!!props.open}
       onClose={(event) => handleMenuClose(event)}
+      anchorOrigin={{
+        vertical: "bottom",
+        horizontal: "left",
+      }}
       transformOrigin={{
         vertical: "top",
         horizontal: "left",
@@ -113,7 +115,7 @@ export default function Dropdown(props) {
             datatopic={item.id}
           >
             <ListItemIcon className={classes.menuIcon} datatopic={item.id}>
-              <AddCircleOutlineIcon fontSize="small"/>
+              <AddCircleOutlineIcon fontSize="small" />
             </ListItemIcon>
             <Typography variant="subtitle2" datatopic={item.id}>
               {item.text}
@@ -129,5 +131,5 @@ Dropdown.propTypes = {
   anchorEl: PropTypes.oneOfType([PropTypes.bool, PropTypes.object]),
   handleMenuClose: PropTypes.func,
   handleMenuSelect: PropTypes.func,
-  open: PropTypes.bool
+  open: PropTypes.bool,
 };

@@ -7,6 +7,7 @@ export default function DropdownMenu(props) {
   let { childrenProps = {} } = usePatientListContext();
   if (!props.anchorEl) return null;
   const {
+    anchorPosition,
     menuItems,
     handleMenuClose = function () {},
     handleMenuSelect = function () {},
@@ -16,12 +17,14 @@ export default function DropdownMenu(props) {
   } = childrenProps["menu"] ?? {};
 
   if (shouldHideMoreMenu()) return null;
-  
+
   const MenuDropdown = memo(function MenuDropdown(props) {
     return (
       <Dropdown
         anchorEl={props.anchorEl}
-        open={open && props.data.id === currentRowId && !!props.anchorEl}
+        anchorReference="anchorPosition"
+        anchorPosition={anchorPosition}
+        open={open}
         handleMenuClose={handleMenuClose}
         handleMenuSelect={handleMenuSelect}
         menuItems={menuItems}
@@ -32,7 +35,7 @@ export default function DropdownMenu(props) {
   return (
     <MenuDropdown
       anchorEl={props.anchorEl}
-      open={open && props.data.id === currentRowId && !!props.anchorEl}
+      open={open && props.data.id === currentRowId}
       handleMenuClose={handleMenuClose}
       handleMenuSelect={handleMenuSelect}
       menuItems={menuItems}
