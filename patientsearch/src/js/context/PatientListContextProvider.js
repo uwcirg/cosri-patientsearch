@@ -315,7 +315,7 @@ export default function PatientListContextProvider({ children }) {
       },
     });
   };
-  const handleMenuClose = (event) => {
+  const handleMenuClose = () => {
     document
       .querySelectorAll(".selected-row")
       ?.forEach((row) => row.classList.remove("selected-row"));

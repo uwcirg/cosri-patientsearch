@@ -42,4 +42,6 @@ export default function DropdownMenu(props) {
 DropdownMenu.propTypes = {
   data: PropTypes.object,
   anchorEl: PropTypes.oneOfType([PropTypes.bool, PropTypes.object]),
+  anchorReference: PropTypes.string,
+  anchorPosition: PropTypes.object
 };
