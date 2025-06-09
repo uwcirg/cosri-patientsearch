@@ -175,6 +175,11 @@ html {
 img[disabled] {
   display: none;
 }
+tr.selected-row {
+  td {
+    background-color: #f4f7f7;
+  }
+}
 tr:empty {
   height: 0 !important;
 }

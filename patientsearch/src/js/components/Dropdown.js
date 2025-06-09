@@ -79,7 +79,9 @@ export default function Dropdown(props) {
 
   return (
     <StyledMenu
-      anchorReference={props.anchorReference? props.anchorReference: "anchorEl"}
+      anchorReference={
+        props.anchorReference ? props.anchorReference : "anchorEl"
+      }
       anchorPosition={props.anchorPosition}
       anchorEl={props.anchorEl}
       open={!!props.open}
@@ -92,6 +94,7 @@ export default function Dropdown(props) {
         vertical: "top",
         horizontal: "left",
       }}
+      disableScrollLock={true}
       elevation={2}
     >
       <div className={classes.menuTitle}>

@@ -21,13 +21,6 @@ export default function DropdownMenu(props) {
   const MenuDropdown = memo(function MenuDropdown(props) {
     return (
       <Dropdown
-        anchorEl={props.anchorEl}
-        anchorReference="anchorPosition"
-        anchorPosition={anchorPosition}
-        open={open}
-        handleMenuClose={handleMenuClose}
-        handleMenuSelect={handleMenuSelect}
-        menuItems={menuItems}
         {...props}
       ></Dropdown>
     );
@@ -35,6 +28,8 @@ export default function DropdownMenu(props) {
   return (
     <MenuDropdown
       anchorEl={props.anchorEl}
+      anchorReference="anchorPosition"
+      anchorPosition={anchorPosition}
       open={open && props.data.id === currentRowId}
       handleMenuClose={handleMenuClose}
       handleMenuSelect={handleMenuSelect}
