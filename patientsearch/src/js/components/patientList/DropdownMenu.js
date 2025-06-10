@@ -1,3 +1,4 @@
+import { memo } from "react";
 import PropTypes from "prop-types";
 import Dropdown from "../Dropdown";
 import { usePatientListContext } from "../../context/PatientListContextProvider";
@@ -9,18 +10,34 @@ export default function DropdownMenu(props) {
     menuItems,
     handleMenuClose = function () {},
     handleMenuSelect = function () {},
+    shouldHideMoreMenu = function () {},
     currentRowId,
     open,
   } = childrenProps["menu"] ?? {};
+
+  if (shouldHideMoreMenu()) return null;
+  
+  const MenuDropdown = memo(function MenuDropdown(props) {
+    return (
+      <Dropdown
+        anchorEl={props.anchorEl}
+        open={open && props.data.id === currentRowId && !!props.anchorEl}
+        handleMenuClose={handleMenuClose}
+        handleMenuSelect={handleMenuSelect}
+        menuItems={menuItems}
+        {...props}
+      ></Dropdown>
+    );
+  });
   return (
-    <Dropdown
+    <MenuDropdown
       anchorEl={props.anchorEl}
       open={open && props.data.id === currentRowId && !!props.anchorEl}
       handleMenuClose={handleMenuClose}
       handleMenuSelect={handleMenuSelect}
       menuItems={menuItems}
       {...props}
-    ></Dropdown>
+    ></MenuDropdown>
   );
 }
 

@@ -434,6 +434,9 @@ export function putPatientData(
   ).then(() => {
     console.log("PUT complete for patient " + patientId);
     if (successCallback) successCallback();
+  }).catch((e) => {
+    console.log("Patient PUT error: ", e);
+    if (errorCallback) errorCallback(e);
   });
 }
 

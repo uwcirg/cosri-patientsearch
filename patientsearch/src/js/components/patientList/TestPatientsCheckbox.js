@@ -1,3 +1,4 @@
+import { memo } from "react";
 import makeStyles from "@mui/styles/makeStyles";
 import PropTypes from "prop-types";
 import FormControlLabel from "@mui/material/FormControlLabel";
@@ -22,15 +23,12 @@ const formControlStyles = makeStyles((theme) => {
   };
 });
 
-export default function TestPatientsCheckbox({ label, changeEvent }) {
-  const { childrenProps } = usePatientListContext();
-  const checkboxClasses = checkBoxStyles();
-  const formControlClasses = formControlStyles();
-  const {onTestPatientsCheckboxChange = function() {}} = (childrenProps["testPatient"] ?? {});
-  const handleChange = (event) => {
-    if (onTestPatientsCheckboxChange) onTestPatientsCheckboxChange(event);
-    if (changeEvent) changeEvent(event.target.checked);
-  };
+const CheckboxForm = memo(function CheckboxForm({
+  label,
+  changeEvent,
+  checkboxClasses,
+  formControlClasses,
+}) {
   return (
     <FormControlLabel
       classes={{
@@ -38,7 +36,7 @@ export default function TestPatientsCheckbox({ label, changeEvent }) {
       }}
       control={
         <Checkbox
-          onChange={handleChange}
+          onChange={changeEvent}
           name="ckTestPatients"
           color="primary"
           size="small"
@@ -49,6 +47,38 @@ export default function TestPatientsCheckbox({ label, changeEvent }) {
       }
       label={<Typography variant="body2">{label}</Typography>}
     />
+  );
+});
+
+CheckboxForm.propTypes = {
+  label: PropTypes.string,
+  changeEvent: PropTypes.func,
+  checkboxClasses: PropTypes.object,
+  formControlClasses: PropTypes.object,
+};
+
+export default function TestPatientsCheckbox({ changeEvent }) {
+  const { childrenProps } = usePatientListContext();
+  const checkboxClasses = checkBoxStyles();
+  const formControlClasses = formControlStyles();
+  const {
+    enableFilterByTestPatients,
+    filterByTestPatientsLabel,
+    onTestPatientsCheckboxChange = function () {},
+  } = childrenProps["testPatient"] ?? {};
+
+  if (!enableFilterByTestPatients) return null;
+  const handleChange = (event) => {
+    if (onTestPatientsCheckboxChange) onTestPatientsCheckboxChange(event);
+    if (changeEvent) changeEvent(event.target.checked);
+  };
+  return (
+    <CheckboxForm
+      label={filterByTestPatientsLabel}
+      changeEvent={handleChange}
+      checkboxClasses={checkboxClasses}
+      formControlClasses={formControlClasses}
+    ></CheckboxForm>
   );
 }
 

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { memo } from "react";
 import PropTypes from "prop-types";
 import Button from "@mui/material/Button";
 import Paper from "@mui/material/Paper";
@@ -29,23 +29,40 @@ export default function DetailPanel({ data }) {
   const {
     getDetailPanelContent = function () {},
     onDetailPanelClose = function () {},
-  } = (childrenProps["detailPanel"] ?? {});
+  } = childrenProps["detailPanel"] ?? {};
+
+  const DetailPanelContent = memo(function DetailPanelContent({
+    content,
+    onClickFunc,
+  }) {
+    return (
+      <div className={classes.detailPanelWrapper}>
+        <Paper elevation={1} className={classes.detailPanelContainer}>
+          {content}
+          <Button
+            onClick={onClickFunc}
+            className={classes.detailPanelCloseButton}
+            size="small"
+          >
+            Close X
+          </Button>
+        </Paper>
+      </div>
+    );
+  });
+
+  DetailPanelContent.propTypes = {
+    content: PropTypes.element,
+    onClickFunc: PropTypes.func,
+  };
 
   return (
-    <div className={classes.detailPanelWrapper}>
-      <Paper elevation={1} className={classes.detailPanelContainer}>
-        {getDetailPanelContent(data)}
-        <Button
-          onClick={() => {
-            onDetailPanelClose(data);
-          }}
-          className={classes.detailPanelCloseButton}
-          size="small"
-        >
-          Close X
-        </Button>
-      </Paper>
-    </div>
+    <DetailPanelContent
+      content={getDetailPanelContent(data)}
+      onClickFunc={() => {
+        onDetailPanelClose(data);
+      }}
+    ></DetailPanelContent>
   );
 }
 

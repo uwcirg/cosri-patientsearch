@@ -1,5 +1,7 @@
+import { memo } from "react";
 import PropTypes from "prop-types";
-import makeStyles from '@mui/styles/makeStyles';
+import makeStyles from "@mui/styles/makeStyles";
+import { usePatientListContext } from "../../context/PatientListContextProvider";
 
 const useStyles = makeStyles((theme) => ({
   legend: {
@@ -18,8 +20,8 @@ const useStyles = makeStyles((theme) => ({
     minHeight: "20px",
   },
 }));
-export default function Legend({ show }) {
-  const classes = useStyles();
+
+const LegendContent = memo(function LegendContent({ show, classes }) {
   if (show)
     return (
       <div className={classes.legend}>
@@ -27,6 +29,19 @@ export default function Legend({ show }) {
       </div>
     );
   return <div className={classes.spacer}></div>;
+});
+
+LegendContent.propTypes = {
+  show: PropTypes.bool,
+  classes: PropTypes.object,
+};
+export default function Legend() {
+  const { childrenProps = {} } = usePatientListContext();
+  const { shouldShowLegend = function () {} } = childrenProps["legend"] ?? {};
+  const classes = useStyles();
+  return (
+    <LegendContent show={shouldShowLegend()} classes={classes}></LegendContent>
+  );
 }
 
 Legend.propTypes = {
