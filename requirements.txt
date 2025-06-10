@@ -18,7 +18,7 @@ python-json-logger==0.1.11
 pyjwt==1.7.1              # via flask-jwt-extended
 redis==3.5.3
 redis-dict==1.5.2         # via patientsearch (setup.py)
-requests==2.26.0          # via patientsearch (setup.py)
+requests==2.32.4          # via patientsearch (setup.py)
 six==1.15.0               # via flask-jwt-extended
 typing-extensions==3.10.0.2  # via importlib-metadata
 urllib3==1.26.7           # via requests
