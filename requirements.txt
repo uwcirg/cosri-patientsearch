@@ -7,7 +7,7 @@ git+https://github.com/uwcirg/flask-oidc.git@ed4eb20#egg=flask-oidc
 git+https://github.com/uwcirg/fhir-migrations@0.1.0
 flask==2.0.1              # via flask-jwt-extended, patientsearch (setup.py)
 flask-session==0.3.2      # via patientsearch (setup.py)
-gunicorn==20.0.4          # via patientsearch (setup.py)
+gunicorn==23.0.0          # via patientsearch (setup.py)
 idna==3.2                 # via requests
 importlib-metadata==4.8.1  # via click
 itsdangerous==2.0.1       # via flask
