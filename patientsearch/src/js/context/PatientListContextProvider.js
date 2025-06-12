@@ -106,6 +106,7 @@ export default function PatientListContextProvider({ children }) {
           : null
         : null,
       openLoadingModal: false,
+      openMenu: false,
       openReactivatingModal: false,
       openLaunchInfoModal: false,
       containNoPMPRow: false,
@@ -305,13 +306,23 @@ export default function PatientListContextProvider({ children }) {
   };
   const handleMenuClick = (event, rowData) => {
     event.stopPropagation();
+    const parentRow = event.currentTarget.closest("tr");
+    if (parentRow) {
+      parentRow.classList.add("selected-row");
+    }
     contextStateDispatch({
       currentRow: rowData,
+      openMenu: true
     });
   };
+  const handleDeSelectRow = () => {
+    const selectedRow = document.querySelector(".selected-row");
+    if (selectedRow) selectedRow.classList.remove("selected-row");
+  };
   const handleMenuClose = () => {
+    handleDeSelectRow();
     contextStateDispatch({
-      currentRow: null,
+      openMenu: false
     });
   };
   const handleMenuSelect = (event) => {
@@ -342,6 +353,9 @@ export default function PatientListContextProvider({ children }) {
   const onDetailPanelClose = (data) => {
     handleToggleDetailPanel(data.rowData);
     handleMenuClose();
+    contextStateDispatch({
+      currentRow: null
+    });
   };
   const shouldHideMoreMenu = () => {
     if (!hasAppSettings()) return true;
@@ -667,6 +681,7 @@ export default function PatientListContextProvider({ children }) {
       paddingRight: theme.spacing(1),
       justifyContent: "center",
     },
+    detailPanelType: "single"
   });
   const getTableActions = () => {
     let actions = [];
@@ -1154,6 +1169,11 @@ export default function PatientListContextProvider({ children }) {
         {
           render: (data) => {
             if (shouldHideMoreMenu()) return false;
+            if (data.rowData && contextState.currentRow) {
+              if (data.rowData.id !== contextState.currentRow.id) {
+                return null;
+              }
+            }
             return <DetailPanel data={data}></DetailPanel>;
           },
           isFreeAction: false,
@@ -1199,7 +1219,7 @@ export default function PatientListContextProvider({ children }) {
     handleMenuClose: handleMenuClose,
     handleMenuSelect: handleMenuSelect,
     menuItems: getMenuItems(),
-    open: !contextState.openLaunchInfoModal,
+    open: contextState.openMenu,
     shouldHideMoreMenu: shouldHideMoreMenu,
   };
   const myPatientsProps = {
