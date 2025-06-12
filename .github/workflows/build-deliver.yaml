@@ -3,10 +3,7 @@
 ---
 name: Build & Deliver
 on: [push]
-permissions:
-  contents: read
-  packages: write
-
+permissions: write-all
 jobs:
   build:
     runs-on: ubuntu-latest
