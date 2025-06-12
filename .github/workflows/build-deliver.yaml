@@ -3,12 +3,9 @@
 ---
 name: Build & Deliver
 on: [push]
-
-
+permissions: write-all
 jobs:
   build:
-    permissions:
-      packages: write
     runs-on: ubuntu-latest
     steps:
       - name: Checkout commit with full git history
