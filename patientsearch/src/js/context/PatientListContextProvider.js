@@ -306,6 +306,7 @@ export default function PatientListContextProvider({ children }) {
   };
   const handleMenuClick = (event, rowData) => {
     event.stopPropagation();
+    handleDeSelectRow();
     const parentRow = event.currentTarget.closest("tr");
     if (parentRow) {
       parentRow.classList.add("selected-row");
@@ -316,8 +317,8 @@ export default function PatientListContextProvider({ children }) {
     });
   };
   const handleDeSelectRow = () => {
-    const selectedRow = document.querySelector(".selected-row");
-    if (selectedRow) selectedRow.classList.remove("selected-row");
+    const selectedRows = document.querySelectorAll(".selected-row");
+    selectedRows.forEach(row => row.classList.remove("selected-row"));
   };
   const handleMenuClose = () => {
     handleDeSelectRow();
@@ -1191,6 +1192,7 @@ export default function PatientListContextProvider({ children }) {
     userName: userName,
   };
   const detailPanelProps = {
+    currentRow: contextState.currentRow,
     getDetailPanelContent: getDetailPanelContent,
     onDetailPanelClose: onDetailPanelClose,
   };

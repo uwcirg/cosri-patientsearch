@@ -1,4 +1,4 @@
-import React, { memo } from "react";
+import React, { memo, useRef, useEffect } from "react";
 import PropTypes from "prop-types";
 import Button from "@mui/material/Button";
 import Paper from "@mui/material/Paper";
@@ -24,9 +24,11 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export default function DetailPanel({ data }) {
+  const panelRef = useRef();
   const classes = useStyles();
   let { childrenProps = {} } = usePatientListContext();
   const {
+    currentRow,
     getDetailPanelContent = function () {},
     onDetailPanelClose = function () {},
   } = childrenProps["detailPanel"] ?? {};
@@ -36,7 +38,7 @@ export default function DetailPanel({ data }) {
     onClickFunc,
   }) {
     return (
-      <div className={classes.detailPanelWrapper}>
+      <div className={classes.detailPanelWrapper} ref={panelRef}>
         <Paper elevation={1} className={classes.detailPanelContainer}>
           {content}
           <Button
@@ -55,6 +57,19 @@ export default function DetailPanel({ data }) {
     content: PropTypes.element,
     onClickFunc: PropTypes.func,
   };
+
+  useEffect(() => {
+    if (!panelRef.current) return;
+    const panelTR = panelRef.current.closest("tr");
+    const previousTr = panelTR?.previousElementSibling;
+    if (!previousTr) return;
+    const dataRowId = data?.rowData?.id;
+    if (currentRow && currentRow.id === dataRowId) {
+      previousTr.classList.add("selected-row");
+    } else {
+      previousTr.classList.remove("selected-row");
+    }
+  }, [data, currentRow]);
 
   return (
     <DetailPanelContent
