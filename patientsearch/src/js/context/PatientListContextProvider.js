@@ -318,7 +318,7 @@ export default function PatientListContextProvider({ children }) {
   const handleDeSelectRow = () => {
     const selectedRow = document.querySelector(".selected-row");
     if (selectedRow) selectedRow.classList.remove("selected-row");
-  }
+  };
   const handleMenuClose = () => {
     handleDeSelectRow();
     contextStateDispatch({
