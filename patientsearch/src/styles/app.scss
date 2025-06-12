@@ -178,6 +178,12 @@ img[disabled] {
 tr:empty {
   height: 0 !important;
 }
+tr.selected-row {
+  td {
+    background-color: #f1f5f5;
+    font-weight: 500 !important;
+  }
+}
 td:empty {
   padding: 0;
   margin: 0;
