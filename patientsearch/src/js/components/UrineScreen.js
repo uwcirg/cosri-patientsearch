@@ -31,10 +31,13 @@ import {
   getShortDateFromISODateString,
   isAdult,
   isValidDateString,
+  isEmptyArray,
   padDateString,
   sendRequest,
 } from "../helpers/utility";
+import { EHR_SYSTEM_URLS } from "../constants/consts.js";
 import { useSettingContext } from "../context/SettingContextProvider";
+import { useUserContext } from "../context/UserContextProvider";
 
 const useStyles = makeStyles((theme) => {
   if (!theme) return null;
@@ -44,7 +47,7 @@ const useStyles = makeStyles((theme) => {
       paddingLeft: theme.spacing(3),
       paddingRight: theme.spacing(3),
       paddingTop: theme.spacing(1),
-      paddingBottom: theme.spacing(1)
+      paddingBottom: theme.spacing(1),
     },
     contentContainer: {
       position: "relative",
@@ -128,7 +131,7 @@ const useStyles = makeStyles((theme) => {
     editInput: {
       width: theme.spacing(10),
       border: 0,
-      textAlign: "center"
+      textAlign: "center",
     },
     errorContainer: {
       maxWidth: "100%",
@@ -153,15 +156,25 @@ const useStyles = makeStyles((theme) => {
 });
 
 export default function UrineScreen(props) {
+  const { user } = useUserContext();
   const appCtx = useSettingContext();
   const appSettingsRef = React.useRef(appCtx.appSettings);
   const classes = useStyles();
-  const urineScreenTypes = (() => {
+  const configUrineScreenTypes = (() => {
     const appSettings = appSettingsRef.current;
     return appSettings && appSettings["UDS_LAB_TYPES"]
       ? appSettings["UDS_LAB_TYPES"]
       : null;
   })();
+  const editableUrineScreenTypes = configUrineScreenTypes
+    ? configUrineScreenTypes.filter((item) =>
+        item.identifier
+          ? !item.identifier.find(
+              (o) => EHR_SYSTEM_URLS.indexOf(o.system) !== -1
+            )
+          : true
+      )
+    : null;
   const lastEntryReducer = (state, action) => {
     if (action.type == "reset") {
       return {
@@ -182,10 +195,12 @@ export default function UrineScreen(props) {
     id: null,
     date: "",
     type: "",
+    readonly: false,
   });
   const [type, setType] = React.useState(
-    urineScreenTypes && urineScreenTypes.length === 1
-      ? urineScreenTypes[0].code
+    !isEmptyArray(editableUrineScreenTypes) &&
+      editableUrineScreenTypes.length === 1
+      ? editableUrineScreenTypes[0].code
       : ""
   );
   const [dateInput, setDateInput] = React.useState(null);
@@ -200,6 +215,7 @@ export default function UrineScreen(props) {
     mode: false,
     type: "",
     date: "",
+    readonly: false,
   };
   const editReducer = (state, action) => {
     if (action.key) {
@@ -240,7 +256,7 @@ export default function UrineScreen(props) {
   };
   const clearFields = () => {
     clearDate();
-    if (!onlyOneUrineScreenType()) setType("");
+    if (!onlyOneEditableUrineScreenType()) setType("");
     setError("");
   };
   const handleTypeChange = (event) => {
@@ -270,13 +286,29 @@ export default function UrineScreen(props) {
           resource.code && resource.code.coding && resource.code.coding.length
             ? resource.code.coding[0].code
             : "";
+        let readonly = !isEmptyArray(resource.identifier)
+          ? !!resource.identifier.find(
+              (item) => EHR_SYSTEM_URLS.indexOf(item.system) !== -1
+            )
+          : false;
+        let requester =
+          resource.requester && resource.requester.display
+            ? resource.requester.display
+            : null;
         return {
           id: resource.id,
           index: index,
-          type: type,
+          type: type ? type : text,
           text: text,
           date: date,
           patientId: getPatientId(),
+          readonly: readonly,
+          requester: requester,
+          source: readonly
+            ? `EHR ${requester ? " (ordered by " + requester + ")" : ""}`
+            : requester
+            ? `user-entered (ordered by ${requester})`
+            : "user-entered",
         };
       });
     },
@@ -290,7 +322,7 @@ export default function UrineScreen(props) {
         callback();
         return [];
       }
-      const types = urineScreenTypes;
+      const types = configUrineScreenTypes;
 
       setHistoryInitialized(false);
       /*
@@ -317,6 +349,10 @@ export default function UrineScreen(props) {
             return;
           }
           const availableCodes = types.map((item) => item.code);
+          const systemIdentifiers = types
+            .filter((item) => !isEmptyArray(item.identifier))
+            .map((item) => item.identifier.map((item) => item.system))
+            .flat();
           let urineScreenData = data.entry.filter((item) => {
             let resource = item.resource;
             if (!resource) return false;
@@ -326,9 +362,14 @@ export default function UrineScreen(props) {
               !resource.code.coding.length
             )
               return false;
+            if (!isEmptyArray(resource.identifier)) {
+              return resource.identifier.find(
+                (item) => systemIdentifiers.indexOf(item.system) !== -1
+              );
+            }
             return availableCodes.indexOf(resource.code.coding[0].code) !== -1;
           });
-          if (urineScreenData.length) {
+          if (!isEmptyArray(urineScreenData)) {
             urineScreenData = urineScreenData.sort(function (a, b) {
               return dateTimeCompare(
                 a.resource.authoredOn,
@@ -343,6 +384,7 @@ export default function UrineScreen(props) {
                 id: formattedData[0].id,
                 date: formattedData[0].date,
                 type: formattedData[0].type,
+                readonly: formattedData[0].readonly,
               },
             });
           } else {
@@ -363,7 +405,7 @@ export default function UrineScreen(props) {
       );
       return "";
     },
-    [rowData, urineScreenTypes, createHistoryData]
+    [rowData, configUrineScreenTypes, createHistoryData]
   );
   const handleAdd = (params) => {
     setAddInProgress(true);
@@ -376,7 +418,7 @@ export default function UrineScreen(props) {
     params = params || {};
     const testType = params.type ? params.type : type;
     const testDate = params.date ? params.date : dateInput;
-    let typeMatch = urineScreenTypes.filter((item) => {
+    let typeMatch = editableUrineScreenTypes.filter((item) => {
       return item.code === testType;
     });
     var resource = {
@@ -391,6 +433,11 @@ export default function UrineScreen(props) {
         ],
         text: typeMatch[0].text,
       },
+      requester: user
+        ? {
+            display: user.name ?? user.username,
+          }
+        : null,
       resourceType: "ServiceRequest",
       subject: {
         reference:
@@ -408,7 +455,7 @@ export default function UrineScreen(props) {
     callback = callback || function () {};
     const testType = params.type ? params.type : type;
     const testDate = params.date ? params.date : dateInput;
-    let typeMatch = urineScreenTypes.filter((item) => {
+    let typeMatch = editableUrineScreenTypes.filter((item) => {
       return item.code === testType;
     });
     if (String(params.method).toLowerCase() !== "delete") {
@@ -465,6 +512,7 @@ export default function UrineScreen(props) {
         id: lastEntry.id,
         date: editEntry.date,
         type: editEntry.type,
+        readonly: lastEntry.readonly,
       };
     setUpdateInProgress(true);
     handleUpdate(
@@ -484,6 +532,7 @@ export default function UrineScreen(props) {
         id: lastEntry.id,
         date: editEntry.date ? editEntry.date : lastEntry.date,
         type: editEntry.type ? editEntry.type : lastEntry.type,
+        readonly: lastEntry.readonly,
       };
     setUpdateInProgress(true);
     handleUpdate(
@@ -506,6 +555,7 @@ export default function UrineScreen(props) {
       data: {
         type: lastEntry.type,
         date: lastEntry.date,
+        readonly: lastEntry.readonly,
         mode: true,
       },
     });
@@ -516,7 +566,7 @@ export default function UrineScreen(props) {
     setError("");
   };
   const isValidEditType = () => {
-    if (onlyOneUrineScreenType()) return true;
+    if (onlyOneEditableUrineScreenType()) return true;
     return editEntry.type;
   };
   const isValidEditDate = () => {
@@ -540,7 +590,13 @@ export default function UrineScreen(props) {
   const displayMostRecentEntry = () => {
     if (!hasHistory()) return "";
     if (history[0].text)
-      return history[0].text + " ordered on <b>" + lastEntry.date + "</b>";
+      return (
+        history[0].text +
+        " ordered on <b>" +
+        lastEntry.date +
+        "</b>" +
+        (history[0].source ? ", " + history[0].source : "")
+      );
     return "Ordered on <b>" + lastEntry.date + "</b>";
   };
   const displayEditHistoryByRow = (index) => {
@@ -551,7 +607,7 @@ export default function UrineScreen(props) {
     const orderText = history[index].text || "";
     return (
       <React.Fragment>
-        {onlyOneUrineScreenType() ? (
+        {onlyOneEditableUrineScreenType() ? (
           orderText
         ) : (
           <FormControl>
@@ -576,7 +632,7 @@ export default function UrineScreen(props) {
           <FormattedInput
             defaultValue={selectDate}
             helperText="(YYYY-MM-DD)"
-            disableFocus={!onlyOneUrineScreenType()}
+            disableFocus={!onlyOneEditableUrineScreenType()}
             handleChange={(e) => handleEditDateChange(e)}
             handleKeyDown={(e) => handleEditSave(e)}
             inputClass={{ input: classes.editInput }}
@@ -587,22 +643,22 @@ export default function UrineScreen(props) {
     );
   };
   const getOneUrineScreenDisplayText = () => {
-    let matchedType = urineScreenTypes[0];
+    let matchedType = editableUrineScreenTypes[0];
     if (matchedType) return matchedType.text;
     else return "";
   };
-  const onlyOneUrineScreenType = React.useCallback(() => {
-    return urineScreenTypes && urineScreenTypes.length === 1;
-  }, [urineScreenTypes]);
+  const onlyOneEditableUrineScreenType = React.useCallback(() => {
+    return editableUrineScreenTypes && editableUrineScreenTypes.length === 1;
+  }, [editableUrineScreenTypes]);
 
-  const hasUrineScreenTypes = () => {
-    return !onlyOneUrineScreenType() && !noUrineScreenTypes();
+  const hasEditableUrineScreenTypes = () => {
+    return !onlyOneEditableUrineScreenType() && !noEditableUrineScreenTypes();
   };
-  const noUrineScreenTypes = () => {
-    return !urineScreenTypes || !urineScreenTypes.length;
+  const noEditableUrineScreenTypes = () => {
+    return !editableUrineScreenTypes || !editableUrineScreenTypes.length;
   };
   const getUrineScreenTypeSelectList = () => {
-    return urineScreenTypes.map((item, index) => {
+    return editableUrineScreenTypes.map((item) => {
       return (
         <MenuItem value={item.code} key={`${item.code}_${index}`}>
           <Typography variant="body2">{item.text}</Typography>
@@ -611,9 +667,9 @@ export default function UrineScreen(props) {
     });
   };
   const getSelectLookupTypes = () => {
-    if (!urineScreenTypes) return;
+    if (isEmptyArray(editableUrineScreenTypes)) return;
     let types = {};
-    urineScreenTypes.forEach((item) => {
+    editableUrineScreenTypes.forEach((item) => {
       types[item.code] = item.text;
     });
     return types;
@@ -664,7 +720,7 @@ export default function UrineScreen(props) {
                 placeholder: "YYYY-MM-DD",
                 InputLabelProps: { shrink: true },
                 variant: "standard",
-                className: classes.dateInput
+                className: classes.dateInput,
               },
             }}
             format="YYYY-MM-DD"
@@ -687,7 +743,7 @@ export default function UrineScreen(props) {
       </div>
       {/* urine screen type selector */}
       {renderUrineTypeSelector()}
-      {!noUrineScreenTypes() && (
+      {!noEditableUrineScreenTypes() && (
         <div className={classes.buttonsContainer}>
           <Button
             variant="contained"
@@ -712,7 +768,7 @@ export default function UrineScreen(props) {
   const renderUrineTypeSelector = () => (
     <div className={classes.typeContainer}>
       <div>
-        {onlyOneUrineScreenType() && (
+        {onlyOneEditableUrineScreenType() && (
           <div className={classes.textDisplay}>
             <InputLabel className={classes.readonlyLabel}>
               {URINE_SCREEN_TYPE_LABEL}
@@ -722,7 +778,7 @@ export default function UrineScreen(props) {
             </Typography>
           </div>
         )}
-        {hasUrineScreenTypes() && (
+        {hasEditableUrineScreenTypes() && (
           <FormControl className={classes.selectFormControl} variant="standard">
             <InputLabel className={classes.label}>
               {URINE_SCREEN_TYPE_LABEL}
@@ -739,7 +795,7 @@ export default function UrineScreen(props) {
             </Select>
           </FormControl>
         )}
-        {noUrineScreenTypes() && (
+        {noEditableUrineScreenTypes() && (
           <div className={classes.errorContainer}>
             <Error
               message={"No urine drug screen type list is loaded."}
@@ -770,8 +826,8 @@ export default function UrineScreen(props) {
       cellStyle: {
         padding: "4px 24px 4px 16px",
       },
-      lookup: getSelectLookupTypes(),
-      editable: !onlyOneUrineScreenType() ? "always" : "never",
+      lookup: !onlyOneEditableUrineScreenType() ? getSelectLookupTypes() : null,
+      editable: !onlyOneEditableUrineScreenType() ? "always" : "never",
     },
     {
       title: "Order Date",
@@ -786,6 +842,10 @@ export default function UrineScreen(props) {
           handleChange={(e) => params.onChange(e.target.value)}
         ></FormattedInput>
       ),
+    },
+    {
+      title: "Source",
+      field: "source",
     },
   ];
   const renderMostRecentHistory = () => (
@@ -810,14 +870,16 @@ export default function UrineScreen(props) {
               ></span>
             )}
             {editEntry.mode && displayEditHistoryByRow(0)}
-            <EditButtonGroup
-              onEnableEditMode={handleEnableEditMode}
-              onDisableEditMode={handleDisableEditMode}
-              isUpdateDisabled={!hasValidEditEntry()}
-              handleEditSave={() => handleEditSave()}
-              handleDelete={() => handleDelete()}
-              entryDescription={displayMostRecentEntry()}
-            ></EditButtonGroup>
+            {!lastEntry.readonly && (
+              <EditButtonGroup
+                onEnableEditMode={handleEnableEditMode}
+                onDisableEditMode={handleDisableEditMode}
+                isUpdateDisabled={!hasValidEditEntry()}
+                handleEditSave={() => handleEditSave()}
+                handleDelete={() => handleDelete()}
+                entryDescription={displayMostRecentEntry()}
+              ></EditButtonGroup>
+            )}
           </div>
           {/* alerts */}
           {isAdult(rowData.birth_date) && (

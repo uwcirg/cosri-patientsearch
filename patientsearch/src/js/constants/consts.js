@@ -165,3 +165,6 @@ export const objErrorStatus = {
     logoutURL: "/logout?forbidden=true",
   }
 };
+export const EHR_SYSTEM_URLS = [
+  "http://www.uwmedicine.org/lab_order_id"
+];
