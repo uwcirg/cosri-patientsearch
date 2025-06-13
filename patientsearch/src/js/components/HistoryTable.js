@@ -160,15 +160,19 @@ export default function HistoryTable(props) {
                 index={props?.data?.id}
               ></MTableActions>
             ),
-            Action: (props) => (
-              <MTableAction
+            Action: (props) => {
+              return <MTableAction
                 {...props}
                 columns={columns}
                 onColumnsChanged={() => false}
               ></MTableAction>
-            ),
+            },
           }}
           editable={{
+            isEditable: rowData => !rowData.readonly,
+            isEditHidden: rowData => rowData.readonly,
+            isDeletable: rowData => !rowData.readonly,
+            isDeleteHidden: rowData => rowData.readonly,
             onRowUpdate: (newData, oldData) => {
               return fetchData(props.APIURL + oldData.id, {
                 method: "PUT",
