@@ -175,13 +175,15 @@ export default function UrineScreen(props) {
           : true
       )
     : null;
+  const entryDefaultValue = {
+    id: null,
+    date: "",
+    type: "",
+    readonly: false,
+  };
   const lastEntryReducer = (state, action) => {
     if (action.type == "reset") {
-      return {
-        id: null,
-        date: "",
-        type: "",
-      };
+      return entryDefaultValue;
     }
     if (action.type === "update") {
       return {
@@ -191,12 +193,7 @@ export default function UrineScreen(props) {
     }
     return state;
   };
-  const [lastEntry, lastEntryDispatch] = React.useReducer(lastEntryReducer, {
-    id: null,
-    date: "",
-    type: "",
-    readonly: false,
-  });
+  const [lastEntry, lastEntryDispatch] = React.useReducer(lastEntryReducer, entryDefaultValue);
   const [type, setType] = React.useState(
     !isEmptyArray(editableUrineScreenTypes) &&
       editableUrineScreenTypes.length === 1
@@ -211,7 +208,7 @@ export default function UrineScreen(props) {
   const [snackOpen, setSnackOpen] = React.useState(false);
   const [historyInitialized, setHistoryInitialized] = React.useState(false);
   const [expandHistory, setExpandHistory] = React.useState(false);
-  const defaultValues = {
+  const defaultEditValues = {
     mode: false,
     type: "",
     date: "",
@@ -231,13 +228,13 @@ export default function UrineScreen(props) {
       };
     }
     if (action.type === "reset") {
-      return defaultValues;
+      return defaultEditValues;
     }
     return state;
   };
   const [editEntry, editDispatch] = React.useReducer(
     editReducer,
-    defaultValues
+    defaultEditValues
   );
   const URINE_SCREEN_TYPE_LABEL = "Urine Drug Screen Name";
   const { rowData } = props;
@@ -380,12 +377,7 @@ export default function UrineScreen(props) {
             setHistory(formattedData);
             lastEntryDispatch({
               type: "update",
-              data: {
-                id: formattedData[0].id,
-                date: formattedData[0].date,
-                type: formattedData[0].type,
-                readonly: formattedData[0].readonly,
-              },
+              data: formattedData[0],
             });
           } else {
             clearHistory();
@@ -509,10 +501,10 @@ export default function UrineScreen(props) {
     params = params || {};
     if (!Object.keys(params).length)
       params = {
+        ...lastEntry,
         id: lastEntry.id,
         date: editEntry.date,
         type: editEntry.type,
-        readonly: lastEntry.readonly,
       };
     setUpdateInProgress(true);
     handleUpdate(
@@ -529,10 +521,10 @@ export default function UrineScreen(props) {
     params = params || {};
     if (!Object.keys(params).length)
       params = {
+        ...lastEntry,
         id: lastEntry.id,
         date: editEntry.date ? editEntry.date : lastEntry.date,
         type: editEntry.type ? editEntry.type : lastEntry.type,
-        readonly: lastEntry.readonly,
       };
     setUpdateInProgress(true);
     handleUpdate(
@@ -553,9 +545,9 @@ export default function UrineScreen(props) {
     editDispatch({
       type: "update",
       data: {
+        ...lastEntry,
         type: lastEntry.type,
         date: lastEntry.date,
-        readonly: lastEntry.readonly,
         mode: true,
       },
     });
@@ -846,6 +838,7 @@ export default function UrineScreen(props) {
     {
       title: "Source",
       field: "source",
+      editable: false
     },
   ];
   const renderMostRecentHistory = () => (
