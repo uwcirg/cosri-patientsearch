@@ -92,16 +92,16 @@ const useStyles = makeStyles((theme) => {
     historyTitle: {
       display: "inline-block",
       fontWeight: 500,
+      fontSize: "0.9rem",
       color: palette && palette.dark ? palette.dark.main : "#444",
-      borderBottom: `2px solid ${theme.palette.primary.lightest}`,
       marginBottom: theme.spacing(1),
     },
     addTitle: {
       display: "inline-block",
       fontWeight: 500,
+      fontSize: "0.9rem",
       color: palette && palette.dark ? palette.dark.main : "#444",
-      borderBottom: `2px solid ${theme.palette.primary.lightest}`,
-      marginBottom: theme.spacing(2.5),
+      marginBottom: theme.spacing(1),
     },
     addButton: {
       marginRight: theme.spacing(1),
