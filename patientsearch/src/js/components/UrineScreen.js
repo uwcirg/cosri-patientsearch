@@ -193,7 +193,10 @@ export default function UrineScreen(props) {
     }
     return state;
   };
-  const [lastEntry, lastEntryDispatch] = React.useReducer(lastEntryReducer, entryDefaultValue);
+  const [lastEntry, lastEntryDispatch] = React.useReducer(
+    lastEntryReducer,
+    entryDefaultValue
+  );
   const [type, setType] = React.useState(
     !isEmptyArray(editableUrineScreenTypes) &&
       editableUrineScreenTypes.length === 1
@@ -403,7 +406,10 @@ export default function UrineScreen(props) {
     setAddInProgress(true);
     handleUpdate(params, () => {
       clearFields();
-      setTimeout(() => setAddInProgress(false), 250);
+      setTimeout(() => {
+        setAddInProgress(false);
+        getHistory();
+      }, 250);
     });
   };
   const submitDataFormatter = (params) => {
@@ -489,7 +495,7 @@ export default function UrineScreen(props) {
             setSnackOpen(false);
             callback();
           });
-        }, 150);
+        }, 250);
       })
       .catch((e) => {
         callback(e);
@@ -838,7 +844,7 @@ export default function UrineScreen(props) {
     {
       title: "Source",
       field: "source",
-      editable: false
+      editable: false,
     },
   ];
   const renderMostRecentHistory = () => (
