@@ -52,10 +52,10 @@ const useStyles = makeStyles((theme) => {
     contentContainer: {
       position: "relative",
     },
-    addContainer: {
+    itemContainer: {
       position: "relative",
-      marginBottom: theme.spacing(2),
-      padding: theme.spacing(2),
+      marginBottom: theme.spacing(1),
+      padding: theme.spacing(1, 2, 1),
     },
     typeContainer: {
       position: "relative",
@@ -64,7 +64,8 @@ const useStyles = makeStyles((theme) => {
       marginTop: theme.spacing(3),
     },
     buttonsContainer: {
-      marginTop: theme.spacing(2.5),
+      marginTop: theme.spacing(1.5),
+      marginBottm: theme.spacing(1),
       position: "relative",
     },
     progressContainer: {
@@ -83,25 +84,23 @@ const useStyles = makeStyles((theme) => {
       top: "10%",
       left: "10%",
     },
-    historyContainer: {
+    recentEntryContainer: {
       position: "relative",
-      marginBottom: theme.spacing(2),
-      padding: theme.spacing(2),
-      minHeight: theme.spacing(9),
+      marginBottom: theme.spacing(1),
+      padding: theme.spacing(1, 2, 0.5),
     },
     historyTitle: {
       display: "inline-block",
       fontWeight: 500,
-      fontSize: "0.9rem",
       color: palette && palette.dark ? palette.dark.main : "#444",
-      marginBottom: theme.spacing(1),
+      borderBottom: `2px solid ${theme.palette.primary.lightest}`,
     },
     addTitle: {
       display: "inline-block",
       fontWeight: 500,
-      fontSize: "0.9rem",
       color: palette && palette.dark ? palette.dark.main : "#444",
       marginBottom: theme.spacing(1),
+      borderBottom: `2px solid ${theme.palette.primary.lightest}`,
     },
     addButton: {
       marginRight: theme.spacing(1),
@@ -338,7 +337,7 @@ export default function UrineScreen(props) {
           } catch (e) {
             console.log("Eerror parsing urine screen service request data ", e);
           }
-          if (!data || !data.entry || !data.entry.length) {
+          if (!data || isEmptyArray(data.entry)) {
             clearHistory();
             editDispatch({
               key: "mode",
@@ -583,19 +582,15 @@ export default function UrineScreen(props) {
     });
   };
   const hasHistory = () => {
-    return history && history.length > 0;
+    return !isEmptyArray(history);
   };
   const displayMostRecentEntry = () => {
     if (!hasHistory()) return "";
-    if (history[0].text)
-      return (
-        history[0].text +
-        " ordered on <b>" +
-        lastEntry.date +
-        "</b>" +
-        (history[0].source ? ", " + history[0].source : "")
-      );
-    return "Ordered on <b>" + lastEntry.date + "</b>";
+    if (history[0].text) {
+      const source = history[0].source ? ", " + history[0].source : "";
+      return `${history[0].text} ordered on <b>${lastEntry.date}</b> ${source}`;
+    }
+    return `Ordered on <b>${lastEntry.date}</b>`;
   };
   const displayEditHistoryByRow = (index) => {
     if (!hasHistory()) return null;
@@ -695,7 +690,7 @@ export default function UrineScreen(props) {
     );
   };
   const renderAddComponent = () => (
-    <Paper className={classes.addContainer} elevation={1}>
+    <Paper className={classes.itemContainer} elevation={1}>
       <Typography
         variant="caption"
         display="block"
@@ -847,54 +842,58 @@ export default function UrineScreen(props) {
       editable: false,
     },
   ];
-  const renderMostRecentHistory = () => (
-    <React.Fragment>
-      <Typography
-        variant="caption"
-        display="block"
-        className={classes.historyTitle}
-      >
-        Last Urine Drug Screen
-      </Typography>
-      {!hasHistory() && <div>No previously recorded urine drug screen</div>}
-      {/* most recent entry */}
-      {hasHistory() && (
-        <React.Fragment>
-          <div>
-            {!editEntry.mode && (
-              <span
-                dangerouslySetInnerHTML={{
-                  __html: DOMPurify.sanitize(displayMostRecentEntry()),
-                }}
-              ></span>
-            )}
-            {editEntry.mode && displayEditHistoryByRow(0)}
-            {!lastEntry.readonly && (
-              <EditButtonGroup
-                onEnableEditMode={handleEnableEditMode}
-                onDisableEditMode={handleDisableEditMode}
-                isUpdateDisabled={!hasValidEditEntry()}
-                handleEditSave={() => handleEditSave()}
-                handleDelete={() => handleDelete()}
-                entryDescription={displayMostRecentEntry()}
-              ></EditButtonGroup>
-            )}
-          </div>
-          {/* alerts */}
-          {isAdult(rowData.birth_date) && (
-            <div className={classes.overDueContainer}>
-              <OverdueAlert
-                date={lastEntry.date}
-                type="urine drug screen"
-              ></OverdueAlert>
+  const renderMostRecentHistory = () => {
+    if (!historyInitialized || updateInProgress)
+      return renderUpdateInProgressIndicator();
+    return (
+      <Paper className={classes.recentEntryContainer} elevation={1}>
+        <Typography
+          variant="caption"
+          display="block"
+          className={classes.historyTitle}
+        >
+          Last Urine Drug Screen
+        </Typography>
+        {!hasHistory() && <div>No previously recorded urine drug screen</div>}
+        {/* most recent entry */}
+        {hasHistory() && (
+          <React.Fragment>
+            <div>
+              {!editEntry.mode && (
+                <span
+                  dangerouslySetInnerHTML={{
+                    __html: DOMPurify.sanitize(displayMostRecentEntry()),
+                  }}
+                ></span>
+              )}
+              {editEntry.mode && displayEditHistoryByRow(0)}
+              {!lastEntry.readonly && (
+                <EditButtonGroup
+                  onEnableEditMode={handleEnableEditMode}
+                  onDisableEditMode={handleDisableEditMode}
+                  isUpdateDisabled={!hasValidEditEntry()}
+                  handleEditSave={() => handleEditSave()}
+                  handleDelete={() => handleDelete()}
+                  entryDescription={displayMostRecentEntry()}
+                ></EditButtonGroup>
+              )}
             </div>
-          )}
-        </React.Fragment>
-      )}
-    </React.Fragment>
-  );
+            {/* alerts */}
+            {isAdult(rowData.birth_date) && (
+              <div className={classes.overDueContainer}>
+                <OverdueAlert
+                  date={lastEntry.date}
+                  type="urine drug screen"
+                ></OverdueAlert>
+              </div>
+            )}
+          </React.Fragment>
+        )}
+      </Paper>
+    );
+  };
   const renderHistory = () => (
-    <Paper className={classes.historyContainer} elevation={1}>
+    <Paper className={classes.itemContainer} elevation={1}>
       <Typography
         variant="caption"
         display="block"
@@ -990,13 +989,10 @@ export default function UrineScreen(props) {
         {renderAddInProgressIndicator()}
         {/* UI to add new */}
         {renderAddComponent()}
+        {/* most recent entry */}
+        {renderMostRecentHistory()}
         {/* history */}
-        <Paper className={classes.historyContainer} elevation={1}>
-          {(!historyInitialized || updateInProgress) &&
-            renderUpdateInProgressIndicator()}
-          {historyInitialized && renderMostRecentHistory()}
-          {hasHistory() && renderHistory()}
-        </Paper>
+        {hasHistory() && renderHistory()}
         {/* feedback snack popup */}
         {renderFeedbackSnackbar()}
         {/* error message UI */}
