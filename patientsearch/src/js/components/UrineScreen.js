@@ -279,10 +279,15 @@ export default function UrineScreen(props) {
       return data.map((item, index) => {
         const resource = item.resource;
         if (!resource) return {};
-        let text = resource.code ? resource.code.text : "";
+        let text =
+          resource.code && resource.code.text
+            ? resource.code.text
+            : resource.code && !isEmptyArray(resource.code.coding)
+            ? resource.code.coding[0].display
+            : "";
         let date = getShortDateFromISODateString(resource.authoredOn);
         let type =
-          resource.code && resource.code.coding && resource.code.coding.length
+          resource.code && !isEmptyArray(resource.code.coding)
             ? resource.code.coding[0].code
             : "";
         let readonly = !isEmptyArray(resource.identifier)
@@ -821,6 +826,9 @@ export default function UrineScreen(props) {
       },
       lookup: !onlyOneEditableUrineScreenType() ? getSelectLookupTypes() : null,
       editable: !onlyOneEditableUrineScreenType() ? "always" : "never",
+      render: (rowData) => {
+        return <span>{rowData.text}</span>;
+      },
     },
     {
       title: "Order Date",
@@ -854,7 +862,16 @@ export default function UrineScreen(props) {
         >
           Last Urine Drug Screen
         </Typography>
-        {!hasHistory() && <div>No previously recorded urine drug screen</div>}
+        {!hasHistory() && (
+          <div
+            style={{
+              marginTop:  "8px",
+              marginBottom: "8px",
+            }}
+          >
+            No previously recorded urine drug screen
+          </div>
+        )}
         {/* most recent entry */}
         {hasHistory() && (
           <React.Fragment>
