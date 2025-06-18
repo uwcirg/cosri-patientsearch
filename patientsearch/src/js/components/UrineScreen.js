@@ -93,6 +93,7 @@ const useStyles = makeStyles((theme) => {
       display: "inline-block",
       fontWeight: 500,
       color: palette && palette.dark ? palette.dark.main : "#444",
+      marginBottom: theme.spacing(1),
       borderBottom: `2px solid ${theme.palette.primary.lightest}`,
     },
     addTitle: {
@@ -326,8 +327,6 @@ export default function UrineScreen(props) {
         callback();
         return [];
       }
-      const types = configUrineScreenTypes;
-
       setHistoryInitialized(false);
       /*
        * retrieve urine screen history
@@ -352,19 +351,17 @@ export default function UrineScreen(props) {
             callback();
             return;
           }
-          const availableCodes = types.map((item) => item.code);
-          const systemIdentifiers = types
+          const availableCodes = configUrineScreenTypes.map(
+            (item) => item.code
+          );
+          const systemIdentifiers = configUrineScreenTypes
             .filter((item) => !isEmptyArray(item.identifier))
             .map((item) => item.identifier.map((item) => item.system))
             .flat();
           let urineScreenData = data.entry.filter((item) => {
             let resource = item.resource;
             if (!resource) return false;
-            if (
-              !resource.code ||
-              !resource.code.coding ||
-              !resource.code.coding.length
-            )
+            if (!resource.code || isEmptyArray(resource.code.coding))
               return false;
             if (!isEmptyArray(resource.identifier)) {
               return resource.identifier.find(
@@ -496,7 +493,6 @@ export default function UrineScreen(props) {
         setSnackOpen(true);
         setTimeout(() => {
           getHistory(() => {
-            setSnackOpen(false);
             callback();
           });
         }, 250);
@@ -532,7 +528,6 @@ export default function UrineScreen(props) {
     if (!Object.keys(params).length)
       params = {
         ...lastEntry,
-        id: lastEntry.id,
         date: editEntry.date ? editEntry.date : lastEntry.date,
         type: editEntry.type ? editEntry.type : lastEntry.type,
       };
@@ -853,7 +848,7 @@ export default function UrineScreen(props) {
     if (!historyInitialized || updateInProgress)
       return renderUpdateInProgressIndicator();
     return (
-      <Paper className={classes.recentEntryContainer} elevation={1}>
+      <Paper className={classes.recentEntryContainer} elevation={0}>
         <Typography
           variant="caption"
           display="block"
@@ -864,7 +859,7 @@ export default function UrineScreen(props) {
         {!hasHistory() && (
           <div
             style={{
-              marginTop:  "8px",
+              marginTop: "8px",
               marginBottom: "8px",
             }}
           >
@@ -909,7 +904,7 @@ export default function UrineScreen(props) {
     );
   };
   const renderHistory = () => (
-    <Paper className={classes.itemContainer} elevation={1}>
+    <Paper className={classes.itemContainer} elevation={0}>
       <Typography
         variant="caption"
         display="block"
