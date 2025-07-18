@@ -1,5 +1,3 @@
-import differenceInMonths from "date-fns/differenceInMonths";
-import isValid from "date-fns/isValid";
 import {
   ACCESS_TOKEN_KEY,
   MIN_QUERY_COUNT,
@@ -9,6 +7,10 @@ import {
 
 export function toTop() {
   window.scrollTo(0, 0);
+}
+
+export function isValidDateString(dateString) {
+  return !isNaN(new Date(dateString));
 }
 
 export function sendRequest(url, params) {
@@ -201,10 +203,10 @@ export function pad(val, len) {
  */
 export function getLocalDateTimeString(utcDateString, shortFormat) {
   if (!utcDateString) return "";
+  if (!isValidDateString(utcDateString)) return utcDateString;
   //note javascript Date object automatically convert UTC date/time to locate date/time, no need to parse and convert
   let dateObj =
     utcDateString instanceof Date ? utcDateString : new Date(utcDateString);
-  if (!isValid(dateObj) || isNaN(dateObj)) return utcDateString;
   let year = dateObj.getFullYear();
   let month = pad(dateObj.getMonth() + 1);
   let day = pad(dateObj.getDate());
@@ -245,8 +247,12 @@ export function addYearsToDate(dt, n) {
 /*
  * check if two dates are within specified number of months
  */
-export function isInMonthPeriod(dateFrom, dateTo, numOfMonths) {
-  let months = differenceInMonths(dateTo, dateFrom);
+const dayjs = require("dayjs");
+export function isInMonthPeriod(dateFromString, dateToString, numOfMonths) {
+ // let months = differenceInMonths(dateTo, dateFrom);
+ const fromDate = dayjs(dateFromString);
+ const toDate = dayjs(dateToString);
+ let months = toDate.diff(fromDate, "month");
   return months >= 0 && months <= numOfMonths;
 }
 
@@ -302,8 +308,8 @@ export function isAdult(birthDateString) {
  */
 export function padDateString(dateString) {
   if (!dateString) return "";
+  if (!isValidDateString(dateString)) return dateString;
   dateString = dateString.trim();
-  if (!isValid(new Date(dateString))) return dateString;
   let arrDate = dateString.split("-");
   let year = arrDate[0];
   let month = pad(arrDate[1]);
@@ -473,9 +479,9 @@ export function addMamotoTracking(siteId, userId) {
  */
 export function isInPast(dateString) {
   if (!dateString) return false;
+  if (!isValidDateString(dateString)) return false;
   const today = new Date();
   const targetDate = new Date(dateString);
-  if (!isValid(targetDate)) return false;
   const diff = (today - targetDate); // in miniseconds
   // this will check if diff is 5 minutes or more
   // e.g. pad by 5 mins to give system time to transmit message, rather than indicate no next message time during processing
@@ -487,7 +493,7 @@ export function isInPast(dateString) {
  * @returns text display of time ago as string e.g. < 50 seconds, < 1 hour, 1 day 2 hours, 3 hours, 3 days
  */
 export function getTimeAgoDisplay(objDate) {
-  if (!objDate || !isValid(objDate)) return null;
+  if (!objDate || isNaN(objDate)) return null;
   const today = new Date();
   const total = today - objDate;
   // future date
