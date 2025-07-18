@@ -249,7 +249,6 @@ export function addYearsToDate(dt, n) {
  */
 const dayjs = require("dayjs");
 export function isInMonthPeriod(dateFromString, dateToString, numOfMonths) {
- // let months = differenceInMonths(dateTo, dateFrom);
  const fromDate = dayjs(dateFromString);
  const toDate = dayjs(dateToString);
  let months = toDate.diff(fromDate, "month");

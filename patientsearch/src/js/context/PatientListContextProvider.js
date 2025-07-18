@@ -689,8 +689,9 @@ export default function PatientListContextProvider({ children }) {
     if (!shouldHideMoreMenu()) {
       actions = [
         {
-          icon: () => <MoreHorizIcon color="primary" title="More"></MoreHorizIcon>,
+          icon: () => <MoreHorizIcon color="primary"></MoreHorizIcon>,
           onClick: (event, rowData) => handleMenuClick(event, rowData),
+          tooltip: "More",
         },
       ];
     }
