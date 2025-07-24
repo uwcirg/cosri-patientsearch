@@ -211,6 +211,7 @@ export default function UrineScreen(props) {
   const [snackOpen, setSnackOpen] = React.useState(false);
   const [historyInitialized, setHistoryInitialized] = React.useState(false);
   const [expandHistory, setExpandHistory] = React.useState(false);
+  const [orderInfoMessage, setOrderInfoMessage] = React.useState("");
   const defaultEditValues = {
     mode: false,
     type: "",
@@ -300,6 +301,11 @@ export default function UrineScreen(props) {
           resource.requester && resource.requester.display
             ? resource.requester.display
             : null;
+        const identifiers = resource.identifier;
+        const isDawg = identifiers?.find(
+          (o) => o.system && o.system.includes("uwmedicine")
+        );
+        const readonlyOrderLabel = isDawg ? "UW lab orders" : "EHR";
         return {
           id: resource.id,
           index: index,
@@ -310,10 +316,12 @@ export default function UrineScreen(props) {
           readonly: readonly,
           requester: requester,
           source: readonly
-            ? `EHR ${requester ? " (ordered by " + requester + ")" : ""}`
+            ? `${readonlyOrderLabel} ${
+                requester ? " (placed by " + requester + ")" : ""
+              }`
             : requester
-            ? `user-entered (ordered by ${requester})`
-            : "user-entered",
+            ? `manually entered by (placed by ${requester})`
+            : "manually entered by",
         };
       });
     },
@@ -379,6 +387,23 @@ export default function UrineScreen(props) {
             });
             const formattedData = createHistoryData(urineScreenData);
             setHistory(formattedData);
+            const isEHR = urineScreenData.find(
+              (o) => !isEmptyArray(o.resource.identifier)
+            );
+            const isDawg =
+              isEHR &&
+              urineScreenData.find((o) =>
+                o.resource.identifier.find((item) =>
+                  item.system?.includes("uwmedicine")
+                )
+              );
+            if (isEHR) {
+              setOrderInfoMessage(
+                `Display of ${
+                  isDawg ? "UW" : "EHR"
+                } lab orders may be delayed by 24-48 hours`
+              );
+            }
             lastEntryDispatch({
               type: "update",
               data: formattedData[0],
@@ -588,9 +613,9 @@ export default function UrineScreen(props) {
     if (!hasHistory()) return "";
     if (history[0].text) {
       const source = history[0].source ? ", " + history[0].source : "";
-      return `${history[0].text} ordered on <b>${lastEntry.date}</b> ${source}`;
+      return `${history[0].text} on <b>${lastEntry.date}</b> ${source}`;
     }
-    return `Ordered on <b>${lastEntry.date}</b>`;
+    return `Placed on <b>${lastEntry.date}</b>`;
   };
   const displayEditHistoryByRow = (index) => {
     if (!hasHistory()) return null;
@@ -619,7 +644,7 @@ export default function UrineScreen(props) {
             <FormHelperText>{`(${URINE_SCREEN_TYPE_LABEL})`}</FormHelperText>
           </FormControl>
         )}
-        <span> ordered on </span>
+        <span> placed on </span>
         <div style={{ display: "inline-block" }}>
           {" "}
           <FormattedInput
@@ -984,6 +1009,21 @@ export default function UrineScreen(props) {
     </Snackbar>
   );
 
+  const renderOrderInfo = () => {
+    if (!orderInfoMessage) return null;
+    return (
+      <Alert
+        message={orderInfoMessage}
+        severity="warning"
+        variant="standard"
+        elevation={0}
+        sx={{
+          marginBottom: (theme) => theme.spacing(1),
+        }}
+      />
+    );
+  };
+
   const renderError = () => (
     <div className={classes.errorContainer}>
       {error && <Error message={error}></Error>}
@@ -1003,6 +1043,8 @@ export default function UrineScreen(props) {
         {renderAddComponent()}
         {/* most recent entry */}
         {renderMostRecentHistory()}
+        {/* UI for displaying message related to orders */}
+        {renderOrderInfo()}
         {/* history */}
         {hasHistory() && renderHistory()}
         {/* feedback snack popup */}

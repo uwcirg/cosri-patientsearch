@@ -20,6 +20,7 @@ export default function Alert(props) {
       variant={variant}
       severity={severity}
       onClose={props.onClose}
+      sx={props.sx}
     >
       {props.message && renderHTML(message)}
     </MuiAlert>
@@ -32,4 +33,5 @@ Alert.propTypes = {
   variant: PropTypes.string,
   elevation: PropTypes.number,
   onClose: PropTypes.func,
+  sx: PropTypes.object
 };
