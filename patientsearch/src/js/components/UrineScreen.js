@@ -35,7 +35,7 @@ import {
   padDateString,
   sendRequest,
 } from "../helpers/utility";
-import { EHR_SYSTEM_URLS } from "../constants/consts.js";
+import { EHR_SYSTEM_URLS, UWMC_LAB_ORDER_SYSTEM_URL } from "../constants/consts.js";
 import { useSettingContext } from "../context/SettingContextProvider";
 import { useUserContext } from "../context/UserContextProvider";
 
@@ -303,7 +303,7 @@ export default function UrineScreen(props) {
             : null;
         const identifiers = resource.identifier;
         const isDawg = identifiers?.find(
-          (o) => o.system && o.system.includes("uwmedicine")
+          (o) => o.system && o.system === UWMC_LAB_ORDER_SYSTEM_URL
         );
         const readonlyOrderLabel = isDawg ? "UW lab orders" : "EHR";
         return {
@@ -394,7 +394,7 @@ export default function UrineScreen(props) {
               isEHR &&
               urineScreenData.find((o) =>
                 o.resource.identifier.find((item) =>
-                  item.system?.includes("uwmedicine")
+                  item.system === UWMC_LAB_ORDER_SYSTEM_URL
                 )
               );
             if (isEHR) {

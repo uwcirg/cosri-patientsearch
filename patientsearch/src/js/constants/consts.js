@@ -163,8 +163,8 @@ export const objErrorStatus = {
   403: {
     text: "Forbidden.",
     logoutURL: "/logout?forbidden=true",
-  }
+  },
 };
-export const EHR_SYSTEM_URLS = [
-  "http://www.uwmedicine.org/lab_order_id"
-];
+export const UWMC_LAB_ORDER_SYSTEM_URL =
+  "http://www.uwmedicine.org/lab_order_id";
+export const EHR_SYSTEM_URLS = [UWMC_LAB_ORDER_SYSTEM_URL];
