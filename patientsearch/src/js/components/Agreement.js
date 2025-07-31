@@ -2,7 +2,6 @@ import React from "react";
 import PropTypes from "prop-types";
 import DOMPurify from "dompurify";
 import makeStyles from "@mui/styles/makeStyles";
-import isValid from "date-fns/isValid";
 import Button from "@mui/material/Button";
 import CircularProgress from "@mui/material/CircularProgress";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
@@ -27,6 +26,7 @@ import {
   fetchData,
   getShortDateFromISODateString,
   isAdult,
+  isValidDateString,
   padDateString,
 } from "../helpers/utility";
 const LOINC_SYSTEM_URL = "https://loinc.org";
@@ -425,9 +425,10 @@ export default function Agreement(props) {
     setEditDate(event.target.value);
   };
   const isValidEditDate = () => {
+    if (!isValidDateString(editDate)) return false;
     let dateObj = new Date(editDate).setHours(0, 0, 0, 0);
     let today = new Date().setHours(0, 0, 0, 0);
-    return isValid(dateObj) && !(dateObj > today);
+    return !(dateObj > today);
   };
   const handleSnackClose = (event, reason) => {
     if (reason === "clickaway") {

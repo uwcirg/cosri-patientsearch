@@ -2,7 +2,6 @@ import React from "react";
 import PropTypes from "prop-types";
 import DOMPurify from "dompurify";
 import makeStyles from "@mui/styles/makeStyles";
-import isValid from "date-fns/isValid";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import Button from "@mui/material/Button";
 import CircularProgress from "@mui/material/CircularProgress";
@@ -31,6 +30,7 @@ import {
   dateTimeCompare,
   getShortDateFromISODateString,
   isAdult,
+  isValidDateString,
   padDateString,
   sendRequest,
 } from "../helpers/utility";
@@ -520,9 +520,10 @@ export default function UrineScreen(props) {
     return editEntry.type;
   };
   const isValidEditDate = () => {
+    if (!isValidDateString(editEntry.date)) return false;
     let dateObj = new Date(editEntry.date).setHours(0, 0, 0, 0);
     let today = new Date().setHours(0, 0, 0, 0);
-    return isValid(dateObj) && !(dateObj > today);
+    return !(dateObj > today);
   };
   const hasValidEditEntry = () => {
     return isValidEditType() && isValidEditDate();
@@ -601,9 +602,9 @@ export default function UrineScreen(props) {
     return !urineScreenTypes || !urineScreenTypes.length;
   };
   const getUrineScreenTypeSelectList = () => {
-    return urineScreenTypes.map((item) => {
+    return urineScreenTypes.map((item, index) => {
       return (
-        <MenuItem value={item.code} key={item.code}>
+        <MenuItem value={item.code} key={`${item.code}_${index}`}>
           <Typography variant="body2">{item.text}</Typography>
         </MenuItem>
       );
