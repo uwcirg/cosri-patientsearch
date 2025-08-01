@@ -202,18 +202,6 @@ export default function UrineScreen(props) {
     }
     return state;
   };
-  const [lastEntry, lastEntryDispatch] = React.useReducer(
-    lastEntryReducer,
-    entryDefaultValue
-  );
-  const [type, setType] = React.useState(
-    !isEmptyArray(editableUrineScreenTypes) &&
-      editableUrineScreenTypes.length === 1
-      ? editableUrineScreenTypes[0].code
-      : ""
-  );
-  const [dateInput, setDateInput] = React.useState(null);
-  const [error, setError] = React.useState("");
   const historyReducer = (state, action) => {
     switch (action.type) {
       case "init":
@@ -313,6 +301,14 @@ export default function UrineScreen(props) {
     }
     return state;
   };
+   const [type, setType] = React.useState(
+    !isEmptyArray(editableUrineScreenTypes) &&
+      editableUrineScreenTypes.length === 1
+      ? editableUrineScreenTypes[0].code
+      : ""
+  );
+  const [dateInput, setDateInput] = React.useState(null);
+  const [error, setError] = React.useState("");
   const [historyState, historyDispatch] = React.useReducer(historyReducer, {
     data: [],
     orderInfoMessage: "",
@@ -322,6 +318,10 @@ export default function UrineScreen(props) {
     snackOpen: false,
     expand: false,
   });
+  const [lastEntry, lastEntryDispatch] = React.useReducer(
+    lastEntryReducer,
+    entryDefaultValue
+  );
   const [editEntry, editDispatch] = React.useReducer(
     editReducer,
     defaultEditValues
