@@ -184,6 +184,12 @@ export default function UrineScreen(props) {
     type: "",
     readonly: false,
   };
+  const defaultEditValues = {
+    mode: false,
+    type: "",
+    date: "",
+    readonly: false,
+  };
   const lastEntryReducer = (state, action) => {
     if (action.type == "reset") {
       return entryDefaultValue;
@@ -207,20 +213,88 @@ export default function UrineScreen(props) {
       : ""
   );
   const [dateInput, setDateInput] = React.useState(null);
-  const [history, setHistory] = React.useState([]);
-  const [addInProgress, setAddInProgress] = React.useState(false);
-  const [updateInProgress, setUpdateInProgress] = React.useState(false);
   const [error, setError] = React.useState("");
-  const [snackOpen, setSnackOpen] = React.useState(false);
-  const [historyInitialized, setHistoryInitialized] = React.useState(false);
-  const [expandHistory, setExpandHistory] = React.useState(false);
-  const [orderInfoMessage, setOrderInfoMessage] = React.useState("");
-  const defaultEditValues = {
-    mode: false,
-    type: "",
-    date: "",
-    readonly: false,
+  const historyReducer = (state, action) => {
+    switch (action.type) {
+      case "init":
+        return {
+          ...state,
+          snackOpen: false,
+          initialized: false,
+        };
+
+      case "init-complete":
+        return {
+          ...state,
+          initialized: true,
+          data: action.data,
+          orderInfoMessage: action.orderInfoMessage,
+        };
+
+      case "add":
+        return {
+          ...state,
+          addInProgress: true,
+          snackOpen: false,
+          initialized: false,
+        };
+
+      case "add-complete":
+        return {
+          ...state,
+          data: action.data,
+          addInProgress: false,
+          initialized: true,
+          snackOpen: true,
+          orderInfoMessage: action.orderInfoMessage,
+          expand: false,
+        };
+
+      case "update":
+        return {
+          ...state,
+          updateInProgress: true,
+          snackOpen: false,
+          initialized: false,
+        };
+
+      case "update-complete":
+        return {
+          ...state,
+          data: action.data,
+          updateInProgress: false,
+          initialized: true,
+          snackOpen: true,
+          orderInfoMessage: action.orderInfoMessage,
+          expand: false,
+        };
+
+      case "expand-toggle":
+        return {
+          ...state,
+          expand: !state.expand,
+        };
+
+      case "error":
+        return {
+          ...state,
+          snackOpen: false,
+          initialized: true,
+          addInProgress: false,
+          updateInProgress: false,
+        };
+
+      case "snack-close":
+        return {
+          ...state,
+          snackOpen: false,
+        };
+
+      default:
+        return state;
+    }
   };
+
   const editReducer = (state, action) => {
     if (action.key) {
       return {
@@ -239,6 +313,15 @@ export default function UrineScreen(props) {
     }
     return state;
   };
+  const [historyState, historyDispatch] = React.useReducer(historyReducer, {
+    data: [],
+    orderInfoMessage: "",
+    initialized: false,
+    addInProgress: false,
+    updateInProgress: false,
+    snackOpen: false,
+    expand: false,
+  });
   const [editEntry, editDispatch] = React.useReducer(
     editReducer,
     defaultEditValues
@@ -253,7 +336,10 @@ export default function UrineScreen(props) {
     setDateInput("");
   };
   const clearHistory = () => {
-    setHistory([]);
+    historyDispatch({
+      type: "init-complete",
+      data: [],
+    });
     lastEntryDispatch({
       type: "reset",
     });
@@ -331,14 +417,20 @@ export default function UrineScreen(props) {
     [getPatientId]
   );
   const getHistory = React.useCallback(
-    (callback) => {
+    (callback, mode) => {
       callback = callback || function () {};
       if (!rowData) {
-        setHistoryInitialized(true);
+        historyDispatch({
+          type: "error",
+        });
         callback();
         return [];
       }
-      setHistoryInitialized(false);
+      if (!mode) {
+        historyDispatch({
+          type: "init",
+        });
+      }
       /*
        * retrieve urine screen history
        */
@@ -358,7 +450,6 @@ export default function UrineScreen(props) {
               key: "mode",
               value: false,
             });
-            setHistoryInitialized(true);
             callback();
             return;
           }
@@ -394,26 +485,27 @@ export default function UrineScreen(props) {
             );
             const isDawg =
               isEHR &&
-              urineScreenData.find((o) =>
-                o.resource.identifier && o.resource.identifier.find(
-                  (item) => item.system === UWMC_LAB_ORDER_SYSTEM_URL
-                )
+              urineScreenData.find(
+                (o) =>
+                  o.resource.identifier &&
+                  o.resource.identifier.find(
+                    (item) => item.system === UWMC_LAB_ORDER_SYSTEM_URL
+                  )
               );
-            if (isEHR) {
-              setOrderInfoMessage(
-                `Display of ${
-                  isDawg ? "UW" : "EHR"
-                } lab orders may be delayed by 24-48 hours`
-              );
-            }
             lastEntryDispatch({
               type: "update",
               data: formattedData[0],
             });
-            setHistoryInitialized(true);
-            setHistory(formattedData);
+            historyDispatch({
+              type: mode ? `${mode}-complete` : "init-complete",
+              data: formattedData,
+              orderInfoMessage: isEHR
+                ? `Display of ${
+                    isDawg ? "UW" : "EHR"
+                  } lab orders may be delayed by 24-48 hours`
+                : "",
+            });
           } else {
-            setHistoryInitialized(true);
             clearHistory();
           }
           editDispatch({
@@ -425,7 +517,9 @@ export default function UrineScreen(props) {
         (error) => {
           console.log("Failed to retrieve data", error);
           callback(error);
-          setHistoryInitialized(true);
+          historyDispatch({
+            type: "error",
+          });
         }
       );
       return "";
@@ -433,14 +527,18 @@ export default function UrineScreen(props) {
     [rowData, configUrineScreenTypes, createHistoryData]
   );
   const handleAdd = (params) => {
-    setAddInProgress(true);
-    handleUpdate(params, () => {
-      clearFields();
-      setTimeout(() => {
-        setAddInProgress(false);
-        getHistory();
-      }, 250);
-    });
+    handleUpdate(
+      {
+        ...params,
+        mode: "add",
+      },
+      () => {
+        clearFields();
+        setTimeout(() => {
+          getHistory(null, "add");
+        }, 250);
+      }
+    );
   };
   const submitDataFormatter = (params) => {
     params = params || {};
@@ -500,6 +598,11 @@ export default function UrineScreen(props) {
     }
     let resource = submitDataFormatter(params);
     setError("");
+
+    const mode = params.mode ? params.mode : "update";
+    historyDispatch({
+      type: mode,
+    });
     fetchData(
       "/fhir/ServiceRequest" + (params.id ? "/" + params.id : ""),
       {
@@ -519,11 +622,8 @@ export default function UrineScreen(props) {
       }
     )
       .then(() => {
-        setSnackOpen(true);
         setTimeout(() => {
-          getHistory(() => {
-            callback();
-          });
+          getHistory(callback, mode);
         }, 250);
       })
       .catch((e) => {
@@ -541,16 +641,12 @@ export default function UrineScreen(props) {
         date: editEntry.date,
         type: editEntry.type,
       };
-    setUpdateInProgress(true);
-    handleUpdate(
-      {
-        ...params,
-        ...{
-          method: "PUT",
-        },
+    handleUpdate({
+      ...params,
+      ...{
+        method: "PUT",
       },
-      () => setTimeout(setUpdateInProgress(false), 350)
-    );
+    });
   };
   const handleDelete = (params) => {
     params = params || {};
@@ -560,20 +656,18 @@ export default function UrineScreen(props) {
         date: editEntry.date ? editEntry.date : lastEntry.date,
         type: editEntry.type ? editEntry.type : lastEntry.type,
       };
-    setUpdateInProgress(true);
-    handleUpdate(
-      {
-        ...params,
-        ...{
-          method: "DELETE",
-        },
+    handleUpdate({
+      ...params,
+      ...{
+        method: "DELETE",
       },
-      () => setTimeout(setUpdateInProgress(false), 350)
-    );
+    });
   };
   const handleSubmissionError = () => {
+    historyDispatch({
+      type: "error",
+    });
     setError("Data submission failed. Unable to process your request.");
-    setSnackOpen(false);
   };
   const handleEnableEditMode = () => {
     editDispatch({
@@ -611,10 +705,11 @@ export default function UrineScreen(props) {
     });
   };
   const hasHistory = () => {
-    return !isEmptyArray(history);
+    return !isEmptyArray(historyState.data);
   };
   const displayMostRecentEntry = () => {
     if (!hasHistory()) return "";
+    const history = historyState.data;
     if (history[0].text) {
       const source = history[0].source ? ", " + history[0].source : "";
       return `${history[0].text} on <b>${lastEntry.date}</b> ${source}`;
@@ -624,6 +719,7 @@ export default function UrineScreen(props) {
   const displayEditHistoryByRow = (index) => {
     if (!hasHistory()) return null;
     if (!index) index = 0;
+    const history = historyState.data;
     const selectType = history[index].type;
     const selectDate = history[index].date;
     const orderText = history[index].text || "";
@@ -701,13 +797,16 @@ export default function UrineScreen(props) {
     if (reason === "clickaway") {
       return;
     }
-    setSnackOpen(false);
+    //setSnackOpen(false);
+    historyDispatch({
+      type: "snack-close",
+    });
   };
   const renderTitle = () => (
     <h3>{`Urine Drug Toxicology Screen for ${rowData.first_name} ${rowData.last_name}`}</h3>
   );
   const renderAddInProgressIndicator = () => {
-    if (!addInProgress) return null;
+    if (!historyState.addInProgress) return null;
     return (
       <div className={classes.progressContainer}>
         <CircularProgress
@@ -875,7 +974,8 @@ export default function UrineScreen(props) {
     },
   ];
   const renderMostRecentHistory = () => {
-    if (!historyInitialized || updateInProgress) return renderUpdateInProgressIndicator();
+    if (!historyState.initialized || historyState.updateInProgress)
+      return renderUpdateInProgressIndicator();
     return (
       <Paper className={classes.recentEntryContainer} elevation={0}>
         <Typography
@@ -943,13 +1043,13 @@ export default function UrineScreen(props) {
       </Typography>
       <div className={classes.totalEntriesContainer}>
         <span>
-          <b>{history.length}</b> record(s)
+          <b>{historyState.data.length}</b> record(s)
         </span>
-        {!expandHistory && (
+        {!historyState.expand && (
           <Button
             arial-label="expand"
             color="primary"
-            onClick={() => setExpandHistory(true)}
+            onClick={() => historyDispatch({ type: "expand-toggle" })}
             endIcon={
               <ExpandMoreIcon className={classes.endIcon}></ExpandMoreIcon>
             }
@@ -959,11 +1059,11 @@ export default function UrineScreen(props) {
             View
           </Button>
         )}
-        {expandHistory && (
+        {historyState.expand && (
           <Button
             arial-label="collapse"
             color="primary"
-            onClick={() => setExpandHistory(false)}
+            onClick={() => historyDispatch({ type: "expand-toggle" })}
             endIcon={
               <ExpandLessIcon className={classes.endIcon}></ExpandLessIcon>
             }
@@ -975,10 +1075,10 @@ export default function UrineScreen(props) {
         )}
       </div>
       <div className={classes.tableContainer}>
-        {expandHistory && (
+        {historyState.expand && (
           <div className="history-table">
             <HistoryTable
-              data={history}
+              data={historyState.data}
               columns={columns}
               APIURL="/fhir/ServiceRequest/"
               submitDataFormatter={submitDataFormatter}
@@ -998,7 +1098,7 @@ export default function UrineScreen(props) {
   );
   const renderFeedbackSnackbar = () => (
     <Snackbar
-      open={snackOpen}
+      open={historyState.snackOpen}
       autoHideDuration={2000}
       onClose={handleSnackClose}
     >
@@ -1013,10 +1113,10 @@ export default function UrineScreen(props) {
   );
 
   const renderOrderInfo = () => {
-    if (!orderInfoMessage) return null;
+    if (!historyState.orderInfoMessage) return null;
     return (
       <Alert
-        message={orderInfoMessage}
+        message={historyState.orderInfoMessage}
         severity="warning"
         variant="standard"
         elevation={0}
