@@ -35,7 +35,10 @@ import {
   padDateString,
   sendRequest,
 } from "../helpers/utility";
-import { EHR_SYSTEM_URLS, UWMC_LAB_ORDER_SYSTEM_URL } from "../constants/consts.js";
+import {
+  EHR_SYSTEM_URLS,
+  UWMC_LAB_ORDER_SYSTEM_URL,
+} from "../constants/consts.js";
 import { useSettingContext } from "../context/SettingContextProvider";
 import { useUserContext } from "../context/UserContextProvider";
 
@@ -386,15 +389,14 @@ export default function UrineScreen(props) {
               );
             });
             const formattedData = createHistoryData(urineScreenData);
-            setHistory(formattedData);
             const isEHR = urineScreenData.find(
               (o) => !isEmptyArray(o.resource.identifier)
             );
             const isDawg =
               isEHR &&
               urineScreenData.find((o) =>
-                o.resource.identifier.find((item) =>
-                  item.system === UWMC_LAB_ORDER_SYSTEM_URL
+                o.resource.identifier && o.resource.identifier.find(
+                  (item) => item.system === UWMC_LAB_ORDER_SYSTEM_URL
                 )
               );
             if (isEHR) {
@@ -408,14 +410,16 @@ export default function UrineScreen(props) {
               type: "update",
               data: formattedData[0],
             });
+            setHistoryInitialized(true);
+            setHistory(formattedData);
           } else {
+            setHistoryInitialized(true);
             clearHistory();
           }
           editDispatch({
             key: "mode",
             value: false,
           });
-          setHistoryInitialized(true);
           callback();
         },
         (error) => {
@@ -676,7 +680,7 @@ export default function UrineScreen(props) {
     return !editableUrineScreenTypes || !editableUrineScreenTypes.length;
   };
   const getUrineScreenTypeSelectList = () => {
-    return editableUrineScreenTypes.map((item) => {
+    return editableUrineScreenTypes.map((item, index) => {
       return (
         <MenuItem value={item.code} key={`${item.code}_${index}`}>
           <Typography variant="body2">{item.text}</Typography>
@@ -871,8 +875,7 @@ export default function UrineScreen(props) {
     },
   ];
   const renderMostRecentHistory = () => {
-    if (!historyInitialized || updateInProgress)
-      return renderUpdateInProgressIndicator();
+    if (!historyInitialized || updateInProgress) return renderUpdateInProgressIndicator();
     return (
       <Paper className={classes.recentEntryContainer} elevation={0}>
         <Typography
