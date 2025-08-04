@@ -190,18 +190,6 @@ export default function UrineScreen(props) {
     date: "",
     readonly: false,
   };
-  const lastEntryReducer = (state, action) => {
-    if (action.type == "reset") {
-      return entryDefaultValue;
-    }
-    if (action.type === "update") {
-      return {
-        ...state,
-        ...action.data,
-      };
-    }
-    return state;
-  };
   const historyReducer = (state, action) => {
     switch (action.type) {
       case "init":
@@ -214,9 +202,8 @@ export default function UrineScreen(props) {
       case "init-complete":
         return {
           ...state,
+          ...action,
           initialized: true,
-          data: action.data,
-          orderInfoMessage: action.orderInfoMessage,
         };
 
       case "add":
@@ -230,11 +217,10 @@ export default function UrineScreen(props) {
       case "add-complete":
         return {
           ...state,
-          data: action.data,
+          ...action,
           addInProgress: false,
           initialized: true,
           snackOpen: true,
-          orderInfoMessage: action.orderInfoMessage,
           expand: false,
         };
 
@@ -249,11 +235,10 @@ export default function UrineScreen(props) {
       case "update-complete":
         return {
           ...state,
-          data: action.data,
+          ...action,
           updateInProgress: false,
           initialized: true,
           snackOpen: true,
-          orderInfoMessage: action.orderInfoMessage,
           expand: false,
         };
 
@@ -301,7 +286,7 @@ export default function UrineScreen(props) {
     }
     return state;
   };
-   const [type, setType] = React.useState(
+  const [type, setType] = React.useState(
     !isEmptyArray(editableUrineScreenTypes) &&
       editableUrineScreenTypes.length === 1
       ? editableUrineScreenTypes[0].code
@@ -311,6 +296,7 @@ export default function UrineScreen(props) {
   const [error, setError] = React.useState("");
   const [historyState, historyDispatch] = React.useReducer(historyReducer, {
     data: [],
+    mostRecentEntry: entryDefaultValue,
     orderInfoMessage: "",
     initialized: false,
     addInProgress: false,
@@ -318,10 +304,6 @@ export default function UrineScreen(props) {
     snackOpen: false,
     expand: false,
   });
-  const [lastEntry, lastEntryDispatch] = React.useReducer(
-    lastEntryReducer,
-    entryDefaultValue
-  );
   const [editEntry, editDispatch] = React.useReducer(
     editReducer,
     defaultEditValues
@@ -339,9 +321,7 @@ export default function UrineScreen(props) {
     historyDispatch({
       type: "init-complete",
       data: [],
-    });
-    lastEntryDispatch({
-      type: "reset",
+      mostRecentEntry: entryDefaultValue,
     });
   };
   const clearFields = () => {
@@ -394,7 +374,7 @@ export default function UrineScreen(props) {
         const isDawg = identifiers?.find(
           (o) => o.system && o.system === UWMC_LAB_ORDER_SYSTEM_URL
         );
-        const readonlyOrderLabel = isDawg ? "UW lab orders" : "EHR";
+        const readonlyOrderLabel = isDawg ? "UW lab order" : "EHR";
         return {
           id: resource.id,
           index: index,
@@ -492,13 +472,10 @@ export default function UrineScreen(props) {
                     (item) => item.system === UWMC_LAB_ORDER_SYSTEM_URL
                   )
               );
-            lastEntryDispatch({
-              type: "update",
-              data: formattedData[0],
-            });
             historyDispatch({
               type: mode ? `${mode}-complete` : "init-complete",
               data: formattedData,
+              mostRecentEntry: formattedData[0],
               orderInfoMessage: isEHR
                 ? `Display of ${
                     isDawg ? "UW" : "EHR"
@@ -636,8 +613,8 @@ export default function UrineScreen(props) {
     params = params || {};
     if (!Object.keys(params).length)
       params = {
-        ...lastEntry,
-        id: lastEntry.id,
+        ...historyState.mostRecentEntry,
+        id: historyState.mostRecentEntry.id,
         date: editEntry.date,
         type: editEntry.type,
       };
@@ -650,11 +627,12 @@ export default function UrineScreen(props) {
   };
   const handleDelete = (params) => {
     params = params || {};
+    const mostRecentEntry = historyState.mostRecentEntry;
     if (!Object.keys(params).length)
       params = {
-        ...lastEntry,
-        date: editEntry.date ? editEntry.date : lastEntry.date,
-        type: editEntry.type ? editEntry.type : lastEntry.type,
+        ...mostRecentEntry,
+        date: editEntry.date ? editEntry.date : mostRecentEntry.date,
+        type: editEntry.type ? editEntry.type : mostRecentEntry.type,
       };
     handleUpdate({
       ...params,
@@ -670,12 +648,13 @@ export default function UrineScreen(props) {
     setError("Data submission failed. Unable to process your request.");
   };
   const handleEnableEditMode = () => {
+    const mostRecentEntry = historyState.mostRecentEntry;
     editDispatch({
       type: "update",
       data: {
-        ...lastEntry,
-        type: lastEntry.type,
-        date: lastEntry.date,
+        ...mostRecentEntry,
+        type: mostRecentEntry.type,
+        date: mostRecentEntry.date,
         mode: true,
       },
     });
@@ -710,11 +689,12 @@ export default function UrineScreen(props) {
   const displayMostRecentEntry = () => {
     if (!hasHistory()) return "";
     const history = historyState.data;
+    const mostRecentEntry = historyState.mostRecentEntry;
     if (history[0].text) {
       const source = history[0].source ? ", " + history[0].source : "";
-      return `${history[0].text} on <b>${lastEntry.date}</b> ${source}`;
+      return `${history[0].text} on <b>${mostRecentEntry.date}</b> ${source}`;
     }
-    return `Placed on <b>${lastEntry.date}</b>`;
+    return `Placed on <b>${mostRecentEntry.date}</b>`;
   };
   const displayEditHistoryByRow = (index) => {
     if (!hasHistory()) return null;
@@ -976,6 +956,7 @@ export default function UrineScreen(props) {
   const renderMostRecentHistory = () => {
     if (!historyState.initialized || historyState.updateInProgress)
       return renderUpdateInProgressIndicator();
+    const mostRecentEntry = historyState.mostRecentEntry;
     return (
       <Paper className={classes.recentEntryContainer} elevation={0}>
         <Typography
@@ -1007,7 +988,7 @@ export default function UrineScreen(props) {
                 ></span>
               )}
               {editEntry.mode && displayEditHistoryByRow(0)}
-              {!lastEntry.readonly && (
+              {!mostRecentEntry.readonly && (
                 <EditButtonGroup
                   onEnableEditMode={handleEnableEditMode}
                   onDisableEditMode={handleDisableEditMode}
@@ -1022,7 +1003,7 @@ export default function UrineScreen(props) {
             {isAdult(rowData.birth_date) && (
               <div className={classes.overDueContainer}>
                 <OverdueAlert
-                  date={lastEntry.date}
+                  date={mostRecentEntry.date}
                   type="urine drug screen"
                 ></OverdueAlert>
               </div>
