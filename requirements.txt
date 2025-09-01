@@ -21,6 +21,6 @@ redis-dict==1.5.2         # via patientsearch (setup.py)
 requests==2.26.0          # via patientsearch (setup.py)
 six==1.15.0               # via flask-jwt-extended
 typing-extensions==3.10.0.2  # via importlib-metadata
-urllib3==1.26.7           # via requests
+urllib3==1.26.19           # via requests
 werkzeug==2.0.1           # via flask, flask-jwt-extended
 zipp==3.5.0               # via importlib-metadata
