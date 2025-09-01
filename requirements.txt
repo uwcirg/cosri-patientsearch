@@ -11,7 +11,7 @@ gunicorn==20.0.4          # via patientsearch (setup.py)
 idna==3.2                 # via requests
 importlib-metadata==4.8.1  # via click
 itsdangerous==2.0.1       # via flask
-jinja2==3.0.1             # via flask
+jinja2==3.1.6             # via flask
 jmespath==0.10.0          # via patientsearch (setup.py)
 markupsafe==2.0.1         # via jinja2
 python-json-logger==0.1.11
