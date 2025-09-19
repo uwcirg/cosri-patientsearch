@@ -185,116 +185,10 @@ export default function UrineScreen(props) {
     readonly: false,
   };
   const defaultEditValues = {
+    ...entryDefaultValue,
     mode: false,
-    type: "",
-    date: "",
-    readonly: false,
   };
-  const historyReducer = (state, action) => {
-    switch (action.type) {
-      case "init":
-        return {
-          ...state,
-          snackOpen: false,
-          initialized: false,
-        };
-
-      case "init-complete":
-        return {
-          ...state,
-          ...action,
-          initialized: true,
-        };
-
-      case "add":
-        return {
-          ...state,
-          addInProgress: true,
-          snackOpen: false,
-          initialized: false,
-        };
-
-      case "add-complete":
-        return {
-          ...state,
-          ...action,
-          addInProgress: false,
-          initialized: true,
-          snackOpen: true,
-          expand: false,
-        };
-
-      case "update":
-        return {
-          ...state,
-          updateInProgress: true,
-          snackOpen: false,
-          initialized: false,
-        };
-
-      case "update-complete":
-        return {
-          ...state,
-          ...action,
-          updateInProgress: false,
-          initialized: true,
-          snackOpen: true,
-          expand: false,
-        };
-
-      case "expand-toggle":
-        return {
-          ...state,
-          expand: !state.expand,
-        };
-
-      case "error":
-        return {
-          ...state,
-          snackOpen: false,
-          initialized: true,
-          addInProgress: false,
-          updateInProgress: false,
-        };
-
-      case "snack-close":
-        return {
-          ...state,
-          snackOpen: false,
-        };
-
-      default:
-        return state;
-    }
-  };
-
-  const editReducer = (state, action) => {
-    if (action.key) {
-      return {
-        ...state,
-        [action.key]: action.value,
-      };
-    }
-    if (action.type === "update") {
-      return {
-        ...state,
-        ...action.data,
-      };
-    }
-    if (action.type === "reset") {
-      return defaultEditValues;
-    }
-    return state;
-  };
-  const [type, setType] = React.useState(
-    !isEmptyArray(editableUrineScreenTypes) &&
-      editableUrineScreenTypes.length === 1
-      ? editableUrineScreenTypes[0].code
-      : ""
-  );
-  const [dateInput, setDateInput] = React.useState(null);
-  const [error, setError] = React.useState("");
-  const [historyState, historyDispatch] = React.useReducer(historyReducer, {
+  const initialHistoryState = {
     data: [],
     mostRecentEntry: entryDefaultValue,
     orderInfoMessage: "",
@@ -303,11 +197,172 @@ export default function UrineScreen(props) {
     updateInProgress: false,
     snackOpen: false,
     expand: false,
-  });
-  const [editEntry, editDispatch] = React.useReducer(
-    editReducer,
-    defaultEditValues
+  };
+  const initialUIState = {
+    history: initialHistoryState,
+    edit: defaultEditValues,
+  };
+
+  const uiReducer = (state, action) => {
+    switch (action.type) {
+      /** -------------------- HISTORY ACTIONS -------------------- **/
+      case "history/init":
+        return {
+          ...state,
+          history: {
+            ...state.history,
+            snackOpen: false,
+            initialized: false,
+          },
+        };
+
+      case "history/init-complete":
+        // expect action.payload: { data, mostRecentEntry, orderInfoMessage? }
+        return {
+          ...state,
+          history: {
+            ...state.history,
+            ...action.payload,
+            initialized: true,
+          },
+          edit: defaultEditValues,
+        };
+
+      case "history/add":
+        return {
+          ...state,
+          history: {
+            ...state.history,
+            addInProgress: true,
+            snackOpen: false,
+            initialized: false,
+          },
+        };
+
+      case "history/add-complete":
+        // expect action.payload: { data, mostRecentEntry, orderInfoMessage? }
+        return {
+          ...state,
+          history: {
+            ...state.history,
+            ...action.payload,
+            addInProgress: false,
+            initialized: true,
+            snackOpen: true,
+            expand: false,
+          },
+          edit: {
+            ...state.edit,
+            mode: false
+          },
+        };
+
+      case "history/update":
+        return {
+          ...state,
+          history: {
+            ...state.history,
+            updateInProgress: true,
+            snackOpen: false,
+            initialized: false,
+          },
+        };
+
+      case "history/update-complete":
+        // expect action.payload: { data, mostRecentEntry, orderInfoMessage? }
+        return {
+          ...state,
+          history: {
+            ...state.history,
+            ...action.payload,
+            updateInProgress: false,
+            initialized: true,
+            snackOpen: true,
+            expand: false,
+          },
+          edit: {
+            ...state.edit,
+            mode: false
+          },
+        };
+
+      case "history/expand-toggle":
+        return {
+          ...state,
+          history: {
+            ...state.history,
+            expand: !state.history.expand,
+          },
+        };
+
+      case "history/error":
+        return {
+          ...state,
+          history: {
+            ...state.history,
+            snackOpen: false,
+            initialized: true,
+            addInProgress: false,
+            updateInProgress: false,
+          },
+        };
+
+      case "history/snack-close":
+        return {
+          ...state,
+          history: {
+            ...state.history,
+            snackOpen: false,
+          },
+        };
+
+      /** -------------------- EDIT ACTIONS -------------------- **/
+      case "edit/set": {
+        // expect action.key, action.value
+        if (!action.key) return state;
+        return {
+          ...state,
+          edit: {
+            ...state.edit,
+            [action.key]: action.value,
+          },
+        };
+      }
+
+      case "edit/update":
+        // expect action.data (partial)
+        return {
+          ...state,
+          edit: {
+            ...state.edit,
+            ...action.data,
+          },
+        };
+
+      case "edit/reset":
+        return {
+          ...state,
+          edit: defaultEditValues,
+        };
+
+      /** -------------------- FALLBACK -------------------- **/
+      default:
+        return state;
+    }
+  };
+  const [uiState, dispatch] = React.useReducer(uiReducer, initialUIState);
+
+  // convenience locals (so you don’t have to refactor many reads)
+  const historyState = uiState.history;
+  const editEntry = uiState.edit;
+  const [type, setType] = React.useState(
+    !isEmptyArray(editableUrineScreenTypes) &&
+      editableUrineScreenTypes.length === 1
+      ? editableUrineScreenTypes[0].code
+      : ""
   );
+  const [dateInput, setDateInput] = React.useState(null);
+  const [error, setError] = React.useState("");
   const URINE_SCREEN_TYPE_LABEL = "Urine Drug Screen Name";
   const { rowData } = props;
   const getPatientId = React.useCallback(() => {
@@ -318,10 +373,12 @@ export default function UrineScreen(props) {
     setDateInput("");
   };
   const clearHistory = () => {
-    historyDispatch({
-      type: "init-complete",
-      data: [],
-      mostRecentEntry: entryDefaultValue,
+    dispatch({
+      type: "history/init-complete",
+      payload: {
+        data: [],
+        mostRecentEntry: entryDefaultValue,
+      },
     });
   };
   const clearFields = () => {
@@ -333,10 +390,7 @@ export default function UrineScreen(props) {
     setType(event.target.value);
   };
   const handleEditTypeChange = (event) => {
-    editDispatch({
-      key: "type",
-      value: event.target.value,
-    });
+    dispatch({ type: "edit/set", key: "type", value: event.target.value });
   };
   const hasValues = () => {
     return type && dateInput;
@@ -389,8 +443,8 @@ export default function UrineScreen(props) {
                 requester ? " (placed by " + requester + ")" : ""
               }`
             : requester
-            ? `manually entered by (placed by ${requester})`
-            : "manually entered by",
+            ? `manually entered (placed by ${requester})`
+            : "manually entered",
         };
       });
     },
@@ -400,16 +454,12 @@ export default function UrineScreen(props) {
     (callback, mode) => {
       callback = callback || function () {};
       if (!rowData) {
-        historyDispatch({
-          type: "error",
-        });
+        dispatch({ type: "history/error" });
         callback();
         return [];
       }
       if (!mode) {
-        historyDispatch({
-          type: "init",
-        });
+        dispatch({ type: "history/init" });
       }
       /*
        * retrieve urine screen history
@@ -426,10 +476,6 @@ export default function UrineScreen(props) {
           }
           if (!data || isEmptyArray(data.entry)) {
             clearHistory();
-            editDispatch({
-              key: "mode",
-              value: false,
-            });
             callback();
             return;
           }
@@ -472,31 +518,27 @@ export default function UrineScreen(props) {
                     (item) => item.system === UWMC_LAB_ORDER_SYSTEM_URL
                   )
               );
-            historyDispatch({
-              type: mode ? `${mode}-complete` : "init-complete",
-              data: formattedData,
-              mostRecentEntry: formattedData[0],
-              orderInfoMessage: isEHR
-                ? `Display of ${
-                    isDawg ? "UW" : "EHR"
-                  } lab orders may be delayed by 24-48 hours`
-                : "",
+            dispatch({
+              type: mode ? `history/${mode}-complete` : "history/init-complete",
+              payload: {
+                data: formattedData,
+                mostRecentEntry: formattedData[0],
+                orderInfoMessage: isEHR
+                  ? `Display of ${
+                      isDawg ? "UW" : "EHR"
+                    } lab orders may be delayed by 24-48 hours`
+                  : "",
+              },
             });
           } else {
             clearHistory();
           }
-          editDispatch({
-            key: "mode",
-            value: false,
-          });
           callback();
         },
         (error) => {
           console.log("Failed to retrieve data", error);
           callback(error);
-          historyDispatch({
-            type: "error",
-          });
+          dispatch({ type: "history/error" });
         }
       );
       return "";
@@ -577,8 +619,8 @@ export default function UrineScreen(props) {
     setError("");
 
     const mode = params.mode ? params.mode : "update";
-    historyDispatch({
-      type: mode,
+    dispatch({
+      type: `history/${mode}`,
     });
     fetchData(
       "/fhir/ServiceRequest" + (params.id ? "/" + params.id : ""),
@@ -642,15 +684,13 @@ export default function UrineScreen(props) {
     });
   };
   const handleSubmissionError = () => {
-    historyDispatch({
-      type: "error",
-    });
+    dispatch({ type: "history/error" });
     setError("Data submission failed. Unable to process your request.");
   };
   const handleEnableEditMode = () => {
     const mostRecentEntry = historyState.mostRecentEntry;
-    editDispatch({
-      type: "update",
+    dispatch({
+      type: "edit/update",
       data: {
         ...mostRecentEntry,
         type: mostRecentEntry.type,
@@ -661,7 +701,7 @@ export default function UrineScreen(props) {
     setError("");
   };
   const handleDisableEditMode = () => {
-    editDispatch({ type: "reset" });
+    dispatch({ type: "edit/reset" });
     setError("");
   };
   const isValidEditType = () => {
@@ -678,10 +718,7 @@ export default function UrineScreen(props) {
     return isValidEditType() && isValidEditDate();
   };
   const handleEditDateChange = (event) => {
-    editDispatch({
-      key: "date",
-      value: event.target.value,
-    });
+    dispatch({ type: "edit/set", key: "date", value: event.target.value });
   };
   const hasHistory = () => {
     return !isEmptyArray(historyState.data);
@@ -703,9 +740,10 @@ export default function UrineScreen(props) {
     const selectType = history[index].type;
     const selectDate = history[index].date;
     const orderText = history[index].text || "";
+    const mostRecentEntry = historyState.mostRecentEntry;
     return (
       <React.Fragment>
-        {onlyOneEditableUrineScreenType() ? (
+        {onlyOneEditableUrineScreenType() || mostRecentEntry?.readonly ? (
           orderText
         ) : (
           <FormControl>
@@ -726,7 +764,6 @@ export default function UrineScreen(props) {
         )}
         <span> placed on </span>
         <div style={{ display: "inline-block" }}>
-          {" "}
           <FormattedInput
             defaultValue={selectDate}
             helperText="(YYYY-MM-DD)"
@@ -735,6 +772,7 @@ export default function UrineScreen(props) {
             handleKeyDown={(e) => handleEditSave(e)}
             inputClass={{ input: classes.editInput }}
             error={hasError()}
+            readOnly={mostRecentEntry?.readonly}
           ></FormattedInput>
         </div>
       </React.Fragment>
@@ -777,10 +815,7 @@ export default function UrineScreen(props) {
     if (reason === "clickaway") {
       return;
     }
-    //setSnackOpen(false);
-    historyDispatch({
-      type: "snack-close",
-    });
+    dispatch({ type: "history/snack-close" });
   };
   const renderTitle = () => (
     <h3>{`Urine Drug Toxicology Screen for ${rowData.first_name} ${rowData.last_name}`}</h3>
@@ -1030,7 +1065,7 @@ export default function UrineScreen(props) {
           <Button
             arial-label="expand"
             color="primary"
-            onClick={() => historyDispatch({ type: "expand-toggle" })}
+            onClick={() => dispatch({ type: "history/expand-toggle" })}
             endIcon={
               <ExpandMoreIcon className={classes.endIcon}></ExpandMoreIcon>
             }
@@ -1044,7 +1079,7 @@ export default function UrineScreen(props) {
           <Button
             arial-label="collapse"
             color="primary"
-            onClick={() => historyDispatch({ type: "expand-toggle" })}
+            onClick={() => dispatch({ type: "history/expand-toggle" })}
             endIcon={
               <ExpandLessIcon className={classes.endIcon}></ExpandLessIcon>
             }
