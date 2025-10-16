@@ -529,7 +529,7 @@ export default function PatientListContextProvider({ children }) {
   const _notInPDMP = (rowData) => {
     // config ONLY_CREATE_PATIENT_IF_FOUND_EXTERNAL will allow patient record be added only if found in PDMP
     // this makes all rows in PDMP
-    if (Boolean(getAppSettingByKey("ONLY_CREATE_PATIENT_IF_FOUND_EXTERNAL"))) return false;
+    if (getAppSettingByKey("ONLY_CREATE_PATIENT_IF_FOUND_EXTERNAL")) return false;
     if (!rowData) return false;
     if (isEmptyArray(rowData.identifier)) return true;
     return !rowData.identifier.find((item) => {
