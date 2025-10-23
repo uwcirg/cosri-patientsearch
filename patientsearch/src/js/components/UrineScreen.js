@@ -547,6 +547,7 @@ export default function UrineScreen(props) {
       );
       return "";
     },
+     /* eslint-disable react-hooks/exhaustive-deps */
     [rowData, configUrineScreenTypes, createHistoryData]
   );
   const handleAdd = (params) => {
