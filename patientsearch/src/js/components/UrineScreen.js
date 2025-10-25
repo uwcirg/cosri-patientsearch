@@ -253,7 +253,7 @@ export default function UrineScreen(props) {
           },
           edit: {
             ...state.edit,
-            mode: false
+            mode: false,
           },
         };
 
@@ -282,7 +282,7 @@ export default function UrineScreen(props) {
           },
           edit: {
             ...state.edit,
-            mode: false
+            mode: false,
           },
         };
 
@@ -526,7 +526,11 @@ export default function UrineScreen(props) {
                 orderInfoMessage: isEHR
                   ? `Display of ${
                       isDawg ? "UW" : "EHR"
-                    } lab orders may be delayed by 24-48 hours`
+                    } lab orders may be delayed by 24-48 hours. ${
+                      isDawg
+                        ? "We are currently in the process of identifying all of the UDS tests from Epic, which will be available soon. Please double check Epic for UDS."
+                        : ""
+                    }`
                   : "",
               },
             });
@@ -543,6 +547,7 @@ export default function UrineScreen(props) {
       );
       return "";
     },
+     /* eslint-disable react-hooks/exhaustive-deps */
     [rowData, configUrineScreenTypes, createHistoryData]
   );
   const handleAdd = (params) => {
@@ -1008,7 +1013,7 @@ export default function UrineScreen(props) {
               marginBottom: "8px",
             }}
           >
-            No previously recorded urine drug screen
+            {renderNoData()}
           </div>
         )}
         {/* most recent entry */}
@@ -1143,6 +1148,30 @@ export default function UrineScreen(props) {
     );
   };
 
+  const renderNoData = () => {
+    const appSettings = appSettingsRef.current;
+    let message =
+      "No urine drug screen date found for this patient. Please check the last controlled substance prescription to determine if they are due for their 12 month drug screen.";
+    if (
+      appSettings &&
+      String(appSettings["SITE_ID"]).toLowerCase() === "uwmc"
+    ) {
+      message =
+        "No urine drug screen date found for this patient. Please check the last controlled substance prescription and Epic labs to determine if they are due for their 12 month drug screen.";
+    }
+    return (
+      <Alert
+        message={message}
+        severity="warning"
+        variant="standard"
+        elevation={0}
+        sx={{
+          marginBottom: (theme) => theme.spacing(1),
+        }}
+      />
+    );
+  };
+
   const renderError = () => (
     <div className={classes.errorContainer}>
       {error && <Error message={error}></Error>}
@@ -1160,10 +1189,10 @@ export default function UrineScreen(props) {
         {renderAddInProgressIndicator()}
         {/* UI to add new */}
         {renderAddComponent()}
-        {/* most recent entry */}
-        {renderMostRecentHistory()}
         {/* UI for displaying message related to orders */}
         {renderOrderInfo()}
+        {/* most recent entry */}
+        {renderMostRecentHistory()}
         {/* history */}
         {hasHistory() && renderHistory()}
         {/* feedback snack popup */}
