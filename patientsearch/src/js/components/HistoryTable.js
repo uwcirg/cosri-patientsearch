@@ -2,7 +2,10 @@ import PropTypes from "prop-types";
 import React from "react";
 import { useTheme } from "@mui/material/styles";
 import makeStyles from "@mui/styles/makeStyles";
-import MaterialTable, { MTableActions, MTableAction } from "@material-table/core";
+import MaterialTable, {
+  MTableActions,
+  MTableAction,
+} from "@material-table/core";
 import TablePagination from "@mui/material/TablePagination";
 import CircularProgress from "@mui/material/CircularProgress";
 import Error from "./Error";
@@ -160,15 +163,21 @@ export default function HistoryTable(props) {
                 index={props?.data?.id}
               ></MTableActions>
             ),
-            Action: (props) => (
-              <MTableAction
-                {...props}
-                columns={columns}
-                onColumnsChanged={() => false}
-              ></MTableAction>
-            ),
+            Action: (props) => {
+              return (
+                <MTableAction
+                  {...props}
+                  columns={columns}
+                  onColumnsChanged={() => false}
+                ></MTableAction>
+              );
+            },
           }}
           editable={{
+            isEditable: (rowData) => !rowData.readonly,
+            isEditHidden: (rowData) => rowData.readonly,
+            isDeletable: (rowData) => !rowData.readonly,
+            isDeleteHidden: (rowData) => rowData.readonly,
             onRowUpdate: (newData, oldData) => {
               return fetchData(props.APIURL + oldData.id, {
                 method: "PUT",

@@ -52,6 +52,12 @@ html {
   min-width: 320px;
   max-width: 100%;
 }
+.main.table {
+  table {
+    border-collapse: separate !important;
+    border-spacing: 0;
+  }
+}
 .bottom-gap {
   margin-bottom: 8px;
 }
@@ -227,6 +233,11 @@ button.disabled:focus,
     max-width: 100%;
   }
 }
+th.MuiTableCell-root {
+  div {
+    max-height: 32px;
+  }
+}
 @media (min-width: 699px) {
   .MuiTableCell-body {
     .MuiTypography-h6 {
@@ -250,11 +261,11 @@ button.disabled:focus,
     }
     &:first-of-type {
       position: relative;
-      top: 8px;
+      top: 0px;
     }
     &:last-of-type {
       position: relative;
-      top: -8px;
+      top: -16px;
     }
   }
 }
@@ -264,7 +275,13 @@ button.disabled:focus,
     color: #444 !important;
   }
 }
-.MuiTableSortLabel-root.MuiTableSortLabel-active,
+
+.MuiTableSortLabel-root {
+  .up, .down {
+    fill: rgb(1, 188, 245);
+  }
+}
+
 .MuiTableSortLabel-root.Mui-active {
   .MuiTableSortLabel-iconDirectionAsc {
     .up {

@@ -1,4 +1,4 @@
-import React, {forwardRef} from "react";
+import React, { forwardRef } from "react";
 import PropTypes from "prop-types";
 import MaskedInput from "react-text-mask";
 import makeStyles from "@mui/styles/makeStyles";
@@ -57,6 +57,7 @@ export default function FormattedInput(props) {
     }
     return false;
   };
+  if (props.readOnly) return <div className={classes.root}>{props.defaultValue}</div>;
 
   return (
     <div className={classes.root}>
@@ -67,8 +68,8 @@ export default function FormattedInput(props) {
           onChange={handleChange}
           onKeyDown={handleKeyDown}
           name="formattedInput"
-          components={{Input : TextMaskCustom}}
-          inputProps={{value: props.value}}
+          components={{ Input: TextMaskCustom }}
+          inputProps={{ value: props.value }}
           error={props.error}
           autoFocus={!props.disableFocus}
           classes={props.inputClass}
@@ -88,4 +89,5 @@ FormattedInput.propTypes = {
   helperText: PropTypes.string,
   mask: PropTypes.array,
   inputClass: PropTypes.object,
+  readOnly: PropTypes.bool,
 };

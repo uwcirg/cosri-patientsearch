@@ -80,8 +80,7 @@ export async function fetchData(url, params, errorCallback) {
   try {
     //read response stream
     json = await results.json().catch((e) => {
-      console.log("There was error processing data.");
-      throw e.message;
+      console.log("There was error processing data. ", e);
     });
     //console.log("response json ", json);
   } catch (e) {
