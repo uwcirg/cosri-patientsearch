@@ -243,7 +243,6 @@ export default function PatientListContextProvider({ children }) {
   };
   const onFiltersDidChange = (filters) => {
     clearTimeout(filterIntervalId);
-    console.log("filters ", filters)
     filterIntervalId = setTimeout(function () {
       if (_containEmptyFilter(filters)) {
         _handleRefresh();
@@ -1206,46 +1205,6 @@ export default function PatientListContextProvider({ children }) {
     handleSearch: handleSearch,
     onFiltersDidChange: onFiltersDidChange,
     fields: getAppSettingByKey("SEARCH_FIELDS")
-    // fields: [
-    //   {
-    //     name: "given",
-    //     type: "text",
-    //     placeholder: "First Name",
-    //    // icon: "search",
-    //   },
-    //   {
-    //     name: "name",
-    //     type: "text",
-    //     placeholder: "Last Name",
-    //   //  icon: "search",
-    //   },
-    //   { name: "birthdate", type: "date", placeholder: "YYYY-MM-DD" },
-    //   {
-    //     name: "telecom",
-    //     type: "masked",
-    //     placeholder: "Phone Number",
-    //     disableFocus: true,
-    //   //  icon: "phone",
-    //     mask: [
-    //       "(",
-    //       /[1-9]/,
-    //       /\d/,
-    //       /\d/,
-    //       ")",
-    //       " ",
-    //       /\d/,
-    //       /\d/,
-    //       /\d/,
-    //       "-",
-    //       /\d/,
-    //       /\d/,
-    //       /\d/,
-    //       /\d/,
-    //     ],
-    //     showMask: false
-    //     // This will format as: (XXX) XXX-XXXX
-    //   },
-    // ],
   };
   const launchDialogProps = {
     appClients: appClients,
