@@ -79,9 +79,25 @@ export default forwardRef((props, ref) => {
     dayjs(filters[fieldName]).isValid() ? filters[fieldName] : "";
 
   const handleFilterChange = () => {
-    const oData = RowData.createFromFields(fields, filters);
-    if (onFiltersDidChange)
-        onFiltersDidChange(oData.getFilters());
+    // Build filter data with only valid values
+    const filterData = {};
+
+    fields.forEach((field) => {
+      if (field.type === "date") {
+        // Only include valid dates
+        const dateValue = getDateInput(field.name);
+        if (dateValue && dayjs(dateValue).isValid()) {
+          filterData[field.name] = dateValue;
+        }
+      } else {
+        // Only include non-empty values
+        if (filters[field.name] && filters[field.name].trim() !== "") {
+          filterData[field.name] = filters[field.name];
+        }
+      }
+    });
+    const oData = RowData.create(filterData);
+    onFiltersDidChange(oData.getFilters());
   };
 
   const handleFieldChange = (fieldName) => (event) => {
@@ -89,7 +105,7 @@ export default forwardRef((props, ref) => {
 
     const field = fields.find((f) => f.name === fieldName);
 
-    if (field?.type === "masked") {
+    if (field?.type === "masked" || field?.type === "phone") {
       const digitsOnly = targetValue.replace(/\D/g, "");
       targetValue = digitsOnly === "" ? "" : digitsOnly;
     }
@@ -110,12 +126,14 @@ export default forwardRef((props, ref) => {
   };
 
   const hasCompleteFilters = () => {
-    return fields.every((field) => {
-      if (field.type === "date") {
-        return dayjs(filters[field.name]).isValid();
-      }
-      return filters[field.name];
-    });
+    return fields
+      .filter((field) => !field.optional) // Only check required fields
+      .every((field) => {
+        if (field.type === "date") {
+          return dayjs(filters[field.name]).isValid();
+        }
+        return filters[field.name] && filters[field.name].trim() !== "";
+      });
   };
 
   const getFilterData = () => {
@@ -127,9 +145,18 @@ export default forwardRef((props, ref) => {
     const filterData = {};
     fields.forEach((field) => {
       if (field.type === "date") {
-        filterData[field.name] = getDateInput(field.name);
+        // Only include date if it's valid
+        const dateValue = getDateInput(field.name);
+        if (dayjs(dateValue).isValid()) {
+          filterData[field.name] = dateValue;
+        } else {
+          filterData[field.name] = "";
+        }
       } else {
-        filterData[field.name] = filters[field.name];
+        // Only include non-empty values
+        if (filters[field.name] && filters[field.name].trim() !== "") {
+          filterData[field.name] = filters[field.name];
+        }
       }
     });
 
@@ -356,6 +383,7 @@ export default forwardRef((props, ref) => {
 
   useEffect(() => {
     handleFilterChange();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters]);
 
   return (

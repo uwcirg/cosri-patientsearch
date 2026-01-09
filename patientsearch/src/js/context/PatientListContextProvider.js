@@ -436,47 +436,91 @@ export default function PatientListContextProvider({ children }) {
   };
   const _getPatientSearchURL = (data, params) => {
     const oData = new RowData(data);
-    const fName = String(oData.firstName).trim();
-    const lName = String(oData.lastName).trim();
-    const birthDate = oData.birthDate;
-    if (needExternalAPILookup()) {
-      const dataURL = "/external_search/Patient";
-      // remove leading/trailing spaces from first/last name data sent to patient search API
-      let params = [
-        `subject:Patient.name.given=${fName}`,
-        `subject:Patient.name.family=${lName}`,
-        `subject:Patient.birthdate=eq${birthDate}`,
-      ];
-      return `${dataURL}?${params.join("&")}`;
-    }
     const searchInactive = params && params.searchInactive;
     const useActiveFlag = params && params.useActiveFlag;
     const isUpdate = params && params.isUpdate;
+
+    // Handle update case early
     if (isUpdate && data.id) {
       return `/fhir/Patient/${data.id}`;
     }
-    const matchFNames = [
-      fName,
-      fName.toLowerCase(),
-      fName.toUpperCase(),
-      capitalizeFirstLetter(fName),
-    ].join(",");
-    const matchLNames = [
-      lName,
-      lName.toLowerCase(),
-      lName.toUpperCase(),
-      capitalizeFirstLetter(lName),
-    ].join(",");
-    // lookup patient with exact match
-    //e.g., /fhir/Patient?given:exact=Test,test,TEST&family:exact=Bubblegum,bubblegum,BUBBLEGUM&birthdate=2000-01-01
-    let url = `/fhir/Patient?given:exact=${matchFNames}&family:exact=${matchLNames}&birthdate=${birthDate}`;
+
+    // Map RowData fields to FHIR search parameters
+    const fieldMapping = {
+      firstName: {
+        fhirKey: "given",
+        externalKey: "subject:Patient.name.given",
+        exactMatch: true,
+      },
+      lastName: {
+        fhirKey: "family",
+        externalKey: "subject:Patient.name.family",
+        exactMatch: true,
+      },
+      birthDate: {
+        fhirKey: "birthdate",
+        externalKey: "subject:Patient.birthdate",
+        externalPrefix: "eq",
+        exactMatch: false,
+      },
+      telephone: {
+        fhirKey: "telecom",
+        externalKey: "subject:Patient.telecom",
+        exactMatch: false,
+      },
+    };
+
+    // Build search parameters from available data
+    const buildSearchParams = (isExternal = false) => {
+      const params = [];
+
+      Object.entries(fieldMapping).forEach(([dataKey, config]) => {
+        const value = oData[dataKey];
+        if (!value) return; // Skip empty fields
+
+        const trimmedValue = String(value).trim();
+
+        if (isExternal) {
+          // External API format
+          const prefix = config.externalPrefix || "";
+          params.push(`${config.externalKey}=${prefix}${trimmedValue}`);
+        } else {
+          // FHIR format
+          if (config.exactMatch) {
+            const variations = [
+              trimmedValue,
+              trimmedValue.toLowerCase(),
+              trimmedValue.toUpperCase(),
+              capitalizeFirstLetter(trimmedValue),
+            ].join(",");
+            params.push(`${config.fhirKey}:exact=${variations}`);
+          } else {
+            params.push(`${config.fhirKey}=${trimmedValue}`);
+          }
+        }
+      });
+
+      return params;
+    };
+
+    // External API lookup
+    if (needExternalAPILookup()) {
+      const dataURL = "/external_search/Patient";
+      const externalParams = buildSearchParams(true);
+      return `${dataURL}?${externalParams.join("&")}`;
+    }
+
+    // FHIR search
+    const fhirParams = buildSearchParams(false);
+    let url = `/fhir/Patient?${fhirParams.join("&")}`;
+
+    // Add active/inactive flags
     if (searchInactive) {
       url += `&inactive_search=true`;
-    } else {
-      if (useActiveFlag) {
-        url += `&active=true`;
-      }
+    } else if (useActiveFlag) {
+      url += `&active=true`;
     }
+
     return url;
   };
   const _formatData = (data) => {
@@ -1204,7 +1248,7 @@ export default function PatientListContextProvider({ children }) {
     actionLabel: contextState.actionLabel,
     handleSearch: handleSearch,
     onFiltersDidChange: onFiltersDidChange,
-    fields: getAppSettingByKey("SEARCH_FIELDS")
+    fields: getAppSettingByKey("SEARCH_FIELDS"),
   };
   const launchDialogProps = {
     appClients: appClients,
