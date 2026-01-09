@@ -97,7 +97,7 @@ export default forwardRef((props, ref) => {
       }
     });
     const oData = RowData.create(filterData);
-    onFiltersDidChange(oData.getFilters());
+    if (onFiltersDidChange) onFiltersDidChange(oData.getFilters());
   };
 
   const handleFieldChange = (fieldName) => (event) => {
@@ -166,7 +166,7 @@ export default forwardRef((props, ref) => {
 
   const handleClear = () => {
     clearFields();
-    onFiltersDidChange(null);
+    if (onFiltersDidChange) onFiltersDidChange(null);
   };
 
   const clearFields = () => {
