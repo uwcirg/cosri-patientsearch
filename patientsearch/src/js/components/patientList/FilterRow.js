@@ -80,7 +80,8 @@ export default forwardRef((props, ref) => {
 
   const handleFilterChange = () => {
     const oData = RowData.createFromFields(fields, filters);
-    onFiltersDidChange(oData.getFilters());
+    if (onFiltersDidChange)
+        onFiltersDidChange(oData.getFilters());
   };
 
   const handleFieldChange = (fieldName) => (event) => {
