@@ -72,6 +72,34 @@ DASHBOARD_COLUMNS = json.loads(
     )
 )
 
+SEARCH_FIELDS = json.loads(
+    os.getenv(
+        "SEARCH_FIELDS",
+        json.dumps(
+            [
+                {
+                    "name": "given",
+                    "type": "text",
+                    "placeholder": "First Name",
+                    "icon": "search"
+                },
+                {
+                    "name": "name",
+                    "type": "text",
+                    "placeholder": "Last Name",
+                    "icon": "search"
+                },
+                {
+                    "name": "birthdate",
+                    "type": "date",
+                    "placeholder": "YYYY-MM-DD",
+                },
+            ],
+        ),
+    )
+
+)
+
 FHIR_REST_EXTRA_PARAMS_LIST = json.loads(os.getenv("FHIR_REST_EXTRA_PARAMS_LIST", "[]"))
 LANDING_INTRO = os.getenv("LANDING_INTRO", "")
 LANDING_BUTTON_TEXT = os.getenv("LANDING_BUTTON_TEXT", "")

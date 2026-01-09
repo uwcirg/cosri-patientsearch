@@ -243,6 +243,7 @@ export default function PatientListContextProvider({ children }) {
   };
   const onFiltersDidChange = (filters) => {
     clearTimeout(filterIntervalId);
+    console.log("filters ", filters)
     filterIntervalId = setTimeout(function () {
       if (_containEmptyFilter(filters)) {
         _handleRefresh();
@@ -313,17 +314,17 @@ export default function PatientListContextProvider({ children }) {
     }
     contextStateDispatch({
       currentRow: rowData,
-      openMenu: true
+      openMenu: true,
     });
   };
   const handleDeSelectRow = () => {
     const selectedRows = document.querySelectorAll(".selected-row");
-    selectedRows.forEach(row => row.classList.remove("selected-row"));
+    selectedRows.forEach((row) => row.classList.remove("selected-row"));
   };
   const handleMenuClose = () => {
     handleDeSelectRow();
     contextStateDispatch({
-      openMenu: false
+      openMenu: false,
     });
   };
   const handleMenuSelect = (event) => {
@@ -355,7 +356,7 @@ export default function PatientListContextProvider({ children }) {
     handleToggleDetailPanel(data.rowData);
     handleMenuClose();
     contextStateDispatch({
-      currentRow: null
+      currentRow: null,
     });
   };
   const shouldHideMoreMenu = () => {
@@ -529,7 +530,8 @@ export default function PatientListContextProvider({ children }) {
   const _notInPDMP = (rowData) => {
     // config ONLY_CREATE_PATIENT_IF_FOUND_EXTERNAL will allow patient record be added only if found in PDMP
     // this makes all rows in PDMP
-    if (getAppSettingByKey("ONLY_CREATE_PATIENT_IF_FOUND_EXTERNAL")) return false;
+    if (getAppSettingByKey("ONLY_CREATE_PATIENT_IF_FOUND_EXTERNAL"))
+      return false;
     if (!rowData) return false;
     if (isEmptyArray(rowData.identifier)) return true;
     return !rowData.identifier.find((item) => {
@@ -685,7 +687,7 @@ export default function PatientListContextProvider({ children }) {
       paddingRight: theme.spacing(1),
       justifyContent: "center",
     },
-    detailPanelType: "single"
+    detailPanelType: "single",
   });
   const getTableActions = () => {
     let actions = [];
@@ -1203,6 +1205,47 @@ export default function PatientListContextProvider({ children }) {
     actionLabel: contextState.actionLabel,
     handleSearch: handleSearch,
     onFiltersDidChange: onFiltersDidChange,
+    fields: getAppSettingByKey("SEARCH_FIELDS")
+    // fields: [
+    //   {
+    //     name: "given",
+    //     type: "text",
+    //     placeholder: "First Name",
+    //    // icon: "search",
+    //   },
+    //   {
+    //     name: "name",
+    //     type: "text",
+    //     placeholder: "Last Name",
+    //   //  icon: "search",
+    //   },
+    //   { name: "birthdate", type: "date", placeholder: "YYYY-MM-DD" },
+    //   {
+    //     name: "telecom",
+    //     type: "masked",
+    //     placeholder: "Phone Number",
+    //     disableFocus: true,
+    //   //  icon: "phone",
+    //     mask: [
+    //       "(",
+    //       /[1-9]/,
+    //       /\d/,
+    //       /\d/,
+    //       ")",
+    //       " ",
+    //       /\d/,
+    //       /\d/,
+    //       /\d/,
+    //       "-",
+    //       /\d/,
+    //       /\d/,
+    //       /\d/,
+    //       /\d/,
+    //     ],
+    //     showMask: false
+    //     // This will format as: (XXX) XXX-XXXX
+    //   },
+    // ],
   };
   const launchDialogProps = {
     appClients: appClients,
