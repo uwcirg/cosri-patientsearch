@@ -1,42 +1,62 @@
+
 class RowData {
   constructor(data) {
     this.data = data || {};
   }
 
+  // Flexible getters that handle multiple naming conventions
   get firstName() {
-    if (!this.data) return "";
-    return this.data["first_name"];
+    return (
+      this.data["first_name"] ||
+      this.data["firstName"] ||
+      this.data["given"] ||
+      ""
+    );
   }
 
   set firstName(value) {
     this.data["first_name"] = value;
+    this.data["firstName"] = value;
   }
 
   get lastName() {
-    if (!this.data) return "";
-    return this.data["last_name"];
+    return (
+      this.data["last_name"] ||
+      this.data["lastName"] ||
+      this.data["name"] ||
+      this.data["family"] ||
+      ""
+    );
   }
 
   set lastName(value) {
     this.data["last_name"] = value;
+    this.data["lastName"] = value;
   }
 
   get birthDate() {
-    if (!this.data) return null;
-    return this.data["birth_date"];
+    return (
+      this.data["birth_date"] ||
+      this.data["birthDate"] ||
+      this.data["birthdate"] ||
+      null
+    );
   }
 
   set birthDate(value) {
     this.data["birth_date"] = value;
+    this.data["birthDate"] = value;
   }
 
   get telephone() {
-    if (!this.data) return "";
-    return this.data["telephone"];
+    return (
+      this.data["telephone"] || this.data["telecom"] || this.data["phone"] || ""
+    );
   }
 
   set telephone(value) {
     this.data["telephone"] = value;
+    this.data["telecom"] = value;
   }
 
   get activeFlag() {
@@ -49,10 +69,21 @@ class RowData {
     if (this.data) this.data["active"] = value;
   }
 
-  // Generic getter for any field
+  // Generic getter for any field - with fallback support
   getField(fieldName) {
     if (!this.data) return null;
-    return this.data[fieldName];
+
+    // Try direct access first
+    if (this.data[fieldName] !== undefined) {
+      return this.data[fieldName];
+    }
+
+    // Try using getter if it exists
+    if (this[fieldName] !== undefined) {
+      return this[fieldName];
+    }
+
+    return null;
   }
 
   // Generic setter for any field
@@ -99,9 +130,14 @@ class RowData {
 
     // Dynamically create filters from all data fields
     return Object.entries(this.data)
-      // eslint-disable-next-line
       .filter(([key, value]) => {
-        return value !== null && value !== "";
+        // Exclude 'active' and 'resource' from filters
+        return (
+          key !== "active" &&
+          key !== "resource" &&
+          value !== null &&
+          value !== ""
+        );
       })
       .map(([field, value]) => ({
         field,
@@ -121,18 +157,24 @@ class RowData {
       .filter((filter) => filter.value !== null && filter.value !== "");
   }
 
-  // @params[fields] an object of field-value pairs
+  // Static create method - accepts object of field-value pairs
   static create(fields = {}) {
-    // Support legacy positional arguments
+    // Support positional arguments
     if (typeof fields === "string") {
+      // signature: create(firstName, lastName, birthDate, telephone)
       const [firstName, lastName, birthDate, telephone] = arguments;
       return new RowData({
         first_name: firstName || "",
+        firstName: firstName || "",
         last_name: lastName || "",
+        lastName: lastName || "",
         birth_date: birthDate || "",
-        ...(telephone && { telephone }),
+        birthDate: birthDate || "",
+        ...(telephone && { telephone, telecom: telephone }),
       });
     }
+
+    // signature: create({ firstName: "John", lastName: "Doe", ... })
     return new RowData(fields);
   }
 
@@ -140,8 +182,14 @@ class RowData {
   static createFromFields(fieldConfigs, values) {
     const data = {};
     fieldConfigs.forEach((config) => {
-      if (values[config.name] !== undefined) {
-        data[config.name] = values[config.name];
+      // Use the resolved dataKey from processFieldConfig
+      const dataKey = config.dataKey || config.name;
+      if (
+        values[config.name] !== undefined &&
+        values[config.name] !== null &&
+        values[config.name] !== ""
+      ) {
+        data[dataKey] = values[config.name];
       }
     });
     return new RowData(data);

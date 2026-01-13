@@ -12,6 +12,7 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import FormattedInput from "../../components/FormattedInput";
+import { defaultSearchFields } from "../../constants/consts";
 import { usePatientListContext } from "../../context/PatientListContextProvider";
 import RowData from "../../models/RowData";
 
@@ -43,18 +44,6 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-// Default field configurations
-const DEFAULT_FIELDS = [
-  {
-    name: "given",
-    type: "text",
-    placeholder: "First Name",
-    icon: "search",
-  },
-  { name: "name", type: "text", placeholder: "Last Name", icon: "search" },
-  { name: "birthdate", type: "date", placeholder: "YYYY-MM-DD" },
-];
-
 export default forwardRef((props, ref) => {
   let { childrenProps = {} } = usePatientListContext();
 
@@ -62,7 +51,7 @@ export default forwardRef((props, ref) => {
     actionLabel = "",
     handleSearch,
     onFiltersDidChange,
-    fields = DEFAULT_FIELDS,
+    fields = defaultSearchFields,
   } = childrenProps["filterRow"] ?? {};
 
   const classes = useStyles();
@@ -105,7 +94,10 @@ export default forwardRef((props, ref) => {
 
     const field = fields.find((f) => f.name === fieldName);
 
-    if (field?.type === "masked" || field?.type === "phone") {
+    if (
+      field?.type === "masked" ||
+      field?.type === "number"
+    ) {
       const digitsOnly = targetValue.replace(/\D/g, "");
       targetValue = digitsOnly === "" ? "" : digitsOnly;
     }
