@@ -1,20 +1,10 @@
 import React, { forwardRef } from "react";
 import PropTypes from "prop-types";
 import MaskedInput from "react-text-mask";
-import makeStyles from "@mui/styles/makeStyles";
 import Input from "@mui/material/Input";
 import FormControl from "@mui/material/FormControl";
 import FormHelperText from "@mui/material/FormHelperText";
 
-const useStyles = makeStyles((theme) => ({
-  root: {
-    display: "inline-block",
-    "& > *": {
-      marginLeft: theme.spacing(1),
-      marginRight: theme.spacing(1),
-    },
-  },
-}));
 const TextMaskCustom = forwardRef((props, setRef) => {
   /* eslint-disable no-unused-vars  */
   /* eslint-disable react/prop-types */
@@ -42,6 +32,7 @@ const TextMaskCustom = forwardRef((props, setRef) => {
           ? props.showMask
           : true
       }
+      data-lpignore={true}
     />
   );
 });
@@ -51,7 +42,6 @@ TextMaskCustom.propTypes = {
 };
 // text input field with mask
 export default function FormattedInput(props) {
-  const classes = useStyles();
   const handleChange = (event) => {
     if (!props.handleChange) return;
     props.handleChange(event);
@@ -64,9 +54,9 @@ export default function FormattedInput(props) {
     return false;
   };
   if (props.readOnly)
-    return <div className={classes.root}>{props.defaultValue}</div>;
+    return <div>{props.defaultValue}</div>;
   return (
-    <div className={classes.root}>
+    <div className="mask-input-wrapper">
       <FormControl sx={props.controlStyle ? props.controlStyle : {}}>
         <Input
           value={props.value}
@@ -80,6 +70,7 @@ export default function FormattedInput(props) {
             mask: props.mask,
             showMask: props.showMask,
             placeholder: props.placeholder,
+            inputClass: props.inputClass
           }}
           error={props.error}
           autoFocus={!props.disableFocus}

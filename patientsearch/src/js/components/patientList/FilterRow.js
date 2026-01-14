@@ -1,5 +1,4 @@
 import React, { forwardRef, useEffect, useImperativeHandle } from "react";
-import makeStyles from "@mui/styles/makeStyles";
 import Search from "@mui/icons-material/Search";
 import Phone from "@mui/icons-material/Phone";
 import Button from "@mui/material/Button";
@@ -16,33 +15,6 @@ import { defaultSearchFields } from "../../constants/consts";
 import { usePatientListContext } from "../../context/PatientListContextProvider";
 import RowData from "../../models/RowData";
 
-const useStyles = makeStyles((theme) => ({
-  fieldWrapper: {
-    minWidth: "100px",
-    maxWidth: "150px",
-    [theme.breakpoints.down("sm")]: {
-      flex: "1 1 100%",
-      maxWidth: "100%",
-    },
-  },
-  dateFieldWrapper: {
-    minWidth: "150px",
-    [theme.breakpoints.down("sm")]: {
-      flex: "1 1 100%",
-      minWidth: "auto",
-    },
-  },
-  button: {
-    margin: theme.spacing(0.25),
-    fontWeight: 500,
-    textTransform: "uppercase",
-    border: 0,
-  },
-  dateInput: {
-    paddingLeft: theme.spacing(1),
-    paddingRight: theme.spacing(1),
-  },
-}));
 
 export default forwardRef((props, ref) => {
   let { childrenProps = {} } = usePatientListContext();
@@ -54,7 +26,6 @@ export default forwardRef((props, ref) => {
     fields = defaultSearchFields,
   } = childrenProps["filterRow"] ?? {};
 
-  const classes = useStyles();
   const LAUNCH_BUTTON_LABEL = "VIEW";
 
   const initialFilters = fields.reduce((acc, field) => {
@@ -237,9 +208,9 @@ export default forwardRef((props, ref) => {
           textField: {
             placeholder: field.placeholder || "YYYY-MM-DD",
             InputLabelProps: { shrink: true },
+            inputProps: { "data-lpignore": true },
             id: field.name,
             variant: "standard",
-            className: classes.dateInput,
             fullWidth: true,
           },
           field: {
@@ -279,29 +250,8 @@ export default forwardRef((props, ref) => {
     </LocalizationProvider>
   );
 
-  const renderMaskedField = (field, type) => {
+  const renderMaskedField = (field) => {
     let mask = field?.mask ? field.mask : null;
-    // make this a function
-    if (!mask) {
-      if (type === "phone") {
-        mask = [
-          "(",
-          /[1-9]/,
-          /\d/,
-          /\d/,
-          ")",
-          " ",
-          /\d/,
-          /\d/,
-          /\d/,
-          "-",
-          /\d/,
-          /\d/,
-          /\d/,
-          /\d/,
-        ];
-      }
-    }
     return (
       <FormattedInput
         value={filters[field.name] || ""}
@@ -313,6 +263,7 @@ export default forwardRef((props, ref) => {
         disableFocus={true}
         placeholder={field.placeholder}
         showMask={field.showMask !== undefined ? field.showMask : false}
+        inputClass="field-wrapper"
       />
     );
   };
@@ -322,7 +273,6 @@ export default forwardRef((props, ref) => {
       switch (field.type) {
         case "date":
           return renderDateField(field);
-        case "phone":
         case "masked":
           return renderMaskedField(field, field.type);
         case "text":
@@ -336,8 +286,8 @@ export default forwardRef((props, ref) => {
         key={field.name}
         className={
           field.type === "date"
-            ? classes.dateFieldWrapper
-            : classes.fieldWrapper
+            ? "date-field-wrapper"
+            : "field-wrapper"
         }
       >
         {fieldContent}
@@ -348,7 +298,7 @@ export default forwardRef((props, ref) => {
   const renderLaunchButton = () => (
     <Button
       className={
-        !hasCompleteFilters() ? `${classes.button} disabled` : classes.button
+        !hasCompleteFilters() ? "disabled" : ""
       }
       color="primary"
       size="small"
@@ -365,7 +315,7 @@ export default forwardRef((props, ref) => {
         variant="contained"
         size="small"
         onClick={handleClear}
-        className={!hasFilter() ? `${classes.button} disabled` : classes.button}
+        className={!hasFilter() ? "disabled" : ""}
         id="btnClear"
       >
         Clear

@@ -67,9 +67,6 @@ export const resolveDataKey = (field) => {
   // Priority 1: Explicit dataKey
   if (field.dataKey) return field.dataKey;
 
-  console.log("resoved field ", field);
-  console.log("mapping ", FHIR_TO_DATA_FIELD_MAPPINGS);
-
   // Priority 2: map to data key from FHIR field
   if (FHIR_TO_DATA_FIELD_MAPPINGS[field.name]) {
     return FHIR_TO_DATA_FIELD_MAPPINGS[field.name];
@@ -110,11 +107,7 @@ export const autoDetectFieldType = (field) => {
 export const processFieldConfig = (configField = {}) => {
   if (!configField) return null;
 
-  console.log("field ", configField);
-
   const processed = { ...configField };
-
-  console.log("processed ", processed);
 
   // Resolve dataKey using fallback
   processed.dataKey = resolveDataKey(processed);
@@ -178,9 +171,10 @@ export const defaultPagination = {
   prevPageURL: "",
 };
 export const defaultSearchableFields = [
-  "first_name",
-  "last_name",
-  "birth_date",
+  "given",
+  "name",
+  "birthdate",
+  "telecom"
 ];
 
 export const defaultSearchFields = [
@@ -225,11 +219,18 @@ export const defaultSearchFields = [
   // },
 ].map(processFieldConfig);
 
-// data field to FHIR property mappings
+// data field to FHIR field mappings
 export const DATA_TO_FHIR_FIELD_MAPPINGS = {
+  given: "given",
   first_name: "given",
+  firstName: "given",
+  family: "family",
   last_name: "family",
+  lastName: "family",
+  birthdate: "birthdate",
+  birthDate: "birthdate",
   birth_date: "birthdate",
+  lastAccessed: "_lastUpdated",
   last_accessed: "_lastUpdated",
   mrn: "identifier",
 };

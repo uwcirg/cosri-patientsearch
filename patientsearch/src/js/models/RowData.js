@@ -4,7 +4,7 @@ class RowData {
     this.data = data || {};
   }
 
-  // Flexible getters that handle multiple naming conventions
+  // handle multiple naming conventions
   get firstName() {
     return (
       this.data["first_name"] ||
@@ -17,6 +17,7 @@ class RowData {
   set firstName(value) {
     this.data["first_name"] = value;
     this.data["firstName"] = value;
+    this.data["given"] = value;
   }
 
   get lastName() {
@@ -32,6 +33,8 @@ class RowData {
   set lastName(value) {
     this.data["last_name"] = value;
     this.data["lastName"] = value;
+    this.data["name"] = value;
+    this.data["family"] =  value;
   }
 
   get birthDate() {
@@ -46,6 +49,7 @@ class RowData {
   set birthDate(value) {
     this.data["birth_date"] = value;
     this.data["birthDate"] = value;
+    this.data["birthdate"] = value;
   }
 
   get telephone() {
@@ -57,6 +61,7 @@ class RowData {
   set telephone(value) {
     this.data["telephone"] = value;
     this.data["telecom"] = value;
+    this.data["phone"] = value;
   }
 
   get activeFlag() {
@@ -182,7 +187,6 @@ class RowData {
   static createFromFields(fieldConfigs, values) {
     const data = {};
     fieldConfigs.forEach((config) => {
-      // Use the resolved dataKey from processFieldConfig
       const dataKey = config.dataKey || config.name;
       if (
         values[config.name] !== undefined &&

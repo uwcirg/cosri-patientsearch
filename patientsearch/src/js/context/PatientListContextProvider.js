@@ -52,7 +52,9 @@ export default function PatientListContextProvider({ children }) {
   const tableRef = useRef();
   const filterRowRef = useRef();
   const menuItems = constants.defaultMenuItems;
-  const SEARCH_FIELDS = constants.getSearchFields(getAppSettingByKey("SEARCH_FIELDS"));
+  const SEARCH_FIELDS = constants.getSearchFields(
+    getAppSettingByKey("SEARCH_FIELDS")
+  );
 
   const getDefaultRowData = () => {
     const fields = SEARCH_FIELDS;
@@ -165,9 +167,6 @@ export default function PatientListContextProvider({ children }) {
         /* eslint-disable react/no-unknown-property */
         <div datacolumn={`${column.label}`}>{rowData[fieldName]}</div>
       );
-      // column.searchable =
-      //   defaultSearchFields.indexOf(fieldName.toLowerCase()) !== -1 ||
-      //   !!column.searchable;
       return column;
     });
     const sortByQueryString = getUrlParameter("sort_by");
@@ -491,19 +490,32 @@ export default function PatientListContextProvider({ children }) {
         if (isExternal) {
           // External API format
           const prefix = field.externalPrefix || "";
-          params.push(`${field.externalKey}=${prefix}${trimmedValue}`);
+          const fieldKey = field.externalKey || field.fhirKey;
+          if (!fieldKey) {
+            console.warn(
+              "Missing FHIR field key for filter value ",
+              trimmedValue
+            );
+          } else params.push(`${fieldKey}=${prefix}${trimmedValue}`);
         } else {
           // FHIR format
-          if (field.exactMatch) {
-            const variations = [
-              trimmedValue,
-              trimmedValue.toLowerCase(),
-              trimmedValue.toUpperCase(),
-              capitalizeFirstLetter(trimmedValue),
-            ].join(",");
-            params.push(`${field.fhirKey}:exact=${variations}`);
+          if (!field.fhirKey) {
+            console.warn(
+              "Missing FHIR field key for filter value ",
+              trimmedValue
+            );
           } else {
-            params.push(`${field.fhirKey}=${trimmedValue}`);
+            if (field.exactMatch) {
+              const variations = [
+                trimmedValue,
+                trimmedValue.toLowerCase(),
+                trimmedValue.toUpperCase(),
+                capitalizeFirstLetter(trimmedValue),
+              ].join(",");
+              params.push(`${field.fhirKey}:exact=${variations}`);
+            } else {
+              params.push(`${field.fhirKey}=${trimmedValue}`);
+            }
           }
         }
       });
@@ -643,18 +655,13 @@ export default function PatientListContextProvider({ children }) {
     let filterBy = [];
     if (!isEmptyArray(contextState.currentFilters)) {
       contextState.currentFilters.forEach((item) => {
+        const mappedField = constants.DATA_TO_FHIR_FIELD_MAPPINGS[item.field];
+        const fhirField = mappedField ? mappedField : item.field;
+        if (!fhirField) {
+          console.warn("Search param missing field key for value ", item.value);
+        }
         if (item.value) {
-          filterBy.push(
-            `${
-              constants.DATA_TO_FHIR_FIELD_MAPPINGS[item.field] ?? item.field
-            }${
-              constants.defaultSearchableFields.indexOf(
-                item.field.toLowerCase()
-              ) !== -1
-                ? ":contains"
-                : ""
-            }=${item.value}`
-          );
+          filterBy.push(`${fhirField}${":contains"}=${item.value}`);
         }
       });
     }

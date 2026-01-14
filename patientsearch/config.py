@@ -106,6 +106,7 @@ SEARCH_FIELDS = json.loads(
                     "externalKey": "subject:Patient.birthdate",
                     "externalPrefix": "eq",
                     "exactMatch": False,
+                    "isDate": True
                 },
             ],
         ),
