@@ -111,7 +111,6 @@ SEARCH_FIELDS = json.loads(
             ],
         ),
     )
-
 )
 
 FHIR_REST_EXTRA_PARAMS_LIST = json.loads(os.getenv("FHIR_REST_EXTRA_PARAMS_LIST", "[]"))
