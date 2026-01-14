@@ -85,7 +85,7 @@ SEARCH_FIELDS = json.loads(
                     "fhirKey": "given",
                     "externalKey": "subject:Patient.name.given",
                     "exactMatch": True,
-                    "icon": "search"
+                    "icon": "search",
                 },
                 {
                     "name": "name",
@@ -95,7 +95,7 @@ SEARCH_FIELDS = json.loads(
                     "fhirKey": "family",
                     "externalKey": "subject:Patient.name.family",
                     "exactMatch": True,
-                    "icon": "search"
+                    "icon": "search",
                 },
                 {
                     "name": "birthdate",
@@ -106,7 +106,7 @@ SEARCH_FIELDS = json.loads(
                     "externalKey": "subject:Patient.birthdate",
                     "externalPrefix": "eq",
                     "exactMatch": False,
-                    "isDate": True
+                    "isDate": True,
                 },
             ],
         ),
