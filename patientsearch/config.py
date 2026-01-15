@@ -86,6 +86,7 @@ SEARCH_FIELDS = json.loads(
                     "externalKey": "subject:Patient.name.given",
                     "exactMatch": True,
                     "icon": "search",
+                    "required": True
                 },
                 {
                     "name": "name",
@@ -96,6 +97,7 @@ SEARCH_FIELDS = json.loads(
                     "externalKey": "subject:Patient.name.family",
                     "exactMatch": True,
                     "icon": "search",
+                    "required": True
                 },
                 {
                     "name": "birthdate",
@@ -107,6 +109,7 @@ SEARCH_FIELDS = json.loads(
                     "externalPrefix": "eq",
                     "exactMatch": False,
                     "isDate": True,
+                    "required": True
                 },
             ],
         ),

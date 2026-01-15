@@ -90,7 +90,7 @@ export default forwardRef((props, ref) => {
 
   const hasCompleteFilters = () => {
     return fields
-      .filter((field) => !field.optional) // Only check required fields
+      .filter((field) => !!field.required) // Only check required fields
       .every((field) => {
         if (field.type === "date") {
           return dayjs(filters[field.name]).isValid();

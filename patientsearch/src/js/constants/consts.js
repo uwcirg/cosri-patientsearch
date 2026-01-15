@@ -187,6 +187,7 @@ export const defaultSearchFields = [
     externalKey: "subject:Patient.name.given",
     exactMatch: true,
     icon: "search",
+    required: true
   },
   {
     name: "name",
@@ -197,6 +198,7 @@ export const defaultSearchFields = [
     externalKey: "subject:Patient.name.family",
     exactMatch: true,
     icon: "search",
+    required: true
   },
   {
     name: "birthdate",
@@ -208,11 +210,12 @@ export const defaultSearchFields = [
     externalPrefix: "eq",
     exactMatch: false,
     isDate: true,
+    required: true
   },
   // {
   //   name: "telecom",
   //   type: "masked",
-  //   optional: true,
+  //   required: false,
   //   fhirKey: "telecom",
   //   externalKey: "subject:Patient.telecom",
   //   exactMatch: false,
