@@ -1281,9 +1281,7 @@ export default function PatientListContextProvider({ children }) {
   };
 
   useEffect(() => {
-    console.log("launch URL ", contextState.launchURL);
     if (!contextState.launchURL) return;
-
     // Navigate to the URL
     setTimeout(() => {
       window.location = contextState.launchURL;
