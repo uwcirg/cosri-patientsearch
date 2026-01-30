@@ -30,7 +30,6 @@ export default function PatientListTable() {
     filterRowRef,
     getPatientList,
     matomoSiteID,
-    onUnload,
     errorMessage,
     isLoading,
   } = childrenProps["patientList"];
@@ -64,8 +63,7 @@ export default function PatientListTable() {
     if (matomoSiteID) {
       addMamotoTracking(matomoSiteID, userName);
     }
-    window.addEventListener("unload", () => onUnload());
-  }, [userName, matomoSiteID, onUnload]); //retrieval of settings should occur prior to patient list being rendered/initialized
+  }, [userName, matomoSiteID]); //retrieval of settings should occur prior to patient list being rendered/initialized
 
   if (Object.keys(patientListCtx).length === 0)
     return <Error message="patient context error"></Error>;
