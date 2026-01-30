@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import CircularProgress from "@mui/material/CircularProgress";
 import Modal from "@mui/material/Modal";
@@ -25,11 +25,17 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default function LoadingModal({ open }) {
+export default function LoadingModal({ open = false }) {
   const classes = useStyles();
+  const [openModal, setOpenModal] = useState(open);
+
+  useEffect(() => {
+    setOpenModal(open);
+  }, [open]);
+
   return (
     <Modal
-      open={open}
+      open={openModal}
       aria-labelledby="loading-modal"
       aria-describedby="loading-modal"
       disableAutoFocus

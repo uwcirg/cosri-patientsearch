@@ -201,7 +201,7 @@ export default function Header() {
         <span className={classes.avatarText}>Welcome</span>
         {hasUserInfo() && (
           <span className={classes.userinfo}>
-            {userInfo.name || userInfo.email}
+            {userInfo.username || userInfo.name || userInfo.email}
           </span>
         )}
       </Typography>
