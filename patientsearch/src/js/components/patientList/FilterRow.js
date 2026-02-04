@@ -186,7 +186,7 @@ export default forwardRef((props, ref) => {
       onKeyDown={handleKeyDown}
       key={`ft${field.name}`}
       fullWidth
-      inputProps={{ "data-lpignore": true }}
+      inputProps={{ "data-lpignore": true}}
       InputProps={{
         startAdornment: (
           <InputAdornment position="start">

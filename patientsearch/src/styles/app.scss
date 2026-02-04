@@ -27,6 +27,11 @@ body {
 html {
   scroll-behavior: smooth;
 }
+header {
+  h1 {
+    font-size: 1.45rem !important;
+  }
+}
 .container {
   margin-left: auto;
   margin-right: auto;
@@ -314,17 +319,23 @@ th.MuiTableCell-root {
     border: 0
   }
   .search-title {
-    margin-block-end: 6px;
+    font-size: 1.25rem;
+    margin-block-end: 4px;
   }
   .search-container {
     border-radius: 4px;
-    background-color: #f7f7f7;
-    padding: 8px 16px 8px;
+    padding: 0;
     margin-bottom: 16px;
     width: 100%;
     display: flex;
     flex-wrap: wrap;
     gap: 24px;
+    div[data-lastpass-icon-root] {
+      opacity: 0 !important;
+      width: 0 !important;
+      visibility: hidden !important;
+    }
+
     .MuiInputAdornment-positionEnd {
       max-height: 1.85em;
     }
@@ -345,7 +356,6 @@ th.MuiTableCell-root {
       max-width: 100%;
       @media (min-width: 601px) {
         min-width: 100px;
-        max-width: 148px;
       }
     }
     .date-field-wrapper {
