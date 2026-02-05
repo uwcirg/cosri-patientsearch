@@ -1,4 +1,5 @@
 import React, { useContext, useEffect, useRef } from "react";
+import dayjs from "dayjs";
 import jsonpath from "jsonpath";
 import DOMPurify from "dompurify";
 import PropTypes from "prop-types";
@@ -51,6 +52,21 @@ export default function PatientListContextProvider({ children }) {
   const tableRef = useRef();
   const filterRowRef = useRef();
   const menuItems = constants.defaultMenuItems;
+  const SEARCH_FIELDS = constants.getSearchFields(
+    getAppSettingByKey("SEARCH_FIELDS"),
+  );
+
+  const getDefaultRowData = () => {
+    const fields = SEARCH_FIELDS;
+    if (isEmptyArray(fields)) return {};
+    let defaults = {};
+    fields.forEach((o) => (defaults[o.dataKey] = ""));
+    return defaults;
+  };
+  const defaultFilters = (() => {
+    const defaultData = RowData.create(getDefaultRowData());
+    return defaultData.getFilters();
+  })();
   const paginationReducer = (state, action) => {
     if (action.type === "empty") {
       return {
@@ -113,7 +129,7 @@ export default function PatientListContextProvider({ children }) {
       containNoPMPRow: false,
       selectedMenuItem: "",
       currentRow: null,
-      currentFilters: constants.defaultFilters,
+      currentFilters: defaultFilters,
       filterByTestPatients: false,
       errorMessage: isEmptyArray(appClients)
         ? "No SoF client match the user role(s) found"
@@ -125,7 +141,6 @@ export default function PatientListContextProvider({ children }) {
 
   const getColumns = () => {
     const configColumns = getAppSettingByKey("DASHBOARD_COLUMNS");
-    const defaultSearchFields = constants.defaultSearchableFields;
     const isValidConfig = !isEmptyArray(configColumns);
     let cols = isValidConfig ? configColumns : constants.defaultColumns;
     if (!isValidConfig) {
@@ -152,9 +167,6 @@ export default function PatientListContextProvider({ children }) {
         /* eslint-disable react/no-unknown-property */
         <div datacolumn={`${column.label}`}>{rowData[fieldName]}</div>
       );
-      column.searchable =
-        defaultSearchFields.indexOf(fieldName.toLowerCase()) !== -1 ||
-        !!column.searchable;
       return column;
     });
     const sortByQueryString = getUrlParameter("sort_by");
@@ -422,7 +434,7 @@ export default function PatientListContextProvider({ children }) {
   const _handleRefresh = (contextParams = {}) => {
     contextStateDispatch({
       currentRow: null,
-      currentFilters: constants.defaultFilters,
+      currentFilters: defaultFilters,
       errorMessage: "",
       ...contextParams,
     });
@@ -437,51 +449,103 @@ export default function PatientListContextProvider({ children }) {
     launchParams = launchParams || {};
     return getAppLaunchURL(patientId, { ...launchParams, ...appSettings });
   };
-  const _getPatientSearchURL = (data, params) => {
+  const _getPatientSearchURL = (data, params, fieldsConfig) => {
     const oData = new RowData(data);
-    const fName = String(oData.firstName).trim();
-    const lName = String(oData.lastName).trim();
-    const birthDate = oData.birthDate;
-    if (needExternalAPILookup()) {
-      const dataURL = "/external_search/Patient";
-      // remove leading/trailing spaces from first/last name data sent to patient search API
-      let params = [
-        `subject:Patient.name.given=${fName}`,
-        `subject:Patient.name.family=${lName}`,
-        `subject:Patient.birthdate=eq${birthDate}`,
-      ];
-      return `${dataURL}?${params.join("&")}`;
-    }
     const searchInactive = params && params.searchInactive;
     const useActiveFlag = params && params.useActiveFlag;
     const isUpdate = params && params.isUpdate;
+
+    // Handle update case early
     if (isUpdate && data.id) {
       return `/fhir/Patient/${data.id}`;
     }
-    const matchFNames = [
-      fName,
-      fName.toLowerCase(),
-      fName.toUpperCase(),
-      capitalizeFirstLetter(fName),
-    ].join(",");
-    const matchLNames = [
-      lName,
-      lName.toLowerCase(),
-      lName.toUpperCase(),
-      capitalizeFirstLetter(lName),
-    ].join(",");
-    // lookup patient with exact match
-    //e.g., /fhir/Patient?given:exact=Test,test,TEST&family:exact=Bubblegum,bubblegum,BUBBLEGUM&birthdate=2000-01-01
-    let url = `/fhir/Patient?given:exact=${matchFNames}&family:exact=${matchLNames}&birthdate=${birthDate}`;
+
+    // Helper to validate if a value should be included
+    const isValidValue = (value, field) => {
+      if (!value) return false;
+
+      // Check if it's a date field and validate it
+      if (field.isDate || field.type === "date") {
+        return dayjs(value).isValid();
+      }
+
+      // For non-date fields, just check if it's truthy and not empty string
+      return String(value).trim() !== "";
+    };
+
+    // Build search parameters from fields configuration
+    const buildSearchParams = (isExternal = false) => {
+      const params = [];
+
+      fieldsConfig.forEach((field) => {
+        // Get value from RowData using the resolved dataKey
+        const dataKey = field.dataKey || field.name;
+
+        // Try to get value using getter or direct property access
+        const value = oData.getField(dataKey) || oData.data[dataKey];
+
+        // Skip if value is invalid (empty or invalid date)
+        if (!isValidValue(value, field)) return;
+
+        const trimmedValue = String(value).trim();
+
+        if (isExternal) {
+          // External API format
+          const prefix = field.externalPrefix || "";
+          const fieldKey = field.externalKey || field.fhirKey;
+          if (!fieldKey) {
+            console.warn(
+              "Missing FHIR field key for filter value ",
+              trimmedValue,
+            );
+          } else params.push(`${fieldKey}=${prefix}${trimmedValue}`);
+        } else {
+          // FHIR format
+          if (!field.fhirKey) {
+            console.warn(
+              "Missing FHIR field key for filter value ",
+              trimmedValue,
+            );
+          } else {
+            if (field.exactMatch) {
+              const variations = [
+                trimmedValue,
+                trimmedValue.toLowerCase(),
+                trimmedValue.toUpperCase(),
+                capitalizeFirstLetter(trimmedValue),
+              ].join(",");
+              params.push(`${field.fhirKey}:exact=${variations}`);
+            } else {
+              params.push(`${field.fhirKey}=${trimmedValue}`);
+            }
+          }
+        }
+      });
+
+      return params;
+    };
+
+    // External API lookup
+    if (needExternalAPILookup()) {
+      const dataURL = "/external_search/Patient";
+      const externalParams = buildSearchParams(true);
+      return `${dataURL}?${externalParams.join("&")}`;
+    }
+
+    // FHIR search
+    const fhirParams = buildSearchParams(false);
+    let url = `/fhir/Patient?${fhirParams.join("&")}`;
+
+    // Add active/inactive flags
     if (searchInactive) {
       url += `&inactive_search=true`;
-    } else {
-      if (useActiveFlag) {
-        url += `&active=true`;
-      }
+    } else if (useActiveFlag) {
+      url += `&active=true`;
     }
+
     return url;
   };
+
   const _formatData = (data) => {
     if (data && !Array.isArray(data)) {
       data = [data];
@@ -568,14 +632,16 @@ export default function PatientListContextProvider({ children }) {
           sortField = matchedColumn.sortBy;
         } else
           sortField =
-            constants.fieldNameMaps[orderByField.field] ?? orderByField.field; // translate to fhir field name
+            constants.DATA_TO_FHIR_FIELD_MAPPINGS[orderByField.field] ??
+            orderByField.field; // translate to fhir field name
         if (sortField) sortDirection = orderField.orderDirection;
       }
     }
     if (!sortField) {
       const returnObj = _getDefaultSortColumn();
       sortField = returnObj
-        ? (constants.fieldNameMaps[returnObj.field] ?? returnObj.field)
+        ? (constants.DATA_TO_FHIR_FIELD_MAPPINGS[returnObj.field] ??
+          returnObj.field)
         : "_lastUpdated";
       sortDirection = returnObj ? returnObj.defaultSort : "desc";
     }
@@ -591,16 +657,13 @@ export default function PatientListContextProvider({ children }) {
     let filterBy = [];
     if (!isEmptyArray(contextState.currentFilters)) {
       contextState.currentFilters.forEach((item) => {
+        const mappedField = constants.DATA_TO_FHIR_FIELD_MAPPINGS[item.field];
+        const fhirField = mappedField ? mappedField : item.field;
+        if (!fhirField) {
+          console.warn("Search param missing field key for value ", item.value);
+        }
         if (item.value) {
-          filterBy.push(
-            `${constants.fieldNameMaps[item.field] ?? item.field}${
-              constants.defaultSearchableFields.indexOf(
-                item.field.toLowerCase(),
-              ) !== -1
-                ? ":contains"
-                : ""
-            }=${item.value}`,
-          );
+          filterBy.push(`${fhirField}${":contains"}=${item.value}`);
         }
       });
     }
@@ -820,9 +883,13 @@ export default function PatientListContextProvider({ children }) {
   };
   const _getFHIRPatientData = async (rowData, isExternalLookup) =>
     fetchData(
-      _getPatientSearchURL(rowData, {
-        searchInactive: !!appSettings["REACTIVATE_PATIENT"],
-      }),
+      _getPatientSearchURL(
+        rowData,
+        {
+          searchInactive: !!appSettings["REACTIVATE_PATIENT"],
+        },
+        SEARCH_FIELDS,
+      ),
       {
         ...constants.searchHeaderParams,
         // external search API allowable method is PUT
@@ -939,10 +1006,14 @@ export default function PatientListContextProvider({ children }) {
         const isUpdate = isReactivate || (!isCreateNew && !!rowData.id);
 
         fetchData(
-          _getPatientSearchURL(rowData, {
-            useActiveFlag: !!getAppSettingByKey("ACTIVE_PATIENT_FLAG"),
-            isUpdate: isUpdate,
-          }),
+          _getPatientSearchURL(
+            rowData,
+            {
+              useActiveFlag: !!getAppSettingByKey("ACTIVE_PATIENT_FLAG"),
+              isUpdate: isUpdate,
+            },
+            SEARCH_FIELDS,
+          ),
           {
             ...constants.searchHeaderParams,
             body: payload,
@@ -1207,6 +1278,7 @@ export default function PatientListContextProvider({ children }) {
     actionLabel: contextState.actionLabel,
     handleSearch: handleSearch,
     onFiltersDidChange: onFiltersDidChange,
+    fields: SEARCH_FIELDS,
   };
   const launchDialogProps = {
     appClients: appClients,

@@ -1,20 +1,10 @@
 import React, { forwardRef } from "react";
 import PropTypes from "prop-types";
 import MaskedInput from "react-text-mask";
-import makeStyles from "@mui/styles/makeStyles";
 import Input from "@mui/material/Input";
 import FormControl from "@mui/material/FormControl";
 import FormHelperText from "@mui/material/FormHelperText";
 
-const useStyles = makeStyles((theme) => ({
-  root: {
-    display: "inline-block",
-    "& > *": {
-      marginLeft: theme.spacing(1),
-      marginRight: theme.spacing(1),
-    },
-  },
-}));
 const TextMaskCustom = forwardRef((props, setRef) => {
   /* eslint-disable no-unused-vars  */
   /* eslint-disable react/prop-types */
@@ -34,22 +24,28 @@ const TextMaskCustom = forwardRef((props, setRef) => {
           : [/[1-2]/, /[0,9]/, /\d/, /\d/, "-", /\d/, /\d/, "-", /\d/, /\d/]
       }
       placeholderChar={"\u2000"}
-      showMask
+      placeholder={props.placeholder ? props.placeholder : null}
+      guide={
+        props.placeholder
+          ? false
+          : props.showMask !== undefined
+          ? props.showMask
+          : true
+      }
+      data-lpignore={true}
     />
   );
 });
 TextMaskCustom.propTypes = {
   mask: PropTypes.array,
+  showMask: PropTypes.bool,
 };
 // text input field with mask
 export default function FormattedInput(props) {
-  const classes = useStyles();
-
   const handleChange = (event) => {
     if (!props.handleChange) return;
     props.handleChange(event);
   };
-
   const handleKeyDown = (event) => {
     if (String(event.key).toLowerCase() === "enter") {
       if (!props.handleKeyDown) return;
@@ -57,19 +53,25 @@ export default function FormattedInput(props) {
     }
     return false;
   };
-  if (props.readOnly) return <div className={classes.root}>{props.defaultValue}</div>;
-
+  if (props.readOnly)
+    return <div>{props.defaultValue}</div>;
   return (
-    <div className={classes.root}>
-      <FormControl>
+    <div className="mask-input-wrapper">
+      <FormControl sx={props.controlStyle ? props.controlStyle : {}}>
         <Input
           value={props.value}
           defaultValue={props.defaultValue}
           onChange={handleChange}
           onKeyDown={handleKeyDown}
           name="formattedInput"
-          components={{ Input: TextMaskCustom }}
-          inputProps={{ value: props.value }}
+          inputComponent={TextMaskCustom}
+          inputProps={{
+            value: props.value,
+            mask: props.mask,
+            showMask: props.showMask,
+            placeholder: props.placeholder,
+            inputClass: props.inputClass
+          }}
           error={props.error}
           autoFocus={!props.disableFocus}
           classes={props.inputClass}
@@ -89,5 +91,8 @@ FormattedInput.propTypes = {
   helperText: PropTypes.string,
   mask: PropTypes.array,
   inputClass: PropTypes.object,
+  placeholder: PropTypes.string,
   readOnly: PropTypes.bool,
+  showMask: PropTypes.bool,
+  controlStyle: PropTypes.object,
 };

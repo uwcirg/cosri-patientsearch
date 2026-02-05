@@ -37,7 +37,7 @@ export default function PatientListTable() {
   const renderTitle = () => {
     const title = searchTitle ? searchTitle : null;
     if (!title) return false;
-    return <h2>{title}</h2>;
+    return <h2 className="search-title">{title}</h2>;
   };
 
   const renderPatientSearchRow = () => <FilterRow ref={filterRowRef} />;

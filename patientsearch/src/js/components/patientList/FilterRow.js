@@ -1,120 +1,149 @@
-import React, { forwardRef, useImperativeHandle } from "react";
-import makeStyles from "@mui/styles/makeStyles";
+import React, { forwardRef, useEffect, useImperativeHandle } from "react";
 import Search from "@mui/icons-material/Search";
+import Phone from "@mui/icons-material/Phone";
 import Button from "@mui/material/Button";
 import InputAdornment from "@mui/material/InputAdornment";
 import TextField from "@mui/material/TextField";
 import Tooltip from "@mui/material/Tooltip";
+import Box from "@mui/material/Box";
 import dayjs from "dayjs";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import FormattedInput from "../../components/FormattedInput";
+import { defaultSearchFields } from "../../constants/consts";
 import { usePatientListContext } from "../../context/PatientListContextProvider";
 import RowData from "../../models/RowData";
 
-const useStyles = makeStyles((theme) => ({
-  row: {
-    border: "2px solid #ececec !important",
-  },
-  cell: {
-    padding: theme.spacing(0, 2, 1),
-    backgroundColor: "#f7f7f7",
-  },
-  dateCell: {
-    padding: theme.spacing(0.5, 2, 0.5),
-    backgroundColor: "#f7f7f7",
-  },
-  toolbarCell: {
-    paddingTop: theme.spacing(1),
-    textAlign: "left",
-    backgroundColor: "#f7f7f7",
-    minWidth: "180px",
-  },
-  button: {
-    margin: theme.spacing(0.5),
-    fontWeight: 500,
-    textTransform: "uppercase",
-    border: 0,
-  },
-  dateInput: {
-    paddingLeft: theme.spacing(1),
-    paddingRight: theme.spacing(1),
-  },
-  empty: {
-    width: "24px",
-    backgroundColor: "#f7f7f7",
-  },
-}));
 
 export default forwardRef((props, ref) => {
   let { childrenProps = {} } = usePatientListContext();
 
-  const { actionLabel = "", handleSearch, onFiltersDidChange } = (childrenProps["filterRow"] ?? {});
-  const classes = useStyles();
+  const {
+    actionLabel = "",
+    handleSearch,
+    onFiltersDidChange,
+    fields = defaultSearchFields,
+  } = childrenProps["filterRow"] ?? {};
+
   const LAUNCH_BUTTON_LABEL = "VIEW";
-  const [filters, setFilters] = React.useState({
-    firstName: "",
-    lastName: "",
-    birthDate: null,
-  });
-  const getDateInput = () =>
-    dayjs(filters.birthDate).isValid() ? filters.birthDate : "";
-  const handleFilterChange = (firstName, lastName, birthDate) => {
-    const oData = RowData.create(firstName, lastName, birthDate);
-    onFiltersDidChange(oData.getFilters());
+
+  const initialFilters = fields.reduce((acc, field) => {
+    acc[field.name] = field.type === "date" ? null : "";
+    return acc;
+  }, {});
+
+  const [filters, setFilters] = React.useState(initialFilters);
+
+  const getDateInput = (fieldName = "birthDate") =>
+    dayjs(filters[fieldName]).isValid() ? filters[fieldName] : "";
+
+  const handleFilterChange = () => {
+    // Build filter data with only valid values
+    const filterData = {};
+
+    fields.forEach((field) => {
+      if (field.type === "date") {
+        // Only include valid dates
+        const dateValue = getDateInput(field.name);
+        if (dateValue && dayjs(dateValue).isValid()) {
+          filterData[field.name] = dateValue;
+        }
+      } else {
+        // Only include non-empty values
+        if (filters[field.name] && filters[field.name].trim() !== "") {
+          filterData[field.name] = filters[field.name];
+        }
+      }
+    });
+    const oData = RowData.create(filterData);
+    if (onFiltersDidChange) onFiltersDidChange(oData.getFilters());
   };
-  const handleFirstNameChange = (event) => {
+
+  const handleFieldChange = (fieldName) => (event) => {
     let targetValue = event.target.value;
+
+    const field = fields.find((f) => f.name === fieldName);
+
+    if (
+      field?.type === "masked" ||
+      field?.type === "number"
+    ) {
+      const digitsOnly = targetValue.replace(/\D/g, "");
+      targetValue = digitsOnly === "" ? "" : digitsOnly;
+    }
+
     setFilters({
       ...filters,
-      firstName: targetValue,
+      [fieldName]: targetValue,
     });
-    handleFilterChange(targetValue, filters.lastName, getDateInput());
   };
-  const handleLastNameChange = (event) => {
-    let targetValue = event.target.value;
-    setFilters({
-      ...filters,
-      lastName: targetValue,
-    });
-    handleFilterChange(filters.firstName, targetValue, getDateInput());
-  };
+
   const hasFilter = () => {
-    return filters.firstName || filters.lastName || filters.birthDate;
+    return fields.some((field) => {
+      if (field.type === "date") {
+        return dayjs(filters[field.name]).isValid();
+      }
+      return filters[field.name];
+    });
   };
+
   const hasCompleteFilters = () => {
-    return (
-      filters.firstName &&
-      filters.lastName &&
-      dayjs(filters.birthDate).isValid()
-    );
+    return fields
+      .filter((field) => !!field.required) // Only check required fields
+      .every((field) => {
+        if (field.type === "date") {
+          return dayjs(filters[field.name]).isValid();
+        }
+        return filters[field.name] && filters[field.name].trim() !== "";
+      });
   };
+
   const getFilterData = () => {
     if (!hasCompleteFilters()) return null;
     return getCurrentFilters();
   };
+
   const getCurrentFilters = () => {
-    const oData = RowData.create(
-      filters.firstName,
-      filters.lastName,
-      getDateInput()
-    );
+    const filterData = {};
+    fields.forEach((field) => {
+      if (field.type === "date") {
+        // Only include date if it's valid
+        const dateValue = getDateInput(field.name);
+        if (dayjs(dateValue).isValid()) {
+          filterData[field.name] = dateValue;
+        } else {
+          filterData[field.name] = "";
+        }
+      } else {
+        // Only include non-empty values
+        if (filters[field.name] && filters[field.name].trim() !== "") {
+          filterData[field.name] = filters[field.name];
+        }
+      }
+    });
+
+    const oData = RowData.create(filterData);
     return oData.getData();
   };
+
   const handleClear = () => {
     clearFields();
-    onFiltersDidChange(null);
+    if (onFiltersDidChange) onFiltersDidChange(null);
   };
+
   const clearFields = () => {
-    setFilters({
-      firstName: "",
-      lastName: "",
-      birthDate: null,
+    const clearedFilters = {};
+    fields.forEach((field) => {
+      clearedFilters[field.name] = field.type === "date" ? null : "";
     });
+    setFilters(clearedFilters);
   };
+
   const getLaunchButtonLabel = (actionLabel) => {
     return actionLabel ? actionLabel : LAUNCH_BUTTON_LABEL;
   };
+
   const handleKeyDown = (e) => {
     const pressedKey = String(e.key).toLowerCase();
     if (pressedKey === "spacebar") {
@@ -127,56 +156,49 @@ export default forwardRef((props, ref) => {
     }
     return false;
   };
+
   useImperativeHandle(ref, () => ({
     clear() {
       handleClear();
     },
   }));
-  const renderFirstNameField = () => (
+
+  const getIcon = (iconType) => {
+    switch (iconType) {
+      case "phone":
+        return <Phone color="primary" />;
+      case "search":
+        return <Search color="primary" />;
+      default:
+        return null;
+    }
+  };
+
+  const renderTextField = (field) => (
     <TextField
       variant="standard"
       margin="normal"
-      id="firstName"
-      placeholder="First Name"
-      name="firstName"
-      value={filters.firstName}
-      onChange={handleFirstNameChange}
+      id={field.name}
+      placeholder={field.placeholder}
+      name={field.name}
+      value={filters[field.name] || ""}
+      onChange={handleFieldChange(field.name)}
       onKeyDown={handleKeyDown}
-      key="ftFirstName"
-      inputProps={{ "data-lpignore": true }}
+      key={`ft${field.name}`}
+      fullWidth
+      inputProps={{ "data-lpignore": true}}
       InputProps={{
         startAdornment: (
           <InputAdornment position="start">
-            <Search color="primary" />
+            {getIcon(field.icon)}
           </InputAdornment>
         ),
       }}
     />
   );
-  const renderLastNameField = () => (
-    <TextField
-      variant="standard"
-      margin="normal"
-      name="lastName"
-      placeholder="Last Name"
-      id="lastName"
-      key="ftLastName"
-      value={filters.lastName}
-      onChange={handleLastNameChange}
-      onKeyDown={handleKeyDown}
-      inputProps={{ "data-lpignore": true }}
-      InputProps={{
-        startAdornment: (
-          <InputAdornment position="start">
-            <Search color="primary" />
-          </InputAdornment>
-        ),
-      }}
-    />
-  );
-  const renderDOBField = () => (
+
+  const renderDateField = (field) => (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
-      {/* birth date field */}
       <DatePicker
         autoOk={true}
         variant="dialog"
@@ -184,59 +206,99 @@ export default forwardRef((props, ref) => {
         disableFuture
         slotProps={{
           textField: {
-            placeholder: "YYYY-MM-DD",
+            placeholder: field.placeholder || "YYYY-MM-DD",
             InputLabelProps: { shrink: true },
-            id: "birthDate",
+            inputProps: { "data-lpignore": true },
+            id: field.name,
             variant: "standard",
-            className: classes.dateInput,
+            fullWidth: true,
           },
           field: {
             clearable: true,
             onClear: () => {
               setFilters({
                 ...filters,
-                birthDate: null,
+                [field.name]: null,
               });
-              handleFilterChange(filters.firstName, filters.lastName, null);
             },
           },
         }}
         format="YYYY-MM-DD"
-        key="ftBirthDate"
+        key={`ft${field.name}`}
         minDate={dayjs("1900-01-01")}
         invalidDateMessage="Date must be in YYYY-MM-DD format, e.g. 1977-01-12"
-        value={filters.birthDate ? dayjs(filters.birthDate) : null}
+        value={filters[field.name] ? dayjs(filters[field.name]) : null}
         orientation="landscape"
         clearable={true}
-        sx={{ width: 260 }}
+        sx={{ width: "100%" }}
         onKeyDown={handleKeyDown}
         onChange={(newValue, validationContext) => {
           if (validationContext?.validationError) {
             setFilters({
               ...filters,
-              birthDate: newValue.format(),
+              [field.name]: newValue.format(),
             });
-            handleFilterChange(filters.firstName, filters.lastName, null);
             return;
           }
           setFilters({
             ...filters,
-            birthDate: newValue ? newValue.format("YYYY-MM-DD") : null,
+            [field.name]: newValue ? newValue.format("YYYY-MM-DD") : null,
           });
-          handleFilterChange(
-            filters.firstName,
-            filters.lastName,
-            newValue.format("YYYY-MM-DD")
-          );
         }}
         KeyboardButtonProps={{ color: "primary", title: "Date picker" }}
       />
     </LocalizationProvider>
   );
+
+  const renderMaskedField = (field) => {
+    let mask = field?.mask ? field.mask : null;
+    return (
+      <FormattedInput
+        value={filters[field.name] || ""}
+        handleChange={handleFieldChange(field.name)}
+        handleKeyDown={handleKeyDown}
+        mask={mask}
+        helperText={field.helperText}
+        error={field.error}
+        disableFocus={true}
+        placeholder={field.placeholder}
+        showMask={field.showMask !== undefined ? field.showMask : false}
+        inputClass="field-wrapper"
+      />
+    );
+  };
+
+  const renderField = (field) => {
+    const fieldContent = (() => {
+      switch (field.type) {
+        case "date":
+          return renderDateField(field);
+        case "masked":
+          return renderMaskedField(field, field.type);
+        case "text":
+        default:
+          return renderTextField(field);
+      }
+    })();
+
+    return (
+      <Box
+        key={field.name}
+        className={
+          field.type === "date"
+            ? "date-field-wrapper"
+            : "field-wrapper"
+        }
+      >
+        {fieldContent}
+      </Box>
+    );
+  };
+
   const renderLaunchButton = () => (
     <Button
       className={
-        !hasCompleteFilters() ? `${classes.button} disabled` : classes.button
+        !hasCompleteFilters() ? "disabled" : ""
       }
       color="primary"
       size="small"
@@ -246,39 +308,35 @@ export default forwardRef((props, ref) => {
       {getLaunchButtonLabel(actionLabel)}
     </Button>
   );
+
   const renderClearButton = () => (
     <Tooltip title="Clear search fields">
       <Button
         variant="contained"
         size="small"
         onClick={handleClear}
-        className={!hasFilter() ? `${classes.button} disabled` : classes.button}
+        className={!hasFilter() ? "disabled" : ""}
         id="btnClear"
       >
         Clear
       </Button>
     </Tooltip>
   );
+
+  useEffect(() => {
+    handleFilterChange();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters]);
+
   return (
-    <table className="bottom-gap">
-      <tbody>
-        <tr className={classes.row} key="filterRow">
-          <td className={classes.cell}>
-            {/* first name field */}
-            {renderFirstNameField()}
-          </td>
-          <td className={classes.cell}>
-            {/* last name field */}
-            {renderLastNameField()}
-          </td>
-          <td className={classes.dateCell}>{renderDOBField()}</td>
-          <td className={classes.toolbarCell} colSpan={2}>
-            {/* toolbar go button */}
-            {renderLaunchButton()}
-            {renderClearButton()}
-          </td>
-        </tr>
-      </tbody>
-    </table>
+    <Box className="search-container">
+      <Box className="fields-container">
+        {fields.map((field) => renderField(field))}
+      </Box>
+      <Box className="toolbar-container">
+        {renderLaunchButton()}
+        {renderClearButton()}
+      </Box>
+    </Box>
   );
 });

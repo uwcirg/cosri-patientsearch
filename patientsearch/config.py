@@ -72,6 +72,50 @@ DASHBOARD_COLUMNS = json.loads(
     )
 )
 
+SEARCH_FIELDS = json.loads(
+    os.getenv(
+        "SEARCH_FIELDS",
+        json.dumps(
+            [
+                {
+                    "name": "given",
+                    "type": "text",
+                    "placeholder": "First Name",
+                    "optional": False,
+                    "fhirKey": "given",
+                    "externalKey": "subject:Patient.name.given",
+                    "exactMatch": True,
+                    "icon": "search",
+                    "required": True,
+                },
+                {
+                    "name": "name",
+                    "type": "text",
+                    "placeholder": "Last Name",
+                    "optional": False,
+                    "fhirKey": "family",
+                    "externalKey": "subject:Patient.name.family",
+                    "exactMatch": True,
+                    "icon": "search",
+                    "required": True,
+                },
+                {
+                    "name": "birthdate",
+                    "type": "date",
+                    "placeholder": "YYYY-MM-DD",
+                    "optional": False,
+                    "fhirKey": "birthdate",
+                    "externalKey": "subject:Patient.birthdate",
+                    "externalPrefix": "eq",
+                    "exactMatch": False,
+                    "isDate": True,
+                    "required": True,
+                },
+            ],
+        ),
+    )
+)
+
 FHIR_REST_EXTRA_PARAMS_LIST = json.loads(os.getenv("FHIR_REST_EXTRA_PARAMS_LIST", "[]"))
 LANDING_INTRO = os.getenv("LANDING_INTRO", "")
 LANDING_BUTTON_TEXT = os.getenv("LANDING_BUTTON_TEXT", "")

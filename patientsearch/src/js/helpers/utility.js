@@ -67,8 +67,7 @@ export async function fetchData(url, params, errorCallback) {
    * then the timeout promise will kick in
    */
   let json = null;
-  let results = await Promise.race([fetch(url, params), timeoutPromise])
-  .catch(
+  let results = await Promise.race([fetch(url, params), timeoutPromise]).catch(
     (e) => {
       console.log("url ", url);
       console.log("params ", params);
@@ -122,7 +121,11 @@ export async function getSettings(callback, noCache) {
     pad(today.getMonth()) +
     pad(today.getDate()) +
     pad(today.getMinutes());
-  if (!noCache && typeof sessionStorage !== "undefined" && sessionStorage.getItem(settingStorageKey)) {
+  if (
+    !noCache &&
+    typeof sessionStorage !== "undefined" &&
+    sessionStorage.getItem(settingStorageKey)
+  ) {
     let cachedSetting = JSON.parse(sessionStorage.getItem(settingStorageKey));
     callback(cachedSetting);
     return cachedSetting;
@@ -136,7 +139,11 @@ export async function getSettings(callback, noCache) {
   } catch (e) {
     callback({ error: e });
   }
-  if (typeof sessionStorage !== "undefined" && data && Object.keys(data).length) {
+  if (
+    typeof sessionStorage !== "undefined" &&
+    data &&
+    Object.keys(data).length
+  ) {
     sessionStorage.setItem(settingStorageKey, JSON.stringify(data));
   }
   callback(data);
@@ -178,7 +185,13 @@ export function imageOK(img) {
 export function getUrlParameter(name, queryString) {
   name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
   var regex = new RegExp("[\\?&]" + name + "=([^&#]*)");
-  var results = regex.exec(queryString ? queryString : typeof location !== "undefined" ? location.search : null);
+  var results = regex.exec(
+    queryString
+      ? queryString
+      : typeof location !== "undefined"
+      ? location.search
+      : null
+  );
   return results === null
     ? ""
     : decodeURIComponent(results[1].replace(/\+/g, " "));
@@ -248,9 +261,9 @@ export function addYearsToDate(dt, n) {
  */
 const dayjs = require("dayjs");
 export function isInMonthPeriod(dateFromString, dateToString, numOfMonths) {
- const fromDate = dayjs(dateFromString);
- const toDate = dayjs(dateToString);
- let months = toDate.diff(fromDate, "month");
+  const fromDate = dayjs(dateFromString);
+  const toDate = dayjs(dateToString);
+  let months = toDate.diff(fromDate, "month");
   return months >= 0 && months <= numOfMonths;
 }
 
@@ -435,13 +448,15 @@ export function putPatientData(
     (e) => {
       if (errorCallback) errorCallback(e);
     }
-  ).then(() => {
-    console.log("PUT complete for patient " + patientId);
-    if (successCallback) successCallback();
-  }).catch((e) => {
-    console.log("Patient PUT error: ", e);
-    if (errorCallback) errorCallback(e);
-  });
+  )
+    .then(() => {
+      console.log("PUT complete for patient " + patientId);
+      if (successCallback) successCallback();
+    })
+    .catch((e) => {
+      console.log("Patient PUT error: ", e);
+      if (errorCallback) errorCallback(e);
+    });
 }
 
 export function addMamotoTracking(siteId, userId) {
@@ -480,10 +495,10 @@ export function isInPast(dateString) {
   if (!isValidDateString(dateString)) return false;
   const today = new Date();
   const targetDate = new Date(dateString);
-  const diff = (today - targetDate); // in miniseconds
+  const diff = today - targetDate; // in miniseconds
   // this will check if diff is 5 minutes or more
   // e.g. pad by 5 mins to give system time to transmit message, rather than indicate no next message time during processing
-  return diff > (1000 * 60 * 5); 
+  return diff > 1000 * 60 * 5;
 }
 
 /*

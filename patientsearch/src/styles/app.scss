@@ -27,6 +27,11 @@ body {
 html {
   scroll-behavior: smooth;
 }
+header {
+  h1 {
+    font-size: 1.45rem !important;
+  }
+}
 .container {
   margin-left: auto;
   margin-right: auto;
@@ -312,6 +317,60 @@ th.MuiTableCell-root {
     font-size: $small-font-size;
     outline: none;
     border: 0
+  }
+  .search-title {
+    font-size: 1.25rem;
+    margin-block-end: 4px;
+  }
+  .search-container {
+    border-radius: 4px;
+    padding: 0;
+    margin-bottom: 16px;
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+    div[data-lastpass-icon-root] {
+      opacity: 0 !important;
+      width: 0 !important;
+      visibility: hidden !important;
+    }
+
+    .MuiInputAdornment-positionEnd {
+      max-height: 1.85em;
+    }
+    .MuiFormControl-marginNormal {
+      margin-top: 8px;
+    }
+    .MuiInputBase-input {
+      margin-top: 0;
+      margin-bottom: 0;
+    }
+    .fields-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      align-items: center;
+    }
+    .field-wrapper {
+      max-width: 100%;
+      @media (min-width: 601px) {
+        min-width: 100px;
+      }
+    }
+    .date-field-wrapper {
+      width: 180px;
+      max-width: 100%;
+    }
+    .toolbar-container {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+      @media (min-width: 601px) {
+        margin-left: 16px;
+      }
+    }
   }
   .main {
     tbody {
