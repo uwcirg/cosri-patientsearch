@@ -664,7 +664,7 @@ export default function Agreement(props) {
           </Button>
         </div>
         <Typography variant="caption">
-          <strong>Note</strong>: Clicking "Print Agreement Form" records the
+          <strong>Note</strong>: Clicking &ldquo;Print Agreement Form&rdquo; records the
           agreement date.
         </Typography>
       </Stack>
