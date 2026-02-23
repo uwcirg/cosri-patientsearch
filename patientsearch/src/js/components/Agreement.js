@@ -197,6 +197,14 @@ function reducer(state, action) {
         editMode: false,
         historyInitialized: true,
       };
+    case "LOADING_START":
+      return { ...state, updateInProgress: true, error: "" };
+    case "LOADING_END":
+      return {
+        ...state,
+        addInProgress: false,
+        updateInProgress: false,
+      };
     default:
       return state;
   }
@@ -259,63 +267,49 @@ export default function Agreement(props) {
     };
   };
 
-  const handleUpdate = (params, callback) => {
-    params = params || {};
-    callback = callback || function () {};
+  const handleUpdate = async (params = {}, callback = () => {}) => {
     const contractDate =
       params.date ||
       (dayjs.isDayjs(dateInput) ? dateInput.format("YYYY-MM-DD") : dateInput);
 
     if (!contractDate) {
       dispatch({ type: "SET_ERROR", payload: "No contract date provided." });
-      callback({ error: true });
-      return false;
+      return callback({ error: true });
     }
 
-    const resourceId = params.id || null;
-    const method = params.method || "POST";
-    const matchedHistoryEntry = history?.find(
-      (entry) => entry.date === contractDate,
-    );
+    // Prevent duplicate submissions
     if (
-      ["POST", "PUT"].indexOf(String(method).toUpperCase()) >= 0 &&
-      matchedHistoryEntry
+      history?.some((entry) => entry.date === contractDate) &&
+      params.method !== "DELETE"
     ) {
-      callback();
-      return;
+      return callback();
     }
 
     dispatch({ type: "SET_ERROR", payload: "" });
     const resource = submitDataFormatter(params);
+    const resourceId = params.id ? `/${params.id}` : "";
 
-    fetchData(
-      "/fhir/DocumentReference" + (resourceId ? "/" + resourceId : ""),
-      {
-        method: method,
+    try {
+      await fetchData(`/fhir/DocumentReference${resourceId}`, {
+        method: params.method || "POST",
         headers: {
           Accept: "application/json",
           "Content-Type": "application/json",
           cache: "no-cache",
         },
         body: JSON.stringify(resource),
-      },
-      (e) => {
-        if (e) dispatch({ type: "SUBMISSION_ERROR" });
-        callback(e);
-      },
-    )
-      .then(() => {
-        dispatch({ type: "SET_SNACK_OPEN", payload: true });
-        setTimeout(() => getHistory(callback), 150);
-      })
-      .catch((e) => {
-        console.log("error submitting request ", e);
-        dispatch({ type: "SUBMISSION_ERROR" });
-        callback(e);
-        return false;
       });
 
-    return false;
+      dispatch({ type: "SET_SNACK_OPEN", payload: true });
+
+      // Refresh history immediately after successful update
+      await getHistory();
+      callback();
+    } catch (e) {
+      console.error("Submission error:", e);
+      dispatch({ type: "SUBMISSION_ERROR" });
+      callback(e);
+    }
   };
 
   const handleKeyDownAdd = (event) => {
@@ -380,42 +374,29 @@ export default function Agreement(props) {
   );
 
   const getHistory = React.useCallback(
-    (callback) => {
-      callback = callback || function () {};
-      if (!rowData) {
+    async (callback = () => {}) => {
+      if (!rowData?.id) {
         dispatch({ type: "SET_HISTORY_INITIALIZED", payload: true });
-        callback();
-        return [];
+        return;
       }
 
       dispatch({ type: "SET_HISTORY_INITIALIZED", payload: false });
 
-      sendRequest(
-        "/fhir/DocumentReference?patient=" + rowData.id + "&_sort=-date",
-        { nocache: true },
-      ).then(
-        (response) => {
-          let data = null;
-          try {
-            data = JSON.parse(response);
-          } catch (e) {
-            console.log("Error parsing pain agreement request data ", e);
-          }
+      try {
+        const response = await sendRequest(
+          `/fhir/DocumentReference?patient=${rowData.id}&_sort=-date`,
+          { nocache: true },
+        );
 
-          if (!data || !data.entry || !data.entry.length) {
-            dispatch({ type: "CLEAR_HISTORY" });
-            dispatch({ type: "SET_EDIT_MODE", payload: false });
-            dispatch({ type: "SET_HISTORY_INITIALIZED", payload: true });
-            callback();
-            return;
-          }
+        const data = JSON.parse(response);
 
-          let agreementData = data.entry
+        if (!data?.entry?.length) {
+          dispatch({ type: "CLEAR_HISTORY" });
+        } else {
+          const agreementData = data.entry
             .filter((item) => {
               const resource = item.resource;
-              if (!resource) return false;
-              if (!resource.type?.coding?.length) return false;
-              return resource.type.coding[0].code === CONTRACT_CODE;
+              return resource?.type?.coding?.[0]?.code === CONTRACT_CODE;
             })
             .sort((a, b) => dateTimeCompare(a.resource.date, b.resource.date));
 
@@ -434,22 +415,19 @@ export default function Agreement(props) {
           } else {
             dispatch({ type: "CLEAR_HISTORY" });
           }
-
-          dispatch({ type: "SET_EDIT_MODE", payload: false });
-          dispatch({ type: "SET_HISTORY_INITIALIZED", payload: true });
-          callback();
-        },
-        (error) => {
-          dispatch({ type: "SET_HISTORY_INITIALIZED", payload: true });
-          callback(error);
-          console.log("Failed to retrieve data", error);
-        },
-      );
-
-      return "";
+        }
+        callback();
+      } catch (e) {
+        console.error("Failed to retrieve or parse data", e);
+        dispatch({ type: "SET_ERROR", payload: "Could not load history." });
+        callback(e);
+      } finally {
+        dispatch({ type: "SET_EDIT_MODE", payload: false });
+        dispatch({ type: "SET_HISTORY_INITIALIZED", payload: true });
+      }
     },
-    [rowData, createHistoryData],
-  );
+    [rowData?.id, createHistoryData],
+  ); // Depend on ID specifically, not the whole object
 
   const displayMostRecent = () => {
     if (!history.length) return "";
@@ -664,8 +642,8 @@ export default function Agreement(props) {
           </Button>
         </div>
         <Typography variant="caption">
-          <strong>Note</strong>: Clicking &ldquo;Print Agreement Form&rdquo; records the
-          agreement date.
+          <strong>Note</strong>: Clicking &ldquo;Print Agreement Form&rdquo;
+          records the agreement date.
         </Typography>
       </Stack>
     </Paper>
