@@ -431,14 +431,14 @@ export default function Agreement(props) {
 
   const displayMostRecent = () => {
     if (!history.length) return "";
-    return `Last controlled substance agreement signed on <b>${lastEntry.date}</b>`;
+    return `Signed on <b>${lastEntry.date}</b>`;
   };
 
   const displayEditHistory = () => {
     if (!history.length) return null;
     return (
-      <div style={{ display: "inline-block" }}>
-        Last controlled substance agreement signed on{" "}
+      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+        <span>Signed on</span>
         <FormattedInput
           defaultValue={lastEntry.date}
           helperText="(YYYY-MM-DD)"
@@ -583,6 +583,7 @@ export default function Agreement(props) {
         variant="caption"
         display="block"
         className={classes.historyTitle}
+        sx={{marginBottom: "8px"}}
       >
         Latest Controlled Substance Agreement
       </Typography>
@@ -591,7 +592,7 @@ export default function Agreement(props) {
       )}
       {history.length > 0 && (
         <div>
-          <div>
+          <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
             {!editMode && (
               <span
                 dangerouslySetInnerHTML={{
