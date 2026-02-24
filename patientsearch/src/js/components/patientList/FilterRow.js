@@ -22,19 +22,14 @@ import { defaultSearchFields } from "../../constants/consts";
 import { usePatientListContext } from "../../context/PatientListContextProvider";
 import RowData from "../../models/RowData";
 
-// Fix #8: Module-level constant — not re-created on every render
 const LAUNCH_BUTTON_LABEL = "VIEW";
 
-// Fix #3: Extracted shared helper used by both useState init and clearFields,
-// so reset logic and init logic can never drift apart.
 const buildEmptyFilters = (fields) =>
   fields.reduce((acc, field) => {
     acc[field.name] = field.type === "date" ? null : "";
     return acc;
   }, {});
 
-// Fix #4: Single shared helper for building a validated filter data object,
-// replaces the duplicated logic in handleFilterChange and getCurrentFilters.
 const buildFilterData = (fields, filters) => {
   return fields.reduce((acc, field) => {
     if (field.type === "date") {
@@ -192,7 +187,6 @@ export default forwardRef(function FilterRow(_props, ref) {
           },
           field: {
             clearable: true,
-            // Fix #7: functional updater form for date clear
             onClear: () =>
               setFilters((prev) => ({ ...prev, [field.name]: null })),
           },
@@ -269,13 +263,13 @@ export default forwardRef(function FilterRow(_props, ref) {
 
   const renderLaunchButton = () => (
     <Button
-      className={!filtersAreComplete ? "disabled" : ""} // Fix #5: uses memoized value
+      className={!filtersAreComplete ? "disabled" : ""}
       color="primary"
       size="small"
       variant="contained"
       onClick={() => handleSearch(getFilterData())}
     >
-      {launchButtonLabel} {/* Fix #9: inlined expression */}
+      {launchButtonLabel}
     </Button>
   );
 
