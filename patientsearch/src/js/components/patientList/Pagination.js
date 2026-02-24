@@ -51,12 +51,14 @@ PaginationElement.propTypes = {
   handleChangeRowsPerPage: PropTypes.func,
 };
 
+const noop = () => {};
+
 export default function Pagination() {
   const classes = useStyles();
   const { childrenProps } = usePatientListContext();
   const {
     pagination = {},
-    dispatch = function () {},
+    dispatch = noop,
     tableRef,
     disabled,
   } = childrenProps["pagination"] ?? {};

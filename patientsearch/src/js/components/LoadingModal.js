@@ -36,14 +36,18 @@ export default function LoadingModal({ open = false }) {
   return (
     <Modal
       open={openModal}
-      aria-labelledby="loading-modal"
-      aria-describedby="loading-modal"
+      aria-labelledby="loading-modal-label"
+      aria-describedby="loading-modal-description"
       disableAutoFocus
       disableEnforceFocus
-      sx={{ border: (theme) => `1px solid ${theme.palette.primary.main}` }}
     >
       <div className={classes.flex}>
-        <span className={classes.loadingText}>Loading ...</span>
+        <span id="loading-modal-label" className={classes.loadingText}>
+          Loading ...
+        </span>
+        <span id="loading-modal-description" style={{ display: "none" }}>
+          Content is loading, please wait.
+        </span>
         <CircularProgress color="primary" />
       </div>
     </Modal>

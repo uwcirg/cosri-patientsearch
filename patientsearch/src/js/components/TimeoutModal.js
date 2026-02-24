@@ -1,19 +1,24 @@
-import React, { useEffect } from "react";
-import makeStyles from '@mui/styles/makeStyles';
+import React, { useEffect, useRef, useCallback } from "react";
+import PropTypes from "prop-types";
+import makeStyles from "@mui/styles/makeStyles";
 import Button from "@mui/material/Button";
 import Modal from "@mui/material/Modal";
 import { sendRequest } from "../helpers/utility";
 import { useSettingContext } from "../context/SettingContextProvider";
 
-function getModalStyle() {
-  const top = 50;
-  const left = 50;
-  return {
-    top: `${top}%`,
-    left: `${left}%`,
-    transform: `translate(-${top}%, -${left}%)`,
-  };
-}
+const MODAL_STYLE = {
+  top: "50%",
+  left: "50%",
+  transform: "translate(-50%, -50%)",
+};
+
+const TRACK_INTERVAL_MS = 15000;
+
+const getExpiresInDisplay = (expiresIn) => {
+  if (!expiresIn) return "";
+  return `${Math.floor(expiresIn)} seconds`;
+};
+
 const useStyles = makeStyles((theme) => ({
   paper: {
     position: "absolute",
@@ -35,167 +40,22 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-let expiredIntervalId = 0;
-let expiresIn = null;
-let refresh = false;
-let retryAttempts = 0;
-
-export default function TimeoutModal() {
-  const classes = useStyles();
-  const [modalStyle] = React.useState(getModalStyle);
-  const [open, setOpen] = React.useState(false);
-  const [disabled, setDisabled] = React.useState(false);
-  const trackInterval = 15000;
-  const appCtx = useSettingContext();
-  const appSettings = appCtx.appSettings;
-
-  const clearExpiredIntervalId = () => {
-    clearInterval(expiredIntervalId);
-  };
-  const checkSessionValidity = () => {
-    const reTry = () => {
-      //try again?
-      if (retryAttempts < 2) {
-        initTimeoutTracking();
-        retryAttempts++;
-        return;
-      }
-      retryAttempts = 0;
-      clearExpiredIntervalId();
-    };
-
-    const handleLogout = (userInitiated) => {
-      clearExpiredIntervalId();
-      sessionStorage.clear();
-      let param = userInitiated ? "user_initiated=true" : "timeout=true";
-      setTimeout(() => {
-        window.location = `/logout?${param}`;
-      }, 0);
-      return false;
-    };
-    /*
-     * when the expires in is less than the next track interval, the session will have expired, so just logout user
-     */
-    if (expiresIn && expiresIn > 0 && expiresIn <= trackInterval / 1000) {
-      handleLogout();
-      return;
-    }
-    sendRequest("./validate_token").then(
-      (response) => {
-        if (response) {
-          let tokenData = null;
-          try {
-            tokenData = JSON.parse(response);
-            let accessTokenExpiresIn = parseFloat(
-              tokenData["access_expires_in"]
-            );
-            let refreshTokenExpiresIn = parseFloat(
-              tokenData["refresh_expires_in"]
-            );
-            let refreshTokenOnVentilator =
-              (!tokenData["valid"] && refreshTokenExpiresIn === 0) ||
-              refreshTokenExpiresIn < accessTokenExpiresIn;
-            //in seconds
-            //1. check if refresh token will expire before access token first
-            //2. check if access token will expire
-            expiresIn = refreshTokenOnVentilator
-              ? refreshTokenExpiresIn
-              : accessTokenExpiresIn;
-            let tokenAboutToExpire =
-              Math.floor(expiresIn) >= 1 && Math.floor(expiresIn) <= 60;
-            //flag for whether to prompt the user to refresh session, i.e. request another access token
-            refresh =
-              tokenAboutToExpire && !refreshTokenOnVentilator ? true : false;
-
-            if (!tokenData["valid"] || expiresIn <= 1) {
-              if (refreshTokenOnVentilator) {
-                handleLogout();
-              } else {
-                reLoad();
-              }
-              clearExpiredIntervalId();
-              return;
-            }
-            if (tokenAboutToExpire) {
-              if (disabled) {
-                //automatically refresh the session IF access token is about to expire AND refresh token has not expired yet
-                setTimeout(() => {
-                  if (refreshTokenOnVentilator) handleLogout();
-                  else reLoad();
-                }, 5000);
-              }
-              cleanUpModal();
-              if (!open) handleOpen();
-            }
-          } catch (e) {
-            console.log(`Error occurred parsing token data ${e}`);
-            reTry();
-            return;
-          }
-        }
-      },
-      (error) => {
-        console.log("Error returned ", error);
-        if (error && error.status && error.status == 401) {
-          console.log("Failed to retrieve token data: Unauthorized");
-          clearExpiredIntervalId();
-          handleLogout();
-          return;
-        }
-        console.log(
-          "Failed to retrieve token data",
-          error && error.status ? "status " + error.status : ""
-        );
-        clearExpiredIntervalId();
-      }
-    );
-  };
-
-  const initTimeoutTracking = () => {
-    expiredIntervalId = setInterval(
-      () => checkSessionValidity(),
-      trackInterval
-    );
-  };
-
-  const handleOpen = () => {
-    setOpen(true);
-  };
-
-  const handleClose = () => {
-    clearExpiredIntervalId();
-    setOpen(false);
-  };
-
-  const reLoad = () => {
-    handleClose();
-    //To force-request a new Access Token (when one is about to expire, but still valid)
-    window.location = "/clear_session";
-  };
-
-  const getExpiresInDisplay = (expiresIn) => {
-    if (!expiresIn) return "";
-    return `${Math.floor(expiresIn)} seconds`;
-  };
-
-  const cleanUpModal = () => {
-    let modalElement = document.querySelector(".timeout-modal");
-    if (modalElement) {
-      modalElement.parentNode.removeChild(modalElement);
-    }
-  };
-  const body = (
-    <div style={modalStyle} className={classes.paper}>
+const ModalBody = React.forwardRef(function ModalBody(
+  { classes, expiresIn, disabled, refresh, onReload, onClose },
+  ref,
+) {
+  return (
+    <div ref={ref} style={MODAL_STYLE} className={classes.paper}>
       <h2 id="timeout-modal-title">Session Timeout Notice</h2>
       <div id="timeout-modal-description">
-        {expiresIn && expiresIn == 0 && (
+        {expiresIn !== null && expiresIn === 0 && (
           <span className="error">Your current session has expired.</span>
         )}
-        {expiresIn && expiresIn != 0 && (
+        {expiresIn !== null && expiresIn !== 0 && (
           <React.Fragment>
             {!disabled && (
               <span>
-                Your session will expired in approximately
+                Your session will expire in approximately
                 <span className={classes.expiredDisplay}>
                   {getExpiresInDisplay(expiresIn)}
                 </span>
@@ -215,16 +75,12 @@ export default function TimeoutModal() {
           </React.Fragment>
         )}
         <div className="buttons-container">
-          {/*
-           * access token about to expire so ask user if they want to refresh session
-           * NOTE this button won't show if refresh token is about to expire, i.e. SSO Session Max has been reached
-           */}
           {!disabled && refresh && (
-            <Button variant="outlined" onClick={reLoad}>
+            <Button variant="outlined" onClick={onReload}>
               Refresh Session
             </Button>
           )}
-          <Button variant="outlined" onClick={handleClose}>
+          <Button variant="outlined" onClick={onClose}>
             Dismiss
           </Button>
           <Button
@@ -235,16 +91,170 @@ export default function TimeoutModal() {
           </Button>
         </div>
       </div>
-      <TimeoutModal />
     </div>
   );
+});
+ModalBody.propTypes = {
+  classes: PropTypes.object.isRequired,
+  expiresIn: PropTypes.number,
+  disabled: PropTypes.bool.isRequired,
+  refresh: PropTypes.bool.isRequired,
+  onReload: PropTypes.func.isRequired,
+  onClose: PropTypes.func.isRequired,
+};
+
+
+export default function TimeoutModal() {
+  const classes = useStyles();
+  const { appSettings } = useSettingContext();
+
+  const [open, setOpen] = React.useState(false);
+  const [disabled, setDisabled] = React.useState(false);
+
+  const expiredIntervalIdRef = useRef(0);
+  const expiresInRef = useRef(null);
+  const refreshRef = useRef(false);
+  const retryAttemptsRef = useRef(0);
+  const openRef = useRef(open);
+  const disabledRef = useRef(disabled);
+  useEffect(() => {
+    openRef.current = open;
+  }, [open]);
+  useEffect(() => {
+    disabledRef.current = disabled;
+  }, [disabled]);
+
+  const clearExpiredIntervalId = useCallback(() => {
+    clearInterval(expiredIntervalIdRef.current);
+  }, []);
+
+  const handleClose = useCallback(() => {
+    clearExpiredIntervalId();
+    setOpen(false);
+  }, [clearExpiredIntervalId]);
+
+  const reLoad = useCallback(() => {
+    handleClose();
+    // Force-request a new access token when one is about to expire but still valid
+    window.location = "/clear_session";
+  }, [handleClose]);
+
+  const handleLogout = useCallback(
+    (userInitiated) => {
+      clearExpiredIntervalId();
+      sessionStorage.clear();
+      const param = userInitiated ? "user_initiated=true" : "timeout=true";
+      setTimeout(() => {
+        window.location = `/logout?${param}`;
+      }, 0);
+    },
+    [clearExpiredIntervalId],
+  );
+
+  const checkSessionValidity = useCallback(() => {
+    const reTry = () => {
+      if (retryAttemptsRef.current < 2) {
+        initTimeoutTracking();
+        retryAttemptsRef.current++;
+        return;
+      }
+      retryAttemptsRef.current = 0;
+      clearExpiredIntervalId();
+    };
+
+    if (
+      expiresInRef.current !== null &&
+      expiresInRef.current > 0 &&
+      expiresInRef.current <= TRACK_INTERVAL_MS / 1000
+    ) {
+      handleLogout();
+      return;
+    }
+
+    sendRequest("./validate_token").then(
+      (response) => {
+        if (!response) return;
+
+        let tokenData = null;
+        try {
+          tokenData = JSON.parse(response);
+        } catch (e) {
+          console.log(`Error occurred parsing token data ${e}`);
+          reTry();
+          return;
+        }
+
+        const accessTokenExpiresIn = parseFloat(tokenData["access_expires_in"]);
+        const refreshTokenExpiresIn = parseFloat(
+          tokenData["refresh_expires_in"],
+        );
+        const refreshTokenOnVentilator =
+          (!tokenData["valid"] && refreshTokenExpiresIn === 0) ||
+          refreshTokenExpiresIn < accessTokenExpiresIn;
+
+        expiresInRef.current = refreshTokenOnVentilator
+          ? refreshTokenExpiresIn
+          : accessTokenExpiresIn;
+
+        const tokenAboutToExpire =
+          Math.floor(expiresInRef.current) >= 1 &&
+          Math.floor(expiresInRef.current) <= 60;
+
+        refreshRef.current = tokenAboutToExpire && !refreshTokenOnVentilator;
+
+        if (!tokenData["valid"] || expiresInRef.current <= 1) {
+          if (refreshTokenOnVentilator) {
+            handleLogout();
+          } else {
+            reLoad();
+          }
+          clearExpiredIntervalId();
+          return;
+        }
+
+        if (tokenAboutToExpire) {
+          if (disabledRef.current) {
+            setTimeout(() => {
+              if (refreshTokenOnVentilator) handleLogout();
+              else reLoad();
+            }, 5000);
+          }
+          if (!openRef.current) setOpen(true);
+        }
+      },
+      (error) => {
+        console.log("Error returned ", error);
+        if (error?.status === 401) {
+          console.log("Failed to retrieve token data: Unauthorized");
+          clearExpiredIntervalId();
+          handleLogout();
+          return;
+        }
+        console.log(
+          "Failed to retrieve token data",
+          error?.status ? `status ${error.status}` : "",
+        );
+        clearExpiredIntervalId();
+      },
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [clearExpiredIntervalId, handleLogout, reLoad]);
+
+  const initTimeoutTracking = useCallback(() => {
+    expiredIntervalIdRef.current = setInterval(
+      () => checkSessionValidity(),
+      TRACK_INTERVAL_MS,
+    );
+  }, [checkSessionValidity]);
+
   useEffect(() => {
     clearExpiredIntervalId();
-    setDisabled(appSettings && appSettings["ENABLE_INACTIVITY_TIMEOUT"] ? false : true);
+    setDisabled(
+      appSettings && appSettings["ENABLE_INACTIVITY_TIMEOUT"] ? false : true,
+    );
     initTimeoutTracking();
     return () => clearExpiredIntervalId();
-    /* eslint-disable react-hooks/exhaustive-deps */
-  }, [appSettings]);
+  }, [appSettings, clearExpiredIntervalId, initTimeoutTracking]);
 
   return (
     <div>
@@ -255,7 +265,14 @@ export default function TimeoutModal() {
         aria-labelledby="timeout-modal-title"
         aria-describedby="timeout-modal-description"
       >
-        {body}
+        <ModalBody
+          classes={classes}
+          expiresIn={expiresInRef.current}
+          disabled={disabled}
+          refresh={refreshRef.current}
+          onReload={reLoad}
+          onClose={handleClose}
+        />
       </Modal>
     </div>
   );

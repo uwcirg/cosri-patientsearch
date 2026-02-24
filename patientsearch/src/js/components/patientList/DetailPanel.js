@@ -1,4 +1,4 @@
-import React, { memo, useRef, useEffect } from "react";
+import React, { memo, forwardRef, useRef, useEffect, useCallback } from "react";
 import PropTypes from "prop-types";
 import Button from "@mui/material/Button";
 import Paper from "@mui/material/Paper";
@@ -23,22 +23,14 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default function DetailPanel({ data }) {
-  const panelRef = useRef();
-  const classes = useStyles();
-  let { childrenProps = {} } = usePatientListContext();
-  const {
-    currentRow,
-    getDetailPanelContent = function () {},
-    onDetailPanelClose = function () {},
-  } = childrenProps["detailPanel"] ?? {};
-
-  const DetailPanelContent = memo(function DetailPanelContent({
-    content,
-    onClickFunc,
-  }) {
+const noop = () => {};
+const DetailPanelContent = memo(
+  forwardRef(function DetailPanelContent(
+    { content, onClickFunc, classes },
+    ref,
+  ) {
     return (
-      <div className={classes.detailPanelWrapper} ref={panelRef}>
+      <div className={classes.detailPanelWrapper} ref={ref}>
         <Paper elevation={1} className={classes.detailPanelContainer}>
           {content}
           <Button
@@ -51,33 +43,51 @@ export default function DetailPanel({ data }) {
         </Paper>
       </div>
     );
-  });
+  }),
+);
 
-  DetailPanelContent.propTypes = {
-    content: PropTypes.element,
-    onClickFunc: PropTypes.func,
-  };
+DetailPanelContent.propTypes = {
+  content: PropTypes.element,
+  onClickFunc: PropTypes.func,
+  classes: PropTypes.object.isRequired,
+};
+
+export default function DetailPanel({ data }) {
+  const panelRef = useRef();
+  const classes = useStyles();
+
+  const { childrenProps = {} } = usePatientListContext();
+  const {
+    currentRow,
+    getDetailPanelContent = noop,
+    onDetailPanelClose = noop,
+  } = childrenProps["detailPanel"] ?? {};
+
+  const handleClose = useCallback(
+    () => onDetailPanelClose(data),
+    [onDetailPanelClose, data],
+  );
 
   useEffect(() => {
     if (!panelRef.current) return;
+
     const panelTR = panelRef.current.closest("tr");
     const previousTr = panelTR?.previousElementSibling;
-    if (!previousTr) return;
     const dataRowId = data?.rowData?.id;
     if (currentRow && currentRow.id === dataRowId) {
       previousTr.classList.add("selected-row");
-    } else {
-      previousTr.classList.remove("selected-row");
     }
+    if (!previousTr) return;
+    previousTr.classList.remove("selected-row");
   }, [data, currentRow]);
 
   return (
     <DetailPanelContent
+      ref={panelRef}
       content={getDetailPanelContent(data)}
-      onClickFunc={() => {
-        onDetailPanelClose(data);
-      }}
-    ></DetailPanelContent>
+      onClickFunc={handleClose}
+      classes={classes}
+    />
   );
 }
 

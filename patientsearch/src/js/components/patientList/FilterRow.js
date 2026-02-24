@@ -1,4 +1,11 @@
-import React, { forwardRef, useEffect, useImperativeHandle } from "react";
+import React, {
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useCallback,
+  useRef,
+} from "react";
 import Search from "@mui/icons-material/Search";
 import Phone from "@mui/icons-material/Phone";
 import Button from "@mui/material/Button";
@@ -15,147 +22,117 @@ import { defaultSearchFields } from "../../constants/consts";
 import { usePatientListContext } from "../../context/PatientListContextProvider";
 import RowData from "../../models/RowData";
 
+// Fix #8: Module-level constant — not re-created on every render
+const LAUNCH_BUTTON_LABEL = "VIEW";
 
-export default forwardRef((props, ref) => {
-  let { childrenProps = {} } = usePatientListContext();
+// Fix #3: Extracted shared helper used by both useState init and clearFields,
+// so reset logic and init logic can never drift apart.
+const buildEmptyFilters = (fields) =>
+  fields.reduce((acc, field) => {
+    acc[field.name] = field.type === "date" ? null : "";
+    return acc;
+  }, {});
+
+// Fix #4: Single shared helper for building a validated filter data object,
+// replaces the duplicated logic in handleFilterChange and getCurrentFilters.
+const buildFilterData = (fields, filters) => {
+  return fields.reduce((acc, field) => {
+    if (field.type === "date") {
+      const dateValue = filters[field.name];
+      if (dateValue && dayjs(dateValue).isValid()) {
+        acc[field.name] = dateValue;
+      }
+    } else if (filters[field.name]?.trim()) {
+      acc[field.name] = filters[field.name];
+    }
+    return acc;
+  }, {});
+};
+
+export default forwardRef(function FilterRow(_props, ref) {
+  const { childrenProps = {} } = usePatientListContext();
 
   const {
     actionLabel = "",
     handleSearch,
     onFiltersDidChange,
-    fields = defaultSearchFields,
+    fields: rawFields = defaultSearchFields,
   } = childrenProps["filterRow"] ?? {};
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const fields = useMemo(() => rawFields, [JSON.stringify(rawFields)]); 
+  const onFiltersDidChangeRef = useRef(onFiltersDidChange);
+  useEffect(() => {
+    onFiltersDidChangeRef.current = onFiltersDidChange;
+  });
 
-  const LAUNCH_BUTTON_LABEL = "VIEW";
+  const [filters, setFilters] = React.useState(() => buildEmptyFilters(fields));
 
-  const initialFilters = fields.reduce((acc, field) => {
-    acc[field.name] = field.type === "date" ? null : "";
-    return acc;
-  }, {});
+  const filtersArePresent = useMemo(
+    () =>
+      fields.some((field) => {
+        if (field.type === "date") return dayjs(filters[field.name]).isValid();
+        return !!filters[field.name];
+      }),
+    [filters, fields],
+  );
 
-  const [filters, setFilters] = React.useState(initialFilters);
+  const filtersAreComplete = useMemo(
+    () =>
+      fields
+        .filter((field) => !!field.required)
+        .every((field) => {
+          if (field.type === "date")
+            return dayjs(filters[field.name]).isValid();
+          return !!filters[field.name]?.trim();
+        }),
+    [filters, fields],
+  );
 
-  const getDateInput = (fieldName = "birthDate") =>
-    dayjs(filters[fieldName]).isValid() ? filters[fieldName] : "";
+  const getCurrentFilters = useCallback(() => {
+    const filterData = buildFilterData(fields, filters);
+    return RowData.create(filterData).getData();
+  }, [fields, filters]);
 
-  const handleFilterChange = () => {
-    // Build filter data with only valid values
-    const filterData = {};
-
-    fields.forEach((field) => {
-      if (field.type === "date") {
-        // Only include valid dates
-        const dateValue = getDateInput(field.name);
-        if (dateValue && dayjs(dateValue).isValid()) {
-          filterData[field.name] = dateValue;
-        }
-      } else {
-        // Only include non-empty values
-        if (filters[field.name] && filters[field.name].trim() !== "") {
-          filterData[field.name] = filters[field.name];
-        }
-      }
-    });
-    const oData = RowData.create(filterData);
-    if (onFiltersDidChange) onFiltersDidChange(oData.getFilters());
-  };
-
-  const handleFieldChange = (fieldName) => (event) => {
-    let targetValue = event.target.value;
-
-    const field = fields.find((f) => f.name === fieldName);
-
-    if (
-      field?.type === "masked" ||
-      field?.type === "number"
-    ) {
-      const digitsOnly = targetValue.replace(/\D/g, "");
-      targetValue = digitsOnly === "" ? "" : digitsOnly;
-    }
-
-    setFilters({
-      ...filters,
-      [fieldName]: targetValue,
-    });
-  };
-
-  const hasFilter = () => {
-    return fields.some((field) => {
-      if (field.type === "date") {
-        return dayjs(filters[field.name]).isValid();
-      }
-      return filters[field.name];
-    });
-  };
-
-  const hasCompleteFilters = () => {
-    return fields
-      .filter((field) => !!field.required) // Only check required fields
-      .every((field) => {
-        if (field.type === "date") {
-          return dayjs(filters[field.name]).isValid();
-        }
-        return filters[field.name] && filters[field.name].trim() !== "";
-      });
-  };
-
-  const getFilterData = () => {
-    if (!hasCompleteFilters()) return null;
+  const getFilterData = useCallback(() => {
+    if (!filtersAreComplete) return null;
     return getCurrentFilters();
-  };
+  }, [filtersAreComplete, getCurrentFilters]);
 
-  const getCurrentFilters = () => {
-    const filterData = {};
-    fields.forEach((field) => {
-      if (field.type === "date") {
-        // Only include date if it's valid
-        const dateValue = getDateInput(field.name);
-        if (dayjs(dateValue).isValid()) {
-          filterData[field.name] = dateValue;
-        } else {
-          filterData[field.name] = "";
-        }
-      } else {
-        // Only include non-empty values
-        if (filters[field.name] && filters[field.name].trim() !== "") {
-          filterData[field.name] = filters[field.name];
-        }
+  const handleFieldChange = useCallback(
+    (fieldName) => (event) => {
+      let targetValue = event.target.value;
+      const field = fields.find((f) => f.name === fieldName);
+
+      if (field?.type === "masked" || field?.type === "number") {
+        const digitsOnly = targetValue.replace(/\D/g, "");
+        targetValue = digitsOnly === "" ? "" : digitsOnly;
       }
-    });
 
-    const oData = RowData.create(filterData);
-    return oData.getData();
-  };
+      setFilters((prev) => ({ ...prev, [fieldName]: targetValue }));
+    },
+    [fields],
+  );
 
-  const handleClear = () => {
-    clearFields();
-    if (onFiltersDidChange) onFiltersDidChange(null);
-  };
+  const handleClear = useCallback(() => {
+    setFilters(buildEmptyFilters(fields));
+    if (onFiltersDidChangeRef.current) onFiltersDidChangeRef.current(null);
+  }, [fields]);
 
-  const clearFields = () => {
-    const clearedFilters = {};
-    fields.forEach((field) => {
-      clearedFilters[field.name] = field.type === "date" ? null : "";
-    });
-    setFilters(clearedFilters);
-  };
+  const launchButtonLabel = actionLabel || LAUNCH_BUTTON_LABEL;
 
-  const getLaunchButtonLabel = (actionLabel) => {
-    return actionLabel ? actionLabel : LAUNCH_BUTTON_LABEL;
-  };
-
-  const handleKeyDown = (e) => {
-    const pressedKey = String(e.key).toLowerCase();
-    if (pressedKey === "spacebar") {
-      e.stopPropagation();
-    }
-    if (pressedKey === "enter") {
-      if (!hasCompleteFilters()) return;
-      handleSearch(getFilterData());
-      return;
-    }
-    return false;
-  };
+  const handleKeyDown = useCallback(
+    (e) => {
+      const pressedKey = String(e.key).toLowerCase();
+      if (pressedKey === "spacebar") {
+        e.stopPropagation();
+      }
+      if (pressedKey === "enter") {
+        if (!filtersAreComplete) return;
+        handleSearch(getFilterData());
+      }
+    },
+    [filtersAreComplete, handleSearch, getFilterData],
+  );
 
   useImperativeHandle(ref, () => ({
     clear() {
@@ -186,7 +163,7 @@ export default forwardRef((props, ref) => {
       onKeyDown={handleKeyDown}
       key={`ft${field.name}`}
       fullWidth
-      inputProps={{ "data-lpignore": true}}
+      inputProps={{ "data-lpignore": true }}
       InputProps={{
         startAdornment: (
           <InputAdornment position="start">
@@ -215,12 +192,9 @@ export default forwardRef((props, ref) => {
           },
           field: {
             clearable: true,
-            onClear: () => {
-              setFilters({
-                ...filters,
-                [field.name]: null,
-              });
-            },
+            // Fix #7: functional updater form for date clear
+            onClear: () =>
+              setFilters((prev) => ({ ...prev, [field.name]: null })),
           },
         }}
         format="YYYY-MM-DD"
@@ -234,16 +208,16 @@ export default forwardRef((props, ref) => {
         onKeyDown={handleKeyDown}
         onChange={(newValue, validationContext) => {
           if (validationContext?.validationError) {
-            setFilters({
-              ...filters,
+            setFilters((prev) => ({
+              ...prev,
               [field.name]: newValue.format(),
-            });
+            }));
             return;
           }
-          setFilters({
-            ...filters,
+          setFilters((prev) => ({
+            ...prev,
             [field.name]: newValue ? newValue.format("YYYY-MM-DD") : null,
-          });
+          }));
         }}
         KeyboardButtonProps={{ color: "primary", title: "Date picker" }}
       />
@@ -251,7 +225,7 @@ export default forwardRef((props, ref) => {
   );
 
   const renderMaskedField = (field) => {
-    let mask = field?.mask ? field.mask : null;
+    const mask = field?.mask ?? null;
     return (
       <FormattedInput
         value={filters[field.name] || ""}
@@ -274,7 +248,7 @@ export default forwardRef((props, ref) => {
         case "date":
           return renderDateField(field);
         case "masked":
-          return renderMaskedField(field, field.type);
+          return renderMaskedField(field);
         case "text":
         default:
           return renderTextField(field);
@@ -285,9 +259,7 @@ export default forwardRef((props, ref) => {
       <Box
         key={field.name}
         className={
-          field.type === "date"
-            ? "date-field-wrapper"
-            : "field-wrapper"
+          field.type === "date" ? "date-field-wrapper" : "field-wrapper"
         }
       >
         {fieldContent}
@@ -297,15 +269,13 @@ export default forwardRef((props, ref) => {
 
   const renderLaunchButton = () => (
     <Button
-      className={
-        !hasCompleteFilters() ? "disabled" : ""
-      }
+      className={!filtersAreComplete ? "disabled" : ""} // Fix #5: uses memoized value
       color="primary"
       size="small"
       variant="contained"
       onClick={() => handleSearch(getFilterData())}
     >
-      {getLaunchButtonLabel(actionLabel)}
+      {launchButtonLabel} {/* Fix #9: inlined expression */}
     </Button>
   );
 
@@ -315,7 +285,7 @@ export default forwardRef((props, ref) => {
         variant="contained"
         size="small"
         onClick={handleClear}
-        className={!hasFilter() ? "disabled" : ""}
+        className={!filtersArePresent ? "disabled" : ""}
         id="btnClear"
       >
         Clear
@@ -324,9 +294,12 @@ export default forwardRef((props, ref) => {
   );
 
   useEffect(() => {
-    handleFilterChange();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filters]);
+    const filterData = buildFilterData(fields, filters);
+    const oData = RowData.create(filterData);
+    if (onFiltersDidChangeRef.current) {
+      onFiltersDidChangeRef.current(oData.getFilters());
+    }
+  }, [filters, fields]);
 
   return (
     <Box className="search-container">

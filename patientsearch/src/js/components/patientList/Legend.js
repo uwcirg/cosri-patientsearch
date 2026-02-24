@@ -35,9 +35,11 @@ LegendContent.propTypes = {
   show: PropTypes.bool,
   classes: PropTypes.object,
 };
+
+const noop = function () {};
 export default function Legend() {
   const { childrenProps = {} } = usePatientListContext();
-  const { shouldShowLegend = function () {} } = childrenProps["legend"] ?? {};
+  const { shouldShowLegend = noop } = childrenProps["legend"] ?? {};
   const classes = useStyles();
   return (
     <LegendContent show={shouldShowLegend()} classes={classes}></LegendContent>

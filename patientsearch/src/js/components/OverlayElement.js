@@ -1,5 +1,6 @@
+import { memo } from "react";
 import PropTypes from "prop-types";
-import makeStyles from '@mui/styles/makeStyles';
+import makeStyles from "@mui/styles/makeStyles";
 
 const useStyles = makeStyles({
   overlayContainer: {
@@ -17,13 +18,21 @@ const useStyles = makeStyles({
   },
 });
 
-export default function OverlayElement(props) {
+const MemoizedOverlayElement = memo(function MemoizedOverlayElement(props) {
   const classes = useStyles();
   return (
     <div className={classes.overlayContainer}>
       <div className={classes.overlayElement}>{props.children}</div>
     </div>
   );
+});
+
+MemoizedOverlayElement.propTypes = {
+  children: PropTypes.oneOfType([PropTypes.element, PropTypes.array]),
+};
+
+export default function OverlayElement(props) {
+  return <MemoizedOverlayElement>{props.children}</MemoizedOverlayElement>;
 }
 
 OverlayElement.propTypes = {
