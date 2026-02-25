@@ -66,25 +66,31 @@ LaunchDialogBox.propTypes = {
   onCloseFunc: PropTypes.func,
 };
 
+const noop = () => {};
+
+const MemoizedLaunchDialogBox = memo(function memoizedLaunchDialogBox(props) {
+  return <LaunchDialogBox {...props} />;
+});
+
 export default function LaunchDialog() {
   const classes = useStyles();
   let { childrenProps = {} } = usePatientListContext();
   const {
     title,
     appClients,
-    onLaunchDialogClose = function () {},
-    handleLaunchApp = function () {},
+    onLaunchDialogClose = noop,
+    handleLaunchApp = noop,
     open,
   } = childrenProps["launchDialog"] ?? {};
 
   return (
-    <LaunchDialogBox
+    <MemoizedLaunchDialogBox
       classes={classes}
       open={open}
       title={title}
       appClients={appClients}
       launchFunc={handleLaunchApp}
-      onCloseFunc={() => onLaunchDialogClose()}
-    ></LaunchDialogBox>
+      onCloseFunc={onLaunchDialogClose}
+    />
   );
 }

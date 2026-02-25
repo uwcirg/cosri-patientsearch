@@ -1,4 +1,6 @@
-import makeStyles from '@mui/styles/makeStyles';
+import { memo } from "react";
+import PropTypes from "prop-types";
+import makeStyles from "@mui/styles/makeStyles";
 import { Button, Tooltip } from "@mui/material";
 import RefreshIcon from "@mui/icons-material/Refresh";
 
@@ -11,22 +13,34 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default function RefreshButton() {
-  const classes = useStyles();
+const refreshFunction = () => {
+  location.reload();
+};
+
+const MemoizedRefreshButton = memo(function MemoizedRefreshButton(props) {
   return (
-    <div className={classes.refreshButtonContainer}>
+    <div className={props.containerClass}>
       <Tooltip title="Refresh the list">
         <Button
           variant="contained"
           size="small"
           startIcon={<RefreshIcon />}
-          onClick={() => {
-            location.reload();
-          }}
+          onClick={refreshFunction}
         >
           Refresh
         </Button>
       </Tooltip>
     </div>
+  );
+});
+
+MemoizedRefreshButton.propTypes = {
+  containerClass: PropTypes.string,
+};
+
+export default function RefreshButton() {
+  const classes = useStyles();
+  return (
+    <MemoizedRefreshButton containerClass={classes.refreshButtonContainer} />
   );
 }

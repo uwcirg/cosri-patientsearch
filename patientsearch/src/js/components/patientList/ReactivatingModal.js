@@ -26,57 +26,61 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+function warnIfMissing(name, fn) {
+  if (process.env.NODE_ENV === "development" && typeof fn !== "function") {
+    console.warn(
+      `ReactivatingModal: expected a function for "${name}" but received`,
+      fn,
+    );
+  }
+  return typeof fn === "function" ? fn : () => {};
+}
+
 export default function ReactivatingModal() {
   const classes = useStyles();
-
-  let { childrenProps = {} } = usePatientListContext();
-
+  const { childrenProps = {} } = usePatientListContext();
   const [open, setOpen] = React.useState(false);
+
   const {
-    onSubmit = function () {},
-    onModalClose = function () {},
+    onSubmit,
+    onModalClose,
     currentRow,
     patientLabel,
     modalOpen,
-    handleSearch = function () {},
-  } = (childrenProps["reactivate"] ?? {});
+    handleSearch,
+  } = childrenProps["reactivate"] ?? {};
 
-  const onAfterButtonClick = () => {
-    setOpen(false);
-    onSubmit();
-  };
+  const safeOnSubmit = warnIfMissing("onSubmit", onSubmit);
+  const safeOnModalClose = warnIfMissing("onModalClose", onModalClose);
+  const safeHandleSearch = warnIfMissing("handleSearch", handleSearch);
+  const rowData = React.useMemo(() => new RowData(currentRow), [currentRow]);
 
-  const onReactivate = () => {
-    handleSearch(getSubjectDataFromFilters(), {
-      reactivate: true,
-    });
-    onAfterButtonClick();
-  };
-  const onCreate = () => {
-    handleSearch(getSubjectDataFromFilters(), {
-      createNew: true,
-    });
-    onAfterButtonClick();
-  };
-  const onClose = (event, reason) => {
-    if (reason && reason === "backdropClick") return;
-    onAfterButtonClick();
-    onModalClose();
-  };
   const getSubjectReferenceText = () =>
     String(patientLabel).toLowerCase().includes("recipient")
       ? "recipient"
       : "patient";
-  const getSubjectDataFromFilters = () => {
-    const oData = new RowData(currentRow);
-    return oData.data;
-  };
-  const getSubjectInfoFromFilters = () => {
-    const oData = new RowData(currentRow);
-    if (!oData.lastName || !oData.lastName) return "patient";
-    const name = [oData.lastName, oData.firstName].join(", ");
-    const dob = oData.birthDate ? oData.birthDate : "";
+
+  const getSubjectData = () => rowData.data;
+
+  const getSubjectInfo = () => {
+    if (!rowData.lastName || !rowData.firstName) return "patient";
+    const name = [rowData.lastName, rowData.firstName].join(", ");
+    const dob = rowData.birthDate ?? "";
     return [name, dob].join(" ");
+  };
+
+  const handleAction = (mode) => {
+    safeHandleSearch(getSubjectData(), { [mode]: true });
+    safeOnSubmit();
+    setOpen(false);
+  };
+
+  const onReactivate = () => handleAction("reactivate");
+  const onCreate = () => handleAction("createNew");
+
+  const onClose = (event, reason) => {
+    if (reason === "backdropClick") return;
+    safeOnModalClose();
   };
 
   React.useEffect(() => {
@@ -85,33 +89,25 @@ export default function ReactivatingModal() {
 
   return (
     <Modal
-      open={open}
+      open={!!open}
       onClose={onClose}
-      aria-labelledby="reactivating-modal"
-      aria-describedby="reactivating-modal"
+      aria-labelledby="reactivating-modal-title"
+      aria-describedby="reactivating-modal-description"
     >
       <Box className={classes.container}>
-        <Alert severity="warning">
+        <Alert severity="warning" id="reactivating-modal-description">
+          <strong id="reactivating-modal-title">Duplicate Record Found</strong>
+          <br />
           There is a deactivated {getSubjectReferenceText()} record in the
           system that matches this name and birthdate ({" "}
-          <strong>{getSubjectInfoFromFilters()}</strong> ). Do you want to
-          restore that record or create a new one?
+          <strong>{getSubjectInfo()}</strong> ). Do you want to restore that
+          record or create a new one?
         </Alert>
         <div className={classes.buttonsContainer}>
-          <Button
-            variant="contained"
-            color="primary"
-            className={classes.button}
-            onClick={onReactivate}
-          >
+          <Button variant="contained" color="primary" onClick={onReactivate}>
             Restore
           </Button>
-          <Button
-            variant="contained"
-            color="primary"
-            className={classes.button}
-            onClick={onCreate}
-          >
+          <Button variant="contained" color="primary" onClick={onCreate}>
             Create New
           </Button>
           <Button variant="outlined" color="primary" onClick={onClose}>
