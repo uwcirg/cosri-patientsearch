@@ -19,7 +19,7 @@ const refreshFunction = () => {
 
 const MemoizedRefreshButton = memo(function MemoizedRefreshButton(props) {
   return (
-    <div className={props.containerStyle}>
+    <div className={props.containerClass}>
       <Tooltip title="Refresh the list">
         <Button
           variant="contained"
@@ -35,12 +35,12 @@ const MemoizedRefreshButton = memo(function MemoizedRefreshButton(props) {
 });
 
 MemoizedRefreshButton.propTypes = {
-  containerStyle: PropTypes.object,
+  containerClass: PropTypes.string,
 };
 
 export default function RefreshButton() {
   const classes = useStyles();
   return (
-    <MemoizedRefreshButton containerStyle={classes.refreshButtonContainer} />
+    <MemoizedRefreshButton containerClass={classes.refreshButtonContainer} />
   );
 }

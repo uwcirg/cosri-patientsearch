@@ -1,279 +1,179 @@
-import React, { useEffect, useRef, useCallback } from "react";
-import PropTypes from "prop-types";
-import makeStyles from "@mui/styles/makeStyles";
-import Button from "@mui/material/Button";
-import Modal from "@mui/material/Modal";
+import React, { useEffect, useRef, useCallback, useState } from "react";
+import {
+  Box,
+  Button,
+  Modal,
+  Typography,
+  Paper,
+  LinearProgress,
+  CircularProgress,
+} from "@mui/material";
 import { sendRequest } from "../helpers/utility";
 import { useSettingContext } from "../context/SettingContextProvider";
 
-const MODAL_STYLE = {
-  top: "50%",
-  left: "50%",
-  transform: "translate(-50%, -50%)",
-};
-
 const TRACK_INTERVAL_MS = 15000;
+const WARNING_THRESHOLD_SEC = 60;
 
-const getExpiresInDisplay = (expiresIn) => {
-  if (!expiresIn) return "";
-  return `${Math.floor(expiresIn)} seconds`;
-};
+const ModalBody = React.forwardRef(
+  ({ expiresIn, isRefreshing, onReload, onClose }, ref) => {
+    const progress = Math.max(
+      0,
+      Math.min(100, (expiresIn / WARNING_THRESHOLD_SEC) * 100),
+    );
+    const isCritical = expiresIn < 15;
 
-const useStyles = makeStyles((theme) => ({
-  paper: {
-    position: "absolute",
-    width: 480,
-    backgroundColor: theme.palette.background.paper,
-    border: `2px solid ${theme.palette.primary.main}`,
-    boxShadow: theme.shadows[5],
-    padding: theme.spacing(2, 4, 3),
-  },
-  infoDescription: {
-    color: theme.palette.primary.warning,
-    marginTop: theme.spacing(1),
-    marginBottom: theme.spacing(2),
-    fontWeight: 500,
-  },
-  expiredDisplay: {
-    fontWeight: 500,
-    marginLeft: theme.spacing(0.5),
-  },
-}));
+    return (
+      <Paper
+        ref={ref}
+        tabIndex={-1}
+        sx={{
+          position: "absolute",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          width: 480,
+          bgcolor: "background.paper",
+          border: "2px solid",
+          borderColor: isCritical ? "error.main" : "primary.main",
+          boxShadow: 24,
+          p: 4,
+          outline: "none",
+        }}
+      >
+        <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>
+          Session Timeout Notice
+        </Typography>
 
-const ModalBody = React.forwardRef(function ModalBody(
-  { classes, expiresIn, disabled, refresh, onReload, onClose },
-  ref,
-) {
-  return (
-    <div ref={ref} style={MODAL_STYLE} className={classes.paper}>
-      <h2 id="timeout-modal-title">Session Timeout Notice</h2>
-      <div id="timeout-modal-description">
-        {expiresIn !== null && expiresIn === 0 && (
-          <span className="error">Your current session has expired.</span>
-        )}
-        {expiresIn !== null && expiresIn !== 0 && (
-          <React.Fragment>
-            {!disabled && (
-              <span>
-                Your session will expire in approximately
-                <span className={classes.expiredDisplay}>
-                  {getExpiresInDisplay(expiresIn)}
-                </span>
-                .
-              </span>
-            )}
-            {disabled && (
-              <div>
-                <div>Your session is about to expire.</div>
-                {refresh && (
-                  <div className={classes.infoDescription}>
-                    One moment while your browser session is refreshed....
-                  </div>
-                )}
-              </div>
-            )}
-          </React.Fragment>
-        )}
-        <div className="buttons-container">
-          {!disabled && refresh && (
-            <Button variant="outlined" onClick={onReload}>
-              Refresh Session
-            </Button>
-          )}
-          <Button variant="outlined" onClick={onClose}>
-            Dismiss
-          </Button>
-          <Button
-            variant="outlined"
-            onClick={() => (window.location = "/logout")}
+        <Box sx={{ mb: 3 }}>
+          <LinearProgress
+            variant="determinate"
+            value={progress}
+            color={isCritical ? "error" : "primary"}
+            sx={{ height: 10, borderRadius: 5 }}
+          />
+        </Box>
+
+        <Box>
+          <Typography variant="body1">
+            {expiresIn <= 0
+              ? "Your session has expired."
+              : `Your session will expire in ${Math.floor(expiresIn)} seconds.`}
+          </Typography>
+
+          <Box
+            sx={{ mt: 4, display: "flex", gap: 1, justifyContent: "flex-end" }}
           >
-            Log Out
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
-});
-ModalBody.propTypes = {
-  classes: PropTypes.object.isRequired,
-  expiresIn: PropTypes.number,
-  disabled: PropTypes.bool.isRequired,
-  refresh: PropTypes.bool.isRequired,
-  onReload: PropTypes.func.isRequired,
-  onClose: PropTypes.func.isRequired,
-};
+            <Button
+              variant="contained"
+              onClick={onReload}
+              disabled={isRefreshing || expiresIn <= 0}
+              sx={{ fontWeight: 600, minWidth: 145 }}
+              startIcon={
+                isRefreshing ? (
+                  <CircularProgress size={20} color="inherit" />
+                ) : null
+              }
+            >
+              {isRefreshing ? "Refreshing..." : "Extend Session"}
+            </Button>
 
+            <Button
+              variant="outlined"
+              color="inherit"
+              onClick={onClose}
+              disabled={isRefreshing}
+            >
+              Dismiss
+            </Button>
+
+            <Button
+              variant="text"
+              color="error"
+              onClick={() => (window.location.href = "/logout")}
+              disabled={isRefreshing}
+            >
+              Log Out
+            </Button>
+          </Box>
+        </Box>
+      </Paper>
+    );
+  },
+);
 
 export default function TimeoutModal() {
-  const classes = useStyles();
   const { appSettings } = useSettingContext();
+  const [open, setOpen] = useState(false);
+  const [expiresIn, setExpiresIn] = useState(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const [open, setOpen] = React.useState(false);
-  const [disabled, setDisabled] = React.useState(false);
-
-  const expiredIntervalIdRef = useRef(0);
-  const expiresInRef = useRef(null);
-  const refreshRef = useRef(false);
-  const retryAttemptsRef = useRef(0);
-  const openRef = useRef(open);
-  const disabledRef = useRef(disabled);
-  useEffect(() => {
-    openRef.current = open;
-  }, [open]);
-  useEffect(() => {
-    disabledRef.current = disabled;
-  }, [disabled]);
-
-  const clearExpiredIntervalId = useCallback(() => {
-    clearInterval(expiredIntervalIdRef.current);
-  }, []);
-
-  const handleClose = useCallback(() => {
-    clearExpiredIntervalId();
-    setOpen(false);
-  }, [clearExpiredIntervalId]);
+  const intervalRef = useRef(null);
+  const countdownRef = useRef(null);
 
   const reLoad = useCallback(() => {
-    handleClose();
-    // Force-request a new access token when one is about to expire but still valid
-    window.location = "/clear_session";
-  }, [handleClose]);
+    setIsRefreshing(true);
+    window.location.href = "/clear_session";
+  }, []);
 
-  const handleLogout = useCallback(
-    (userInitiated) => {
-      clearExpiredIntervalId();
-      sessionStorage.clear();
-      const param = userInitiated ? "user_initiated=true" : "timeout=true";
-      setTimeout(() => {
-        window.location = `/logout?${param}`;
-      }, 0);
-    },
-    [clearExpiredIntervalId],
-  );
+  const checkSessionValidity = useCallback(async () => {
+    if (isRefreshing) return;
 
-  const checkSessionValidity = useCallback(() => {
-    const reTry = () => {
-      if (retryAttemptsRef.current < 2) {
-        initTimeoutTracking();
-        retryAttemptsRef.current++;
-        return;
+    try {
+      const response = await sendRequest("./validate_token");
+      if (!response) return;
+
+      const tokenData = JSON.parse(response);
+      const accessExp = parseFloat(tokenData.access_expires_in);
+      const refreshExp = parseFloat(tokenData.refresh_expires_in);
+
+      const currentExpiry =
+        !tokenData.valid && refreshExp === 0
+          ? 0
+          : Math.min(accessExp, refreshExp);
+
+      setExpiresIn(currentExpiry);
+
+
+      if (currentExpiry <= 0) {
+        window.location.href = "/logout?timeout=true";
+      } else if (currentExpiry <= WARNING_THRESHOLD_SEC) {
+        setOpen(true);
+      } else {
+        setOpen(false);
       }
-      retryAttemptsRef.current = 0;
-      clearExpiredIntervalId();
-    };
-
-    if (
-      expiresInRef.current !== null &&
-      expiresInRef.current > 0 &&
-      expiresInRef.current <= TRACK_INTERVAL_MS / 1000
-    ) {
-      handleLogout();
-      return;
+    } catch (e) {
+      console.error("Session check failed", e);
     }
-
-    sendRequest("./validate_token").then(
-      (response) => {
-        if (!response) return;
-
-        let tokenData = null;
-        try {
-          tokenData = JSON.parse(response);
-        } catch (e) {
-          console.log(`Error occurred parsing token data ${e}`);
-          reTry();
-          return;
-        }
-
-        const accessTokenExpiresIn = parseFloat(tokenData["access_expires_in"]);
-        const refreshTokenExpiresIn = parseFloat(
-          tokenData["refresh_expires_in"],
-        );
-        const refreshTokenOnVentilator =
-          (!tokenData["valid"] && refreshTokenExpiresIn === 0) ||
-          refreshTokenExpiresIn < accessTokenExpiresIn;
-
-        expiresInRef.current = refreshTokenOnVentilator
-          ? refreshTokenExpiresIn
-          : accessTokenExpiresIn;
-
-        const tokenAboutToExpire =
-          Math.floor(expiresInRef.current) >= 1 &&
-          Math.floor(expiresInRef.current) <= 60;
-
-        refreshRef.current = tokenAboutToExpire && !refreshTokenOnVentilator;
-
-        if (!tokenData["valid"] || expiresInRef.current <= 1) {
-          if (refreshTokenOnVentilator) {
-            handleLogout();
-          } else {
-            reLoad();
-          }
-          clearExpiredIntervalId();
-          return;
-        }
-
-        if (tokenAboutToExpire) {
-          if (disabledRef.current) {
-            setTimeout(() => {
-              if (refreshTokenOnVentilator) handleLogout();
-              else reLoad();
-            }, 5000);
-          }
-          if (!openRef.current) setOpen(true);
-        }
-      },
-      (error) => {
-        console.log("Error returned ", error);
-        if (error?.status === 401) {
-          console.log("Failed to retrieve token data: Unauthorized");
-          clearExpiredIntervalId();
-          handleLogout();
-          return;
-        }
-        console.log(
-          "Failed to retrieve token data",
-          error?.status ? `status ${error.status}` : "",
-        );
-        clearExpiredIntervalId();
-      },
-    );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [clearExpiredIntervalId, handleLogout, reLoad]);
-
-  const initTimeoutTracking = useCallback(() => {
-    expiredIntervalIdRef.current = setInterval(
-      () => checkSessionValidity(),
-      TRACK_INTERVAL_MS,
-    );
-  }, [checkSessionValidity]);
+  }, [isRefreshing]);
 
   useEffect(() => {
-    clearExpiredIntervalId();
-    setDisabled(
-      appSettings && appSettings["ENABLE_INACTIVITY_TIMEOUT"] ? false : true,
-    );
-    initTimeoutTracking();
-    return () => clearExpiredIntervalId();
-  }, [appSettings, clearExpiredIntervalId, initTimeoutTracking]);
+    intervalRef.current = setInterval(checkSessionValidity, TRACK_INTERVAL_MS);
+    checkSessionValidity();
+    return () => clearInterval(intervalRef.current);
+  }, [appSettings, checkSessionValidity]);
+
+  useEffect(() => {
+    if (open && expiresIn > 0 && !isRefreshing) {
+      countdownRef.current = setInterval(() => {
+        setExpiresIn((prev) => Math.max(0, prev - 1));
+      }, 1000);
+    }
+    return () => clearInterval(countdownRef.current);
+  }, [open, expiresIn, isRefreshing]);
 
   return (
-    <div>
-      <Modal
-        open={open}
-        onClose={handleClose}
-        className="timeout-modal"
-        aria-labelledby="timeout-modal-title"
-        aria-describedby="timeout-modal-description"
-      >
-        <ModalBody
-          classes={classes}
-          expiresIn={expiresInRef.current}
-          disabled={disabled}
-          refresh={refreshRef.current}
-          onReload={reLoad}
-          onClose={handleClose}
-        />
-      </Modal>
-    </div>
+    <Modal
+      open={open}
+      onClose={() => !isRefreshing && setOpen(false)}
+      aria-labelledby="timeout-modal-title"
+      aria-describedby="timeout-modal-description"
+    >
+      <ModalBody
+        expiresIn={expiresIn}
+        isRefreshing={isRefreshing}
+        onReload={reLoad}
+        onClose={() => setOpen(false)}
+      />
+    </Modal>
   );
 }
