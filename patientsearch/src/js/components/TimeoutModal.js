@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useCallback, useState } from "react";
+import PropTypes from "prop-types";
 import {
   Box,
   Button,
@@ -100,6 +101,13 @@ const ModalBody = React.forwardRef(
     );
   },
 );
+
+ModalBody.propTypes = {
+  expiresIn: PropTypes.number,
+  isRefreshing: PropTypes.bool,
+  onReload: PropTypes.func.isRequired,
+  onClose: PropTypes.func.isRequired,
+};
 
 export default function TimeoutModal() {
   const { appSettings } = useSettingContext();
