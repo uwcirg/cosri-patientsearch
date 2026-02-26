@@ -233,6 +233,8 @@ export default function Agreement(props) {
     snackOpen,
   } = state;
 
+  const [isPrinting, setIsPrinting] = React.useState(false);
+
   const { rowData } = props;
 
   const getPatientId = React.useCallback(
@@ -466,15 +468,24 @@ export default function Agreement(props) {
   };
 
   const handlePrintNew = () => {
-    const printWindow = window.open(
-      "/static/app/files/UW_CST_Agreement.pdf",
-      "_blank",
-    );
-    printWindow.onload = function () {
-      printWindow.focus();
-      printWindow.print();
-      handleUpdate({ date: dayjs().format("YYYY-MM-DD") });
-    };
+    if (isPrinting) return; // Prevent double-taps
+
+    setIsPrinting(true);
+    const pdfUrl = "/static/app/files/UW_CST_Agreement.pdf";
+
+    // Open window immediately
+    const printWindow = window.open(pdfUrl, "_blank");
+
+    // Record the data
+    handleUpdate({ date: dayjs().format("YYYY-MM-DD") }, () => {
+      // Reset loading state when the API call finishes
+      setIsPrinting(false);
+    });
+
+    if (!printWindow) {
+      alert("Please allow popups to view the agreement.");
+      setIsPrinting(false);
+    }
   };
 
   const columns = [
@@ -637,9 +648,16 @@ export default function Agreement(props) {
           <Button
             variant="outlined"
             onClick={handlePrintNew}
-            endIcon={<PrintIcon size="small" sx={{ marginLeft: 1 }} />}
+            disabled={isPrinting}
+            endIcon={
+              isPrinting ? (
+                <CircularProgress size={20} color="inherit" />
+              ) : (
+                <PrintIcon size="small" />
+              )
+            }
           >
-            Print Agreement Form
+            {isPrinting ? "Processing..." : "Print Agreement Form"}
           </Button>
         </div>
         <Typography variant="caption">
