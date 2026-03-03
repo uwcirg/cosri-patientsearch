@@ -47,19 +47,18 @@ const DetailPanelContent = memo(
 );
 
 DetailPanelContent.propTypes = {
-  content: PropTypes.element,
   onClickFunc: PropTypes.func,
   classes: PropTypes.object.isRequired,
+  content: PropTypes.element,
 };
 
-export default function DetailPanel({ data }) {
+export default function DetailPanel({ data, content }) {
   const panelRef = useRef();
   const classes = useStyles();
 
   const { childrenProps = {} } = usePatientListContext();
   const {
     currentRow,
-    getDetailPanelContent = noop,
     onDetailPanelClose = noop,
   } = childrenProps["detailPanel"] ?? {};
 
@@ -84,7 +83,7 @@ export default function DetailPanel({ data }) {
   return (
     <DetailPanelContent
       ref={panelRef}
-      content={getDetailPanelContent(data)}
+      content={content}
       onClickFunc={handleClose}
       classes={classes}
     />
@@ -93,4 +92,5 @@ export default function DetailPanel({ data }) {
 
 DetailPanel.propTypes = {
   data: PropTypes.object.isRequired,
+  content: PropTypes.element,
 };

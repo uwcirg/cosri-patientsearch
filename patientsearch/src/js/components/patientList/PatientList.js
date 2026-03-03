@@ -93,7 +93,7 @@ export default function PatientListTable() {
       <Error message={errorMessage} />
       <div className="flex">
         <FilterRow ref={filterRowRef} />
-        <div className="bottom-gap-2x">
+        <div className="bottom-gap-2x toolbar-side-container">
           <MyPatientsCheckbox />
           <TestPatientsCheckbox />
         </div>

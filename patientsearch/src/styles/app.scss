@@ -229,6 +229,11 @@ button.disabled:focus,
     color: #FFF;
   }
 }
+.toolbar-side-container {
+  @media (min-width: 1200px) {
+    min-width: 30%;
+  }
+}
 .MuiTypography-h6 {
   font-size: 1.02rem !important;
 }
@@ -326,7 +331,6 @@ th.MuiTableCell-root {
     border-radius: 4px;
     padding: 0;
     margin-bottom: 16px;
-    width: 100%;
     display: flex;
     flex-wrap: wrap;
     gap: 24px;
