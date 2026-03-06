@@ -945,7 +945,7 @@ export default function PatientListContextProvider({ children }) {
       : [];
     if (isEmptyArray(appClients)) return actions;
     return [
-      ...appClients.map((c) => ({
+      ...appClients.filter((c) => !c.standalone).map((c) => ({
         icon: () => (
           <span
             className="action-button"
