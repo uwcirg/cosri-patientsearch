@@ -316,12 +316,23 @@ export default function PatientListContextProvider({ children }) {
     return getAppSettingByKey("EXTERNAL_FHIR_API");
   }, [getAppSettingByKey]);
 
-  const hasSoFClients = useCallback(() => {
-    return !isEmptyArray(appClients);
-  }, [appClients]);
+  const getLaunchableSofClients = useCallback(() => {
+    if (isEmptyArray(appClients)) return null;
+    return appClients.filter((c) => String(c.standalone).toLowerCase() !== "true");
+  }, [appClients])
 
-  const hasMultipleSoFClients = useCallback(() => {
-    return hasSoFClients() && appClients.length > 1;
+  const hasSoFClients = useCallback(() => {
+    const apps = getLaunchableSofClients();
+    if (isEmptyArray(apps)) return false;
+    return apps.length > 0;
+  }, [appClients, getLaunchableSofClients]);
+
+  const hasMultipleLaunchableSoFClients = useCallback(() => {
+    return (
+      hasSoFClients() &&
+      appClients.filter((c) => String(c.standalone).toLowerCase() !== "true")
+        .length > 1
+    );
   }, [hasSoFClients, appClients]);
 
   const _getLaunchURL = useCallback(
@@ -341,9 +352,9 @@ export default function PatientListContextProvider({ children }) {
   const canLaunchApp = useCallback(
     () =>
       hasSoFClients() &&
-      (appClients.length === 1 ||
+      (getLaunchableSofClients()?.length === 1 ||
         getAppSettingByKey("LAUNCH_AFTER_PATIENT_CREATION")),
-    [hasSoFClients, appClients, getAppSettingByKey],
+    [hasSoFClients, getLaunchableSofClients, getAppSettingByKey],
   );
 
   const handleLaunchError = useCallback(
@@ -361,9 +372,9 @@ export default function PatientListContextProvider({ children }) {
   const handleLaunchApp = useCallback(
     (rowData, launchParams) => {
       if (!launchParams) {
-        launchParams = canLaunchApp() ? appClients[0] : null;
+        launchParams = canLaunchApp() ? getLaunchableSofClients()[0] : null;
       }
-      if (!launchParams && hasMultipleSoFClients()) {
+      if (!launchParams && hasMultipleLaunchableSoFClients()) {
         dispatch({
           type: ACTIONS.OPEN_LAUNCH_INFO_MODAL,
           payload: { currentRow: rowData },
@@ -386,7 +397,8 @@ export default function PatientListContextProvider({ children }) {
     [
       canLaunchApp,
       appClients,
-      hasMultipleSoFClients,
+      getLaunchableSofClients,
+      hasMultipleLaunchableSoFClients,
       handleLaunchError,
       _getLaunchURL,
     ],
@@ -945,38 +957,40 @@ export default function PatientListContextProvider({ children }) {
       : [];
     if (isEmptyArray(appClients)) return actions;
     return [
-      ...appClients.filter((c) => !c.standalone).map((c) => ({
-        icon: () => (
-          <span
-            className="action-button"
-            style={{ background: theme.palette.primary.main }}
-          >
-            {c.label}
-          </span>
-        ),
-        onClick: (event, rowData) => {
-          event.stopPropagation();
-          const hasLastAccessedField =
-            columns.filter(
-              (column) =>
-                String(column.field).toLowerCase() === "last_accessed",
-            ).length > 0;
-          if (hasLastAccessedField) {
-            putPatientData(
-              rowData.id,
-              rowData.resource,
-              (e) => {
-                handleErrorCallback(e);
-                handleLaunchApp(rowData, c);
-              },
-              () => handleLaunchApp(rowData, c),
-            );
-            return;
-          }
-          handleLaunchApp(rowData, c);
-        },
-        tooltip: `Launch ${c.id}`,
-      })),
+      ...appClients
+        .filter((c) => !c.standalone)
+        .map((c) => ({
+          icon: () => (
+            <span
+              className="action-button"
+              style={{ background: theme.palette.primary.main }}
+            >
+              {c.label}
+            </span>
+          ),
+          onClick: (event, rowData) => {
+            event.stopPropagation();
+            const hasLastAccessedField =
+              columns.filter(
+                (column) =>
+                  String(column.field).toLowerCase() === "last_accessed",
+              ).length > 0;
+            if (hasLastAccessedField) {
+              putPatientData(
+                rowData.id,
+                rowData.resource,
+                (e) => {
+                  handleErrorCallback(e);
+                  handleLaunchApp(rowData, c);
+                },
+                () => handleLaunchApp(rowData, c),
+              );
+              return;
+            }
+            handleLaunchApp(rowData, c);
+          },
+          tooltip: `Launch ${c.id}`,
+        })),
       ...actions,
     ];
   }, [

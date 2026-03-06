@@ -19,6 +19,7 @@ import {
   getAppLaunchURL,
   getClientsByRequiredRoles,
   imageOK,
+  isEmptyArray,
   setDocumentTitle,
   setFavicon,
 } from "../helpers/utility";
@@ -223,16 +224,17 @@ export default function Header() {
   );
 
   const renderClientButtons = (isMobile) => {
-    if (!appClients) return null;
+    if (isEmptyArray(appClients)) return null;
     if (!hasUserInfo()) return null;
+    const standaloneClients = appClients.filter(c => String(c.standalone).toLowerCase() === "true");
+    if (!standaloneClients.length) return null;
     return (
       <div
         className={`${isMobile ? "flex-column" : "flex"}`}
         style={{ justifyContent: "flex-end", flex: 1, gap: "8px" }}
       >
-        {appClients.map((client, index) => {
+        {standaloneClients.map((client, index) => {
           const onClickEvent = () => (window.location = getAppLaunchURL("", {...appSettings, launch_url: client?.launch_url}));
-          if (String(client.standalone).toLowerCase() !== "true") return null;
           return (
             <Button
               variant="outlined"
@@ -276,14 +278,7 @@ export default function Header() {
           onError={handleImageLoadError}
         />
         <SiteLogo />
-        {!userError && (
-          <div
-            className={classes.desktopOnly}
-            style={{ justifyContent: "flex-end", flex: 1, gap: "8px" }}
-          >
-            {renderClientButtons()}
-          </div>
-        )}
+        {!userError && renderClientButtons()}
         {!userError && (
           <Box className={classes.welcomeContainer}>
             {renderUserInfoComponent()}
