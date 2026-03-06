@@ -319,21 +319,18 @@ export default function PatientListContextProvider({ children }) {
   const getLaunchableSofClients = useCallback(() => {
     if (isEmptyArray(appClients)) return null;
     return appClients.filter((c) => String(c.standalone).toLowerCase() !== "true");
-  }, [appClients])
+  }, [appClients]);
 
   const hasSoFClients = useCallback(() => {
     const apps = getLaunchableSofClients();
     if (isEmptyArray(apps)) return false;
     return apps.length > 0;
-  }, [appClients, getLaunchableSofClients]);
+  }, [getLaunchableSofClients]);
 
   const hasMultipleLaunchableSoFClients = useCallback(() => {
-    return (
-      hasSoFClients() &&
-      appClients.filter((c) => String(c.standalone).toLowerCase() !== "true")
-        .length > 1
-    );
-  }, [hasSoFClients, appClients]);
+    if (!hasSoFClients()) return false;
+    return getLaunchableSofClients()?.length > 1;
+  }, [hasSoFClients, getLaunchableSofClients]);
 
   const _getLaunchURL = useCallback(
     (patientId, launchParams) => {
@@ -396,7 +393,6 @@ export default function PatientListContextProvider({ children }) {
     },
     [
       canLaunchApp,
-      appClients,
       getLaunchableSofClients,
       hasMultipleLaunchableSoFClients,
       handleLaunchError,
