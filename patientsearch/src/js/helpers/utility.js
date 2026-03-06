@@ -542,10 +542,6 @@ export function getTimeAgoDisplay(objDate) {
  * @return {string} url for launching the client app
  */
 export const getAppLaunchURL = (patientId, params) => {
-  if (!patientId) {
-    console.log("Missing information: patient Id");
-    return "";
-  }
   const launchParams = params ? params : {};
   const iss = launchParams["SOF_HOST_FHIR_URL"];
   const needPatientBanner = launchParams["NEED_PATIENT_BANNER"];
@@ -555,7 +551,7 @@ export const getAppLaunchURL = (patientId, params) => {
     return "";
   }
   const arrParams = [
-    `patient=${patientId}`,
+    patientId ? `patient=${patientId}`: "",
     `need_patient_banner=${needPatientBanner}`,
     `launch=${btoa(JSON.stringify({ a: 1, b: patientId }))}`,
     `iss=${encodeURIComponent(iss)}`,

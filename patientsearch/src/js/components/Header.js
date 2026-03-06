@@ -16,6 +16,7 @@ import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 import SiteLogo from "./SiteLogo";
 import {
+  getAppLaunchURL,
   getClientsByRequiredRoles,
   imageOK,
   setDocumentTitle,
@@ -230,7 +231,7 @@ export default function Header() {
         style={{ justifyContent: "flex-end", flex: 1, gap: "8px" }}
       >
         {appClients.map((client, index) => {
-          const onClickEvent = () => (window.location = client.launch_url);
+          const onClickEvent = () => (window.location = getAppLaunchURL("", {...appSettings, launch_url: client?.launch_url}));
           if (String(client.standalone).toLowerCase() !== "true") return null;
           return (
             <Button
