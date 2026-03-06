@@ -141,10 +141,7 @@ export default function TimeoutModal() {
 
       setExpiresIn(currentExpiry);
 
-
-      if (currentExpiry <= 0) {
-        window.location.href = "/logout?timeout=true";
-      } else if (currentExpiry <= WARNING_THRESHOLD_SEC) {
+      if (currentExpiry <= WARNING_THRESHOLD_SEC) {
         setOpen(true);
       } else {
         setOpen(false);
@@ -154,6 +151,7 @@ export default function TimeoutModal() {
     }
   }, [isRefreshing]);
 
+  // Poll session validity every TRACK_INTERVAL_MS
   useEffect(() => {
     intervalRef.current = setInterval(checkSessionValidity, TRACK_INTERVAL_MS);
     checkSessionValidity();
@@ -161,13 +159,20 @@ export default function TimeoutModal() {
   }, [appSettings, checkSessionValidity]);
 
   useEffect(() => {
-    if (open && expiresIn > 0 && !isRefreshing) {
-      countdownRef.current = setInterval(() => {
-        setExpiresIn((prev) => Math.max(0, prev - 1));
-      }, 1000);
-    }
+    if (!open || isRefreshing) return;
+    countdownRef.current = setInterval(() => {
+      setExpiresIn((prev) => {
+        if (prev <= 1) clearInterval(countdownRef.current);
+        return Math.max(0, prev - 1);
+      });
+    }, 1000);
     return () => clearInterval(countdownRef.current);
-  }, [open, expiresIn, isRefreshing]);
+  }, [open, isRefreshing]);
+  useEffect(() => {
+    if (expiresIn !== null && expiresIn <= 0 && !isRefreshing) {
+      window.location.href = "/logout?timeout=true";
+    }
+  }, [expiresIn, isRefreshing]);
 
   return (
     <Modal
