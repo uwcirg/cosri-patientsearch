@@ -1,5 +1,5 @@
 import React from "react";
-import makeStyles from '@mui/styles/makeStyles';
+import makeStyles from "@mui/styles/makeStyles";
 import ClickAwayListener from "@mui/material/ClickAwayListener";
 import ExitToAppIcon from "@mui/icons-material/ExitToApp";
 import HowToRegIcon from "@mui/icons-material/HowToReg";
@@ -15,7 +15,12 @@ import Paper from "@mui/material/Paper";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 import SiteLogo from "./SiteLogo";
-import { imageOK, setDocumentTitle, setFavicon } from "../helpers/utility";
+import {
+  getClientsByRequiredRoles,
+  imageOK,
+  setDocumentTitle,
+  setFavicon,
+} from "../helpers/utility";
 import { useSettingContext } from "../context/SettingContextProvider";
 import { useUserContext } from "../context/UserContextProvider";
 
@@ -30,7 +35,7 @@ const useStyles = makeStyles((theme) => ({
     flexDirection: "row",
     justifyContent: "space-between",
     flexWrap: "wrap",
-    gap: theme.spacing(1)
+    gap: theme.spacing(1),
   },
   toolbarIcon: {
     display: "flex",
@@ -49,10 +54,15 @@ const useStyles = makeStyles((theme) => ({
   //logo styling
   logo: {
     width: "180px",
-   // marginLeft: theme.spacing(3),
+    // marginLeft: theme.spacing(3),
   },
   title: {
     width: "100%",
+  },
+  desktopOnly: {
+    [theme.breakpoints.down("md")]: {
+      display: "none",
+    },
   },
   welcomeContainer: {
     display: "flex",
@@ -60,7 +70,7 @@ const useStyles = makeStyles((theme) => ({
     alignItems: "center",
     marginRight: theme.spacing(4),
     marginLeft: theme.spacing(4),
-    [theme.breakpoints.down('md')]: {
+    [theme.breakpoints.down("md")]: {
       display: "none",
     },
   },
@@ -122,6 +132,9 @@ export default function Header() {
   const classes = useStyles();
   const appSettings = useSettingContext().appSettings;
   const { user: userInfo, error: userError } = useUserContext();
+  const appClients = appSettings
+    ? getClientsByRequiredRoles(appSettings["SOF_CLIENTS"], userInfo?.roles)
+    : null;
   const [appTitle, setAppTitle] = React.useState("");
   const [projectName, setProjectName] = React.useState("");
   const [anchorEl, setAnchorEl] = React.useState(null);
@@ -208,6 +221,31 @@ export default function Header() {
     </div>
   );
 
+  const renderClientButtons = (isMobile) => {
+    if (!appClients) return null;
+    if (!hasUserInfo()) return null;
+    return (
+      <div
+        className={`${isMobile ? "flex-column" : "flex"}`}
+        style={{ justifyContent: "flex-end", flex: 1, gap: "8px" }}
+      >
+        {appClients.map((client, index) => {
+          const onClickEvent = () => (window.location = client.launch_url);
+          if (String(client.standalone).toLowerCase() !== "true") return null;
+          return (
+            <Button
+              variant="outlined"
+              onClick={onClickEvent}
+              key={`${client.id}_standalone_button_${index}`}
+            >
+              {client.label}
+            </Button>
+          );
+        })}
+      </div>
+    );
+  };
+
   React.useLayoutEffect(() => {
     if (appSettings) {
       if (appSettings["APPLICATION_TITLE"])
@@ -215,7 +253,7 @@ export default function Header() {
       if (appSettings["PROJECT_NAME"]) {
         setProjectName(appSettings["PROJECT_NAME"]);
         setDocumentTitle(
-          `${appSettings["PROJECT_NAME"]} ${appSettings["SEARCH_TITLE_TEXT"]}`
+          `${appSettings["PROJECT_NAME"]} ${appSettings["SEARCH_TITLE_TEXT"]}`,
         );
         setFavicon(`/static/${appSettings["PROJECT_NAME"]}_favicon.ico`);
       }
@@ -237,6 +275,14 @@ export default function Header() {
           onError={handleImageLoadError}
         />
         <SiteLogo />
+        {!userError && (
+          <div
+            className={classes.desktopOnly}
+            style={{ justifyContent: "flex-end", flex: 1, gap: "8px" }}
+          >
+            {renderClientButtons()}
+          </div>
+        )}
         {!userError && (
           <Box className={classes.welcomeContainer}>
             {renderUserInfoComponent()}
@@ -264,6 +310,7 @@ export default function Header() {
                       square={true}
                     >
                       {renderUserInfoComponent()}
+                      {renderClientButtons(true)}
                       {hasUserInfo() && renderLogoutComponent()}
                     </Paper>
                   </Fade>
