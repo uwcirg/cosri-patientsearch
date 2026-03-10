@@ -243,11 +243,6 @@ button.disabled:focus,
     max-width: 100%;
   }
 }
-th.MuiTableCell-root {
-  div {
-    max-height: 32px;
-  }
-}
 @media (min-width: 699px) {
   .MuiTableCell-body {
     .MuiTypography-h6 {
