@@ -22,7 +22,7 @@ const MemoizedRefreshButton = memo(function MemoizedRefreshButton(props) {
     <div className={props.containerClass}>
       <Tooltip title="Refresh the list">
         <Button
-          variant="contained"
+          variant="outlined"
           size="small"
           startIcon={<RefreshIcon />}
           onClick={refreshFunction}
