@@ -26,9 +26,11 @@ import {
 import { useSettingContext } from "../context/SettingContextProvider";
 import { useUserContext } from "../context/UserContextProvider";
 
+const logoutURL = "/logout?user_initiated=true";
 const useStyles = makeStyles((theme) => ({
   toolbar: {
     paddingRight: 16, // keep right padding when drawer closed
+    minHeight: theme.spacing(5),
   },
   topBar: {
     padding: 0,
@@ -226,7 +228,9 @@ export default function Header() {
   const renderClientButtons = (isMobile) => {
     if (isEmptyArray(appClients)) return null;
     if (!hasUserInfo()) return null;
-    const standaloneClients = appClients.filter(c => String(c.standalone).toLowerCase() === "true");
+    const standaloneClients = appClients.filter(
+      (c) => String(c.standalone).toLowerCase() === "true",
+    );
     if (!standaloneClients.length) return null;
     return (
       <div
@@ -234,7 +238,11 @@ export default function Header() {
         style={{ justifyContent: "flex-end", flex: 1, gap: "8px" }}
       >
         {standaloneClients.map((client, index) => {
-          const onClickEvent = () => (window.location = getAppLaunchURL("", {...appSettings, launch_url: client?.launch_url}));
+          const onClickEvent = () =>
+            (window.location.href = getAppLaunchURL("", {
+              ...appSettings,
+              launch_url: client?.launch_url,
+            }));
           return (
             <Button
               variant="outlined"
@@ -249,7 +257,7 @@ export default function Header() {
     );
   };
 
-  React.useLayoutEffect(() => {
+  React.useEffect(() => {
     if (appSettings) {
       if (appSettings["APPLICATION_TITLE"])
         setAppTitle(appSettings["APPLICATION_TITLE"]);
@@ -261,11 +269,10 @@ export default function Header() {
         setFavicon(`/static/${appSettings["PROJECT_NAME"]}_favicon.ico`);
       }
     }
-    if (typeof window !== "undefined")
-      window.addEventListener("resize", () => setOpenPopper(false));
+    const handleResize = () => setOpenPopper(false);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, [appSettings]);
-
-  const logoutURL = "/logout?user_initiated=true";
 
   return (
     <AppBar position="absolute" className={classes.appBar}>
@@ -278,7 +285,7 @@ export default function Header() {
           onError={handleImageLoadError}
         />
         <SiteLogo />
-        {!userError && renderClientButtons()}
+        {!userError && renderClientButtons(false)}
         {!userError && (
           <Box className={classes.welcomeContainer}>
             {renderUserInfoComponent()}
