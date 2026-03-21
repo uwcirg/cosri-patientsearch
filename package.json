@@ -21,7 +21,7 @@
     "@mui/styles": "^6.3.0",
     "@mui/x-date-pickers": "^7.23.3",
     "dayjs": "^1.11.13",
-    "dompurify": "^3.2.4",
+    "dompurify": "^3.3.2",
     "es6-promise": "^4.2.8",
     "jsonpath": "^1.2.1",
     "react": "^18.0.0",
