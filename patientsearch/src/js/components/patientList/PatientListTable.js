@@ -8,6 +8,7 @@ import { useAppContext } from "../../context/PatientListContextProvider";
 import { useSettingContext } from "../../context/SettingContextProvider";
 import { useUserContext } from "../../context/UserContextProvider";
 import { usePatientListStore } from "../../stores/patientListStore";
+import { usePagination } from "../../stores/patientListSelectors";
 import {
   useCurrentRow,
   useCurrentFilters,
@@ -84,6 +85,7 @@ export default function PatientListTable() {
   } = useAppContext();
   const currentFilters = useCurrentFilters();
   const currentRow = useCurrentRow();
+  const currentPagination = usePagination();
   const selectedRowRef = useRef(null);
   const patientIdsByCareTeamParticipant =
     usePatientIdsByCareTeamParticipant() ??
@@ -241,6 +243,12 @@ export default function PatientListTable() {
           deleteText: "Are you sure you want to remove this patient from the list? (You can add them back later by searching for them)",
           saveTooltip: "OK",
         },
+        emptyDataSourceMessage: (
+          <div
+            id="emptyDataContainer"
+            className="flex-center warning notice"
+          >No record is found.</div>
+        )
       },
     }),
     [],
@@ -406,7 +414,7 @@ export default function PatientListTable() {
               nextPageURL: nextURL,
               prevPageURL: previousURL,
               disableNextButton: !nextURL,
-              disablePrevButton: query.page === 0,
+              disablePrevButton: currentPagination?.pageNumber === 0,
               totalCount: response.total,
             });
             const patientResources = response.entry.filter(
@@ -513,6 +521,7 @@ export default function PatientListTable() {
       formatRowData,
       getAppSettingByKey,
       handleErrorCallback,
+      currentPagination?.pageNumber
     ],
   );
 

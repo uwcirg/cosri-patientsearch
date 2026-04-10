@@ -387,7 +387,7 @@ export default function PatientListContextProvider({ children }) {
             {
               useActiveFlag: !!getAppSettingByKey("ACTIVE_PATIENT_FLAG"),
               isUpdate,
-              isExternalLookup: isExternalLookup(),
+              isExternalLookup: isExternalLookup,
             }
           ),
           {
