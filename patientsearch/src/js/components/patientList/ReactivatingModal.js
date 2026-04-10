@@ -1,10 +1,16 @@
-import React from "react";
+import React, { useCallback, useMemo } from "react";
 import Modal from "@mui/material/Modal";
 import makeStyles from "@mui/styles/makeStyles";
 import Button from "@mui/material/Button";
 import Box from "@mui/material/Box";
 import { Alert } from "@mui/material";
-import { usePatientListContext } from "../../context/PatientListContextProvider";
+import { useAppContext } from "../../context/PatientListContextProvider";
+import { useSettingContext } from "../../context/SettingContextProvider";
+import { usePatientListStore } from "../../stores/patientListStore";
+import {
+  useCurrentRow,
+  useOpenReactivatingModal,
+} from "../../stores/patientListSelectors";
 import RowData from "../../models/RowData";
 
 const useStyles = makeStyles((theme) => ({
@@ -36,60 +42,62 @@ function warnIfMissing(name, fn) {
   return typeof fn === "function" ? fn : () => {};
 }
 
+const { closeReactivatingModal } = usePatientListStore.getState();
+
 export default function ReactivatingModal() {
   const classes = useStyles();
-  const { childrenProps = {} } = usePatientListContext();
-  const [open, setOpen] = React.useState(false);
 
-  const {
-    onSubmit,
-    onModalClose,
-    currentRow,
-    patientLabel,
-    modalOpen,
-    handleSearch,
-  } = childrenProps["reactivate"] ?? {};
+  // Reactive store state via selectors
+  const open = useOpenReactivatingModal();
+  const currentRow = useCurrentRow();
 
-  const safeOnSubmit = warnIfMissing("onSubmit", onSubmit);
-  const safeOnModalClose = warnIfMissing("onModalClose", onModalClose);
+  const rowData = useMemo(() => new RowData(currentRow), [currentRow]);
+  // from context
+  const { getAppSettingByKey = () => null } = useSettingContext();
+  const { handleSearch } = useAppContext();
+  const onSubmit = useCallback(() => {
+    closeReactivatingModal();
+  }, []);
   const safeHandleSearch = warnIfMissing("handleSearch", handleSearch);
-  const rowData = React.useMemo(() => new RowData(currentRow), [currentRow]);
+  const patientLabel = getAppSettingByKey("MY_PATIENTS_FILTER_LABEL");
 
   const getSubjectReferenceText = () =>
     String(patientLabel).toLowerCase().includes("recipient")
       ? "recipient"
       : "patient";
 
-  const getSubjectData = () => rowData.data;
-
-  const getSubjectInfo = () => {
+  const getSubjectInfo = useCallback(() => {
     if (!rowData.lastName || !rowData.firstName) return "patient";
     const name = [rowData.lastName, rowData.firstName].join(", ");
     const dob = rowData.birthDate ?? "";
     return [name, dob].join(" ");
-  };
+  }, [rowData]);
 
-  const handleAction = (mode) => {
-    safeHandleSearch(getSubjectData(), { [mode]: true });
-    safeOnSubmit();
-    setOpen(false);
-  };
+  const handleAction = useCallback(
+    (mode) => {
+      safeHandleSearch(currentRow, { [mode]: true });
+      onSubmit();
+    },
+    [safeHandleSearch, onSubmit, currentRow],
+  );
 
-  const onReactivate = () => handleAction("reactivate");
-  const onCreate = () => handleAction("createNew");
+  const onReactivate = useCallback(
+    () => handleAction("reactivate"),
+    [handleAction],
+  );
+  const onCreate = useCallback(() => handleAction("createNew"), [handleAction]);
 
-  const onClose = (event, reason) => {
-    if (reason === "backdropClick") return;
-    safeOnModalClose();
-  };
-
-  React.useEffect(() => {
-    setOpen(modalOpen);
-  }, [modalOpen]);
+  const onClose = useCallback(
+    (event, reason) => {
+      if (reason === "backdropClick") return;
+      closeReactivatingModal();
+    },
+    [],
+  );
 
   return (
     <Modal
-      open={!!open}
+      open={open}
       onClose={onClose}
       aria-labelledby="reactivating-modal-title"
       aria-describedby="reactivating-modal-description"

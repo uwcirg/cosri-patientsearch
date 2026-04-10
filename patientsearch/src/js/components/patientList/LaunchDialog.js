@@ -1,9 +1,11 @@
-import { memo } from "react";
+import { memo, useCallback } from "react";
 import PropTypes from "prop-types";
 import { Button } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
 import DialogBox from "../DialogBox";
-import { usePatientListContext } from "../../context/PatientListContextProvider";
+import { useAppContext } from "../../context/PatientListContextProvider";
+import { useCurrentRow, useLaunchDialogState } from "../../stores/patientListSelectors";
+import { usePatientListStore } from "../../stores/patientListStore";
 import { isEmptyArray } from "../../helpers/utility";
 
 const useStyles = makeStyles((theme) => ({
@@ -24,6 +26,7 @@ const LaunchDialogBox = memo(function LaunchDialogBox({
   launchFunc,
   onCloseFunc,
   open,
+  rowData,
   title,
 }) {
   return (
@@ -46,7 +49,8 @@ const LaunchDialogBox = memo(function LaunchDialogBox({
                   className={classes.flexButton}
                   onClick={(e) => {
                     e.stopPropagation();
-                    launchFunc(appClient);
+                    launchFunc(rowData, appClient);
+                    if (onCloseFunc) onCloseFunc();
                   }}
                 >{`Launch ${appClient.id}`}</Button>
               );
@@ -61,6 +65,7 @@ LaunchDialogBox.propTypes = {
   classes: PropTypes.object,
   open: PropTypes.bool,
   title: PropTypes.string,
+  rowData: PropTypes.object,
   appClients: PropTypes.array,
   launchFunc: PropTypes.func,
   onCloseFunc: PropTypes.func,
@@ -72,25 +77,28 @@ const MemoizedLaunchDialogBox = memo(function memoizedLaunchDialogBox(props) {
   return <LaunchDialogBox {...props} />;
 });
 
+const { closeLaunchInfoModal } = usePatientListStore.getState();
+
 export default function LaunchDialog() {
   const classes = useStyles();
-  let { childrenProps = {} } = usePatientListContext();
-  const {
-    title,
-    appClients,
-    onLaunchDialogClose = noop,
-    handleLaunchApp = noop,
-    open,
-  } = childrenProps["launchDialog"] ?? {};
+  const { appClients, handleLaunchApp = noop} = useAppContext();
+  const currentRow = useCurrentRow();
+  const getTitle = useCallback(() => currentRow
+    ? `Launch application for ${currentRow.last_name}, ${currentRow.first_name}`
+    : "Launch Application", [currentRow]);
+  const openDialog = useLaunchDialogState();
+
+  if (!currentRow) return null;
 
   return (
     <MemoizedLaunchDialogBox
       classes={classes}
-      open={open}
-      title={title}
+      open={openDialog}
+      title={getTitle()}
       appClients={appClients}
       launchFunc={handleLaunchApp}
-      onCloseFunc={onLaunchDialogClose}
+      rowData={currentRow}
+      onCloseFunc={closeLaunchInfoModal}
     />
   );
 }

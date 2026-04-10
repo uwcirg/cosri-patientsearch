@@ -98,7 +98,7 @@ export default function Dropdown(props) {
         </Typography>
         <Button
           size="small"
-          onClick={(event) => handleMenuClose(event)}
+          onClick={handleMenuClose}
           className={classes.menuCloseButton}
         >
           X
@@ -108,7 +108,7 @@ export default function Dropdown(props) {
         return (
           <MenuItem
             key={`menuItem${index}`}
-            onClick={(event) => handleMenuSelect(event)}
+            onClick={handleMenuSelect}
             dense
             datatopic={item.id}
           >

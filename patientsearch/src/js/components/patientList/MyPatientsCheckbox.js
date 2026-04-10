@@ -1,4 +1,4 @@
-import { memo, useState } from "react";
+import { memo, useCallback, useEffect, useRef, useState } from "react";
 import makeStyles from "@mui/styles/makeStyles";
 import PropTypes from "prop-types";
 import FormControlLabel from "@mui/material/FormControlLabel";
@@ -7,7 +7,10 @@ import ErrorIcon from "@mui/icons-material/ReportProblemOutlined";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 import * as constants from "../../constants/consts";
-import { usePatientListContext } from "../../context/PatientListContextProvider";
+import { useSettingContext } from "../../context/SettingContextProvider";
+import { useUserContext } from "../../context/UserContextProvider";
+import { useAppContext } from "../../context/PatientListContextProvider";
+import { usePatientListStore } from "../../stores/patientListStore";
 import { hasFlagForCheckbox } from "../../helpers/utility";
 
 const checkBoxStyles = makeStyles((theme) => {
@@ -94,24 +97,47 @@ CheckboxForm.propTypes = {
   errorMessage: PropTypes.string,
 };
 
-export default function MyPatientsCheckbox({
-  shouldDisable,
-  changeEvent,
-}) {
-  const { childrenProps = {} } = usePatientListContext();
-  const {
-    enableProviderFilter,
-    myPatientsFilterLabel,
-    onMyPatientsCheckboxChange = function () {},
-    userError,
-  } = childrenProps["myPatients"] ?? {};
+const { resetPagination, setCareTeamPatientIds } =
+    usePatientListStore.getState();
+
+export default function MyPatientsCheckbox({ shouldDisable, changeEvent }) {
+  const { getAppSettingByKey = () => null } = useSettingContext();
+  const { user, userError } = useUserContext();
+  const { tableRef } = useAppContext();
+  const cloneTableRef = useRef(null);
+  const enableProviderFilter = getAppSettingByKey("ENABLE_PROVIDER_FILTER");
+  const myPatientsFilterLabel = getAppSettingByKey("MY_PATIENTS_FILTER_LABEL");
   const checkboxClasses = checkBoxStyles();
   const formControlClasses = formControlStyles();
-  const [state, setState] = useState(hasFlagForCheckbox(constants.FOLLOWING_FLAG));
-  const handleChange = (event) => {
-    setState(event.target.checked);
-    onMyPatientsCheckboxChange(event, changeEvent);
-  };
+  const [state, setState] = useState(
+    hasFlagForCheckbox(constants.FOLLOWING_FLAG),
+  );
+  const onMyPatientsCheckboxChange = useCallback(
+    (event, changeEvent) => {
+      resetPagination();
+      if (event?.target && !event.target.checked) setCareTeamPatientIds(null);
+      else if (user?.followingPatientIds)
+        setCareTeamPatientIds(user.followingPatientIds);
+      cloneTableRef.current?.onQueryChange();
+      if (changeEvent) changeEvent();
+    },
+    [user],
+  );
+  const handleChange = useCallback(
+    (event) => {
+      setState(event.target.checked);
+      onMyPatientsCheckboxChange(event, changeEvent);
+    },
+    [onMyPatientsCheckboxChange, changeEvent],
+  );
+  
+
+  useEffect(() => {
+    if (!tableRef?.current) return;
+    if (cloneTableRef.current) return;
+    cloneTableRef.current = tableRef.current;
+  }, [tableRef]);
+
   if (!enableProviderFilter) return null;
   return (
     <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>

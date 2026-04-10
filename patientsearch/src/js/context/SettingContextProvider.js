@@ -10,14 +10,11 @@ export default function SettingContextProvider({ children }) {
   const [appSettings, setAppSettings] = useState(null);
   const hasAppSettings = useCallback(
     () => appSettings && Object.keys(appSettings).length > 0,
-    [appSettings]
+    [appSettings],
   );
   const getAppSettingByKey = useCallback(
-    (key) => {
-      if (!hasAppSettings()) return null;
-      return appSettings[key];
-    },
-    [appSettings, hasAppSettings]
+    (key) => appSettings?.[key] ?? null,
+    [appSettings],
   );
   useEffect(() => {
     getSettings((data) => {
@@ -33,7 +30,7 @@ export default function SettingContextProvider({ children }) {
           hasAppSettings,
           getAppSettingByKey,
         }),
-        [appSettings, setAppSettings, hasAppSettings, getAppSettingByKey]
+        [appSettings, setAppSettings, hasAppSettings, getAppSettingByKey],
       )}
     >
       <SettingContext.Consumer>

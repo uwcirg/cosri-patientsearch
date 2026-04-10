@@ -1,8 +1,14 @@
-import { memo } from "react";
+import { useCallback, useEffect, useRef, memo } from "react";
 import PropTypes from "prop-types";
 import makeStyles from "@mui/styles/makeStyles";
 import TablePagination from "@mui/material/TablePagination";
-import { usePatientListContext } from "../../context/PatientListContextProvider";
+import { useAppContext } from "../../context/PatientListContextProvider";
+import { usePatientListStore } from "../../stores/patientListStore";
+import {
+  usePagination,
+  usePatientData,
+} from "../../stores/patientListSelectors";
+import { isEmptyArray } from "../../helpers/utility";
 
 const useStyles = makeStyles((theme) => ({
   pagination: {
@@ -18,6 +24,7 @@ const PaginationElement = memo(function PaginationElement({
   handleChangePage,
   handleChangeRowsPerPage,
 }) {
+  if (!pagination) return null;
   return (
     <TablePagination
       id="patientListPagination"
@@ -51,46 +58,53 @@ PaginationElement.propTypes = {
   handleChangeRowsPerPage: PropTypes.func,
 };
 
-const noop = () => {};
+const { updatePagination } = usePatientListStore.getState();
 
 export default function Pagination() {
   const classes = useStyles();
-  const { childrenProps } = usePatientListContext();
-  const {
-    pagination = {},
-    dispatch = noop,
-    tableRef,
-    disabled,
-  } = childrenProps["pagination"] ?? {};
-  const handleChangePage = (event, newPage) => {
-    if (event) event.stopPropagation();
-    dispatch({
-      payload: {
+  const { tableRef } = useAppContext();
+  const data = usePatientData();
+  const pagination = usePagination();
+  const disabled = isEmptyArray(data);
+  const cloneTableRef = useRef(null);
+
+  const handleChangePage = useCallback(
+    (event, newPage) => {
+      if (event) event.stopPropagation();
+      updatePagination({
         prevPageNumber: pagination.pageNumber,
         pageNumber: newPage,
-      },
-    });
-    if (tableRef) tableRef.onQueryChange();
-  };
-  const handleChangeRowsPerPage = (event) => {
+      });
+      cloneTableRef?.current?.onQueryChange();
+    },
+    [pagination?.pageNumber],
+  );
+
+  const handleChangeRowsPerPage = useCallback((event) => {
     if (event) event.stopPropagation();
-    dispatch({
-      payload: {
-        pageSize: parseInt(event.target.value, 10),
-        nextPageURL: "",
-        prevPageURL: "",
-        pageNumber: 0,
-      },
+    updatePagination({
+      pageSize: parseInt(event.target.value, 10),
+      nextPageURL: "",
+      prevPageURL: "",
+      pageNumber: 0,
     });
-    if (tableRef) tableRef.onQueryChange();
-  };
-  if (disabled) return null;
+    cloneTableRef?.current?.onQueryChange();
+  }, []);
+
+  useEffect(() => {
+    if (!tableRef?.current) return;
+    if (cloneTableRef.current) return;
+    cloneTableRef.current = tableRef.current;
+  }, [tableRef]);
+
+  if (disabled || !pagination) return null;
+
   return (
     <PaginationElement
       classes={classes}
       pagination={pagination}
       handleChangePage={handleChangePage}
       handleChangeRowsPerPage={handleChangeRowsPerPage}
-    ></PaginationElement>
+    />
   );
 }

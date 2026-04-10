@@ -1,11 +1,11 @@
 import React from "react";
 import PatientListContextProvider from "../../context/PatientListContextProvider";
-import PatientListTable from "./PatientList";
+import PatientListContainer from "./PatientListContainer";
 
 export default function MainContent() {
   return (
     <PatientListContextProvider>
-      <PatientListTable></PatientListTable>
+      <PatientListContainer />
     </PatientListContextProvider>
   );
 }

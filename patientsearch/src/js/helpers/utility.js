@@ -74,7 +74,7 @@ export async function fetchData(url, params, errorCallback) {
       console.log("error retrieving data ", e);
       errorCallback(e);
       throw e;
-    }
+    },
   );
   try {
     //read response stream
@@ -99,8 +99,8 @@ export async function fetchData(url, params, errorCallback) {
         json && json.message
           ? json.message
           : results && results.status
-          ? "Status code: " + results.status
-          : "Error occurred retrieving data";
+            ? "Status code: " + results.status
+            : "Error occurred retrieving data";
       errorCallback(errorMessage, results.status);
       throw errorMessage;
     }
@@ -189,8 +189,8 @@ export function getUrlParameter(name, queryString) {
     queryString
       ? queryString
       : typeof location !== "undefined"
-      ? location.search
-      : null
+        ? location.search
+        : null,
   );
   return results === null
     ? ""
@@ -419,7 +419,12 @@ export function setFavicon(href) {
 }
 
 export function isEmptyArray(arrObj) {
-  return !arrObj || !Array.isArray(arrObj) || arrObj.length === 0;
+  return (
+    !arrObj ||
+    !Array.isArray(arrObj) ||
+    arrObj.length === 0 ||
+    !arrObj.find((item) => item && String(item).replace(/[\[\]"']/g, "") !== "")
+  );
 }
 
 /*
@@ -433,7 +438,7 @@ export function putPatientData(
   patientId,
   data,
   errorCallback,
-  successCallback
+  successCallback,
 ) {
   if (!patientId || !data) return;
   fetchData(
@@ -447,7 +452,7 @@ export function putPatientData(
     },
     (e) => {
       if (errorCallback) errorCallback(e);
-    }
+    },
   )
     .then(() => {
       console.log("PUT complete for patient " + patientId);
@@ -551,7 +556,7 @@ export const getAppLaunchURL = (patientId, params) => {
     return "";
   }
   const arrParams = [
-    patientId ? `patient=${patientId}`: "",
+    patientId ? `patient=${patientId}` : "",
     `need_patient_banner=${needPatientBanner}`,
     `launch=${btoa(JSON.stringify({ a: 1, b: patientId }))}`,
     `iss=${encodeURIComponent(iss)}`,
@@ -574,11 +579,11 @@ export async function getPatientIdsByCareTeamParticipant(practitionerId) {
         if (error) {
           console.log(
             "Error retrieving patient resources by practitioner id ",
-            error
+            error,
           );
           return null;
         }
-      }
+      },
     ),
     fetchData(
       `/fhir/CareTeam?participant=Practitioner/${practitionerId}&_count=${MIN_QUERY_COUNT}`,
@@ -588,7 +593,7 @@ export async function getPatientIdsByCareTeamParticipant(practitionerId) {
           console.log("Error retrieving careteam by practitioner id ", error);
           return null;
         }
-      }
+      },
     ),
   ]).catch((e) => {
     console.log("Error retrieving patients followed by practitioner ", e);
@@ -596,7 +601,7 @@ export async function getPatientIdsByCareTeamParticipant(practitionerId) {
   });
   console.log(
     "Query results for patients the practitioner is following: ",
-    results
+    results,
   );
   let combinedResults = [];
   // Patient resources
@@ -608,7 +613,7 @@ export async function getPatientIdsByCareTeamParticipant(practitionerId) {
   if (results[1].value && !isEmptyArray(results[1].value.entry)) {
     let arrIds = results[1].value.entry
       .filter(
-        (o) => o.resource && o.resource.subject && o.resource.subject.reference
+        (o) => o.resource && o.resource.subject && o.resource.subject.reference,
       )
       .map((o) => o.resource.subject.reference.split("/")[1]);
     combinedResults = [...combinedResults, ...arrIds];
@@ -723,4 +728,16 @@ export function getInactiveEntriesFromPatientBundle(bundle) {
     }
     return String(item.active).toLowerCase() !== "true";
   });
+}
+
+export function toggleDetailPanel(currentTableRef, rowData) {
+  if (!currentTableRef) return;
+  currentTableRef.onToggleDetailPanel(
+    [
+      currentTableRef.dataManager.sortedData.findIndex(
+        (i) => i.id === rowData.id,
+      ),
+    ],
+    currentTableRef.props.detailPanel[0].render,
+  );
 }

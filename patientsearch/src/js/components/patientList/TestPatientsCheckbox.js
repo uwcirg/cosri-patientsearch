@@ -1,10 +1,12 @@
-import { memo } from "react";
+import { memo, useCallback, useRef, useEffect } from "react";
 import makeStyles from "@mui/styles/makeStyles";
 import PropTypes from "prop-types";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Checkbox from "@mui/material/Checkbox";
 import Typography from "@mui/material/Typography";
-import { usePatientListContext } from "../../context/PatientListContextProvider";
+import { usePatientListStore } from "../../stores/patientListStore";
+import { useAppContext } from "../../context/PatientListContextProvider";
+import { useSettingContext } from "../../context/SettingContextProvider";
 
 const checkBoxStyles = makeStyles((theme) => {
   return {
@@ -57,21 +59,41 @@ CheckboxForm.propTypes = {
   formControlClasses: PropTypes.object,
 };
 
+const { resetPagination, toggleTestPatients } =
+    usePatientListStore.getState();
+
 export default function TestPatientsCheckbox({ changeEvent }) {
-  const { childrenProps } = usePatientListContext();
   const checkboxClasses = checkBoxStyles();
   const formControlClasses = formControlStyles();
-  const {
-    enableFilterByTestPatients,
-    filterByTestPatientsLabel,
-    onTestPatientsCheckboxChange = function () {},
-  } = childrenProps["testPatient"] ?? {};
+  const { getAppSettingByKey = () => null } = useSettingContext();
+  const enableFilterByTestPatients = getAppSettingByKey(
+    "ENABLE_FILTER_FOR_TEST_PATIENTS",
+  );
+  const filterByTestPatientsLabel = getAppSettingByKey(
+    "FILTER_FOR_TEST_PATIENTS_LABEL",
+  );
+  const { tableRef } = useAppContext();
+  const cloneTableRef = useRef(null);
+
+  const handleChange = useCallback(
+    (event) => {
+      resetPagination();
+      toggleTestPatients(event.target.checked);
+      cloneTableRef.current?.onQueryChange();
+      if (changeEvent) changeEvent(event.target.checked);
+    },
+    [changeEvent],
+  );
+
+  useEffect(() => {
+    if (!tableRef?.current) return;
+    if (cloneTableRef.current) return;
+    cloneTableRef.current = tableRef.current;
+  }, [tableRef]);
 
   if (!enableFilterByTestPatients) return null;
-  const handleChange = (event) => {
-    if (onTestPatientsCheckboxChange) onTestPatientsCheckboxChange(event);
-    if (changeEvent) changeEvent(event.target.checked);
-  };
+
+
   return (
     <CheckboxForm
       label={filterByTestPatientsLabel}

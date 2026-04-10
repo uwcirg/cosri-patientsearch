@@ -1,9 +1,19 @@
-import React, { memo, forwardRef, useRef, useEffect, useCallback } from "react";
+import React, {
+  memo,
+  forwardRef,
+  useRef,
+  useCallback,
+  useEffect,
+  useState,
+} from "react";
 import PropTypes from "prop-types";
 import Button from "@mui/material/Button";
 import Paper from "@mui/material/Paper";
 import makeStyles from "@mui/styles/makeStyles";
-import { usePatientListContext } from "../../context/PatientListContextProvider";
+import { usePatientListStore } from "../../stores/patientListStore";
+import { useAppContext } from "../../context/PatientListContextProvider";
+import { defaultMenuItems } from "../../constants/consts";
+import { toggleDetailPanel } from "../../helpers/utility";
 
 const useStyles = makeStyles((theme) => ({
   detailPanelWrapper: {
@@ -23,16 +33,26 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const noop = () => {};
+const getSelectedItemComponent = (key, rowData) => {
+  if (!key) return null;
+  const item = defaultMenuItems.find(
+    (i) => String(i.id).toLowerCase() === String(key).toLowerCase(),
+  );
+  return item ? item.component(rowData) : null;
+};
+
+const getDetailPanelContent = (d, selectedItemId) =>
+  getSelectedItemComponent(selectedItemId, d?.rowData);
+
 const DetailPanelContent = memo(
   forwardRef(function DetailPanelContent(
-    { content, onClickFunc, classes },
+    { onClickFunc, selectedItemId, data, classes },
     ref,
   ) {
     return (
       <div className={classes.detailPanelWrapper} ref={ref}>
         <Paper elevation={1} className={classes.detailPanelContainer}>
-          {content}
+          {getDetailPanelContent(data, selectedItemId)}
           <Button
             onClick={onClickFunc}
             className={classes.detailPanelCloseButton}
@@ -49,48 +69,51 @@ const DetailPanelContent = memo(
 DetailPanelContent.propTypes = {
   onClickFunc: PropTypes.func,
   classes: PropTypes.object.isRequired,
-  content: PropTypes.element,
+  data: PropTypes.object.isRequired,
+  selectedItemId: PropTypes.string,
 };
 
-export default function DetailPanel({ data, content }) {
+
+export default function DetailPanel({ data }) {
+  const { tableRef } = useAppContext();
+  const cloneTableRef = useRef(null);
   const panelRef = useRef();
   const classes = useStyles();
-
-  const { childrenProps = {} } = usePatientListContext();
-  const {
-    currentRow,
-    onDetailPanelClose = noop,
-  } = childrenProps["detailPanel"] ?? {};
-
-  const handleClose = useCallback(
-    () => onDetailPanelClose(data),
-    [onDetailPanelClose, data],
-  );
+  const { closeMenu, selectedMenuItem } = usePatientListStore.getState();
+  const [selectedItemId, setSelectedItemId] = useState(selectedMenuItem);
 
   useEffect(() => {
-    if (!panelRef.current) return;
+    const unsubscribe = usePatientListStore.subscribe(
+      (state) => state.selectedMenuItem,
+      (selectedMenuItem, prevMenuItem) => {
+        if (prevMenuItem !== selectedMenuItem)
+          setSelectedItemId(selectedMenuItem ?? null);
+      },
+    );
+    return unsubscribe;
+  }, []);
+  useEffect(() => {
+    if (!tableRef?.current) return;
+    if (cloneTableRef.current) return;
+    cloneTableRef.current = tableRef.current;
+  }, [tableRef]);
 
-    const panelTR = panelRef.current.closest("tr");
-    const previousTr = panelTR?.previousElementSibling;
-    const dataRowId = data?.rowData?.id;
-    if (currentRow && currentRow.id === dataRowId) {
-      previousTr.classList.add("selected-row");
-    }
-    if (!previousTr) return;
-    previousTr.classList.remove("selected-row");
-  }, [data, currentRow]);
+  const handleClose = useCallback(() => {
+    toggleDetailPanel(cloneTableRef?.current, data?.rowData);
+    closeMenu();
+  }, [closeMenu, data]);
 
   return (
     <DetailPanelContent
       ref={panelRef}
-      content={content}
       onClickFunc={handleClose}
       classes={classes}
+      selectedItemId={selectedItemId}
+      data={data}
     />
   );
 }
 
 DetailPanel.propTypes = {
   data: PropTypes.object.isRequired,
-  content: PropTypes.element,
 };
