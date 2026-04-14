@@ -18,9 +18,9 @@ import {
   getClientsByRequiredRoles,
   getSortedEntriesFromBundle,
   getTimeAgoDisplay,
+  getUrlParameter,
   isInPast,
   isString,
-  getUrlParameter,
   isEmptyArray,
   toTop,
 } from "../helpers/utility";
@@ -190,46 +190,49 @@ export default function PatientListContextProvider({ children }) {
     tableRef.current?.onQueryChange();
   }, [defaultFilters, tableRef]);
 
-  const getPatientSearchURL = useCallback((rowData, params) => {
-    const oData = new RowData(rowData);
-    const { searchInactive, useActiveFlag, isUpdate, isExternalLookup } =
-      params || {};
-    if (isUpdate && rowData?.id) return `/fhir/Patient/${rowData.id}`;
-    const isValidValue = (v, f) => {
-      if (!v) return false;
-      if (f.isDate || f.type === "date") return dayjs(v).isValid();
-      return String(v).trim() !== "";
-    };
-    const buildSearchParams = (isExternal = false) => {
-      const sp = [];
-      SEARCH_FIELDS.forEach((field) => {
-        const dataKey = field.dataKey || field.name;
-        const value = oData.getField(dataKey) || oData.data[dataKey];
-        if (!isValidValue(value, field)) return;
-        const tv = String(value).trim();
-        if (isExternal) {
-          const fk = field.externalKey || field.fhirKey;
-          if (!fk) console.warn("Missing FHIR field key", tv);
-          else sp.push(`${fk}=${field.externalPrefix || ""}${tv}`);
-        } else {
-          if (!field.fhirKey) console.warn("Missing FHIR field key", tv);
-          else if (field.exactMatch) {
-            sp.push(
-              `${field.fhirKey}:exact=${[tv, tv.toLowerCase(), tv.toUpperCase(), capitalizeFirstLetter(tv)].join(",")}`,
-            );
-          } else sp.push(`${field.fhirKey}=${tv}`);
-        }
-      });
-      return sp;
-    };
-    if (isExternalLookup) {
-      return `/external_search/Patient?${buildSearchParams(true).join("&")}`;
-    }
-    let url = `/fhir/Patient?${buildSearchParams().join("&")}`;
-    if (searchInactive) url += `&inactive_search=true`;
-    else if (useActiveFlag) url += `&active=true`;
-    return url;
-  }, [SEARCH_FIELDS]);
+  const getPatientSearchURL = useCallback(
+    (rowData, params) => {
+      const oData = new RowData(rowData);
+      const { searchInactive, useActiveFlag, isUpdate, isExternalLookup } =
+        params || {};
+      if (isUpdate && rowData?.id) return `/fhir/Patient/${rowData.id}`;
+      const isValidValue = (v, f) => {
+        if (!v) return false;
+        if (f.isDate || f.type === "date") return dayjs(v).isValid();
+        return String(v).trim() !== "";
+      };
+      const buildSearchParams = (isExternal = false) => {
+        const sp = [];
+        SEARCH_FIELDS.forEach((field) => {
+          const dataKey = field.dataKey || field.name;
+          const value = oData.getField(dataKey) || oData.data[dataKey];
+          if (!isValidValue(value, field)) return;
+          const tv = String(value).trim();
+          if (isExternal) {
+            const fk = field.externalKey || field.fhirKey;
+            if (!fk) console.warn("Missing FHIR field key", tv);
+            else sp.push(`${fk}=${field.externalPrefix || ""}${tv}`);
+          } else {
+            if (!field.fhirKey) console.warn("Missing FHIR field key", tv);
+            else if (field.exactMatch) {
+              sp.push(
+                `${field.fhirKey}:exact=${[tv, tv.toLowerCase(), tv.toUpperCase(), capitalizeFirstLetter(tv)].join(",")}`,
+              );
+            } else sp.push(`${field.fhirKey}=${tv}`);
+          }
+        });
+        return sp;
+      };
+      if (isExternalLookup) {
+        return `/external_search/Patient?${buildSearchParams(true).join("&")}`;
+      }
+      let url = `/fhir/Patient?${buildSearchParams().join("&")}`;
+      if (searchInactive) url += `&inactive_search=true`;
+      else if (useActiveFlag) url += `&active=true`;
+      return url;
+    },
+    [SEARCH_FIELDS],
+  );
 
   const formatRowData = useCallback(
     (rawData) => {
@@ -281,13 +284,10 @@ export default function PatientListContextProvider({ children }) {
   const getFHIRPatientData = useCallback(
     async (rowData, isExternalLookup) =>
       fetchData(
-        getPatientSearchURL(
-          rowData,
-          {
-            searchInactive: !!appSettings["REACTIVATE_PATIENT"],
-            isExternalLookup: isExternalLookup,
-          }
-        ),
+        getPatientSearchURL(rowData, {
+          searchInactive: !!appSettings["REACTIVATE_PATIENT"],
+          isExternalLookup: isExternalLookup,
+        }),
         {
           ...constants.searchHeaderParams,
           method: isExternalLookup ? "PUT" : "GET",
@@ -382,14 +382,11 @@ export default function PatientListContextProvider({ children }) {
         const payload = JSON.stringify(oData.getFhirData(isCreateNew));
         const isUpdate = isReactivate || (!isCreateNew && !!rowDataToUse?.id);
         const result = await fetchData(
-          getPatientSearchURL(
-            rowDataToUse,
-            {
-              useActiveFlag: !!getAppSettingByKey("ACTIVE_PATIENT_FLAG"),
-              isUpdate,
-              isExternalLookup: isExternalLookup,
-            }
-          ),
+          getPatientSearchURL(rowDataToUse, {
+            useActiveFlag: !!getAppSettingByKey("ACTIVE_PATIENT_FLAG"),
+            isUpdate,
+            isExternalLookup: isExternalLookup,
+          }),
           {
             ...constants.searchHeaderParams,
             body: payload,
@@ -423,22 +420,254 @@ export default function PatientListContextProvider({ children }) {
     ],
   );
 
+  const getSortDirectives = useCallback(
+    (orderByCollection) => {
+      let sortField = null,
+        sortDirection = null;
+      if (!isEmptyArray(orderByCollection)) {
+        const of_ = orderByCollection[0];
+        if (of_) {
+          sortField = of_.orderByField;
+          sortDirection = of_.orderDirection;
+        }
+      }
+      if (!sortField) {
+        const dc = isEmptyArray(columns)
+          ? null
+          : columns.find((c) => c.defaultSort) || null;
+        sortField = dc ? dc.field : "_lastUpdated";
+        sortDirection = dc?.defaultSort ?? "desc";
+      }
+      if (sortField) {
+        // convert field to FHIR field name
+        sortField = constants.DATA_TO_FHIR_FIELD_MAPPINGS[sortField] ?? null;
+      }
+      return { sortField, sortDirection };
+    },
+    [columns],
+  );
+
+  const getSearchQueryString = useCallback((fields) => {
+    if (isEmptyArray(fields)) return "";
+    const fb = [];
+    fields.forEach((item) => {
+      const fhirField =
+        constants.DATA_TO_FHIR_FIELD_MAPPINGS[item.field] ?? item.field;
+      if (item.value) fb.push(`${fhirField}:contains=${item.value}`);
+    });
+    return fb.join("&");
+  }, []);
+
+  const getPatientListQueryURL = useCallback(
+    (query, params = {}) => {
+      const { sortField, sortDirection } = getSortDirectives(
+        query.orderByCollection,
+      );
+      const sortMinus = sortField && sortDirection !== "asc" ? "-" : "";
+      const searchString = getSearchQueryString(params?.searchFields);
+      const filterByTestPatients = params?.filterByTestPatients;
+      const {
+        pageSize = 20,
+        pageNumber = 0,
+        prevPageNumber = 0,
+        nextPageURL = "",
+        prevPageURL = "",
+      } = params?.pagination ?? {};
+
+      let apiURL = `/fhir/Patient?_include=Patient:link&_total=accurate&_count=${pageSize}`;
+      if (!isEmptyArray(params?.patientIdsByCareTeamParticipant))
+        apiURL += `&_id=${params?.patientIdsByCareTeamParticipant.join(",")}`;
+      if (
+        getAppSettingByKey("ENABLE_FILTER_FOR_TEST_PATIENTS") &&
+        !filterByTestPatients
+      )
+        apiURL += `&_security:not=HTEST`;
+      if (pageNumber > prevPageNumber && nextPageURL) apiURL = nextPageURL;
+      else if (pageNumber < prevPageNumber && prevPageURL) apiURL = prevPageURL;
+      if (searchString && apiURL.indexOf("contains") === -1)
+        apiURL += `&${searchString}`;
+      if (sortField && apiURL.indexOf("sort") === -1)
+        apiURL += `&_sort=${sortMinus}${sortField}`;
+      return apiURL;
+    },
+    [getSortDirectives, getSearchQueryString, getAppSettingByKey],
+  );
+
+  const getLinksFromResponse = useCallback((response) => {
+    if (!response) return {};
+    const find = (rel) =>
+      !isEmptyArray(response.link)
+        ? response.link.filter((i) => i.relation === rel)
+        : null;
+    const self_ = find("self"),
+      next_ = find("next"),
+      prev_ = find("previous");
+    const hasSelf = !isEmptyArray(self_);
+    return {
+      nextURL: !isEmptyArray(next_) ? next_[0].url : "",
+      previousURL: !isEmptyArray(prev_) ? prev_[0].url : "",
+      selfURL: hasSelf ? self_[0].url : "",
+    };
+  }, []);
+
+  const queryPatientList = useCallback(
+    (query, params) => {
+      const defaults = {
+        data: [],
+        page: 0,
+        error: null,
+        entry: null,
+        nextPageURL: "",
+        prevPageURL: "",
+        disableNextButton: false,
+        disablePrevButton: false,
+        totalCount: 0,
+      };
+      return new Promise((resolve) => {
+        fetchData(
+          getPatientListQueryURL(query, params),
+          constants.noCacheParam,
+          (e) => {
+            resolve({
+              ...defaults,
+              error: e,
+            });
+          },
+        )
+          .then((response) => {
+            if (!response || isEmptyArray(response.entry)) {
+              resolve(defaults);
+              return;
+            }
+            const { nextURL, previousURL, selfURL } =
+              getLinksFromResponse(response);
+            let currentPage = 0;
+            if (selfURL) {
+              const off = getUrlParameter("_getpagesoffset", new URL(selfURL));
+              if (off) currentPage = off / query.pageSize;
+            }
+            const patientResources = response.entry.filter(
+              (i) => i.resource?.resourceType === "Patient",
+            );
+            const responseData = formatRowData(patientResources);
+            const resolvedData = {
+              entry: response.entry,
+              data: responseData,
+              page: currentPage,
+              nextPageURL: nextURL,
+              prevPageURL: previousURL,
+              disableNextButton: !nextURL,
+              disablePrevButton: !previousURL,
+              totalCount: response.total,
+            };
+            const additionalParams = getAppSettingByKey(
+              "FHIR_REST_EXTRA_PARAMS_LIST",
+            );
+            const eligible = additionalParams
+              ? additionalParams.filter(
+                  (r) =>
+                    typeof r === "string" ||
+                    (typeof r === "object" && r.resourceType),
+                )
+              : [];
+            if (isEmptyArray(eligible)) {
+              resolve(resolvedData);
+              return;
+            }
+            const ids = patientResources.map((i) => i.resource.id).join(",");
+            const requests = eligible.map((request) => {
+              const {
+                resourceType,
+                queryParams,
+                referenceElement = "patient",
+              } = typeof request === "object" ? request : {};
+              const params = ["_count=1000", `${referenceElement}=${ids}`];
+              const qs =
+                typeof request === "string"
+                  ? request +
+                    (request.includes("?") ? "" : "?") +
+                    params.join("&")
+                  : `${resourceType}?${[...params, queryParams].join("&")}`;
+              return fetchData(`/fhir/${qs}`, constants.noCacheParam);
+            });
+            Promise.all(requests)
+              .then((results) => {
+                if (isEmptyArray(results)) {
+                  resolve(resolvedData);
+                  return;
+                }
+                const enriched = patientResources.map((item) => {
+                  const sid = item.resource.id;
+                  if (!item.resource["resources"])
+                    item.resource["resources"] = [];
+                  results.forEach((res) => {
+                    if (isEmptyArray(res.entry)) return;
+                    item.resource["resources"] = [
+                      ...item.resource["resources"],
+                      ...res.entry
+                        .filter((o) => {
+                          const mr = additionalParams.filter(
+                            (ap) =>
+                              ap.resourceType &&
+                              ap.resourceType === o.resource.resourceType,
+                          );
+                          const ref =
+                            mr.length > 0 ? mr[0].referenceElement : "subject";
+                          return (
+                            o.resource?.[ref]?.reference?.split("/")[1] === sid
+                          );
+                        })
+                        .map((ri) => ri.resource),
+                    ];
+                  });
+                  return item;
+                });
+                const resultData = formatRowData(enriched);
+                resolve({
+                  ...resolvedData,
+                  data: resultData,
+                  page: currentPage,
+                  totalCount: response.total,
+                });
+              })
+              .catch((e) => {
+                console.log(e);
+                resolve({
+                  ...resolvedData,
+                  error:
+                    "Error retrieving additional FHIR resources.  See console for detail.",
+                });
+              });
+          })
+          .catch((error) => {
+            resolve({ ...defaults, error: error });
+          });
+      });
+    },
+    [
+      getPatientListQueryURL,
+      getLinksFromResponse,
+      formatRowData,
+      getAppSettingByKey,
+    ],
+  );
+
   const appContextValue = useMemo(
     () => ({
       appClients,
       tableRef,
       searchFields: SEARCH_FIELDS,
       columns,
+      queryPatientList,
       handleErrorCallback,
       handleLaunchApp,
       handleSearch,
-      formatRowData,
       needExternalAPILookup,
     }),
     [
       appClients,
       tableRef,
-      formatRowData,
+      queryPatientList,
       handleErrorCallback,
       handleLaunchApp,
       handleSearch,

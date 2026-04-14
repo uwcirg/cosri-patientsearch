@@ -8,7 +8,6 @@ import { useAppContext } from "../../context/PatientListContextProvider";
 import { useSettingContext } from "../../context/SettingContextProvider";
 import { useUserContext } from "../../context/UserContextProvider";
 import { usePatientListStore } from "../../stores/patientListStore";
-import { usePagination } from "../../stores/patientListSelectors";
 import {
   useCurrentRow,
   useCurrentFilters,
@@ -22,7 +21,6 @@ import {
   fetchData,
   hasFlagForCheckbox,
   putPatientData,
-  getUrlParameter,
   isEmptyArray,
 } from "../../helpers/utility";
 
@@ -60,15 +58,15 @@ function OverlayLoading() {
 }
 
 const {
-    setCurrentRow,
-    setData,
-    setError,
-    setOpenMenu,
-    emptyPagination,
-    setContainNoPMPFlag,
-    updatePagination,
-    resetLaunchURL,
-  } = usePatientListStore.getState();
+  setCurrentRow,
+  setData,
+  setError,
+  setOpenMenu,
+  emptyPagination,
+  setContainNoPMPFlag,
+  updatePagination,
+  resetLaunchURL,
+} = usePatientListStore.getState();
 
 export default function PatientListTable() {
   const theme = useTheme();
@@ -78,14 +76,13 @@ export default function PatientListTable() {
     tableRef,
     appClients,
     columns,
-    formatRowData,
+    queryPatientList,
     handleLaunchApp,
     handleErrorCallback,
     needExternalAPILookup,
   } = useAppContext();
   const currentFilters = useCurrentFilters();
   const currentRow = useCurrentRow();
-  const currentPagination = usePagination();
   const selectedRowRef = useRef(null);
   const patientIdsByCareTeamParticipant =
     usePatientIdsByCareTeamParticipant() ??
@@ -177,7 +174,7 @@ export default function PatientListTable() {
     shouldHideMoreMenu,
     handleLaunchApp,
     handleErrorCallback,
-    theme
+    theme,
   ]);
 
   const getTableOptions = useCallback(
@@ -205,7 +202,9 @@ export default function PatientListTable() {
 
   const getTableEditableOptions = useCallback(
     () => ({
-      isDeleteHidden: () => String(getAppSettingByKey("ENABLE_PATIENT_DELETE")).toLowerCase() !== "true",
+      isDeleteHidden: () =>
+        String(getAppSettingByKey("ENABLE_PATIENT_DELETE")).toLowerCase() !==
+        "true",
       onRowDelete: (oldData) =>
         fetchData(`/fhir/Patient/${oldData.id}`, { method: "DELETE" })
           .then(() =>
@@ -240,15 +239,15 @@ export default function PatientListTable() {
       body: {
         deleteTooltip: "Remove from the list",
         editRow: {
-          deleteText: "Are you sure you want to remove this patient from the list? (You can add them back later by searching for them)",
+          deleteText:
+            "Are you sure you want to remove this patient from the list? (You can add them back later by searching for them)",
           saveTooltip: "OK",
         },
         emptyDataSourceMessage: (
-          <div
-            id="emptyDataContainer"
-            className="flex-center warning notice"
-          >No record is found.</div>
-        )
+          <div id="emptyDataContainer" className="flex-center warning notice">
+            No record is found.
+          </div>
+        ),
       },
     }),
     [],
@@ -279,249 +278,6 @@ export default function PatientListTable() {
       theme,
       getTableRowEvent,
       tableRef,
-    ],
-  );
-
-  const getDefaultSortColumn = useCallback(
-    () =>
-      isEmptyArray(columns) ? null : columns.find((c) => c.defaultSort) || null,
-    [columns],
-  );
-  const getSortDirectives = useCallback(
-    (orderByCollection) => {
-      let sortField = null,
-        sortDirection = null;
-      if (!isEmptyArray(orderByCollection)) {
-        const of_ = orderByCollection[0];
-        const obf = columns[of_.orderBy];
-        if (obf) {
-          const mc = columns.find((c) => c.field === obf.field);
-          sortField =
-            mc?.sortBy ??
-            constants.DATA_TO_FHIR_FIELD_MAPPINGS[obf.field] ??
-            obf.field;
-          if (sortField) sortDirection = of_.orderDirection;
-        }
-      }
-      if (!sortField) {
-        const dc = getDefaultSortColumn();
-        sortField = dc
-          ? (constants.DATA_TO_FHIR_FIELD_MAPPINGS[dc.field] ?? dc.field)
-          : "_lastUpdated";
-        sortDirection = dc?.defaultSort ?? "desc";
-      }
-      return { sortField, sortDirection: sortDirection ?? "desc" };
-    },
-    [columns, getDefaultSortColumn],
-  );
-
-  const getSearchString = useCallback(() => {
-    if (isEmptyArray(currentFilters)) return "";
-    const fb = [];
-    currentFilters.forEach((item) => {
-      const fhirField =
-        constants.DATA_TO_FHIR_FIELD_MAPPINGS[item.field] ?? item.field;
-      if (item.value) fb.push(`${fhirField}:contains=${item.value}`);
-    });
-    return fb.join("&");
-  }, [currentFilters]);
-
-  const getPatientListQueryURL = useCallback(
-    (query) => {
-      const { sortField, sortDirection } = getSortDirectives(
-        query.orderByCollection,
-      );
-      const sortMinus = sortField && sortDirection !== "asc" ? "-" : "";
-      const searchString = getSearchString();
-      const filterByTestPatients =
-        usePatientListStore.getState().filterByTestPatients;
-      const { pageSize, pageNumber, prevPageNumber, nextPageURL, prevPageURL } =
-        usePatientListStore.getState().pagination;
-
-      let apiURL = `/fhir/Patient?_include=Patient:link&_total=accurate&_count=${pageSize}`;
-      if (!isEmptyArray(patientIdsByCareTeamParticipant))
-        apiURL += `&_id=${patientIdsByCareTeamParticipant.join(",")}`;
-      if (
-        getAppSettingByKey("ENABLE_FILTER_FOR_TEST_PATIENTS") &&
-        !filterByTestPatients
-      )
-        apiURL += `&_security:not=HTEST`;
-      if (pageNumber > prevPageNumber && nextPageURL) apiURL = nextPageURL;
-      else if (pageNumber < prevPageNumber && prevPageURL) apiURL = prevPageURL;
-      if (searchString && apiURL.indexOf("contains") === -1)
-        apiURL += `&${searchString}`;
-      if (sortField && apiURL.indexOf("sort") === -1)
-        apiURL += `&_sort=${sortMinus}${sortField}`;
-      return apiURL;
-    },
-    [
-      getSortDirectives,
-      getSearchString,
-      patientIdsByCareTeamParticipant,
-      getAppSettingByKey,
-    ],
-  );
-
-  const getLinksFromResponse = useCallback((response) => {
-    if (!response) return {};
-    const find = (rel) =>
-      !isEmptyArray(response.link)
-        ? response.link.filter((i) => i.relation === rel)
-        : null;
-    const self_ = find("self"),
-      next_ = find("next"),
-      prev_ = find("previous");
-    const hasSelf = !isEmptyArray(self_);
-    return {
-      nextURL: !isEmptyArray(next_) ? next_[0].url : "",
-      previousURL: !isEmptyArray(prev_)
-        ? prev_[0].url
-        : hasSelf
-          ? self_[0].url
-          : "",
-      selfURL: hasSelf ? self_[0].url : "",
-    };
-  }, []);
-
-  const getPatientList = useCallback(
-    (query) => {
-      const defaults = { data: [], page: 0, totalCount: 0 };
-      return new Promise((resolve) => {
-        fetchData(
-          getPatientListQueryURL(query),
-          constants.noCacheParam,
-          (e) => {
-            emptyPagination();
-            handleErrorCallback(e);
-            resolve(defaults);
-          },
-        )
-          .then((response) => {
-            if (!response || isEmptyArray(response.entry)) {
-              emptyPagination();
-              resolve(defaults);
-              return;
-            }
-            if (needExternalAPILookup()) setNoPMPFlag(response.entry);
-            const { nextURL, previousURL, selfURL } =
-              getLinksFromResponse(response);
-            let currentPage = 0;
-            if (selfURL) {
-              const off = getUrlParameter("_getpagesoffset", new URL(selfURL));
-              if (off) currentPage = off / query.pageSize;
-            }
-            updatePagination({
-              nextPageURL: nextURL,
-              prevPageURL: previousURL,
-              disableNextButton: !nextURL,
-              disablePrevButton: currentPagination?.pageNumber === 0,
-              totalCount: response.total,
-            });
-            const patientResources = response.entry.filter(
-              (i) => i.resource?.resourceType === "Patient",
-            );
-            const responseData = formatRowData(patientResources);
-            const resolvedData = {
-              data: responseData,
-              page: currentPage,
-              totalCount: response.total,
-            };
-            const additionalParams = getAppSettingByKey(
-              "FHIR_REST_EXTRA_PARAMS_LIST",
-            );
-            const eligible = additionalParams
-              ? additionalParams.filter(
-                  (r) =>
-                    typeof r === "string" ||
-                    (typeof r === "object" && r.resourceType),
-                )
-              : [];
-            if (isEmptyArray(eligible)) {
-              setData(responseData);
-              resolve(resolvedData);
-              return;
-            }
-            const ids = patientResources.map((i) => i.resource.id).join(",");
-            const requests = eligible.map((request) => {
-              const {
-                resourceType,
-                queryParams,
-                referenceElement = "patient",
-              } = typeof request === "object" ? request : {};
-              const params = ["_count=1000", `${referenceElement}=${ids}`];
-              const qs =
-                typeof request === "string"
-                  ? request +
-                    (request.includes("?") ? "" : "?") +
-                    params.join("&")
-                  : `${resourceType}?${[...params, queryParams].join("&")}`;
-              return fetchData(`/fhir/${qs}`, constants.noCacheParam);
-            });
-            Promise.all(requests)
-              .then((results) => {
-                if (isEmptyArray(results)) {
-                  setData(responseData);
-                  resolve(resolvedData);
-                  return;
-                }
-                const enriched = patientResources.map((item) => {
-                  const sid = item.resource.id;
-                  if (!item.resource["resources"])
-                    item.resource["resources"] = [];
-                  results.forEach((res) => {
-                    if (isEmptyArray(res.entry)) return;
-                    item.resource["resources"] = [
-                      ...item.resource["resources"],
-                      ...res.entry
-                        .filter((o) => {
-                          const mr = additionalParams.filter(
-                            (ap) =>
-                              ap.resourceType &&
-                              ap.resourceType === o.resource.resourceType,
-                          );
-                          const ref =
-                            mr.length > 0 ? mr[0].referenceElement : "subject";
-                          return (
-                            o.resource?.[ref]?.reference?.split("/")[1] === sid
-                          );
-                        })
-                        .map((ri) => ri.resource),
-                    ];
-                  });
-                  return item;
-                });
-                const resultData = formatRowData(enriched);
-                setData(resultData);
-                resolve({
-                  data: resultData,
-                  page: currentPage,
-                  totalCount: response.total,
-                });
-              })
-              .catch((e) => {
-                console.log(e);
-                setData(responseData);
-                setError(
-                  "Error retrieving additional FHIR resources.  See console for detail.",
-                );
-                resolve(resolvedData);
-              });
-          })
-          .catch((error) => {
-            handleErrorCallback(error);
-            resolve(defaults);
-          });
-      });
-    },
-    [
-      getPatientListQueryURL,
-      needExternalAPILookup,
-      setNoPMPFlag,
-      getLinksFromResponse,
-      formatRowData,
-      getAppSettingByKey,
-      handleErrorCallback,
-      currentPagination?.pageNumber
     ],
   );
 
@@ -573,7 +329,47 @@ export default function PatientListTable() {
     <div className="table main" aria-label="patient list table">
       <MaterialTable
         {...tableProps}
-        data={getPatientList}
+        data={(query) =>
+          new Promise((resolve) => {
+            queryPatientList(query, {
+              filterByTestPatients:
+                usePatientListStore.getState().filterByTestPatients,
+              pagination: usePatientListStore.getState().pagination,
+              patientIdsByCareTeamParticipant,
+              searchFields: currentFilters
+            }).then((result) => {
+              const {
+                data,
+                totalCount,
+                error,
+                entry,
+                nextPageURL,
+                prevPageURL,
+                disableNextButton,
+                disablePrevButton,
+              } = result;
+
+              if (error) {
+                emptyPagination();
+                handleErrorCallback(error);
+                resolve(result);
+                return;
+              }
+
+              if (needExternalAPILookup()) setNoPMPFlag(entry);
+              updatePagination({
+                nextPageURL,
+                prevPageURL,
+                disableNextButton,
+                disablePrevButton,
+                totalCount,
+              });
+              setError("");
+              setData(data);
+              resolve(result);
+            });
+          })
+        }
         hideSortIcon={false}
         components={{
           OverlayLoading,
