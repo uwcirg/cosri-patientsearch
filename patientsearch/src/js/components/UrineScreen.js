@@ -526,11 +526,7 @@ export default function UrineScreen(props) {
                 orderInfoMessage: isEHR
                   ? `Display of ${
                       isDawg ? "UW" : "EHR"
-                    } lab orders may be delayed by 24-48 hours. ${
-                      isDawg
-                        ? "We are currently in the process of identifying all of the UDS tests from Epic, which will be available soon. Please double check Epic for UDS."
-                        : ""
-                    }`
+                    } lab orders may be delayed by 24-48 hours.`
                   : "",
               },
             });
