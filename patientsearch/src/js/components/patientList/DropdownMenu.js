@@ -12,7 +12,7 @@ const MenuDropdown = memo(function MenuDropdown(props) {
   return <Dropdown {...props} />;
 });
 
- const { setSelectedMenuItem, closeMenu } = usePatientListStore.getState();
+ const { setSelectedMenuItem, closeMenu, setCurrentRow } = usePatientListStore.getState();
 
 export default function DropdownMenu(props) {
   const { getAppSettingByKey = () => null } = useSettingContext();
@@ -68,6 +68,11 @@ export default function DropdownMenu(props) {
     cloneTableRef.current = tableRef.current;
   }, [tableRef]);
 
+  const handleMenuClose = useCallback(() => {
+    closeMenu();
+    setCurrentRow(null);
+  }, []);
+
   const menuItems = getMenuItems();
   if (isEmptyArray(menuItems)) return null;
   if (!anchorEl) return null;
@@ -76,7 +81,7 @@ export default function DropdownMenu(props) {
     <MenuDropdown
       anchorEl={anchorEl}
       open={openMenu}
-      handleMenuClose={closeMenu}
+      handleMenuClose={handleMenuClose}
       handleMenuSelect={handleMenuSelect}
       menuItems={menuItems}
       {...props}

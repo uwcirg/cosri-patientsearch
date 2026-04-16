@@ -64,7 +64,6 @@ export const usePatientListStore = create(
       setData: (data) =>
         set((state) => {
           state.data = data;
-          state.openLoadingModal = false;
         }),
 
       setError: (payload) =>
@@ -73,21 +72,16 @@ export const usePatientListStore = create(
             typeof payload === "string"
               ? payload
               : (payload?.errorMessage ?? "An error occurred.");
-          state.openLoadingModal = false;
         }),
 
       setLaunchURL: (url) =>
         set((state) => {
           state.launchURL = url;
-          state.currentRow = null;
-          state.openLoadingModal = true;
         }),
 
       resetLaunchURL: () =>
         set((state) => {
           state.launchURL = "";
-          state.openLoadingModal = false;
-          state.currentRow = null;
         }),
 
       setCurrentRow: (row) => set({ currentRow: row }),
@@ -101,21 +95,17 @@ export const usePatientListStore = create(
 
       setNoDataText: (text) => set({ noDataText: text }),
 
-      setOpenMenu: (row) => set({ currentRow: row, openMenu: true }),
+      setOpenMenu: () => set({ openMenu: true }),
 
-      closeMenu: () => set({ openMenu: false, currentRow: null }),
+      closeMenu: () => set({ openMenu: false }),
 
-      setOpenLaunchInfoModal: (row) =>
-        set({ openLaunchInfoModal: true, currentRow: row }),
+      setOpenLaunchInfoModal: () => set({ openLaunchInfoModal: true }),
 
-      closeLaunchInfoModal: () =>
-        set({ openLaunchInfoModal: false, currentRow: null }),
+      closeLaunchInfoModal: () => set({ openLaunchInfoModal: false }),
 
-      setOpenReactivatingModal: (row) =>
-        set({ openReactivatingModal: true, currentRow: row }),
+      setOpenReactivatingModal: () => set({ openReactivatingModal: true }),
 
-      closeReactivatingModal: () =>
-        set({ openReactivatingModal: false, currentRow: null }),
+      closeReactivatingModal: () => set({ openReactivatingModal: false }),
 
       closeLoadingModal: () => set({ openLoadingModal: false }),
 
@@ -130,8 +120,6 @@ export const usePatientListStore = create(
 
       resetSearch: (payload = {}) =>
         set((state) => {
-          state.currentRow = null;
-          state.errorMessage = "";
           state.currentFilters = {};
           Object.assign(state, payload);
         }),

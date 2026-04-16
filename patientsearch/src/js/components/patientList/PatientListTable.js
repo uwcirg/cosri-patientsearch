@@ -58,6 +58,7 @@ function OverlayLoading() {
 }
 
 const {
+  closeLoadingModal,
   setCurrentRow,
   setData,
   setError,
@@ -67,6 +68,12 @@ const {
   updatePagination,
   resetLaunchURL,
 } = usePatientListStore.getState();
+
+const handleOnPageUnload = () => {
+  resetLaunchURL();
+  closeLoadingModal();
+  setCurrentRow(null);
+};
 
 export default function PatientListTable() {
   const theme = useTheme();
@@ -127,6 +134,7 @@ export default function PatientListTable() {
             icon: () => <MoreHorizIcon color="primary" />,
             onClick: (e, row) => {
               e.stopPropagation();
+              setCurrentRow(row);
               setOpenMenu(row);
             },
             tooltip: "More",
@@ -301,9 +309,8 @@ export default function PatientListTable() {
   }, [currentRow, handleDeSelectRow]);
 
   useEffect(() => {
-    const h = () => resetLaunchURL();
-    window.addEventListener("popstate", h);
-    return () => window.removeEventListener("popstate", h);
+    window.addEventListener("popstate", handleOnPageUnload);
+    return () => window.removeEventListener("popstate", handleOnPageUnload);
   }, []);
 
   useEffect(() => {
@@ -311,10 +318,8 @@ export default function PatientListTable() {
       (state) => state.launchURL,
       (launchURL) => {
         if (!launchURL) return;
-        setTimeout(() => {
-          window.location = launchURL;
-          setTimeout(() => resetLaunchURL(), 250);
-        }, 50);
+        window.location = launchURL;
+        setTimeout(handleOnPageUnload, 500);
       },
     );
     return unsubscribe;
@@ -336,7 +341,7 @@ export default function PatientListTable() {
                 usePatientListStore.getState().filterByTestPatients,
               pagination: usePatientListStore.getState().pagination,
               patientIdsByCareTeamParticipant,
-              searchFields: currentFilters
+              searchFields: currentFilters,
             }).then((result) => {
               const {
                 data,
@@ -364,7 +369,6 @@ export default function PatientListTable() {
                 disablePrevButton,
                 totalCount,
               });
-              setError("");
               setData(data);
               resolve(result);
             });

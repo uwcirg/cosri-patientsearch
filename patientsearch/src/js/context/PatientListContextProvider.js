@@ -31,11 +31,12 @@ const AppContext = React.createContext({});
 
 const {
   closeLoadingModal,
+  setCurrentRow,
   setLoading,
   setError,
   setLaunchURL,
   setOpenReactivatingModal,
-  setOpenLaunchInfoModal: openLaunchInfoModalAction,
+  setOpenLaunchInfoModal,
   resetSearch,
   resetPagination,
 } = usePatientListStore.getState();
@@ -150,7 +151,8 @@ export default function PatientListContextProvider({ children }) {
         launchParams = canLaunchApp() ? getLaunchableSofClients()[0] : null;
       if (!launchParams && hasMultipleLaunchableSoFClients()) {
         closeLoadingModal();
-        openLaunchInfoModalAction(rowData);
+        setCurrentRow(rowData);
+        setOpenLaunchInfoModal();
         return;
       }
       const url = getLaunchURL(rowData?.id, launchParams);
@@ -160,7 +162,9 @@ export default function PatientListContextProvider({ children }) {
         );
         return false;
       }
+      setLoading();
       setLaunchURL(url);
+      setTimeout(() => closeLoadingModal(), 1000);
       sessionStorage.clear();
     },
     [
@@ -184,17 +188,27 @@ export default function PatientListContextProvider({ children }) {
     );
   }, []);
 
+  const resetTable = useCallback(() => {
+    tableRef.current?.onQueryChange();
+  }, [tableRef]);
+
   const handleRefresh = useCallback(() => {
     resetSearch({ currentFilters: defaultFilters });
     resetPagination();
-    tableRef.current?.onQueryChange();
-  }, [defaultFilters, tableRef]);
+    resetTable();
+    setCurrentRow(null);
+  }, [defaultFilters, resetTable]);
 
   const getPatientSearchURL = useCallback(
     (rowData, params) => {
       const oData = new RowData(rowData);
-      const { searchInactive, useActiveFlag, isUpdate, isExternalLookup } =
-        params || {};
+      const {
+        searchInactive,
+        useActiveFlag,
+        isUpdate,
+        isExternalLookup,
+        searchFields,
+      } = params || {};
       if (isUpdate && rowData?.id) return `/fhir/Patient/${rowData.id}`;
       const isValidValue = (v, f) => {
         if (!v) return false;
@@ -203,7 +217,7 @@ export default function PatientListContextProvider({ children }) {
       };
       const buildSearchParams = (isExternal = false) => {
         const sp = [];
-        SEARCH_FIELDS.forEach((field) => {
+        (searchFields || SEARCH_FIELDS).forEach((field) => {
           const dataKey = field.dataKey || field.name;
           const value = oData.getField(dataKey) || oData.data[dataKey];
           if (!isValidValue(value, field)) return;
@@ -306,16 +320,18 @@ export default function PatientListContextProvider({ children }) {
     ],
   );
 
-  const handleSearch = useCallback(
+  const querySearch = useCallback(
     async (rowData, params) => {
+      let returnValue = { error: null, data: null, reactivate: false };
       if (!rowData || isEmptyArray(Object.keys(rowData))) {
-        handleLaunchError("No data provided for searching.");
-        return false;
+        return {
+          ...returnValue,
+          error: "No data provided for searching.",
+        };
       }
       const isReactivate = params?.reactivate,
         isCreateNew = params?.createNew,
-        isExternalLookup = needExternalAPILookup();
-      setLoading(rowData);
+        isExternalLookup = params?.isExternalLookup;
       let rowDataToUse = Object.assign({}, rowData);
       try {
         const bundleResult = await getFHIRPatientData(
@@ -324,13 +340,10 @@ export default function PatientListContextProvider({ children }) {
         );
         if (isEmptyArray(bundleResult?.entry)) {
           if (isExternalLookup) {
-            handleRefresh();
-            setError(
-              getFetchErrorMessage(
-                "Search returns no match",
-                true,
-                isExternalLookup,
-              ),
+            returnValue.error = getFetchErrorMessage(
+              "Search returns no match",
+              true,
+              isExternalLookup,
             );
           }
         } else {
@@ -341,34 +354,40 @@ export default function PatientListContextProvider({ children }) {
             !isEmptyArray(inactiveEntries) &&
             getAppSettingByKey("REACTIVATE_PATIENT");
           if (activeEntries.length > 1) {
-            setError("Multiple matched entries found.");
-            return;
+            return {
+              ...returnValue,
+              error: "Multiple matched entries found.",
+            };
           }
           if (activeEntries.length === 1) {
             const target = formatRowData(activeEntries[0])[0];
-            if (!isCreateNew && canLaunchApp()) {
-              handleLaunchApp(target);
-              return;
-            }
-            if (isExternalLookup) {
-              handleRefresh();
-              return;
+            if (!isCreateNew) {
+              return {
+                ...returnValue,
+                data: target,
+              };
             }
           } else {
             if (!isCreateNew && !isReactivate) {
               if (inactiveEntries.length > 1) {
-                setError("Multiple matched entries found.");
-                return;
+                return {
+                  ...returnValue,
+                  error: "Multiple matched entries found.",
+                };
               }
               const inactiveEntryToUse = formatRowData(inactiveEntries[0])[0];
               if (shouldReactivate) {
-                setOpenReactivatingModal(inactiveEntryToUse);
-                closeLoadingModal();
-                return;
+                return {
+                  ...returnValue,
+                  data: inactiveEntryToUse,
+                  reactivate: true,
+                };
               }
               if (inactiveEntries.length === 1) {
-                handleLaunchApp(inactiveEntryToUse);
-                return;
+                return {
+                  ...returnValue,
+                  data: inactiveEntryToUse,
+                };
               }
             }
           }
@@ -392,31 +411,76 @@ export default function PatientListContextProvider({ children }) {
             body: payload,
             method: isUpdate ? "PUT" : "POST",
           },
-          (e) => setError(getFetchErrorMessage(e, false, isExternalLookup)),
+          (e) => {
+            returnValue.error = getFetchErrorMessage(
+              e,
+              false,
+              isExternalLookup,
+            );
+          },
         );
         const response = getFirstResourceFromFhirBundle(result);
         if (!response || !response.id) {
           const et = getErrorDiagnosticTextFromResponse(response);
-          setError(getFetchErrorMessage(et, !et));
-          return false;
+          return {
+            ...returnValue,
+            error: getFetchErrorMessage(et, !et),
+          };
         }
-        handleRefresh();
-        if (canLaunchApp()) handleLaunchApp(formatRowData(response)[0]);
+        return {
+          ...returnValue,
+          data: formatRowData(response)[0],
+        };
       } catch (e) {
-        setError(getFetchErrorMessage(e, false, needExternalAPILookup()));
+        return {
+          ...returnValue,
+          error: getFetchErrorMessage(e, false, isExternalLookup),
+        };
+      }
+    },
+    [
+      getFHIRPatientData,
+      getFetchErrorMessage,
+      formatRowData,
+      getPatientSearchURL,
+      getAppSettingByKey,
+    ],
+  );
+
+  const handleSearch = useCallback(
+    async (rowData, params) => {
+      const paramsToUse = {
+        ...(params ?? {}),
+        isExternalLookup: needExternalAPILookup(),
+      };
+      setLoading();
+      setCurrentRow(rowData);
+      setError("");
+      const result = await querySearch(rowData, paramsToUse);
+      const { error, data, reactivate } = result;
+      if (error) {
+        handleRefresh();
+        closeLoadingModal();
+        handleErrorCallback(error);
+      } else if (data) {
+        if (reactivate) {
+          setCurrentRow(rowData);
+          setOpenReactivatingModal();
+          closeLoadingModal();
+        } else {
+          if (canLaunchApp()) handleLaunchApp(data);
+          handleRefresh();
+          setTimeout(() => closeLoadingModal(), 1000);
+        }
       }
     },
     [
       needExternalAPILookup,
-      getFHIRPatientData,
-      handleRefresh,
-      getFetchErrorMessage,
-      formatRowData,
-      getPatientSearchURL,
       canLaunchApp,
       handleLaunchApp,
-      handleLaunchError,
-      getAppSettingByKey,
+      querySearch,
+      handleRefresh,
+      handleErrorCallback,
     ],
   );
 

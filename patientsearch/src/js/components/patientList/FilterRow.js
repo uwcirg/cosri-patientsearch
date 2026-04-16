@@ -238,7 +238,7 @@ FieldWrapper.propTypes = {
   onKeyDown: PropTypes.func.isRequired,
 };
 
-  const { resetSearch, updateFilters, resetPagination } =
+  const { resetSearch, updateFilters, resetPagination, setError } =
     usePatientListStore.getState();
 
 export default forwardRef(function FilterRow(_props, ref) {
@@ -268,6 +268,7 @@ export default forwardRef(function FilterRow(_props, ref) {
         else
           updateFilters(safe);
         resetPagination();
+        setError("");
         if (cloneTableRef.current) cloneTableRef.current.onQueryChange();
       }, 200);
     }, []

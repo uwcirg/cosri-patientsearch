@@ -52,6 +52,9 @@ export function sendRequest(url, params) {
  * helper function for retrieving data via ajax
  */
 export async function fetchData(url, params, errorCallback) {
+  if (!url) {
+    throw new Error("No URL provided");
+  }
   const MAX_WAIT_TIME = 50000;
   params = params || {};
   errorCallback = errorCallback || function () {};
@@ -102,7 +105,7 @@ export async function fetchData(url, params, errorCallback) {
             ? "Status code: " + results.status
             : "Error occurred retrieving data";
       errorCallback(errorMessage, results.status);
-      throw errorMessage;
+      throw new Error(errorMessage);
     }
     return null;
   }
