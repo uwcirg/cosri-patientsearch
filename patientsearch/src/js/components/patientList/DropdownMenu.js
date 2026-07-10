@@ -76,7 +76,7 @@ export default function DropdownMenu(props) {
   const menuItems = getMenuItems();
   if (isEmptyArray(menuItems)) return null;
   if (!anchorEl) return null;
-  if (props.data.id !== currentRowId) return null;
+  if (!props.data?.id || props.data?.id !== currentRowId) return null;
   return (
     <MenuDropdown
       anchorEl={anchorEl}

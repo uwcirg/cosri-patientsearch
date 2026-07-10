@@ -1,7 +1,7 @@
 import React from "react";
 import PropTypes from "prop-types";
+import { useTheme } from "@mui/material/styles";
 import DOMPurify from "dompurify";
-import makeStyles from "@mui/styles/makeStyles";
 import Button from "@mui/material/Button";
 import CircularProgress from "@mui/material/CircularProgress";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
@@ -41,91 +41,6 @@ const titleStyle = (theme) => ({
   borderBottom: `2px solid ${theme.palette.primary.lightest}`,
   width: "fit-content",
 });
-const useStyles = makeStyles((theme) => ({
-  container: {
-    paddingLeft: theme.spacing(3),
-    paddingRight: theme.spacing(3),
-    paddingTop: theme.spacing(1),
-    paddingBottom: theme.spacing(1),
-  },
-  contentContainer: {
-    position: "relative",
-  },
-  addContainer: {
-    position: "relative",
-    marginBottom: theme.spacing(1.5),
-    padding: theme.spacing(2),
-  },
-  addTitle: {
-    ...titleStyle(theme),
-    display: "inline-block",
-    marginBottom: theme.spacing(2),
-  },
-  printTitle: {
-    ...titleStyle(theme),
-    display: "inline-block",
-  },
-  buttonsContainer: {
-    marginTop: theme.spacing(2),
-    position: "relative",
-  },
-  progressContainer: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    top: 0,
-    bottom: 0,
-    background: "hsl(0deg 0% 100% / 80%)",
-    zIndex: 99,
-  },
-  progressIcon: {
-    position: "absolute",
-    top: "15%",
-    left: "15%",
-  },
-  addButton: {
-    marginRight: theme.spacing(1),
-  },
-  editInput: {
-    width: theme.spacing(10),
-  },
-  dateInput: {
-    minWidth: "248px",
-  },
-  dateLabel: {
-    fontSize: "12px",
-    marginBottom: theme.spacing(0.25),
-  },
-  historyContainer: {
-    position: "relative",
-    marginBottom: theme.spacing(2),
-    padding: theme.spacing(2),
-    minHeight: theme.spacing(9),
-  },
-  historyTitle: {
-    ...titleStyle(theme),
-    display: "inline-block",
-  },
-  errorContainer: {
-    maxWidth: "100%",
-    marginTop: theme.spacing(3),
-  },
-  totalEntriesContainer: {
-    marginTop: theme.spacing(1),
-  },
-  expandIcon: {
-    marginLeft: theme.spacing(2),
-    verticalAlign: "middle",
-    fontSize: "12px",
-  },
-  endIcon: {
-    marginLeft: "-4px",
-    position: "relative",
-  },
-  tableContainer: {
-    position: "relative",
-  },
-}));
 
 const initialState = {
   editDate: null,
@@ -211,13 +126,99 @@ function reducer(state, action) {
 }
 
 export default function Agreement(props) {
+  const theme = useTheme();
+  const classes = {
+    container: {
+      paddingLeft: theme.spacing(3),
+      paddingRight: theme.spacing(3),
+      paddingTop: theme.spacing(1),
+      paddingBottom: theme.spacing(1),
+    },
+    contentContainer: {
+      position: "relative",
+    },
+    addContainer: {
+      position: "relative",
+      marginBottom: theme.spacing(1.5),
+      padding: theme.spacing(2),
+    },
+    addTitle: {
+      ...titleStyle(theme),
+      display: "inline-block",
+      marginBottom: theme.spacing(2),
+    },
+    printTitle: {
+      ...titleStyle(theme),
+      display: "inline-block",
+      marginBottom: 1.5,
+    },
+    buttonsContainer: {
+      marginTop: theme.spacing(2),
+      position: "relative",
+    },
+    progressContainer: {
+      position: "absolute",
+      left: 0,
+      right: 0,
+      top: 0,
+      bottom: 0,
+      background: "hsl(0deg 0% 100% / 80%)",
+      zIndex: 99,
+    },
+    progressIcon: {
+      position: "absolute",
+      top: "15%",
+      left: "15%",
+    },
+    addButton: {
+      marginRight: theme.spacing(1),
+    },
+    editInput: {
+      width: theme.spacing(10),
+    },
+    dateInput: {
+      minWidth: "248px",
+    },
+    dateLabel: {
+      fontSize: "12px",
+      marginBottom: theme.spacing(0.25),
+    },
+    historyContainer: {
+      position: "relative",
+      marginBottom: theme.spacing(2),
+      padding: theme.spacing(2),
+      minHeight: theme.spacing(9),
+    },
+    historyTitle: {
+      ...titleStyle(theme),
+      display: "inline-block",
+      marginBottom: "8px",
+    },
+    errorContainer: {
+      maxWidth: "100%",
+      marginTop: theme.spacing(3),
+    },
+    totalEntriesContainer: {
+      marginTop: theme.spacing(1),
+    },
+    expandIcon: {
+      marginLeft: theme.spacing(2),
+      verticalAlign: "middle",
+      fontSize: "12px",
+    },
+    endIcon: {
+      marginLeft: "-4px",
+      position: "relative",
+    },
+    tableContainer: {
+      position: "relative",
+    },
+  };
   const appCtx = useSettingContext();
   const appSettingsRef = React.useRef(appCtx.appSettings);
   const appSettings = appSettingsRef.current;
-  const classes = useStyles();
   const enableAddNew = !!(appSettings && appSettings["ENABLE_ADD_NEW_CS"]);
   const enablePrintNew = !enableAddNew;
-
   const [state, dispatch] = React.useReducer(reducer, initialState);
   const {
     editDate,
@@ -509,9 +510,9 @@ export default function Agreement(props) {
   );
 
   const renderProgressIndicator = () => (
-    <div className={classes.progressContainer}>
+    <div style={classes.progressContainer}>
       <CircularProgress
-        className={classes.progressIcon}
+        sx={classes.progressIcon}
         color="primary"
         size={32}
       />
@@ -519,16 +520,16 @@ export default function Agreement(props) {
   );
 
   const renderAddComponent = () => (
-    <Paper className={classes.addContainer} elevation={1}>
+    <Paper sx={classes.addContainer} elevation={1}>
       <Typography
         variant="caption"
         display="block"
-        className={classes.addTitle}
+        sx={classes.addTitle}
       >
         Add New
       </Typography>
       <LocalizationProvider dateAdapter={AdapterDayjs}>
-        <InputLabel className={classes.dateLabel}>Agreement Date</InputLabel>
+        <InputLabel sx={classes.dateLabel}>Agreement Date</InputLabel>
         <DatePicker
           autoOk={true}
           variant="dialog"
@@ -539,7 +540,7 @@ export default function Agreement(props) {
               placeholder: "YYYY-MM-DD",
               InputLabelProps: { shrink: true },
               variant: "standard",
-              className: classes.dateInput,
+              sx: classes.dateInput,
             },
           }}
           clearable={true}
@@ -567,11 +568,11 @@ export default function Agreement(props) {
           autoFocus
         />
       </LocalizationProvider>
-      <div className={classes.buttonsContainer}>
+      <div style={classes.buttonsContainer}>
         <Button
           variant="contained"
           color="primary"
-          className={classes.addButton}
+          sx={classes.addButton}
           disabled={!hasValues()}
           onClick={() => handleAdd()}
         >
@@ -593,8 +594,7 @@ export default function Agreement(props) {
       <Typography
         variant="caption"
         display="block"
-        className={classes.historyTitle}
-        sx={{ marginBottom: "8px" }}
+        sx={classes.historyTitle}
       >
         Latest Controlled Substance Agreement
       </Typography>
@@ -634,12 +634,11 @@ export default function Agreement(props) {
   );
 
   const renderPrintNewComponent = () => (
-    <Paper className={classes.addContainer} elevation={1}>
+    <Paper sx={classes.addContainer} elevation={1}>
       <Typography
         variant="caption"
         display="block"
-        className={classes.printTitle}
-        sx={{ marginBottom: 1.5 }}
+        sx={classes.printTitle}
       >
         New Agreement
       </Typography>
@@ -669,12 +668,12 @@ export default function Agreement(props) {
   );
 
   const renderHistory = () => (
-    <Paper className={classes.historyContainer} elevation={1}>
-      <div className={classes.totalEntriesContainer}>
+    <Paper sx={classes.historyContainer} elevation={1}>
+      <div style={classes.totalEntriesContainer}>
         <Typography
           variant="caption"
           display="block"
-          className={classes.historyTitle}
+          sx={classes.historyTitle}
         >
           History
         </Typography>
@@ -689,9 +688,9 @@ export default function Agreement(props) {
               onClick={() =>
                 dispatch({ type: "SET_EXPAND_HISTORY", payload: true })
               }
-              endIcon={<ExpandMoreIcon className={classes.endIcon} />}
+              endIcon={<ExpandMoreIcon sx={classes.endIcon} />}
               size="small"
-              className={classes.expandIcon}
+              sx={classes.expandIcon}
             >
               View
             </Button>
@@ -702,16 +701,16 @@ export default function Agreement(props) {
               onClick={() =>
                 dispatch({ type: "SET_EXPAND_HISTORY", payload: false })
               }
-              endIcon={<ExpandLessIcon className={classes.endIcon} />}
+              endIcon={<ExpandLessIcon sx={classes.endIcon} />}
               size="small"
-              className={classes.expandIcon}
+              sx={classes.expandIcon}
             >
               Hide
             </Button>
           )}
         </div>
       </div>
-      <div className={classes.tableContainer}>
+      <div style={classes.tableContainer}>
         {expandHistory && (
           <div className="history-table">
             <HistoryTable
@@ -748,7 +747,7 @@ export default function Agreement(props) {
   );
 
   const renderError = () => (
-    <div className={classes.errorContainer}>
+    <div style={classes.errorContainer}>
       {error && <Error message={error} />}
     </div>
   );
@@ -758,13 +757,13 @@ export default function Agreement(props) {
   }, [getHistory]);
 
   return (
-    <div className={classes.container}>
-      <div className={classes.contentContainer}>
+    <div style={classes.container}>
+      <div style={classes.contentContainer}>
         {renderTitle()}
         {addInProgress && renderProgressIndicator()}
         {enableAddNew && renderAddComponent()}
         {enablePrintNew && renderPrintNewComponent()}
-        <Paper className={classes.historyContainer} elevation={1}>
+        <Paper sx={classes.historyContainer} elevation={1}>
           {(!historyInitialized || updateInProgress) &&
             renderProgressIndicator()}
           {historyInitialized && renderMostRecentHistory()}

@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo } from "react";
 import Modal from "@mui/material/Modal";
-import makeStyles from "@mui/styles/makeStyles";
+import { useTheme } from "@mui/material/styles";
 import Button from "@mui/material/Button";
 import Box from "@mui/material/Box";
 import { Alert } from "@mui/material";
@@ -12,25 +12,6 @@ import {
   useOpenReactivatingModal,
 } from "../../stores/patientListSelectors";
 import RowData from "../../models/RowData";
-
-const useStyles = makeStyles((theme) => ({
-  container: {
-    backgroundColor: "#FFF",
-    margin: "auto",
-    padding: theme.spacing(1),
-    position: "absolute",
-    top: "25%",
-    width: "480px",
-    left: "calc(50% - 240px)",
-  },
-  buttonsContainer: {
-    padding: theme.spacing(2, 2, 1),
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    gap: theme.spacing(1),
-  },
-}));
 
 function warnIfMissing(name, fn) {
   if (process.env.NODE_ENV === "development" && typeof fn !== "function") {
@@ -45,7 +26,25 @@ function warnIfMissing(name, fn) {
 const { closeReactivatingModal } = usePatientListStore.getState();
 
 export default function ReactivatingModal() {
-  const classes = useStyles();
+  const theme = useTheme();
+  const classes = {
+    container: {
+      backgroundColor: "#FFF",
+      margin: "auto",
+      padding: theme.spacing(1),
+      position: "absolute",
+      top: "25%",
+      width: "480px",
+      left: "calc(50% - 240px)",
+    },
+    buttonsContainer: {
+      padding: theme.spacing(2, 2, 1),
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+      gap: theme.spacing(1),
+    },
+  };
 
   // Reactive store state via selectors
   const open = useOpenReactivatingModal();
@@ -102,7 +101,7 @@ export default function ReactivatingModal() {
       aria-labelledby="reactivating-modal-title"
       aria-describedby="reactivating-modal-description"
     >
-      <Box className={classes.container}>
+      <Box sx={classes.container}>
         <Alert severity="warning" id="reactivating-modal-description">
           <strong id="reactivating-modal-title">Duplicate Record Found</strong>
           <br />
@@ -111,7 +110,7 @@ export default function ReactivatingModal() {
           <strong>{getSubjectInfo()}</strong> ). Do you want to restore that
           record or create a new one?
         </Alert>
-        <div className={classes.buttonsContainer}>
+        <Box sx={classes.buttonsContainer}>
           <Button variant="contained" color="primary" onClick={onReactivate}>
             Restore
           </Button>
@@ -121,7 +120,7 @@ export default function ReactivatingModal() {
           <Button variant="outlined" color="primary" onClick={onClose}>
             Cancel
           </Button>
-        </div>
+        </Box>
       </Box>
     </Modal>
   );

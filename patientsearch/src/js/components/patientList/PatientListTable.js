@@ -251,11 +251,7 @@ export default function PatientListTable() {
             "Are you sure you want to remove this patient from the list? (You can add them back later by searching for them)",
           saveTooltip: "OK",
         },
-        emptyDataSourceMessage: (
-          <div id="emptyDataContainer" className="flex-center warning notice">
-            No record is found.
-          </div>
-        ),
+        emptyDataSourceMessage: "No record is found.",
       },
     }),
     [],

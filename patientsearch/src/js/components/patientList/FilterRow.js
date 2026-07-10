@@ -117,11 +117,11 @@ const DateFieldInput = memo(function DateFieldInput({
           textField: {
             placeholder: field.placeholder || "YYYY-MM-DD",
             InputLabelProps: { shrink: true },
-            inputProps: { "data-lpignore": true },
+            inputProps: { "data-lpignore": true},
             id: field.name,
             variant: "standard",
             fullWidth: true,
-            onKeyDown: onKeyDown
+            onKeyDown: onKeyDown,
           },
           field: { clearable: true, onClear },
         }}
@@ -131,7 +131,6 @@ const DateFieldInput = memo(function DateFieldInput({
         value={value ? dayjs(value) : null}
         orientation="landscape"
         clearable
-        sx={{ width: "100%" }}
         onKeyDown={onKeyDown}
         onChange={onChange}
         KeyboardButtonProps={{ color: "primary", title: "Date picker" }}
@@ -165,7 +164,7 @@ const MaskedFieldInput = memo(function MaskedFieldInput({
       disableFocus
       placeholder={field.placeholder}
       showMask={field.showMask !== undefined ? field.showMask : false}
-      inputClass="field-wrapper"
+      className="field-wrapper"
     />
   );
 });
@@ -404,7 +403,6 @@ export default forwardRef(function FilterRow(_props, ref) {
     handleSearchRef.current = handleSearch;
   }, [handleSearch]);
   const launchButtonLabel = actionLabel || LAUNCH_BUTTON_LABEL;
-
 
   return (
     <Box className="search-container">

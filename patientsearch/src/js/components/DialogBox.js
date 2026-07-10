@@ -1,23 +1,15 @@
 import React from "react";
+import { useTheme } from "@mui/material/styles";
 import PropTypes from "prop-types";
 import Button from "@mui/material/Button";
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
-import makeStyles from '@mui/styles/makeStyles';
 
-const useStyles = makeStyles((theme) => ({
-  diaglogTitle: {
-    backgroundColor: theme.palette.primary.lightest,
-  },
-  diaglogContent: {
-    marginTop: theme.spacing(3),
-  },
-}));
 
 export default function DialogBox(props) {
-    const classes = useStyles();
+    const theme = useTheme();
     const [open, setOpen] = React.useState(false);
     const handleClose = () => {
         setOpen(false);
@@ -29,15 +21,19 @@ export default function DialogBox(props) {
     return (
       <Dialog open={open} onClose={handleClose} aria-labelledby="dialog-title">
         <DialogTitle
-          classes={{
-            root: classes.diaglogTitle,
+          sx={{
+            root: {
+              backgroundColor: theme.palette.primary.lightest,
+            },
           }}
         >
           {props.title}
         </DialogTitle>
         <DialogContent
-          classes={{
-            root: classes.diaglogContent,
+          sx={{
+            root: {
+              marginTop: theme.spacing(3),
+            },
           }}
         >
           {props.body}

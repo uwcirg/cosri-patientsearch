@@ -522,6 +522,9 @@ only screen and (max-width: 736px),
         font-size: 0.85rem;
       }
     }
+    th .disabled, th [aria-disabled] {
+      display: none;
+    }
     th {
       display: block !important;
       background-color: #FFF !important;

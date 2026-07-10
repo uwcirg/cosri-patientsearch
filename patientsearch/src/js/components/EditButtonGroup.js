@@ -1,7 +1,7 @@
 import React from "react";
 import PropTypes from "prop-types";
 import DOMPurify from "dompurify";
-import makeStyles from '@mui/styles/makeStyles';
+import { useTheme } from "@mui/material/styles";
 import ClearIcon from "@mui/icons-material/Clear";
 import Delete from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
@@ -10,40 +10,40 @@ import Button from "@mui/material/Button";
 import ButtonGroup from "@mui/material/ButtonGroup";
 import Modal from "@mui/material/Modal";
 
-const useStyles = makeStyles((theme) => ({
-  buttonGroupContainer: {
-    marginLeft: theme.spacing(1.5),
-    marginTop: theme.spacing(0.5),
-    marginBottom: theme.spacing(0.5),
-    display: "inline-block",
-  },
-  description: {
-    marginBottom: theme.spacing(3),
-  },
-  delYesButton: {
-    marginRight: theme.spacing(0.5),
-  },
-  modalBody: {
-    display: "flex",
-    width: "100%",
-    height: "100%",
-    justifyContent: "center",
-    alignItems: "center",
-    flexDirection: "column"
-  },
-  modalContent: {
-    background: "#FFF",
-    padding: theme.spacing(0, 2, 2, 2),
-    border: "2px solid #c37707",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    flexDirection: "column"
-  }
-}));
 // button group: Edit, Update, Delete and Cancel buttons
 export default function EditButtonGroup(props) {
-  const classes = useStyles();
+  const theme = useTheme();
+  const classes = {
+    buttonGroupContainer: {
+      marginLeft: theme.spacing(1.5),
+      marginTop: theme.spacing(0.5),
+      marginBottom: theme.spacing(0.5),
+      display: "inline-block",
+    },
+    description: {
+      marginBottom: theme.spacing(3),
+    },
+    delYesButton: {
+      marginRight: theme.spacing(0.5),
+    },
+    modalBody: {
+      display: "flex",
+      width: "100%",
+      height: "100%",
+      justifyContent: "center",
+      alignItems: "center",
+      flexDirection: "column",
+    },
+    modalContent: {
+      background: "#FFF",
+      padding: theme.spacing(0, 2, 2, 2),
+      border: "2px solid #c37707",
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+      flexDirection: "column",
+    },
+  };
   const [editMode, setEditMode] = React.useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = React.useState(false);
   const enableEditMode = () => {
@@ -121,12 +121,12 @@ export default function EditButtonGroup(props) {
       aria-labelledby="Delete Entry Modal"
       aria-describedby="Prompt for deleting entry"
     >
-      <div className={classes.modalBody}>
-        <div className={classes.modalContent}>
+      <div sx={classes.modalBody}>
+        <div sx={classes.modalContent}>
           <h3>Are you sure you want to remove this entry?</h3>
           {props.entryDescription && (
             <div
-              className={classes.description}
+              sx={classes.description}
               dangerouslySetInnerHTML={{
                 __html: DOMPurify.sanitize(props.entryDescription),
               }}
@@ -137,7 +137,7 @@ export default function EditButtonGroup(props) {
               variant="contained"
               color="primary"
               onClick={handleDelete}
-              className={classes.delYesButton}
+              sx={classes.delYesButton}
             >
               Yes
             </Button>
@@ -154,7 +154,7 @@ export default function EditButtonGroup(props) {
     </Modal>
   );
   return (
-    <div className={classes.buttonGroupContainer}>
+    <div sx={classes.buttonGroupContainer}>
       {/* edit/remove button group */}
       {renderButtonGroup()}
       {/* entry removal warning modal */}

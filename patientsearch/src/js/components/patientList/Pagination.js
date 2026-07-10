@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, memo } from "react";
 import PropTypes from "prop-types";
-import makeStyles from "@mui/styles/makeStyles";
+import { useTheme } from "@mui/material/styles";
 import TablePagination from "@mui/material/TablePagination";
 import { useAppContext } from "../../context/PatientListContextProvider";
 import { usePatientListStore } from "../../stores/patientListStore";
@@ -10,13 +10,6 @@ import {
 } from "../../stores/patientListSelectors";
 import { isEmptyArray } from "../../helpers/utility";
 
-const useStyles = makeStyles((theme) => ({
-  pagination: {
-    marginTop: theme.spacing(1),
-    display: "inline-block",
-    border: "2px solid #ececec",
-  },
-}));
 
 const PaginationElement = memo(function PaginationElement({
   classes,
@@ -61,7 +54,14 @@ PaginationElement.propTypes = {
 const { updatePagination } = usePatientListStore.getState();
 
 export default function Pagination() {
-  const classes = useStyles();
+  const theme = useTheme();
+  const classes = {
+    pagination: {
+      marginTop: theme.spacing(1),
+      display: "inline-block",
+      border: "2px solid #ececec",
+    },
+  };
   const { tableRef } = useAppContext();
   const data = usePatientData();
   const pagination = usePagination();

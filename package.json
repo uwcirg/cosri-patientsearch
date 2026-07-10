@@ -16,16 +16,17 @@
     "@mui/material": "$@mui/material",
     "@mui/icons-material": "$@mui/icons-material",
     "@mui/styles": "$@mui/styles",
-    "@mui/x-date-pickers": "$@mui/x-date-pickers"
+    "@mui/x-date-pickers": "$@mui/x-date-pickers",
+    "date-fns": "2.30.0"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
     "@material-table/core": "^6.5.2",
-    "@mui/icons-material": "^6.5.0",
-    "@mui/material": "^6.5.0",
+    "@mui/icons-material": "^7.3.4",
+    "@mui/material": "^7.3.4",
     "@mui/styles": "^6.3.0",
-    "@mui/x-date-pickers": "^7.29.4",
+    "@mui/x-date-pickers": "^8.15.0",
     "dayjs": "^1.11.13",
     "dompurify": "^3.4.11",
     "es6-promise": "^4.2.8",

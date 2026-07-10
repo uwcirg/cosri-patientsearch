@@ -58,7 +58,7 @@ export default function PatientListContainer() {
       <LoadingModal open={isLoading} />
       <div className="flex-align-start">
         <Legend />
-        <div>
+        <div className="flex">
           <RefreshButton />
           <Pagination />
         </div>

@@ -1,4 +1,5 @@
 import React, { forwardRef, useMemo } from "react";
+import PropTypes from "prop-types";
 import { IMaskInput } from "react-imask";
 import Input from "@mui/material/Input";
 import FormControl from "@mui/material/FormControl";
@@ -9,13 +10,13 @@ import { convertLegacyArrayMask } from "../helpers/legacyMaskAdapter";
 // characters '0', ',' or '9', not the digit range 0-9. That's very likely a
 // pre-existing bug (probably meant /[0-9]/), unrelated to this migration.
 // Flagging it here rather than silently changing behavior.
-const DEFAULT_MAS = [
+const DEFAULT_MASK = [
   /[1-2]/, /[0,9]/, /\d/, /\d/, "-", /\d/, /\d/, "-", /\d/, /\d/,
 ];
 
 const TextMaskCustom = forwardRef(
   (props, forwardedRef) => {
-    const { ownerState, mask, showMask, placeholder, onAccept, inputClass, ...other } = props;
+    const { mask, showMask, placeholder, onAccept, ...other } = props;
 
     const { mask: pattern, definitions } = useMemo(
       () => convertLegacyArrayMask(mask ?? DEFAULT_MASK),
@@ -41,6 +42,12 @@ const TextMaskCustom = forwardRef(
 );
 TextMaskCustom.displayName = "TextMaskCustom";
 
+TextMaskCustom.propTypes = {
+  mask: PropTypes.string,
+  showMask: PropTypes.bool,
+  placeholder: PropTypes.string,
+  onAccept: PropTypes.func,
+};
 
 export default function FormattedInput(props) {
   // Replaces the old onChange handler. IMask fires onAccept whenever the
@@ -81,9 +88,27 @@ export default function FormattedInput(props) {
           error={props.error}
           autoFocus={!props.disableFocus}
           classes={props.inputClass}
+          className={props.className}
         />
         <FormHelperText>{props.helperText}</FormHelperText>
       </FormControl>
     </div>
   );
 }
+
+FormattedInput.propTypes = {
+  value: PropTypes.string,
+  defaultValue: PropTypes.string,
+  error: PropTypes.bool,
+  disableFocus: PropTypes.bool,
+  handleChange: PropTypes.func,
+  handleKeyDown: PropTypes.func,
+  helperText: PropTypes.string,
+  mask: PropTypes.array,
+  inputClass: PropTypes.object,
+  className: PropTypes.string,
+  placeholder: PropTypes.string,
+  readOnly: PropTypes.bool,
+  showMask: PropTypes.bool,
+  controlStyle: PropTypes.object,
+};

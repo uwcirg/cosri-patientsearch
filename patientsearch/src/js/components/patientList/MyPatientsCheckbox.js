@@ -1,5 +1,5 @@
 import { memo, useCallback, useEffect, useRef, useState } from "react";
-import makeStyles from "@mui/styles/makeStyles";
+import { useTheme } from "@mui/material/styles";
 import PropTypes from "prop-types";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Checkbox from "@mui/material/Checkbox";
@@ -13,31 +13,6 @@ import { useAppContext } from "../../context/PatientListContextProvider";
 import { usePatientListStore } from "../../stores/patientListStore";
 import { hasFlagForCheckbox } from "../../helpers/utility";
 
-const checkBoxStyles = makeStyles((theme) => {
-  return {
-    root: {
-      color: theme.palette.primary.main,
-    },
-    warningBg: {
-      backgroundColor: theme.palette.warning.dark,
-      color: "#FFF",
-      fontSize: "0.95rem",
-    },
-    warning: {
-      color: theme.palette.warning.dark,
-    },
-  };
-});
-const formControlStyles = makeStyles((theme) => {
-  return {
-    root: {
-      backgroundColor: "#f7f7f7",
-      marginLeft: theme.spacing(1),
-      marginRight: theme.spacing(1),
-    },
-  };
-});
-
 const CheckboxForm = memo(function CheckboxForm({
   checked,
   disable,
@@ -50,9 +25,7 @@ const CheckboxForm = memo(function CheckboxForm({
   return (
     <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
       <FormControlLabel
-        classes={{
-          root: formControlClasses.root,
-        }}
+        sx={formControlClasses.root}
         control={
           <Checkbox
             checked={checked}
@@ -61,9 +34,7 @@ const CheckboxForm = memo(function CheckboxForm({
             color="primary"
             size="small"
             disabled={disable}
-            classes={{
-              root: checkboxClasses.root,
-            }}
+            sx={checkboxClasses.root}
           />
         }
         label={<Typography variant="body2">{label}</Typography>}
@@ -72,15 +43,13 @@ const CheckboxForm = memo(function CheckboxForm({
         <Tooltip
           title={errorMessage}
           enterTouchDelay={0}
-          classes={{
-            tooltip: checkboxClasses.warningBg,
+          slotProps={{
+            tooltip: {
+              sx: checkboxClasses.warningBg,
+            },
           }}
         >
-          <ErrorIcon
-            classes={{
-              root: checkboxClasses.warning,
-            }}
-          />
+          <ErrorIcon sx={checkboxClasses.warning} />
         </Tooltip>
       )}
     </div>
@@ -101,14 +70,33 @@ const { resetPagination, setCareTeamPatientIds } =
     usePatientListStore.getState();
 
 export default function MyPatientsCheckbox({ shouldDisable, changeEvent }) {
+  const theme = useTheme();
+  const checkboxClasses = {
+    root: {
+      color: theme.palette.primary.main,
+    },
+    warningBg: {
+      backgroundColor: theme.palette.warning.dark,
+      color: "#FFF",
+      fontSize: "0.95rem",
+    },
+    warning: {
+      color: theme.palette.warning.dark,
+    },
+  };
+  const formControlClasses = {
+    root: {
+      backgroundColor: "#f7f7f7",
+      marginLeft: theme.spacing(1),
+      marginRight: theme.spacing(1),
+    },
+  };
   const { getAppSettingByKey = () => null } = useSettingContext();
   const { user, userError } = useUserContext();
   const { tableRef } = useAppContext();
   const cloneTableRef = useRef(null);
   const enableProviderFilter = getAppSettingByKey("ENABLE_PROVIDER_FILTER");
   const myPatientsFilterLabel = getAppSettingByKey("MY_PATIENTS_FILTER_LABEL");
-  const checkboxClasses = checkBoxStyles();
-  const formControlClasses = formControlStyles();
   const [state, setState] = useState(
     hasFlagForCheckbox(constants.FOLLOWING_FLAG),
   );

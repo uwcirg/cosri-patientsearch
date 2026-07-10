@@ -1,5 +1,5 @@
 import { memo, useCallback, useRef, useEffect } from "react";
-import makeStyles from "@mui/styles/makeStyles";
+import { useTheme } from "@mui/material/styles";
 import PropTypes from "prop-types";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Checkbox from "@mui/material/Checkbox";
@@ -7,23 +7,6 @@ import Typography from "@mui/material/Typography";
 import { usePatientListStore } from "../../stores/patientListStore";
 import { useAppContext } from "../../context/PatientListContextProvider";
 import { useSettingContext } from "../../context/SettingContextProvider";
-
-const checkBoxStyles = makeStyles((theme) => {
-  return {
-    root: {
-      color: theme.palette.primary.main,
-    },
-  };
-});
-const formControlStyles = makeStyles((theme) => {
-  return {
-    root: {
-      backgroundColor: "#f7f7f7",
-      marginLeft: theme.spacing(1),
-      marginRight: theme.spacing(1),
-    },
-  };
-});
 
 const CheckboxForm = memo(function CheckboxForm({
   label,
@@ -33,18 +16,14 @@ const CheckboxForm = memo(function CheckboxForm({
 }) {
   return (
     <FormControlLabel
-      classes={{
-        root: formControlClasses.root,
-      }}
+      sx={formControlClasses.root}
       control={
         <Checkbox
           onChange={changeEvent}
           name="ckTestPatients"
           color="primary"
           size="small"
-          classes={{
-            root: checkboxClasses.root,
-          }}
+          sx={checkboxClasses.root}
         />
       }
       label={<Typography variant="body2">{label}</Typography>}
@@ -63,8 +42,19 @@ const { resetPagination, toggleTestPatients } =
     usePatientListStore.getState();
 
 export default function TestPatientsCheckbox({ changeEvent }) {
-  const checkboxClasses = checkBoxStyles();
-  const formControlClasses = formControlStyles();
+  const theme = useTheme();
+  const checkboxClasses = {
+    root: {
+      color: theme.palette.primary.main,
+    },
+  };
+  const formControlClasses = {
+    root: {
+      backgroundColor: "#f7f7f7",
+      marginLeft: theme.spacing(1),
+      marginRight: theme.spacing(1),
+    },
+  };
   const { getAppSettingByKey = () => null } = useSettingContext();
   const enableFilterByTestPatients = getAppSettingByKey(
     "ENABLE_FILTER_FOR_TEST_PATIENTS",

@@ -28,10 +28,16 @@ module.exports = (env) => {
         util: require.resolve("util/"),
         stream: require.resolve("stream-browserify"),
       },
-      extensions: [".js", ".jsx", ".css"]
+      extensions: [".js", ".jsx", ".css"],
     },
-    devtool: isDevelopment? "eval" : "nosources-cheap-source-map",
-    mode: isDevelopment?"development":"production",
+    //devtool: isDevelopment? "eval" : "nosources-cheap-source-map",
+    devtool: isDevelopment
+      ? [
+          { type: "javascript", use: "source-map" },
+          { type: "css", use: "inline-source-map" },
+        ]
+      : "nosources-cheap-source-map",
+    mode: isDevelopment ? "development" : "production",
     entry: {
       index: [
         "whatwg-fetch",
@@ -122,8 +128,11 @@ module.exports = (env) => {
       new HtmlWebpackPlugin({
         title: appTitle,
         template: templateFilePath,
-        filename: path.join(__dirname, `${templateDirectory}/targetLaunch.html`),
-        chunks: ["targetLaunch"]
+        filename: path.join(
+          __dirname,
+          `${templateDirectory}/targetLaunch.html`,
+        ),
+        chunks: ["targetLaunch"],
       }),
       new webpack.ProvidePlugin({
         React: "react",
@@ -131,7 +140,7 @@ module.exports = (env) => {
       }),
       new webpack.DefinePlugin({
         "process.env.NODE_ENV": JSON.stringify(
-          isProduction ? "production" : "development"
+          isProduction ? "production" : "development",
         ),
       }),
       new FileManagerPlugin({
@@ -190,7 +199,7 @@ module.exports = (env) => {
             test: /[\\/]node_modules[\\/]/,
             name(module, chunks, cacheGroupKey) {
               const packageName = module.context.match(
-                /[\\/]node_modules[\\/](.*?)([\\/]|$)/
+                /[\\/]node_modules[\\/](.*?)([\\/]|$)/,
               )[1];
               return `${cacheGroupKey}.${packageName.replace("@", "")}`;
             },
