@@ -47,7 +47,7 @@
     "babel-loader": "^9.2.1",
     "babel-plugin-transform-react-jsx": "^6.24.1",
     "clean-webpack-plugin": "^4.0.0",
-    "concurrently": "^9.1.2",
+    "concurrently": "^9.2.4",
     "core-js": "^3.27.1",
     "cross-env": "^7.0.3",
     "css-loader": "^7.1.2",
