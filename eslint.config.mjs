@@ -49,7 +49,7 @@ export default [
       },
     },
     settings: {
-      polyfills: ["fetch", "promise"],
+      polyfills: ["fetch", "Promise"],
       react: {
         pragma: "React",
         version: "detect",

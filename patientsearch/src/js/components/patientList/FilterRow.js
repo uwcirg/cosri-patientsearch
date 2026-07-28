@@ -110,7 +110,7 @@ const DateFieldInput = memo(function DateFieldInput({
   value,
   onChange,
   onKeyDown,
-  onClear,
+  //onClear,
 }) {
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -147,7 +147,7 @@ DateFieldInput.propTypes = {
   value: PropTypes.string,
   onChange: PropTypes.func.isRequired,
   onKeyDown: PropTypes.func.isRequired,
-  onClear: PropTypes.func.isRequired,
+  //onClear: PropTypes.func.isRequired,
 };
 
 const MaskedFieldInput = memo(function MaskedFieldInput({
@@ -184,7 +184,7 @@ const FieldWrapper = memo(function FieldWrapper({
   value,
   onTextChange,
   onDateChange,
-  onDateClear,
+  //onDateClear,
   onKeyDown,
 }) {
   let fieldContent;
@@ -196,7 +196,7 @@ const FieldWrapper = memo(function FieldWrapper({
           value={value}
           onChange={onDateChange}
           onKeyDown={onKeyDown}
-          onClear={onDateClear}
+          //onClear={onDateClear}
         />
       );
       break;
@@ -236,7 +236,7 @@ FieldWrapper.propTypes = {
   value: PropTypes.string,
   onTextChange: PropTypes.func.isRequired,
   onDateChange: PropTypes.func.isRequired,
-  onDateClear: PropTypes.func.isRequired,
+  //onDateClear: PropTypes.func.isRequired,
   onKeyDown: PropTypes.func.isRequired,
 };
 
@@ -348,14 +348,14 @@ export default forwardRef(function FilterRow(_props, ref) {
     return dateChangeHandlersRef.current[fieldName];
   }, []);
 
-  const dateClearHandlersRef = useRef({});
-  const getDateClearHandler = useCallback((fieldName) => {
-    if (!dateClearHandlersRef.current[fieldName]) {
-      dateClearHandlersRef.current[fieldName] = () =>
-        setFilters((prev) => ({ ...prev, [fieldName]: null }));
-    }
-    return dateClearHandlersRef.current[fieldName];
-  }, []);
+  // const dateClearHandlersRef = useRef({});
+  // const getDateClearHandler = useCallback((fieldName) => {
+  //   if (!dateClearHandlersRef.current[fieldName]) {
+  //     dateClearHandlersRef.current[fieldName] = () =>
+  //       setFilters((prev) => ({ ...prev, [fieldName]: null }));
+  //   }
+  //   return dateClearHandlersRef.current[fieldName];
+  // }, []);
 
   const handleClear = useCallback(() => {
     setFilters(buildEmptyFilters(fields));
@@ -417,7 +417,7 @@ export default forwardRef(function FilterRow(_props, ref) {
             value={filters[field.name]}
             onTextChange={getTextChangeHandler(field.name)}
             onDateChange={getDateChangeHandler(field.name)}
-            onDateClear={getDateClearHandler(field.name)}
+            //onDateClear={getDateClearHandler(field.name)}
             onKeyDown={handleKeyDown}
           />
         ))}
