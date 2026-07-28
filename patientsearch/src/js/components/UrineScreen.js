@@ -361,6 +361,7 @@ export default function UrineScreen(props) {
   );
   const [dateInput, setDateInput] = React.useState(null);
   const [error, setError] = React.useState("");
+  const [dateError, setDateError] = React.useState("");
   const URINE_SCREEN_TYPE_LABEL = "Urine Drug Screen Name";
   const { rowData } = props;
   const getPatientId = React.useCallback(() => {
@@ -391,7 +392,7 @@ export default function UrineScreen(props) {
     dispatch({ type: "edit/set", key: "type", value: event.target.value });
   };
   const hasValues = () => {
-    return type && dateInput;
+    return type && dateInput && !dateError;
   };
   const hasError = () => {
     return error !== "";
@@ -835,35 +836,26 @@ export default function UrineScreen(props) {
     <Paper sx={classes.itemContainer} elevation={1}>
       <Typography
         variant="caption"
-        display="block"
-        sx={classes.addTitle}
+        sx={[
+          {
+            display: "block",
+          },
+          classes.addTitle,
+        ]}
       >
         Add New
       </Typography>
       {/* urine screen date/datepicker */}
       <div>
         <LocalizationProvider dateAdapter={AdapterDayjs}>
-          {/* order date field */}
           <InputLabel sx={classes.dateLabel}>Order Date</InputLabel>
           <DatePicker
-            autoOk={true}
-            variant="dialog"
             openTo="year"
             disableFuture
-            slotProps={{
-              textField: {
-                placeholder: "YYYY-MM-DD",
-                InputLabelProps: { shrink: true },
-                variant: "standard",
-                sx: classes.dateInput,
-              },
-            }}
+            orientation="landscape"
             format="YYYY-MM-DD"
             minDate={dayjs("1950-01-01")}
-            maxDateMessage="Date must not be in the future"
-            invalidDateMessage="Date must be in YYYY-MM-DD format, e.g. 1977-01-12"
             value={dateInput ? dayjs(dateInput) : null}
-            orientation="landscape"
             onChange={(dateString, validationContext) => {
               if (validationContext?.validationError) {
                 setDateInput(dateString.format());
@@ -871,9 +863,29 @@ export default function UrineScreen(props) {
               }
               setDateInput(dateString ? dateString.format("YYYY-MM-DD") : null);
             }}
-            KeyboardButtonProps={{ color: "primary", title: "Date picker" }}
-            autoFocus
+            onError={(reason) => {
+              const messages = {
+                invalidDate:
+                  "Date must be in YYYY-MM-DD format, e.g. 1977-01-12",
+                disableFuture: "Date must not be in the future",
+                minDate: "Date must not be earlier than 1950-01-01",
+              };
+              setDateError(reason ? messages[reason] || "Invalid date" : "");
+            }}
+            slotProps={{
+              textField: {
+                placeholder: "YYYY-MM-DD",
+                variant: "standard",
+                sx: classes.dateInput,
+                autoFocus: true,
+                error: !!dateError,
+                slotProps: {
+                  inputLabel: { shrink: true },
+                },
+              },
+            }}
           />
+          {dateError && <FormHelperText error>{dateError}</FormHelperText>}
         </LocalizationProvider>
       </div>
       {/* urine screen type selector */}
@@ -995,9 +1007,9 @@ export default function UrineScreen(props) {
       <Paper sx={classes.recentEntryContainer} elevation={0}>
         <Typography
           variant="caption"
-          display="block"
-          sx={classes.historyTitle}
-        >
+          sx={[{
+            display: "block"
+          }, classes.historyTitle]}>
           Last Urine Drug Screen
         </Typography>
         {!hasHistory() && (
@@ -1013,7 +1025,7 @@ export default function UrineScreen(props) {
         {/* most recent entry */}
         {hasHistory() && (
           <React.Fragment>
-            <div>
+            <div className="flex-gap-1">
               {!editEntry.mode && (
                 <span
                   dangerouslySetInnerHTML={{
@@ -1051,9 +1063,9 @@ export default function UrineScreen(props) {
     <Paper sx={classes.itemContainer} elevation={0}>
       <Typography
         variant="caption"
-        display="block"
-        sx={classes.historyTitle}
-      >
+        sx={[{
+          display: "block"
+        }, classes.historyTitle]}>
         History
       </Typography>
       <Box sx={classes.totalEntriesContainer}>

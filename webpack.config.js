@@ -163,8 +163,14 @@ module.exports = (env) => {
       compress: true,
       historyApiFallback: true,
       open: true,
-      overlay: true,
-      contentBase: "./dist",
+      client: {
+        overlay: {
+          errors: true,
+          warnings: false,
+          runtimeError: true
+        }
+      },
+      static: "./dist",
     },
     optimization: {
       minimize: true,

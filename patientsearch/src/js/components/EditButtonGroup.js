@@ -121,12 +121,12 @@ export default function EditButtonGroup(props) {
       aria-labelledby="Delete Entry Modal"
       aria-describedby="Prompt for deleting entry"
     >
-      <div sx={classes.modalBody}>
-        <div sx={classes.modalContent}>
+      <div style={classes.modalBody}>
+        <div style={classes.modalContent}>
           <h3>Are you sure you want to remove this entry?</h3>
           {props.entryDescription && (
             <div
-              sx={classes.description}
+              style={classes.description}
               dangerouslySetInnerHTML={{
                 __html: DOMPurify.sanitize(props.entryDescription),
               }}
@@ -137,7 +137,7 @@ export default function EditButtonGroup(props) {
               variant="contained"
               color="primary"
               onClick={handleDelete}
-              sx={classes.delYesButton}
+              style={classes.delYesButton}
             >
               Yes
             </Button>
@@ -154,7 +154,7 @@ export default function EditButtonGroup(props) {
     </Modal>
   );
   return (
-    <div sx={classes.buttonGroupContainer}>
+    <div style={classes.buttonGroupContainer}>
       {/* edit/remove button group */}
       {renderButtonGroup()}
       {/* entry removal warning modal */}

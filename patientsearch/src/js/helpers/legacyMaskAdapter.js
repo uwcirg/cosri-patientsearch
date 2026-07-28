@@ -1,7 +1,6 @@
 // Converts a text-mask style array (RegExp | string) into an IMask-compatible
 // { mask: pattern, definitions } pair. Supports the subset of text-mask used
-// in this codebase (RegExp validators + string literals). Does NOT support
-// text-mask's function-mask / conformToMask features
+// in this codebase (RegExp validators + string literals).
 
 const DIGIT_REGEX_SOURCE = /^\[0-9\]$|^\\d$/;
 

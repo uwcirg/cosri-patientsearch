@@ -39,7 +39,9 @@ const root = createRoot(document.getElementById("content"));
 root.render(
   <Layout>
     <div className="logout-container">
-      <Typography component="h4" variant="h5" color="inherit" align="center">
+      <Typography component="h4" variant="h5" align="center" sx={{
+        color: "inherit"
+      }}>
         {getMessage()}
       </Typography>
       <AlertMessage></AlertMessage>

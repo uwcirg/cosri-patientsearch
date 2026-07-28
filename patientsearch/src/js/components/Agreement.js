@@ -3,6 +3,7 @@ import PropTypes from "prop-types";
 import { useTheme } from "@mui/material/styles";
 import DOMPurify from "dompurify";
 import Button from "@mui/material/Button";
+import FormHelperText from "@mui/material/FormHelperText";
 import CircularProgress from "@mui/material/CircularProgress";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
@@ -47,6 +48,7 @@ const initialState = {
   editMode: false,
   lastEntry: { id: null, date: "" },
   dateInput: null,
+  dateError: "",
   addInProgress: false,
   updateInProgress: false,
   historyInitialized: false,
@@ -54,6 +56,7 @@ const initialState = {
   expandHistory: false,
   error: "",
   snackOpen: false,
+  isPrinting: false,
 };
 
 function reducer(state, action) {
@@ -64,6 +67,8 @@ function reducer(state, action) {
       return { ...state, editMode: action.payload };
     case "SET_DATE_INPUT":
       return { ...state, dateInput: action.payload };
+    case "SET_DATE_ERROR":
+      return { ...state, dateError: action.payload };
     case "SET_ADD_IN_PROGRESS":
       return { ...state, addInProgress: action.payload };
     case "SET_UPDATE_IN_PROGRESS":
@@ -82,7 +87,6 @@ function reducer(state, action) {
       return { ...state, lastEntry: { ...state.lastEntry, ...action.payload } };
     case "RESET_LAST_ENTRY":
       return { ...state, lastEntry: { id: null, date: "" } };
-    // Compound actions for common multi-state updates
     case "ENABLE_EDIT_MODE":
       return {
         ...state,
@@ -93,7 +97,7 @@ function reducer(state, action) {
     case "DISABLE_EDIT_MODE":
       return { ...state, editDate: null, editMode: false, error: "" };
     case "CLEAR_FIELDS":
-      return { ...state, dateInput: null, error: "" };
+      return { ...state, dateInput: null, dateError: "", error: "" };
     case "CLEAR_HISTORY":
       return { ...state, history: [], lastEntry: { id: null, date: "" } };
     case "SUBMISSION_ERROR":
@@ -120,6 +124,8 @@ function reducer(state, action) {
         addInProgress: false,
         updateInProgress: false,
       };
+    case "SET_IS_PRINTING":
+      return { ...state, isPrinting: action.payload };
     default:
       return state;
   }
@@ -225,6 +231,7 @@ export default function Agreement(props) {
     editMode,
     lastEntry,
     dateInput,
+    dateError,
     addInProgress,
     updateInProgress,
     historyInitialized,
@@ -232,9 +239,8 @@ export default function Agreement(props) {
     expandHistory,
     error,
     snackOpen,
+    isPrinting
   } = state;
-
-  const [isPrinting, setIsPrinting] = React.useState(false);
 
   const { rowData } = props;
 
@@ -468,26 +474,23 @@ export default function Agreement(props) {
     dispatch({ type: "SET_SNACK_OPEN", payload: false });
   };
 
-  const handlePrintNew = () => {
-    if (isPrinting) return; // Prevent double-taps
+ const handlePrintNew = () => {
+   if (isPrinting) return; // Prevent double-taps
 
-    setIsPrinting(true);
-    const pdfUrl = "/static/app/files/UW_CST_Agreement.pdf";
+   dispatch({ type: "SET_IS_PRINTING", payload: true });
+   const pdfUrl = "/static/app/files/UW_CST_Agreement.pdf";
 
-    // Open window immediately
-    const printWindow = window.open(pdfUrl, "_blank");
+   const printWindow = window.open(pdfUrl, "_blank");
 
-    // Record the data
-    handleUpdate({ date: dayjs().format("YYYY-MM-DD") }, () => {
-      // Reset loading state when the API call finishes
-      setIsPrinting(false);
-    });
+   handleUpdate({ date: dayjs().format("YYYY-MM-DD") }, () => {
+     dispatch({ type: "SET_IS_PRINTING", payload: false });
+   });
 
-    if (!printWindow) {
-      alert("Please allow popups to view the agreement.");
-      setIsPrinting(false);
-    }
-  };
+   if (!printWindow) {
+     alert("Please allow popups to view the agreement.");
+     dispatch({ type: "SET_IS_PRINTING", payload: false });
+   }
+ };
 
   const columns = [
     { field: "id", hidden: true },
@@ -511,11 +514,7 @@ export default function Agreement(props) {
 
   const renderProgressIndicator = () => (
     <div style={classes.progressContainer}>
-      <CircularProgress
-        sx={classes.progressIcon}
-        color="primary"
-        size={32}
-      />
+      <CircularProgress sx={classes.progressIcon} color="primary" size={32} />
     </div>
   );
 
@@ -523,34 +522,24 @@ export default function Agreement(props) {
     <Paper sx={classes.addContainer} elevation={1}>
       <Typography
         variant="caption"
-        display="block"
-        sx={classes.addTitle}
+        sx={[
+          {
+            display: "block",
+          },
+          classes.addTitle,
+        ]}
       >
         Add New
       </Typography>
       <LocalizationProvider dateAdapter={AdapterDayjs}>
         <InputLabel sx={classes.dateLabel}>Agreement Date</InputLabel>
         <DatePicker
-          autoOk={true}
-          variant="dialog"
           openTo="year"
           disableFuture
-          slotProps={{
-            textField: {
-              placeholder: "YYYY-MM-DD",
-              InputLabelProps: { shrink: true },
-              variant: "standard",
-              sx: classes.dateInput,
-            },
-          }}
-          clearable={true}
+          orientation="landscape"
           format="YYYY-MM-DD"
           minDate={dayjs("1950-01-01")}
-          invalidDateMessage="Date must be in YYYY-MM-DD format, e.g. 1977-01-12"
-          maxDateMessage="Date must not be in the future"
           value={dateInput ? dayjs(dateInput) : null}
-          orientation="landscape"
-          onKeyDown={handleKeyDownAdd}
           onChange={(dateString, validationContext) => {
             if (validationContext?.validationError) {
               dispatch({
@@ -564,9 +553,32 @@ export default function Agreement(props) {
               payload: dateString ? dateString.format("YYYY-MM-DD") : null,
             });
           }}
-          KeyboardButtonProps={{ color: "primary", title: "Date picker" }}
-          autoFocus
+          onError={(reason) => {
+            const messages = {
+              invalidDate: "Date must be in YYYY-MM-DD format, e.g. 1977-01-12",
+              disableFuture: "Date must not be in the future",
+              minDate: "Date must not be earlier than 1950-01-01",
+            };
+            dispatch({
+              type: "SET_DATE_ERROR",
+              payload: reason ? messages[reason] || "Invalid date" : "",
+            });
+          }}
+          slotProps={{
+            textField: {
+              placeholder: "YYYY-MM-DD",
+              variant: "standard",
+              sx: classes.dateInput,
+              autoFocus: true,
+              onKeyDown: handleKeyDownAdd,
+              error: !!dateError,
+              slotProps: {
+                inputLabel: { shrink: true },
+              },
+            },
+          }}
         />
+        {dateError && <FormHelperText error>{dateError}</FormHelperText>}
       </LocalizationProvider>
       <div style={classes.buttonsContainer}>
         <Button
@@ -593,8 +605,12 @@ export default function Agreement(props) {
     <React.Fragment>
       <Typography
         variant="caption"
-        display="block"
-        sx={classes.historyTitle}
+        sx={[
+          {
+            display: "block",
+          },
+          classes.historyTitle,
+        ]}
       >
         Latest Controlled Substance Agreement
       </Typography>
@@ -637,12 +653,21 @@ export default function Agreement(props) {
     <Paper sx={classes.addContainer} elevation={1}>
       <Typography
         variant="caption"
-        display="block"
-        sx={classes.printTitle}
+        sx={[
+          {
+            display: "block",
+          },
+          classes.printTitle,
+        ]}
       >
         New Agreement
       </Typography>
-      <Stack flexDirection="column" gap={1}>
+      <Stack
+        sx={{
+          flexDirection: "column",
+          gap: 1,
+        }}
+      >
         <div>
           <Button
             variant="outlined"
@@ -672,8 +697,12 @@ export default function Agreement(props) {
       <div style={classes.totalEntriesContainer}>
         <Typography
           variant="caption"
-          display="block"
-          sx={classes.historyTitle}
+          sx={[
+            {
+              display: "block",
+            },
+            classes.historyTitle,
+          ]}
         >
           History
         </Typography>

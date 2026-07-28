@@ -322,13 +322,12 @@ export default function Header() {
           <Typography
             component="h1"
             variant="h5"
-            color="inherit"
             noWrap
-            sx={{
-              width: "100%",
-            }}
             align="center"
-          >
+            sx={{
+              color: "inherit",
+              width: "100%"
+            }}>
             {appTitle}
           </Typography>
         </Toolbar>

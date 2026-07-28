@@ -1,7 +1,7 @@
 import React from "react";
 import PropTypes from "prop-types";
 import { useTheme, styled } from "@mui/material/styles";
-import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
+import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutlined";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import ListItemIcon from "@mui/material/ListItemIcon";

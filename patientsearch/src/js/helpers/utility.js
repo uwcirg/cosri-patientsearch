@@ -422,12 +422,9 @@ export function setFavicon(href) {
 }
 
 export function isEmptyArray(arrObj) {
-  return (
-    !arrObj ||
-    !Array.isArray(arrObj) ||
-    arrObj.length === 0 ||
-    !arrObj.find((item) => item && String(item).replace(/[\[\]"']/g, "") !== "")
-  );
+  return (!arrObj ||
+  !Array.isArray(arrObj) ||
+  arrObj.length === 0 || !arrObj.find((item) => item && String(item).replace(/[\[\]"']/g, "") !== ""));
 }
 
 /*

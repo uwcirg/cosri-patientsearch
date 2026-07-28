@@ -153,10 +153,10 @@ export default function Info(props) {
       <Typography
         component="h4"
         variant="h5"
-        color="inherit"
         align="center"
-        sx={classes.title}
-      >
+        sx={[{
+          color: "inherit"
+        }, classes.title]}>
         <div
           dangerouslySetInnerHTML={{
             __html: DOMPurify.sanitize(getBodyText()),

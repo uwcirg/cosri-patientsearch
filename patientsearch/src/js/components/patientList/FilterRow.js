@@ -109,31 +109,27 @@ const DateFieldInput = memo(function DateFieldInput({
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
       <DatePicker
-        autoOk
-        variant="dialog"
         openTo="year"
         disableFuture
+        orientation="landscape"
+        format="YYYY-MM-DD"
+        minDate={dayjs("1900-01-01")}
+        value={value ? dayjs(value) : null}
+        onChange={onChange}
         slotProps={{
           textField: {
-            placeholder: field.placeholder || "YYYY-MM-DD",
-            InputLabelProps: { shrink: true },
-            inputProps: { "data-lpignore": true},
+            placeholder: field.placeholder || "DOB: YYYY-MM-DD",
             id: field.name,
             variant: "standard",
             fullWidth: true,
             onKeyDown: onKeyDown,
+            slotProps: {
+              inputLabel: { shrink: true },
+              htmlInput: { "data-lpignore": true },
+            },
           },
           field: { clearable: true, onClear },
         }}
-        format="YYYY-MM-DD"
-        minDate={dayjs("1900-01-01")}
-        invalidDateMessage="Date must be in YYYY-MM-DD format, e.g. 1977-01-12"
-        value={value ? dayjs(value) : null}
-        orientation="landscape"
-        clearable
-        onKeyDown={onKeyDown}
-        onChange={onChange}
-        KeyboardButtonProps={{ color: "primary", title: "Date picker" }}
       />
     </LocalizationProvider>
   );

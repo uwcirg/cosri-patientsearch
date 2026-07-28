@@ -2,8 +2,8 @@ import PropTypes from "prop-types";
 import React from "react";
 import { useTheme } from "@mui/material/styles";
 import MaterialTable, {
-  MTableActions,
   MTableAction,
+  MTableActions,
 } from "@material-table/core";
 import TablePagination from "@mui/material/TablePagination";
 import CircularProgress from "@mui/material/CircularProgress";

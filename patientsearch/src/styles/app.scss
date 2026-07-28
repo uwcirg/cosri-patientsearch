@@ -96,6 +96,13 @@ header {
   align-items: flex-start;
   flex-wrap: wrap;
 }
+.flex-justify-start {
+  display: flex;
+  justify-content: flex-start;
+}
+.flex-gap-1 {
+  gap: 8px;
+}
 .success {
   color: $color-success;
 }

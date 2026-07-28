@@ -86,9 +86,9 @@ export default function PatientListContextProvider({ children }) {
         emptyValue: () => <div datacolumn={col.label}>-</div>,
         render: (rowData) => (
           // eslint-disable-next-line
-          <div datacolumn={col.label} dataid={rowData["id"]}>
+          (<div datacolumn={col.label} dataid={rowData["id"]}>
             {rowData[fieldName]}
-          </div>
+          </div>)
         ),
       };
     });

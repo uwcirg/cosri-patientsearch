@@ -35,7 +35,7 @@ export default function RefreshButton() {
   refreshButtonContainer: {
     display: "inline-block",
     verticalAlign: "top",
-    marginTop: theme.spacing(2.5),
+    marginTop: theme.spacing(1.5),
     marginRight: theme.spacing(2),
   },
 };
