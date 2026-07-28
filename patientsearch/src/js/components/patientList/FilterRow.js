@@ -116,6 +116,7 @@ const DateFieldInput = memo(function DateFieldInput({
     <LocalizationProvider dateAdapter={AdapterDayjs}>
       <DatePicker
         openTo="day"
+        views={["month", "year", "day"]}
         disableFuture
         orientation="landscape"
         format="YYYY-MM-DD"

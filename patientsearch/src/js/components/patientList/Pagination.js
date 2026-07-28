@@ -49,6 +49,9 @@ const PaginationElement = memo(function PaginationElement({
           disabled: pagination.disablePrevButton,
           color: "primary",
         },
+        select: {
+          variant: "standard"
+        }
       }}
     />
   );
