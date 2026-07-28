@@ -11,7 +11,10 @@ import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Paper from "@mui/material/Paper";
 import { useTheme } from "@mui/material/styles";
-import { usePatientListStore } from "../../stores/patientListStore";
+import {
+  usePatientListStore,
+  patientListStoreApi,
+} from "../../stores/patientListStore";
 import { useAppContext } from "../../context/PatientListContextProvider";
 import { defaultMenuItems } from "../../constants/consts";
 import { toggleDetailPanel } from "../../helpers/utility";
@@ -78,7 +81,7 @@ export default function DetailPanel({ data }) {
       color: theme.palette.primary.main,
     },
   };
-  const { closeMenu, selectedMenuItem } = usePatientListStore.getState();
+  const { closeMenu, selectedMenuItem } = patientListStoreApi.getState();
   const [selectedItemId, setSelectedItemId] = useState(selectedMenuItem);
 
   useEffect(() => {

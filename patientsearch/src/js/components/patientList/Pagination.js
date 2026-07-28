@@ -31,15 +31,34 @@ const PaginationElement = memo(function PaginationElement({
       size="small"
       component="div"
       labelRowsPerPage="Rows per page"
-      nextIconButtonProps={{
-        disabled: pagination.disableNextButton,
-        color: "primary",
+      slotProps={{
+        
+        nextButtonIcon: {
+          disabled: pagination.disableNextButton,
+          color: "primary",
+        },
+        previousButtonIcon: {
+          disabled: pagination.disablePrevButton,
+          color: "primary",
+        },
+        nextButton: {
+          disabled: pagination.disableNextButton,
+          color: "primary",
+        },
+        previousButton: {
+          disabled: pagination.disablePrevButton,
+          color: "primary",
+        },
       }}
-      backIconButtonProps={{
-        disabled: pagination.disablePrevButton,
-        color: "primary",
-      }}
-      SelectProps={{ variant: "standard" }}
+      // nextIconButtonProps={{
+      //   disabled: pagination.disableNextButton,
+      //   color: "primary",
+      // }}
+      // backIconButtonProps={{
+      //   disabled: pagination.disablePrevButton,
+      //   color: "primary",
+      // }}
+      // SelectProps={{ variant: "standard" }}
     />
   );
 });

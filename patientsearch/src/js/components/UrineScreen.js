@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useCallback, useMemo} from "react";
 import PropTypes from "prop-types";
 import DOMPurify from "dompurify";
 import { useTheme } from "@mui/material/styles";
@@ -176,12 +176,12 @@ export default function UrineScreen(props) {
           : true
       )
     : null;
-  const entryDefaultValue = {
+  const entryDefaultValue = useMemo(() => ({
     id: null,
     date: "",
     type: "",
     readonly: false,
-  };
+  }), []);
   const defaultEditValues = {
     ...entryDefaultValue,
     mode: false,
@@ -371,7 +371,7 @@ export default function UrineScreen(props) {
   const clearDate = () => {
     setDateInput("");
   };
-  const clearHistory = () => {
+  const clearHistory = useCallback(() => {
     dispatch({
       type: "history/init-complete",
       payload: {
@@ -379,7 +379,7 @@ export default function UrineScreen(props) {
         mostRecentEntry: entryDefaultValue,
       },
     });
-  };
+  }, [entryDefaultValue]);
   const clearFields = () => {
     clearDate();
     if (!onlyOneEditableUrineScreenType()) setType("");
@@ -542,8 +542,7 @@ export default function UrineScreen(props) {
       );
       return "";
     },
-     /* eslint-disable react-hooks/exhaustive-deps */
-    [rowData, configUrineScreenTypes, createHistoryData]
+    [rowData, configUrineScreenTypes, createHistoryData, clearHistory]
   );
   const handleAdd = (params) => {
     handleUpdate(

@@ -64,6 +64,16 @@ export default function Info(props) {
       lineHeight: "1.5",
     },
   };
+  function hasSettings() {
+    return appSettings && Object.keys(appSettings).length > 0;
+  }
+
+  /* return config variable by key */
+  function getConfig(key) {
+    if (typeof appSettings === "undefined") return "";
+    if (!hasSettings()) return "";
+    return appSettings[key];
+  }
   const settingsCtx = useSettingContext();
   const appSettings = props.appSettings
     ? props.appSettings
@@ -72,16 +82,6 @@ export default function Info(props) {
   const SITE_ID_STRING = "SITE_ID";
   const [loading, setLoading] = React.useState(true);
   const siteID = getConfig(SITE_ID_STRING);
-
-  function hasSettings() {
-    return appSettings && Object.keys(appSettings).length > 0;
-  }
-
-  /* return config variable by key */
-  function getConfig(key) {
-    if (!hasSettings()) return "";
-    return appSettings[key];
-  }
 
   function handleImageLoaded(e) {
     if (!e.target) {
@@ -123,7 +123,7 @@ export default function Info(props) {
     //defaults
     if (!siteID)
       return `This is a ${getConfig(
-        SYSTEM_TYPE_STRING
+        SYSTEM_TYPE_STRING,
       )} system.  Not for clinical use.`;
     return "This system is only for use by clinical staff.";
   }
@@ -154,9 +154,13 @@ export default function Info(props) {
         component="h4"
         variant="h5"
         align="center"
-        sx={[{
-          color: "inherit"
-        }, classes.title]}>
+        sx={[
+          {
+            color: "inherit",
+          },
+          classes.title,
+        ]}
+      >
         <div
           dangerouslySetInnerHTML={{
             __html: DOMPurify.sanitize(getBodyText()),

@@ -179,7 +179,11 @@ export default function PatientListContextProvider({ children }) {
   const handleErrorCallback = useCallback((e) => {
     const oStatus = constants.objErrorStatus[parseInt(e?.status)];
     if (oStatus) {
-      setError("Logging out due to error.");
+      setError("Unauthorized / Expired Session");
+      // Reason: intentional full-page redirect on session expiry - a one-shot
+      // imperative navigation, not a render-time mutation. Known false positive:
+      // https://github.com/facebook/react/issues/29778
+      // eslint-disable-next-line react-compiler/react-compiler
       window.location = oStatus.logoutURL;
       return;
     }

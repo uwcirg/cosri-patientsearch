@@ -80,13 +80,19 @@ const TextFieldInput = memo(function TextFieldInput({
       onChange={onChange}
       onKeyDown={onKeyDown}
       fullWidth
-      inputProps={{ "data-lpignore": true }}
-      InputProps={{
-        startAdornment: field.icon ? (
-          <InputAdornment position="start">
-            {ICON_MAP[field.icon] ?? null}
-          </InputAdornment>
-        ) : null,
+      slotProps={{
+        input: {
+          startAdornment: field.icon ? (
+            <InputAdornment position="start">
+              {ICON_MAP[field.icon] ?? null}
+            </InputAdornment>
+          ) : null,
+          slotProps: {
+            input: {
+              "data-lpignore": true
+            }
+          }
+        }
       }}
     />
   );
