@@ -534,7 +534,7 @@ export default function Agreement(props) {
       <LocalizationProvider dateAdapter={AdapterDayjs}>
         <InputLabel sx={classes.dateLabel}>Agreement Date</InputLabel>
         <DatePicker
-          openTo="year"
+          openTo="day"
           disableFuture
           orientation="landscape"
           format="YYYY-MM-DD"

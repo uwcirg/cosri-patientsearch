@@ -50,15 +50,6 @@ const PaginationElement = memo(function PaginationElement({
           color: "primary",
         },
       }}
-      // nextIconButtonProps={{
-      //   disabled: pagination.disableNextButton,
-      //   color: "primary",
-      // }}
-      // backIconButtonProps={{
-      //   disabled: pagination.disablePrevButton,
-      //   color: "primary",
-      // }}
-      // SelectProps={{ variant: "standard" }}
     />
   );
 });

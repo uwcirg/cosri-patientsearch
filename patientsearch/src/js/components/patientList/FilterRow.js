@@ -115,7 +115,7 @@ const DateFieldInput = memo(function DateFieldInput({
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
       <DatePicker
-        openTo="year"
+        openTo="day"
         disableFuture
         orientation="landscape"
         format="YYYY-MM-DD"
@@ -134,7 +134,7 @@ const DateFieldInput = memo(function DateFieldInput({
               htmlInput: { "data-lpignore": true },
             },
           },
-          field: { clearable: true, onClear },
+          // field: { clearable: true, onClear },
         }}
       />
     </LocalizationProvider>

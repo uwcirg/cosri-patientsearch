@@ -849,7 +849,7 @@ export default function UrineScreen(props) {
         <LocalizationProvider dateAdapter={AdapterDayjs}>
           <InputLabel sx={classes.dateLabel}>Order Date</InputLabel>
           <DatePicker
-            openTo="year"
+            openTo="day"
             disableFuture
             orientation="landscape"
             format="YYYY-MM-DD"
