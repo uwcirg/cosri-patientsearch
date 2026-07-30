@@ -196,7 +196,6 @@ const FieldWrapper = memo(function FieldWrapper({
           value={value}
           onChange={onDateChange}
           onKeyDown={onKeyDown}
-          //onClear={onDateClear}
         />
       );
       break;
@@ -236,7 +235,6 @@ FieldWrapper.propTypes = {
   value: PropTypes.string,
   onTextChange: PropTypes.func.isRequired,
   onDateChange: PropTypes.func.isRequired,
-  //onDateClear: PropTypes.func.isRequired,
   onKeyDown: PropTypes.func.isRequired,
 };
 
@@ -347,15 +345,6 @@ export default forwardRef(function FilterRow(_props, ref) {
     }
     return dateChangeHandlersRef.current[fieldName];
   }, []);
-
-  // const dateClearHandlersRef = useRef({});
-  // const getDateClearHandler = useCallback((fieldName) => {
-  //   if (!dateClearHandlersRef.current[fieldName]) {
-  //     dateClearHandlersRef.current[fieldName] = () =>
-  //       setFilters((prev) => ({ ...prev, [fieldName]: null }));
-  //   }
-  //   return dateClearHandlersRef.current[fieldName];
-  // }, []);
 
   const handleClear = useCallback(() => {
     setFilters(buildEmptyFilters(fields));
