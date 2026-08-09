@@ -1,4 +1,4 @@
-certifi==2021.5.30        # via requests
+certifi==2024.7.4        # via requests
 charset-normalizer==2.0.6  # via requests
 click==8.0.1              # via flask
 flask-jwt-extended==3.24.1  # via patientsearch (setup.py)
