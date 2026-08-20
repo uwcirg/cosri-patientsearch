@@ -23,8 +23,10 @@ import {
   setDocumentTitle,
   setFavicon,
 } from "../helpers/utility";
-import { useSettingContext } from "../context/SettingContextProvider";
-import { useUserContext } from "../context/UserContextProvider";
+import {
+  useSettingContext,
+  useUserContext,
+} from "../context/AppContextProvider";
 
 const logoutURL = "/logout?user_initiated=true";
 
@@ -86,6 +88,7 @@ export default function Header() {
         alignItems: "center",
         justifyContent: "flex-end",
         width: "100%",
+        gap: theme.spacing(1),
         marginLeft: theme.spacing(1),
         "& > *": {
           fontWeight: 400,
@@ -104,7 +107,12 @@ export default function Header() {
       >
         Logout
       </Link>
-      <Link color="secondary" variant="body1" href={logoutURL}>
+      <Link
+        color="secondary"
+        variant="body1"
+        href={logoutURL}
+        aria-label="Link for logout"
+      >
         <ExitToAppIcon
           color="secondary"
           fontSize="medium"
@@ -130,6 +138,7 @@ export default function Header() {
           display: "flex",
           flexDirection: "row",
           alignItems: "center",
+          gap: "8px"
         }}
       >
         <Avatar
@@ -148,13 +157,7 @@ export default function Header() {
         </Avatar>
         <span>Welcome</span>
         {hasUserInfo() && (
-          <span
-            style={{
-              marginLeft: "8px",
-            }}
-          >
-            {userInfo.username || userInfo.name || userInfo.email}
-          </span>
+          <span>{userInfo.username || userInfo.name || userInfo.email}</span>
         )}
       </Typography>
     </div>
@@ -235,18 +238,21 @@ export default function Header() {
         disableGutters
         variant="dense"
       >
-        {logoURL && (
-          <img
-            src={getLogoURL()}
-            alt="Logo"
-            style={{
-              width: "180px",
-              // marginLeft: theme.spacing(3),
-            }}
-            onLoad={handleImageLoaded}
-            onError={handleImageLoadError}
-          />
-        )}
+        <Box sx={{ width: "180px" }}>
+          {logoURL && (
+            <img
+              src={getLogoURL()}
+              alt="Logo"
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+              }}
+              onLoad={handleImageLoaded}
+              onError={handleImageLoadError}
+            />
+          )}
+        </Box>
         <SiteLogo />
         {!userError && renderClientButtons(false)}
         {!userError && (
@@ -257,6 +263,8 @@ export default function Header() {
               alignItems: "center",
               marginRight: theme.spacing(4),
               marginLeft: theme.spacing(4),
+              minWidth: theme.spacing(25),
+              minHeight: theme.spacing(1),
               [theme.breakpoints.down("md")]: {
                 display: "none",
               },
@@ -313,7 +321,7 @@ export default function Header() {
       {appTitle && (
         <Toolbar
           sx={{
-            paddingRight: 16, // keep right padding when drawer closed
+            padding: theme.spacing(0, 2),
             minHeight: theme.spacing(5),
           }}
           disableGutters
@@ -326,8 +334,9 @@ export default function Header() {
             align="center"
             sx={{
               color: "inherit",
-              width: "100%"
-            }}>
+              width: "100%",
+            }}
+          >
             {appTitle}
           </Typography>
         </Toolbar>

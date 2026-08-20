@@ -1,5 +1,5 @@
 import { createTheme } from "@mui/material/styles";
-import {cyan, teal, deepPurple} from "@mui/material/colors";
+import {cyan, teal, deepPurple, grey} from "@mui/material/colors";
 
 
 const feedbackColors = {
@@ -16,8 +16,8 @@ const secondaryColors = {
 };
 
 const mutedColors = {
-  main: "#888",
-  light: "#ececec",
+  main: grey[500],
+  light: grey[300],
 };
 
 export const themes = {

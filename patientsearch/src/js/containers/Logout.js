@@ -5,7 +5,7 @@ import Typography from "@mui/material/Typography";
 import Layout from "../layout/Layout";
 import Alert from "../components/Alert";
 import { getUrlParameter } from "../helpers/utility";
-import { useSettingContext } from "../context/SettingContextProvider";
+import { useSettingContext } from "../context/AppContextProvider";
 import "../../styles/app.scss";
 
 

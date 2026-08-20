@@ -24,7 +24,7 @@ import {
   LAUNCH_BUTTON_LABEL,
 } from "../../constants/consts";
 import { useActionLabel } from "../../stores/patientListSelectors";
-import { useAppContext } from "../../context/PatientListContextProvider";
+import { usePatientDataContext } from "../../context/PatientListContextProvider";
 import { usePatientListStore } from "../../stores/patientListStore";
 import RowData from "../../models/RowData";
 
@@ -132,7 +132,14 @@ const DateFieldInput = memo(function DateFieldInput({
             onKeyDown: onKeyDown,
             slotProps: {
               inputLabel: { shrink: true },
-              htmlInput: { "data-lpignore": true },
+              htmlInput: {
+                "data-lpignore": true,
+              },
+            },
+          },
+          openPickerIcon: {
+            sx: {
+              color: "primary.main",
             },
           },
           // field: { clearable: true, onClear },
@@ -250,7 +257,7 @@ export default forwardRef(function FilterRow(_props, ref) {
     handleSearch,
     searchFields: rawFields = defaultSearchFields,
     tableRef,
-  } = useAppContext();
+  } = usePatientDataContext();
 
   const actionLabel = useActionLabel() ?? "View";
 

@@ -3,22 +3,19 @@ import React from "react";
 import Header from "../components/Header";
 import SystemBanner from "../components/SystemBanner";
 import ProjectThemeProvider from "../context/ProjectThemeProvider";
-import SettingContextProvider from "../context/SettingContextProvider";
-import UserContextProvider from "../context/UserContextProvider";
+import AppContextProvider from "../context/AppContextProvider";
 import "../../styles/app.scss";
 
 export default function Layout({children}) {
   return (
     <>
-      <SettingContextProvider>
+      <AppContextProvider>
         <ProjectThemeProvider>
-          <UserContextProvider>
-              <SystemBanner />
-              <Header />
-              {children}
-          </UserContextProvider>
+          <SystemBanner />
+          <Header />
+          {children}
         </ProjectThemeProvider>
-      </SettingContextProvider>
+      </AppContextProvider>
     </>
   );
 }

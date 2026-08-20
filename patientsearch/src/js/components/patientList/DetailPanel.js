@@ -10,12 +10,11 @@ import PropTypes from "prop-types";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Paper from "@mui/material/Paper";
-import { useTheme } from "@mui/material/styles";
 import {
   usePatientListStore,
   patientListStoreApi,
 } from "../../stores/patientListStore";
-import { useAppContext } from "../../context/PatientListContextProvider";
+import { usePatientDataContext } from "../../context/PatientListContextProvider";
 import { defaultMenuItems } from "../../constants/consts";
 import { toggleDetailPanel } from "../../helpers/utility";
 
@@ -32,16 +31,16 @@ const getDetailPanelContent = (d, selectedItemId) =>
 
 const DetailPanelContent = memo(
   forwardRef(function DetailPanelContent(
-    { onClickFunc, selectedItemId, data, classes },
+    { onClickFunc, selectedItemId, data },
     ref,
   ) {
     return (
-      <Box sx={classes.detailPanelWrapper} ref={ref}>
-        <Paper elevation={1} sx={classes.detailPanelContainer}>
+      <Box className="detailPanel__wrapper" ref={ref}>
+        <Paper elevation={1} className="detailPanel__container">
           {getDetailPanelContent(data, selectedItemId)}
           <Button
             onClick={onClickFunc}
-            sx={classes.detailPanelCloseButton}
+            className="close-button"
             size="small"
           >
             Close X
@@ -54,33 +53,14 @@ const DetailPanelContent = memo(
 
 DetailPanelContent.propTypes = {
   onClickFunc: PropTypes.func,
-  classes: PropTypes.object.isRequired,
   data: PropTypes.object.isRequired,
   selectedItemId: PropTypes.string,
 };
 
 export default function DetailPanel({ data }) {
-  const { tableRef } = useAppContext();
+  const { tableRef } = usePatientDataContext();
   const cloneTableRef = useRef(null);
   const panelRef = useRef();
-  const theme = useTheme();
-  const classes = {
-    detailPanelWrapper: {
-      backgroundColor: "#dde7e6",
-      padding: theme.spacing(0.25),
-    },
-    detailPanelContainer: {
-      position: "relative",
-      minHeight: theme.spacing(8),
-      backgroundColor: "#fbfbfb",
-    },
-    detailPanelCloseButton: {
-      position: "absolute",
-      top: theme.spacing(1.5),
-      right: theme.spacing(6),
-      color: theme.palette.primary.main,
-    },
-  };
   const { closeMenu, selectedMenuItem } = patientListStoreApi.getState();
   const [selectedItemId, setSelectedItemId] = useState(selectedMenuItem);
 
@@ -109,7 +89,6 @@ export default function DetailPanel({ data }) {
     <DetailPanelContent
       ref={panelRef}
       onClickFunc={handleClose}
-      classes={classes}
       selectedItemId={selectedItemId}
       data={data}
     />

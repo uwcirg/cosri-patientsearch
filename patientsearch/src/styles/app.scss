@@ -3,8 +3,9 @@ $color-blue-light: #46777f;
 $color-success: green;
 $color-warning: #9a4d0d;
 $color-less-muted: rgba(0, 0, 0, 0.8);
-$color-muted: rgba(0, 0, 0, 0.54);
-$color-muter: rgba(165, 158, 158, 0.64);
+$color-muted: #424242;
+$color-muter: rgba(165, 158, 158, 0.54);
+$color-border: #ececec;
 $color-error: #c91616;
 $color-label: #525050;
 $input-icon-color: #686b6b;
@@ -103,6 +104,15 @@ header {
 .flex-gap-1 {
   gap: 8px;
 }
+.mr-1 {
+  margin-right: 8px;
+}
+.mt-3 {
+  margin-top: 24px;
+}
+.p-all-2 {
+  padding: 16px;
+}
 .success {
   color: $color-success;
 }
@@ -114,6 +124,9 @@ header {
 }
 .muted-text {
   color: $color-muted;
+}
+.text-center {
+  text-align: center;
 }
 .text-right {
   text-align: right;
@@ -128,9 +141,13 @@ header {
   height: 0;
   overflow: hidden;
 }
+.spacer {
+  height: 20px;
+  min-width: 20px;
+}
 .action-button {
   padding: 8px 16px 8px;
-  color: #FFF;
+  color: #fff;
   font-size: 12px;
   border-radius: 4px;
   font-weight: 600;
@@ -211,7 +228,7 @@ td:empty {
   margin-top: 16px;
   justify-content: center;
   button {
-      margin: 8px;
+    margin: 8px;
   }
 }
 
@@ -222,7 +239,7 @@ td:empty {
   display: block;
 }
 .disabled {
-  opacity: 0.4;
+  opacity: 0.6;
 }
 button.disabled,
 button.disabled:hover,
@@ -233,9 +250,92 @@ button.disabled:focus,
   background-color: $color-muted;
   cursor: not-allowed;
   &.row {
-    color: #FFF;
+    color: #fff;
   }
 }
+
+.legend__container {
+  margin-top: 18px;
+  .legend__icon {
+    background-color: $color-muter;
+    width: 48px;
+    height: 24px;
+    margin-right: 8px;
+    display: inline-block;
+    vertical-align: bottom;
+  }
+}
+
+.pagination__container {
+  margin-top: 8px;
+  display: inline-block;
+  border: 2px solid $color-border;
+}
+
+.refresh__container {
+  display: inline-block;
+  vertical-align: top;
+  margin-top: 10px;
+  margin-right: 16px;
+}
+
+.formControl__container--label {
+  background-color: #f7f7f7;
+  margin-right: 8px;
+  margin-left: 8px;
+}
+
+.tooltip__container--warning {
+  background-color: $color-warning;
+  color: #fff;
+  font-size: 0.95rem;
+}
+
+.reactivating__container {
+  background-color: #fff;
+  margin: auto;
+  padding: 8px;
+  position: absolute;
+  top: 25%;
+  width: 480px;
+  left: calc(50% - 240px);
+  .reactivating__buttonsContainer {
+    padding: 16px 16px 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+  }
+}
+
+.version__container {
+  text-align: right;
+  margin: 16px 24px 16px;
+  color: $color-muted;
+  @media screen and (min-width: 1200px) {
+    margin-left: auto;
+    margin-right: auto;
+    padding-right: 24px;
+    padding-left: 24px;
+    max-width: 1200px;
+  }
+}
+
+.overlay__container {
+  display: table;
+  width: 100%;
+  height: 100%;
+  min-height: 480px;
+  background: rgb(255 255 255 / 70%);
+  .overlay__element {
+    display: table-cell;
+    width: 100%;
+    height: 100%;
+    vertical-align: middle;
+    text-align: center;
+  }
+}
+
 .toolbar-side-container {
   @media (min-width: 1200px) {
     min-width: 30%;
@@ -270,7 +370,8 @@ button.disabled:focus,
     opacity: 0.6;
     width: 0.6em !important;
     height: 0.6em !important;
-    &.up, &.down {
+    &.up,
+    &.down {
       font-size: 1.6em;
     }
     &:hover {
@@ -294,7 +395,8 @@ button.disabled:focus,
 }
 
 .MuiTableSortLabel-root {
-  .up, .down {
+  .up,
+  .down {
     fill: rgb(1, 188, 245);
   }
 }
@@ -307,7 +409,6 @@ button.disabled:focus,
     .down {
       fill: $color-less-muted !important;
     }
-
   }
   .MuiTableSortLabel-iconDirectionDesc {
     .down {
@@ -323,12 +424,21 @@ button.disabled:focus,
   margin-right: 8px;
 }
 
+.table-footer-container {
+  width: 100%;
+  min-height: 8px;
+  @media  screen and (min-width: 1200px) {
+    min-width: 1152px;
+  }
+}
+
 #patientList {
+  min-height: calc(100vh - 280px);
   input,
   .MuiInputLabel-formControl {
     font-size: $small-font-size;
     outline: none;
-    border: 0
+    border: 0;
   }
   .search-title {
     font-size: 1.2rem;
@@ -416,8 +526,23 @@ button.disabled:focus,
 /*
  * hide the Lage Page arrow on patient list table
  */
-.MuiTableRow-footer [title='Last Page'] {
+.MuiTableRow-footer [title="Last Page"] {
   display: none !important;
+}
+
+.detailPanel__wrapper {
+  padding: 8px;
+  background-color: #ecf0f0;
+  .detailPanel__container {
+    position: relative;
+    min-height: 64px;
+    background-color: #fbfbfb;
+  }
+  .close-button {
+    position: absolute;
+    right: 20px;
+    top: 16px;
+  }
 }
 
 .spinner {
@@ -429,7 +554,7 @@ button.disabled:focus,
   width: 100vw;
   height: 100vh;
   overflow: hidden;
-  background: #FFF;
+  background: #fff;
   z-index: 9999;
 
   .bounceContainer {
@@ -441,7 +566,9 @@ button.disabled:focus,
     z-index: 999;
   }
 
-  .bounce1, .bounce2, .bounce3 {
+  .bounce1,
+  .bounce2,
+  .bounce3 {
     width: 18px;
     height: 18px;
     margin: 5px;
@@ -464,17 +591,26 @@ button.disabled:focus,
 }
 
 @-webkit-keyframes sk-bouncedelay {
-  0%, 80%, 100% { -webkit-transform: scale(0) }
-  40% { -webkit-transform: scale(1.0) }
+  0%,
+  80%,
+  100% {
+    -webkit-transform: scale(0);
+  }
+  40% {
+    -webkit-transform: scale(1);
+  }
 }
 
 @keyframes sk-bouncedelay {
-  0%, 80%, 100% {
+  0%,
+  80%,
+  100% {
     -webkit-transform: scale(0);
     transform: scale(0);
-  } 40% {
-    -webkit-transform: scale(1.0);
-    transform: scale(1.0);
+  }
+  40% {
+    -webkit-transform: scale(1);
+    transform: scale(1);
   }
 }
 
@@ -492,14 +628,17 @@ button.disabled:focus,
  * table mobile styling
  */
 
-@media
-only screen and (max-width: 736px),
-(min-device-width: 414px) and (max-device-width: 736px)  {
-
-	/* Force table to not be like tables anymore */
-	table, thead, tbody, thead th, tbody td, tbody tr {
-		display: block;
-	}
+@media only screen and (max-width: 736px),
+  (min-device-width: 414px) and (max-device-width: 736px) {
+  /* Force table to not be like tables anymore */
+  table,
+  thead,
+  tbody,
+  thead th,
+  tbody td,
+  tbody tr {
+    display: block;
+  }
 
   header + #patientList {
     margin-top: 128px;
@@ -529,12 +668,13 @@ only screen and (max-width: 736px),
         font-size: 0.85rem;
       }
     }
-    th .disabled, th [aria-disabled] {
+    th .disabled,
+    th [aria-disabled] {
       display: none;
     }
     th {
       display: block !important;
-      background-color: #FFF !important;
+      background-color: #fff !important;
       width: 80% !important;
       margin: auto;
       &.MuiTableCell-paddingCheckbox {
@@ -565,39 +705,43 @@ only screen and (max-width: 736px),
     border-bottom: 2px solid $color-muter;
   }
 
-	tbody tr td {
-		/* Behave  like a "row" */
-		border-bottom: 0 !important;
+  tbody tr td {
+    /* Behave  like a "row" */
+    border-bottom: 0 !important;
     padding: 24px 8px 8px !important;
-		position: relative;
+    position: relative;
     width: 100% !important;
-    h1, h2, h3 {
+    h1,
+    h2,
+    h3 {
       width: 50%;
-      max-width: 100%
+      max-width: 100%;
     }
-	}
+  }
 
   tbody tr:first-of-type td {
     border-bottom: 0;
   }
 
-	tbody td:before {
-		/* Now like a table header */
-		position: absolute;
-		/* Top/left values mimic padding */
-		top: 6px;
-		left: 6px;
-		width: 45%;
-		padding-right: 10px;
-		white-space: nowrap;
+  tbody td:before {
+    /* Now like a table header */
+    position: absolute;
+    /* Top/left values mimic padding */
+    top: 6px;
+    left: 6px;
+    width: 45%;
+    padding-right: 10px;
+    white-space: nowrap;
     font-weight: 700;
     font-size: $small-font-size;
-	}
+  }
 
-	/*
+  /*
 	Label the data
 	*/
-  #patientList tbody td { font-weight: 500 !important; }
+  #patientList tbody td {
+    font-weight: 500 !important;
+  }
   tfoot .MuiTablePagination-toolbar {
     display: flex;
     flex-direction: column;

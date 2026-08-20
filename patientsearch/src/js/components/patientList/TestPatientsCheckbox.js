@@ -1,29 +1,28 @@
 import { memo, useCallback, useRef, useEffect } from "react";
-import { useTheme } from "@mui/material/styles";
 import PropTypes from "prop-types";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Checkbox from "@mui/material/Checkbox";
 import Typography from "@mui/material/Typography";
 import { usePatientListStore } from "../../stores/patientListStore";
-import { useAppContext } from "../../context/PatientListContextProvider";
-import { useSettingContext } from "../../context/SettingContextProvider";
+import { usePatientDataContext } from "../../context/PatientListContextProvider";
+import { useSettingContext } from "../../context/AppContextProvider";
 
 const CheckboxForm = memo(function CheckboxForm({
   label,
   changeEvent,
-  checkboxClasses,
-  formControlClasses,
 }) {
   return (
     <FormControlLabel
-      sx={formControlClasses.root}
+      className="formControl__container--label"
       control={
         <Checkbox
           onChange={changeEvent}
           name="ckTestPatients"
-          color="primary"
           size="small"
-          sx={checkboxClasses.root}
+          color="primary"
+          sx={{
+            color: "primary.dark"
+          }}
         />
       }
       label={<Typography variant="body2">{label}</Typography>}
@@ -34,27 +33,12 @@ const CheckboxForm = memo(function CheckboxForm({
 CheckboxForm.propTypes = {
   label: PropTypes.string,
   changeEvent: PropTypes.func,
-  checkboxClasses: PropTypes.object,
-  formControlClasses: PropTypes.object,
 };
 
 const { resetPagination, toggleTestPatients } =
     usePatientListStore.getState();
 
 export default function TestPatientsCheckbox({ changeEvent }) {
-  const theme = useTheme();
-  const checkboxClasses = {
-    root: {
-      color: theme.palette.primary.main,
-    },
-  };
-  const formControlClasses = {
-    root: {
-      backgroundColor: "#f7f7f7",
-      marginLeft: theme.spacing(1),
-      marginRight: theme.spacing(1),
-    },
-  };
   const { getAppSettingByKey = () => null } = useSettingContext();
   const enableFilterByTestPatients = getAppSettingByKey(
     "ENABLE_FILTER_FOR_TEST_PATIENTS",
@@ -62,7 +46,7 @@ export default function TestPatientsCheckbox({ changeEvent }) {
   const filterByTestPatientsLabel = getAppSettingByKey(
     "FILTER_FOR_TEST_PATIENTS_LABEL",
   );
-  const { tableRef } = useAppContext();
+  const { tableRef } = usePatientDataContext();
   const cloneTableRef = useRef(null);
 
   const handleChange = useCallback(
@@ -88,8 +72,6 @@ export default function TestPatientsCheckbox({ changeEvent }) {
     <CheckboxForm
       label={filterByTestPatientsLabel}
       changeEvent={handleChange}
-      checkboxClasses={checkboxClasses}
-      formControlClasses={formControlClasses}
     ></CheckboxForm>
   );
 }

@@ -29,7 +29,6 @@
     "@mui/icons-material": "^9.2.0",
     "@mui/material": "^9.2.0",
     "@mui/x-date-pickers": "^9.10.1",
-    "date-fns": "^4.4.0",
     "dayjs": "^1.11.21",
     "dompurify": "^3.4.11",
     "es6-promise": "^4.2.8",
@@ -38,7 +37,6 @@
     "react": "19.2.7",
     "react-dom": "19.2.7",
     "react-imask": "^7.6.1",
-    "webpack-dev-server": "^5.2.6",
     "whatwg-fetch": "^3.6.2",
     "zustand": "^5.0.12"
   },
@@ -77,6 +75,7 @@
     "jest-environment-jsdom": "^30.2.0",
     "mini-css-extract-plugin": "^2.0.0",
     "node-polyfill-webpack-plugin": "^4.1.0",
+    "react-compiler-webpack": "^1.0.1",
     "sass": "^1.57.1",
     "sass-loader": "^16.0.4",
     "style-loader": "^4.0.0",
@@ -84,6 +83,7 @@
     "url-loader": "^4.1.1",
     "webpack": "^5.109.2",
     "webpack-bundle-analyzer": "^4.10.2",
-    "webpack-cli": "^5.1.4"
+    "webpack-cli": "^5.1.4",
+    "webpack-dev-server": "^5.2.6"
   }
 }

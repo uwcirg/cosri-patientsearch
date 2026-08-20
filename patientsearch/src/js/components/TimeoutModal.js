@@ -10,7 +10,7 @@ import {
   CircularProgress,
 } from "@mui/material";
 import { sendRequest } from "../helpers/utility";
-import { useSettingContext } from "../context/SettingContextProvider";
+import { useSettingContext } from "../context/AppContextProvider";
 
 const TRACK_INTERVAL_MS = 15000;
 const WARNING_THRESHOLD_SEC = 60;

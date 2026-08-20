@@ -2,14 +2,9 @@ import React from "react";
 import PropTypes from "prop-types";
 import Box from "@mui/material/Box";
 import { imageOK } from "../helpers/utility";
-import { useSettingContext } from "../context/SettingContextProvider";
+import { useSettingContext } from "../context/AppContextProvider";
 
 export default function SiteLogo(props) {
-  const classes = {
-    container: {
-      textAlign: "center",
-    },
-  };
   const settingsCtx = useSettingContext();
   const appSettings = props.appSettings
     ? props.appSettings
@@ -49,12 +44,18 @@ export default function SiteLogo(props) {
   };
 
   return (
-    <Box sx={classes.container}>
+    <Box className="text-center" sx={{ width: "180px" }}>
       {getSiteId() && (
         <img
           src={getSiteImagePath()}
           onLoad={handleImageLoaded}
           onError={handleImageLoadError}
+          alt="Site Logo"
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+          }}
         ></img>
       )}
     </Box>

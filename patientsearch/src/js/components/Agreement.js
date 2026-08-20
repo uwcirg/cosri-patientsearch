@@ -32,7 +32,7 @@ import {
   isValidDateString,
   padDateString,
 } from "../helpers/utility";
-import { useSettingContext } from "../context/SettingContextProvider";
+import { useSettingContext } from "../context/AppContextProvider";
 
 const LOINC_SYSTEM_URL = "https://loinc.org";
 const CONTRACT_CODE = "94136-9";

@@ -5,8 +5,8 @@ import { useTheme } from "@mui/material/styles";
 import Button from "@mui/material/Button";
 import CircularProgress from "@mui/material/CircularProgress";
 import Typography from "@mui/material/Typography";
-import { imageOK } from "../helpers/utility";
-import { useSettingContext } from "../context/SettingContextProvider";
+import { useSettingContext } from "../context/AppContextProvider";
+import SiteLogo from "../components/SiteLogo";
 
 export default function Info(props) {
   const theme = useTheme();
@@ -83,30 +83,6 @@ export default function Info(props) {
   const [loading, setLoading] = React.useState(true);
   const siteID = getConfig(SITE_ID_STRING);
 
-  function handleImageLoaded(e) {
-    if (!e.target) {
-      return false;
-    }
-    let imageLoaded = imageOK(e.target);
-    if (!imageLoaded) {
-      e.target.setAttribute("disabled", true);
-      return;
-    }
-    let defaultLogoImage = document.querySelector(".default-logo");
-    if (defaultLogoImage) {
-      defaultLogoImage.setAttribute("disabled", true);
-    }
-  }
-  function handleImageLoadError(e) {
-    if (!e.target) {
-      return false;
-    }
-    let imageLoaded = imageOK(e.target);
-    if (!imageLoaded) {
-      e.target.setAttribute("disabled", true);
-      return;
-    }
-  }
   function getIntroText() {
     const siteIntroText = getConfig("LANDING_INTRO");
     if (siteIntroText) return siteIntroText;
@@ -182,13 +158,7 @@ export default function Info(props) {
           {/* intro text, e.g. HTML block 1 */}
           {renderIntroText()}
           {/* logo image */}
-          {siteID && (
-            <img
-              src={"/static/" + siteID + "/img/logo.png"}
-              onLoad={handleImageLoaded}
-              onError={handleImageLoadError}
-            ></img>
-          )}
+          {siteID &&  <SiteLogo/>}
           {/* button */}
           <Button
             color="primary"

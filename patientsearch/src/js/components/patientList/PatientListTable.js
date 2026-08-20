@@ -4,9 +4,11 @@ import MaterialTable, { MTableActions } from "@material-table/core";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import CircularProgress from "@mui/material/CircularProgress";
 import { useTheme } from "@mui/material/styles";
-import { useAppContext } from "../../context/PatientListContextProvider";
-import { useSettingContext } from "../../context/SettingContextProvider";
-import { useUserContext } from "../../context/UserContextProvider";
+import { usePatientDataContext } from "../../context/PatientListContextProvider";
+import {
+  useSettingContext,
+  useUserContext,
+} from "../../context/AppContextProvider";
 import { usePatientListStore } from "../../stores/patientListStore";
 import {
   useCurrentRow,
@@ -87,7 +89,7 @@ export default function PatientListTable() {
     handleLaunchApp,
     handleErrorCallback,
     needExternalAPILookup,
-  } = useAppContext();
+  } = usePatientDataContext();
   const currentFilters = useCurrentFilters();
   const currentRow = useCurrentRow();
   const selectedRowRef = useRef(null);

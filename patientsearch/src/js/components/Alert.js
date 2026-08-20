@@ -1,7 +1,6 @@
 import React from "react";
 import PropTypes from "prop-types";
 import DOMPurify from "dompurify";
-// import renderHTML from "react-render-html";
 import MuiAlert from '@mui/material/Alert';
 
 export default function Alert(props) {

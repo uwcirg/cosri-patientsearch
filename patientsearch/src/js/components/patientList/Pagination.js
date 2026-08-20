@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useRef, memo } from "react";
 import PropTypes from "prop-types";
-import { useTheme } from "@mui/material/styles";
 import TablePagination from "@mui/material/TablePagination";
-import { useAppContext } from "../../context/PatientListContextProvider";
+import { usePatientDataContext } from "../../context/PatientListContextProvider";
 import { usePatientListStore } from "../../stores/patientListStore";
 import {
   usePagination,
@@ -12,7 +11,6 @@ import { isEmptyArray } from "../../helpers/utility";
 
 
 const PaginationElement = memo(function PaginationElement({
-  classes,
   pagination,
   handleChangePage,
   handleChangeRowsPerPage,
@@ -21,7 +19,7 @@ const PaginationElement = memo(function PaginationElement({
   return (
     <TablePagination
       id="patientListPagination"
-      className={classes.pagination}
+      className="pagination__container"
       rowsPerPageOptions={[5, 10, 20, 50]}
       onPageChange={handleChangePage}
       page={pagination.pageNumber}
@@ -31,34 +29,36 @@ const PaginationElement = memo(function PaginationElement({
       size="small"
       component="div"
       labelRowsPerPage="Rows per page"
+      sx={{
+        "& .MuiTablePagination-selectIcon": {
+          color: "primary.dark",
+        },
+        "& .MuiTablePagination-actions" : {
+          color: "primary.dark"
+        }
+      }}
       slotProps={{
-        
         nextButtonIcon: {
           disabled: pagination.disableNextButton,
-          color: "primary",
         },
         previousButtonIcon: {
           disabled: pagination.disablePrevButton,
-          color: "primary",
         },
         nextButton: {
           disabled: pagination.disableNextButton,
-          color: "primary",
         },
         previousButton: {
           disabled: pagination.disablePrevButton,
-          color: "primary",
         },
         select: {
-          variant: "standard"
-        }
+          variant: "standard",
+        },
       }}
     />
   );
 });
 
 PaginationElement.propTypes = {
-  classes: PropTypes.object,
   pagination: PropTypes.object,
   handleChangePage: PropTypes.func,
   handleChangeRowsPerPage: PropTypes.func,
@@ -67,15 +67,7 @@ PaginationElement.propTypes = {
 const { updatePagination } = usePatientListStore.getState();
 
 export default function Pagination() {
-  const theme = useTheme();
-  const classes = {
-    pagination: {
-      marginTop: theme.spacing(1),
-      display: "inline-block",
-      border: "2px solid #ececec",
-    },
-  };
-  const { tableRef } = useAppContext();
+  const { tableRef } = usePatientDataContext();
   const data = usePatientData();
   const pagination = usePagination();
   const disabled = isEmptyArray(data);
@@ -114,7 +106,6 @@ export default function Pagination() {
 
   return (
     <PaginationElement
-      classes={classes}
       pagination={pagination}
       handleChangePage={handleChangePage}
       handleChangeRowsPerPage={handleChangeRowsPerPage}

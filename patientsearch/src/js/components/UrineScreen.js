@@ -40,8 +40,10 @@ import {
   EHR_SYSTEM_URLS,
   UWMC_LAB_ORDER_SYSTEM_URL,
 } from "../constants/consts.js";
-import { useSettingContext } from "../context/SettingContextProvider";
-import { useUserContext } from "../context/UserContextProvider";
+import {
+  useSettingContext,
+  useUserContext,
+} from "../context/AppContextProvider";
 
 
 export default function UrineScreen(props) {
@@ -880,6 +882,11 @@ export default function UrineScreen(props) {
                 error: !!dateError,
                 slotProps: {
                   inputLabel: { shrink: true },
+                },
+              },
+              openPickerIcon: {
+                sx: {
+                  color: "primary.main",
                 },
               },
             }}

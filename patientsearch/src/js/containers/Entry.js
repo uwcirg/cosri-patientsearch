@@ -1,4 +1,3 @@
-import "core-js/stable"; //include polyfill for browser support
 import React from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App";

@@ -1,26 +1,9 @@
 import React from "react";
 import PropTypes from "prop-types";
-import { useTheme } from "@mui/material/styles";
 import Box from "@mui/material/Box";
-import { useSettingContext } from "../context/SettingContextProvider";
-import { MAX_MAIN_TABLE_WIDTH } from "../constants/consts";
+import { useSettingContext } from "../context/AppContextProvider";
 
 export default function Version(props) {
-  const theme = useTheme();
-  const classes = {
-    container: {
-      textAlign: "right",
-      margin: theme.spacing(2, 3, 2),
-      color: theme.palette.muted ? theme.palette.muted.main : "#777",
-      [theme.breakpoints.up("md")]: {
-        maxWidth: MAX_MAIN_TABLE_WIDTH,
-        marginLeft: "auto",
-        marginRight: "auto",
-        paddingLeft: theme.spacing(3),
-        paddingRight: theme.spacing(3),
-      },
-    },
-  };
   const VERSION_STRING = "VERSION_STRING";
   const settingsCtx = useSettingContext();
   const appSettings = props.appSettings
@@ -57,8 +40,8 @@ export default function Version(props) {
   const versionString = getVersionString();
   if (!versionString) return null;
   return (
-    <Box sx={props.className ? props.className : classes.container}>
-      <div className="version--name">Version Number: {getVersionLink()}</div>
+    <Box className={props.className ? props.className : "version__container"}>
+      Version Number: {getVersionLink()}
     </Box>
   );
 }

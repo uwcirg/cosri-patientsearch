@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import CircularProgress from "@mui/material/CircularProgress";
-import { useSettingContext } from "../context/SettingContextProvider";
+import { useSettingContext } from "../context/AppContextProvider";
 import { getAppLaunchURL, getUrlParameter } from "../helpers/utility";
 import Alert from "../components/Alert";
 

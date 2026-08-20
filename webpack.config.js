@@ -167,8 +167,8 @@ module.exports = (env) => {
         overlay: {
           errors: true,
           warnings: false,
-          runtimeError: true
-        }
+          runtimeError: true,
+        },
       },
       static: "./dist",
     },
@@ -197,7 +197,7 @@ module.exports = (env) => {
       ],
       splitChunks: {
         chunks: "all",
-        minSize: 0,
+        minSize: 20000,
         maxInitialRequests: 20,
         maxAsyncRequests: 20,
         cacheGroups: {

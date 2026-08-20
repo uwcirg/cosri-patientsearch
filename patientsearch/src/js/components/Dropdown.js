@@ -9,6 +9,30 @@ import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import Typography from "@mui/material/Typography";
 
+
+ const StyledMenu = styled((props) => <Menu {...props} />)(({ theme }) => ({
+   "& .MuiPaper-root": {
+     borderRadius: 0,
+     // marginTop: theme.spacing(2),
+     overflow: "hidden",
+     minWidth: 180,
+     "& .MuiMenu-list": {
+       padding: "32px 0 8px",
+       overflow: "hidden",
+     },
+     "& .MuiMenuItem-root": {
+       paddingBottom: theme.spacing(0.5),
+       paddingLeft: theme.spacing(1.5),
+       paddingRight: theme.spacing(2.5),
+       width: "100%",
+       "& .MuiSvgIcon-root": {
+         fontSize: 16,
+         marginRight: theme.spacing(0.25),
+       },
+     },
+   },
+ }));
+
 export default function Dropdown(props) {
   const theme = useTheme();
   const classes = {
@@ -41,28 +65,6 @@ export default function Dropdown(props) {
       color: "#FFF",
     },
   };
-  const StyledMenu = styled((props) => <Menu {...props} />)(({ theme }) => ({
-    "& .MuiPaper-root": {
-      borderRadius: 0,
-     // marginTop: theme.spacing(2),
-      overflow: "hidden",
-      minWidth: 180,
-      "& .MuiMenu-list": {
-        padding: "32px 0 8px",
-        overflow: "hidden"
-      },
-      "& .MuiMenuItem-root": {
-        paddingBottom: theme.spacing(0.5),
-        paddingLeft: theme.spacing(1.5),
-        paddingRight: theme.spacing(2.5),
-        width: "100%",
-        "& .MuiSvgIcon-root": {
-          fontSize: 16,
-          marginRight: theme.spacing(0.25),
-        },
-      },
-    },
-  }));
 
   const handleMenuClose = (event) => {
     event.stopPropagation();
@@ -84,7 +86,6 @@ export default function Dropdown(props) {
     <StyledMenu
       id="dropdownMenu"
       anchorEl={props.anchorEl}
-     // keepMounted
       open={!!props.open}
       onClose={(event) => handleMenuClose(event)}
       transformOrigin={{

@@ -1,6 +1,5 @@
 import { memo } from "react";
 import PropTypes from "prop-types";
-import { useTheme } from "@mui/material/styles";
 import { Box, Button, Tooltip } from "@mui/material";
 import RefreshIcon from "@mui/icons-material/Refresh";
 
@@ -8,15 +7,19 @@ const refreshFunction = () => {
   location.reload();
 };
 
-const MemoizedRefreshButton = memo(function MemoizedRefreshButton(props) {
+const MemoizedRefreshButton = memo(function MemoizedRefreshButton() {
   return (
-    <Box sx={props.containerClass}>
+    <Box className="refresh__container">
       <Tooltip title="Refresh the list">
         <Button
           variant="outlined"
           size="small"
           startIcon={<RefreshIcon />}
           onClick={refreshFunction}
+          sx={{
+            color: "primary.dark",
+            borderColor: "primary.dark"
+          }}
         >
           Refresh
         </Button>
@@ -30,16 +33,5 @@ MemoizedRefreshButton.propTypes = {
 };
 
 export default function RefreshButton() {
-  const theme = useTheme();
-  const classes = {
-  refreshButtonContainer: {
-    display: "inline-block",
-    verticalAlign: "top",
-    marginTop: theme.spacing(1.5),
-    marginRight: theme.spacing(2),
-  },
-};
-  return (
-    <MemoizedRefreshButton containerClass={classes.refreshButtonContainer} />
-  );
+  return <MemoizedRefreshButton />;
 }

@@ -1,11 +1,10 @@
 import React, { useCallback, useMemo } from "react";
 import Modal from "@mui/material/Modal";
-import { useTheme } from "@mui/material/styles";
 import Button from "@mui/material/Button";
 import Box from "@mui/material/Box";
 import { Alert } from "@mui/material";
-import { useAppContext } from "../../context/PatientListContextProvider";
-import { useSettingContext } from "../../context/SettingContextProvider";
+import { usePatientDataContext } from "../../context/PatientListContextProvider";
+import { useSettingContext } from "../../context/AppContextProvider";
 import { usePatientListStore } from "../../stores/patientListStore";
 import {
   useCurrentRow,
@@ -26,26 +25,7 @@ function warnIfMissing(name, fn) {
 const { closeReactivatingModal } = usePatientListStore.getState();
 
 export default function ReactivatingModal() {
-  const theme = useTheme();
-  const classes = {
-    container: {
-      backgroundColor: "#FFF",
-      margin: "auto",
-      padding: theme.spacing(1),
-      position: "absolute",
-      top: "25%",
-      width: "480px",
-      left: "calc(50% - 240px)",
-    },
-    buttonsContainer: {
-      padding: theme.spacing(2, 2, 1),
-      display: "flex",
-      justifyContent: "center",
-      alignItems: "center",
-      gap: theme.spacing(1),
-    },
-  };
-
+  
   // Reactive store state via selectors
   const open = useOpenReactivatingModal();
   const currentRow = useCurrentRow();
@@ -53,7 +33,7 @@ export default function ReactivatingModal() {
   const rowData = useMemo(() => new RowData(currentRow), [currentRow]);
   // from context
   const { getAppSettingByKey = () => null } = useSettingContext();
-  const { handleSearch } = useAppContext();
+  const { handleSearch } = usePatientDataContext();
   const onSubmit = useCallback(() => {
     closeReactivatingModal();
   }, []);
@@ -101,7 +81,7 @@ export default function ReactivatingModal() {
       aria-labelledby="reactivating-modal-title"
       aria-describedby="reactivating-modal-description"
     >
-      <Box sx={classes.container}>
+      <Box className="reactivating__container">
         <Alert severity="warning" id="reactivating-modal-description">
           <strong id="reactivating-modal-title">Duplicate Record Found</strong>
           <br />
@@ -110,7 +90,7 @@ export default function ReactivatingModal() {
           <strong>{getSubjectInfo()}</strong> ). Do you want to restore that
           record or create a new one?
         </Alert>
-        <Box sx={classes.buttonsContainer}>
+        <Box className="reactivating__buttonsContainer">
           <Button variant="contained" color="primary" onClick={onReactivate}>
             Restore
           </Button>

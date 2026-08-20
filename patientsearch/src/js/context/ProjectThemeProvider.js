@@ -2,7 +2,7 @@ import PropTypes from "prop-types";
 import React from "react";
 import CssBaseline from "@mui/material/CssBaseline";
 import { ThemeProvider, StyledEngineProvider } from "@mui/material/styles";
-import { useSettingContext } from "../context/SettingContextProvider";
+import { useSettingContext } from "../context/AppContextProvider";
 import { getTheme } from "../themes/theme_config";
 
 export default function ProjectThemeProvider({children}) {
