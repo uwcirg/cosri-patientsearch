@@ -1,17 +1,10 @@
 import React from "react";
 import PropTypes from "prop-types";
-import makeStyles from '@mui/styles/makeStyles';
+import Box from "@mui/material/Box";
 import { imageOK } from "../helpers/utility";
-import { useSettingContext } from "../context/SettingContextProvider";
-
-const useStyles = makeStyles(() => ({
-  container: {
-    textAlign: "center",
-  },
-}));
+import { useSettingContext } from "../context/AppContextProvider";
 
 export default function SiteLogo(props) {
-  const classes = useStyles();
   const settingsCtx = useSettingContext();
   const appSettings = props.appSettings
     ? props.appSettings
@@ -51,15 +44,21 @@ export default function SiteLogo(props) {
   };
 
   return (
-    <div className={classes.container}>
+    <Box className="text-center" sx={{ width: "180px" }}>
       {getSiteId() && (
         <img
           src={getSiteImagePath()}
           onLoad={handleImageLoaded}
           onError={handleImageLoadError}
+          alt="Site Logo"
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+          }}
         ></img>
       )}
-    </div>
+    </Box>
   );
 }
 SiteLogo.propTypes = {

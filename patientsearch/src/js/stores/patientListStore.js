@@ -133,3 +133,8 @@ export const usePatientListStore = create(
     })),
   ),
 );
+
+// Non-hook alias for imperative/vanilla access (getState, setState, subscribe)
+// outside of React render to sidesteps eslint-plugin-react-compiler's
+// use-prefix heuristic, which can't distinguish Zustand's dual hook/store API.
+export const patientListStoreApi = usePatientListStore;

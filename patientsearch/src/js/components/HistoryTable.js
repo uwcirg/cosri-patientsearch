@@ -1,10 +1,9 @@
 import PropTypes from "prop-types";
 import React from "react";
 import { useTheme } from "@mui/material/styles";
-import makeStyles from "@mui/styles/makeStyles";
 import MaterialTable, {
-  MTableActions,
   MTableAction,
+  MTableActions,
 } from "@material-table/core";
 import TablePagination from "@mui/material/TablePagination";
 import CircularProgress from "@mui/material/CircularProgress";
@@ -12,44 +11,42 @@ import Error from "./Error";
 import { fetchData } from "../helpers/utility";
 import { tableIcons } from "../constants/consts";
 
-const useStyles = makeStyles((theme) => ({
-  root: {
-    flexShrink: 0,
-    marginTop: theme.spacing(2),
-  },
-  errorContainer: {
-    marginTop: theme.spacing(2),
-  },
-  overlayContainer: {
-    display: "table",
-    width: "100%",
-    height: "100%",
-    background: "rgb(255 255 255 / 70%)",
-  },
-  overlayElement: {
-    display: "table-cell",
-    width: "100%",
-    height: "100%",
-    verticalAlign: "middle",
-    textAlign: "center",
-  },
-  paginationRoot: {
-    minHeight: theme.spacing(3),
-    display: "block",
-    float: "right",
-    overflowX: "auto",
-  },
-  paginationToolbar: {
-    paddingLeft: theme.spacing(2),
-  },
-  paginationActions: {
-    color: theme.palette.primary.main,
-  },
-}));
-
 export default function HistoryTable(props) {
   const theme = useTheme();
-  const classes = useStyles();
+  const classes = {
+    root: {
+      flexShrink: 0,
+      marginTop: theme.spacing(2),
+    },
+    errorContainer: {
+      marginTop: theme.spacing(2),
+    },
+    overlayContainer: {
+      display: "table",
+      width: "100%",
+      height: "100%",
+      background: "rgb(255 255 255 / 70%)",
+    },
+    overlayElement: {
+      display: "table-cell",
+      width: "100%",
+      height: "100%",
+      verticalAlign: "middle",
+      textAlign: "center",
+    },
+    paginationRoot: {
+      minHeight: theme.spacing(3),
+      display: "block",
+      float: "right",
+      overflowX: "auto",
+    },
+    paginationToolbar: {
+      paddingLeft: theme.spacing(2),
+    },
+    paginationActions: {
+      color: theme.palette.primary.main,
+    },
+  };
   const [errorMessage, setErrorMessage] = React.useState("");
   const errorStyle = { display: errorMessage ? "block" : "none" };
   const [data, setData] = React.useState(props.data);
@@ -116,7 +113,7 @@ export default function HistoryTable(props) {
         if (parentProps.onChangeRowsPerPage) parentProps.onChangeRowsPerPage(e);
         if (parentProps.onRowsPerPageChange) parentProps.onRowsPerPageChange(e);
       }}
-      classes={{
+      sx={{
         root: classes.paginationRoot,
         actions: classes.paginationActions,
         toolbar: classes.paginationToolbar,
@@ -125,21 +122,21 @@ export default function HistoryTable(props) {
     />
   );
   const renderOverloadingComponent = () => (
-    <div className={classes.overlayContainer}>
-      <div className={classes.overlayElement}>
+    <div style={classes.overlayContainer}>
+      <div style={classes.overlayElement}>
         <CircularProgress></CircularProgress>
       </div>
     </div>
   );
   const renderError = () => (
-    <div className={classes.errorContainer}>
+    <div style={classes.errorContainer}>
       <Error message={errorMessage} style={errorStyle} />
     </div>
   );
   const columns = props.columns ?? [];
   return (
     <React.Fragment>
-      <div className={classes.root}>
+      <div style={classes.root}>
         <MaterialTable
           className="history"
           columns={columns}

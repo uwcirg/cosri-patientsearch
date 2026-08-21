@@ -1,8 +1,10 @@
 import React, { useEffect } from "react";
 import PropTypes from "prop-types";
 import Container from "@mui/material/Container";
-import { useSettingContext } from "../../context/SettingContextProvider";
-import { useUserContext } from "../../context/UserContextProvider";
+import {
+  useSettingContext,
+  useUserContext,
+} from "../../context/AppContextProvider";
 import {
   usePatientListError,
   usePatientListLoading,
@@ -43,6 +45,8 @@ export default function PatientListContainer() {
     }
   }, [userName, matomoSiteID]);
 
+  if (isLoading) return <LoadingModal open={isLoading} />;
+
   return (
     <Container className="container" id="patientList">
       <SearchTitle title={searchTitle} />
@@ -55,10 +59,9 @@ export default function PatientListContainer() {
         </div>
       </div>
       <PatientListTable />
-      <LoadingModal open={isLoading} />
-      <div className="flex-align-start">
+      <div className="table-footer-container flex-align-start">
         <Legend />
-        <div>
+        <div className="flex">
           <RefreshButton />
           <Pagination />
         </div>

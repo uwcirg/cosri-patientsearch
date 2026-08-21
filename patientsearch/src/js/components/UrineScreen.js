@@ -1,8 +1,9 @@
-import React from "react";
+import React, {useCallback, useMemo} from "react";
 import PropTypes from "prop-types";
 import DOMPurify from "dompurify";
-import makeStyles from "@mui/styles/makeStyles";
+import { useTheme } from "@mui/material/styles";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
+import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import CircularProgress from "@mui/material/CircularProgress";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
@@ -39,13 +40,19 @@ import {
   EHR_SYSTEM_URLS,
   UWMC_LAB_ORDER_SYSTEM_URL,
 } from "../constants/consts.js";
-import { useSettingContext } from "../context/SettingContextProvider";
-import { useUserContext } from "../context/UserContextProvider";
+import {
+  useSettingContext,
+  useUserContext,
+} from "../context/AppContextProvider";
 
-const useStyles = makeStyles((theme) => {
-  if (!theme) return null;
+
+export default function UrineScreen(props) {
+  const { user } = useUserContext();
+  const appCtx = useSettingContext();
+  const appSettingsRef = React.useRef(appCtx.appSettings);
+  const theme = useTheme();
   const palette = theme.palette;
-  return {
+  const classes = {
     container: {
       paddingLeft: theme.spacing(3),
       paddingRight: theme.spacing(3),
@@ -156,13 +163,6 @@ const useStyles = makeStyles((theme) => {
       marginBottom: theme.spacing(2),
     },
   };
-});
-
-export default function UrineScreen(props) {
-  const { user } = useUserContext();
-  const appCtx = useSettingContext();
-  const appSettingsRef = React.useRef(appCtx.appSettings);
-  const classes = useStyles();
   const configUrineScreenTypes = (() => {
     const appSettings = appSettingsRef.current;
     return appSettings && appSettings["UDS_LAB_TYPES"]
@@ -178,12 +178,12 @@ export default function UrineScreen(props) {
           : true
       )
     : null;
-  const entryDefaultValue = {
+  const entryDefaultValue = useMemo(() => ({
     id: null,
     date: "",
     type: "",
     readonly: false,
-  };
+  }), []);
   const defaultEditValues = {
     ...entryDefaultValue,
     mode: false,
@@ -363,6 +363,7 @@ export default function UrineScreen(props) {
   );
   const [dateInput, setDateInput] = React.useState(null);
   const [error, setError] = React.useState("");
+  const [dateError, setDateError] = React.useState("");
   const URINE_SCREEN_TYPE_LABEL = "Urine Drug Screen Name";
   const { rowData } = props;
   const getPatientId = React.useCallback(() => {
@@ -372,7 +373,7 @@ export default function UrineScreen(props) {
   const clearDate = () => {
     setDateInput("");
   };
-  const clearHistory = () => {
+  const clearHistory = useCallback(() => {
     dispatch({
       type: "history/init-complete",
       payload: {
@@ -380,7 +381,7 @@ export default function UrineScreen(props) {
         mostRecentEntry: entryDefaultValue,
       },
     });
-  };
+  }, [entryDefaultValue]);
   const clearFields = () => {
     clearDate();
     if (!onlyOneEditableUrineScreenType()) setType("");
@@ -393,7 +394,7 @@ export default function UrineScreen(props) {
     dispatch({ type: "edit/set", key: "type", value: event.target.value });
   };
   const hasValues = () => {
-    return type && dateInput;
+    return type && dateInput && !dateError;
   };
   const hasError = () => {
     return error !== "";
@@ -543,8 +544,7 @@ export default function UrineScreen(props) {
       );
       return "";
     },
-     /* eslint-disable react-hooks/exhaustive-deps */
-    [rowData, configUrineScreenTypes, createHistoryData]
+    [rowData, configUrineScreenTypes, createHistoryData, clearHistory]
   );
   const handleAdd = (params) => {
     handleUpdate(
@@ -751,7 +751,7 @@ export default function UrineScreen(props) {
             <Select
               defaultValue={selectType}
               onChange={handleEditTypeChange}
-              className={classes.selectBox}
+              sx={classes.selectBox}
               IconComponent={() => (
                 <ArrowDropDownIcon color="primary"></ArrowDropDownIcon>
               )}
@@ -824,48 +824,39 @@ export default function UrineScreen(props) {
   const renderAddInProgressIndicator = () => {
     if (!historyState.addInProgress) return null;
     return (
-      <div className={classes.progressContainer}>
+      <Box sx={classes.progressContainer}>
         <CircularProgress
-          className={classes.progressIcon}
+          sx={classes.progressIcon}
           color="primary"
           size={32}
         />
-      </div>
+      </Box>
     );
   };
   const renderAddComponent = () => (
-    <Paper className={classes.itemContainer} elevation={1}>
+    <Paper sx={classes.itemContainer} elevation={1}>
       <Typography
         variant="caption"
-        display="block"
-        className={classes.addTitle}
+        sx={[
+          {
+            display: "block",
+          },
+          classes.addTitle,
+        ]}
       >
         Add New
       </Typography>
       {/* urine screen date/datepicker */}
       <div>
         <LocalizationProvider dateAdapter={AdapterDayjs}>
-          {/* order date field */}
-          <InputLabel className={classes.dateLabel}>Order Date</InputLabel>
+          <InputLabel sx={classes.dateLabel}>Order Date</InputLabel>
           <DatePicker
-            autoOk={true}
-            variant="dialog"
-            openTo="year"
+            openTo="day"
             disableFuture
-            slotProps={{
-              textField: {
-                placeholder: "YYYY-MM-DD",
-                InputLabelProps: { shrink: true },
-                variant: "standard",
-                className: classes.dateInput,
-              },
-            }}
+            orientation="landscape"
             format="YYYY-MM-DD"
             minDate={dayjs("1950-01-01")}
-            maxDateMessage="Date must not be in the future"
-            invalidDateMessage="Date must be in YYYY-MM-DD format, e.g. 1977-01-12"
             value={dateInput ? dayjs(dateInput) : null}
-            orientation="landscape"
             onChange={(dateString, validationContext) => {
               if (validationContext?.validationError) {
                 setDateInput(dateString.format());
@@ -873,19 +864,44 @@ export default function UrineScreen(props) {
               }
               setDateInput(dateString ? dateString.format("YYYY-MM-DD") : null);
             }}
-            KeyboardButtonProps={{ color: "primary", title: "Date picker" }}
-            autoFocus
+            onError={(reason) => {
+              const messages = {
+                invalidDate:
+                  "Date must be in YYYY-MM-DD format, e.g. 1977-01-12",
+                disableFuture: "Date must not be in the future",
+                minDate: "Date must not be earlier than 1950-01-01",
+              };
+              setDateError(reason ? messages[reason] || "Invalid date" : "");
+            }}
+            slotProps={{
+              textField: {
+                placeholder: "YYYY-MM-DD",
+                variant: "standard",
+                sx: classes.dateInput,
+                autoFocus: true,
+                error: !!dateError,
+                slotProps: {
+                  inputLabel: { shrink: true },
+                },
+              },
+              openPickerIcon: {
+                sx: {
+                  color: "primary.main",
+                },
+              },
+            }}
           />
+          {dateError && <FormHelperText error>{dateError}</FormHelperText>}
         </LocalizationProvider>
       </div>
       {/* urine screen type selector */}
       {renderUrineTypeSelector()}
       {!noEditableUrineScreenTypes() && (
-        <div className={classes.buttonsContainer}>
+        <Box sx={classes.buttonsContainer}>
           <Button
             variant="contained"
             color="primary"
-            className={classes.addButton}
+            sx={classes.addButton}
             disabled={!hasValues()}
             onClick={() => handleAdd()}
           >
@@ -898,32 +914,32 @@ export default function UrineScreen(props) {
           >
             Clear
           </Button>
-        </div>
+        </Box>
       )}
     </Paper>
   );
   const renderUrineTypeSelector = () => (
-    <div className={classes.typeContainer}>
+    <Box sx={classes.typeContainer}>
       <div>
         {onlyOneEditableUrineScreenType() && (
-          <div className={classes.textDisplay}>
-            <InputLabel className={classes.readonlyLabel}>
+          <Box sx={classes.textDisplay}>
+            <InputLabel sx={classes.readonlyLabel}>
               {URINE_SCREEN_TYPE_LABEL}
             </InputLabel>
             <Typography variant="subtitle2">
               {getOneUrineScreenDisplayText()}
             </Typography>
-          </div>
+          </Box>
         )}
         {hasEditableUrineScreenTypes() && (
-          <FormControl className={classes.selectFormControl} variant="standard">
-            <InputLabel className={classes.label}>
+          <FormControl sx={classes.selectFormControl} variant="standard">
+            <InputLabel sx={classes.label}>
               {URINE_SCREEN_TYPE_LABEL}
             </InputLabel>
             <Select
               value={type}
               onChange={handleTypeChange}
-              className={classes.selectBox}
+              sx={classes.selectBox}
               IconComponent={() => (
                 <ArrowDropDownIcon color="primary"></ArrowDropDownIcon>
               )}
@@ -933,23 +949,23 @@ export default function UrineScreen(props) {
           </FormControl>
         )}
         {noEditableUrineScreenTypes() && (
-          <div className={classes.errorContainer}>
+          <Box sx={classes.errorContainer}>
             <Error
               message={"No urine drug screen type list is loaded."}
             ></Error>
-          </div>
+          </Box>
         )}
       </div>
-    </div>
+    </Box>
   );
   const renderUpdateInProgressIndicator = () => (
-    <div className={classes.progressContainer}>
+    <Box sx={classes.progressContainer}>
       <CircularProgress
         color="primary"
         size={32}
-        className={classes.progressIcon}
+        sx={classes.progressIcon}
       />
-    </div>
+    </Box>
   );
   const columns = [
     {
@@ -994,12 +1010,12 @@ export default function UrineScreen(props) {
       return renderUpdateInProgressIndicator();
     const mostRecentEntry = historyState.mostRecentEntry;
     return (
-      <Paper className={classes.recentEntryContainer} elevation={0}>
+      <Paper sx={classes.recentEntryContainer} elevation={0}>
         <Typography
           variant="caption"
-          display="block"
-          className={classes.historyTitle}
-        >
+          sx={[{
+            display: "block"
+          }, classes.historyTitle]}>
           Last Urine Drug Screen
         </Typography>
         {!hasHistory() && (
@@ -1015,7 +1031,7 @@ export default function UrineScreen(props) {
         {/* most recent entry */}
         {hasHistory() && (
           <React.Fragment>
-            <div>
+            <div className="flex-gap-1">
               {!editEntry.mode && (
                 <span
                   dangerouslySetInnerHTML={{
@@ -1037,12 +1053,12 @@ export default function UrineScreen(props) {
             </div>
             {/* alerts */}
             {isAdult(rowData.birth_date) && (
-              <div className={classes.overDueContainer}>
+              <Box sx={classes.overDueContainer}>
                 <OverdueAlert
                   date={mostRecentEntry.date}
                   type="urine drug screen"
                 ></OverdueAlert>
-              </div>
+              </Box>
             )}
           </React.Fragment>
         )}
@@ -1050,15 +1066,15 @@ export default function UrineScreen(props) {
     );
   };
   const renderHistory = () => (
-    <Paper className={classes.itemContainer} elevation={0}>
+    <Paper sx={classes.itemContainer} elevation={0}>
       <Typography
         variant="caption"
-        display="block"
-        className={classes.historyTitle}
-      >
+        sx={[{
+          display: "block"
+        }, classes.historyTitle]}>
         History
       </Typography>
-      <div className={classes.totalEntriesContainer}>
+      <Box sx={classes.totalEntriesContainer}>
         <span>
           <b>{historyState.data.length}</b> record(s)
         </span>
@@ -1068,10 +1084,10 @@ export default function UrineScreen(props) {
             color="primary"
             onClick={() => dispatch({ type: "history/expand-toggle" })}
             endIcon={
-              <ExpandMoreIcon className={classes.endIcon}></ExpandMoreIcon>
+              <ExpandMoreIcon sx={classes.endIcon}></ExpandMoreIcon>
             }
             size="small"
-            className={classes.expandIcon}
+            sx={classes.expandIcon}
           >
             View
           </Button>
@@ -1082,16 +1098,16 @@ export default function UrineScreen(props) {
             color="primary"
             onClick={() => dispatch({ type: "history/expand-toggle" })}
             endIcon={
-              <ExpandLessIcon className={classes.endIcon}></ExpandLessIcon>
+              <ExpandLessIcon sx={classes.endIcon}></ExpandLessIcon>
             }
             size="small"
-            className={classes.expandIcon}
+            sx={classes.expandIcon}
           >
             Hide
           </Button>
         )}
-      </div>
-      <div className={classes.tableContainer}>
+      </Box>
+      <Box sx={classes.tableContainer}>
         {historyState.expand && (
           <div className="history-table">
             <HistoryTable
@@ -1110,7 +1126,7 @@ export default function UrineScreen(props) {
             ></HistoryTable>
           </div>
         )}
-      </div>
+      </Box>
     </Paper>
   );
   const renderFeedbackSnackbar = () => (
@@ -1169,9 +1185,9 @@ export default function UrineScreen(props) {
   };
 
   const renderError = () => (
-    <div className={classes.errorContainer}>
+    <Box sx={classes.errorContainer}>
       {error && <Error message={error}></Error>}
-    </div>
+    </Box>
   );
 
   React.useEffect(() => {
@@ -1179,9 +1195,9 @@ export default function UrineScreen(props) {
   }, [getHistory]);
 
   return (
-    <div className={classes.container}>
+    <Box sx={classes.container}>
       {renderTitle()}
-      <div className={classes.contentContainer}>
+      <Box sx={classes.contentContainer}>
         {renderAddInProgressIndicator()}
         {/* UI to add new */}
         {renderAddComponent()}
@@ -1195,8 +1211,8 @@ export default function UrineScreen(props) {
         {renderFeedbackSnackbar()}
         {/* error message UI */}
         {renderError()}
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 }
 UrineScreen.propTypes = {

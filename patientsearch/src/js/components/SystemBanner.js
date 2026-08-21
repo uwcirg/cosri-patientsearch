@@ -1,21 +1,11 @@
 import React from "react";
 import PropTypes from "prop-types";
-import makeStyles from '@mui/styles/makeStyles';
-import { useSettingContext } from "../context/SettingContextProvider";
-
-const useStyles = makeStyles((theme) => ({
-  container: {
-    textAlign: "center",
-    position: "fixed",
-    top: 0,
-    width: "100%",
-    zIndex: 9999,
-    backgroundColor: theme.palette.primary.warningLight,
-  },
-}));
+import { useTheme } from "@mui/material/styles";
+import { useSettingContext } from "../context/AppContextProvider";
+import Box from "@mui/material/Button";
 
 export default function SystemBanner(props) {
-  const classes = useStyles();
+  const theme = useTheme();
   const SYSTEM_TYPE_STRING = "SYSTEM_TYPE";
   const settingsCtx = useSettingContext();
   const appSettings = props.appSettings
@@ -34,9 +24,21 @@ export default function SystemBanner(props) {
   if (!isNotProd) return null;
   return (
     /* display system type for non-production instances */
-    (<div className={classes.container}>
+    <Box
+      sx={{
+        textAlign: "center",
+        position: "fixed",
+        top: 0,
+        width: "100%",
+        zIndex: 9999,
+        backgroundColor: theme.palette.primary.warningLight,
+        color: "#444",
+        padding: 0,
+        fontSize: "0.7rem"
+      }}
+    >
       <span>{getSystemType()} version - not for clinical use</span>
-    </div>)
+    </Box>
   );
 }
 SystemBanner.propTypes = {

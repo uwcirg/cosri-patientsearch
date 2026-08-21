@@ -5,7 +5,7 @@ import Typography from "@mui/material/Typography";
 import Layout from "../layout/Layout";
 import Alert from "../components/Alert";
 import { getUrlParameter } from "../helpers/utility";
-import { useSettingContext } from "../context/SettingContextProvider";
+import { useSettingContext } from "../context/AppContextProvider";
 import "../../styles/app.scss";
 
 
@@ -39,7 +39,9 @@ const root = createRoot(document.getElementById("content"));
 root.render(
   <Layout>
     <div className="logout-container">
-      <Typography component="h4" variant="h5" color="inherit" align="center">
+      <Typography component="h4" variant="h5" align="center" sx={{
+        color: "inherit"
+      }}>
         {getMessage()}
       </Typography>
       <AlertMessage></AlertMessage>

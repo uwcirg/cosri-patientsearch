@@ -1,6 +1,6 @@
 import React from "react";
 import PropTypes from "prop-types";
-import makeStyles from '@mui/styles/makeStyles';
+import { useTheme } from "@mui/material/styles";
 import AssignmentLateIcon from "@mui/icons-material/AssignmentLate";
 import Typography from "@mui/material/Typography";
 import {
@@ -11,32 +11,33 @@ import {
   isDateInPast,
 } from "../helpers/utility";
 
-const useStyles = makeStyles((theme) => ({
-  alertIcon: {
-    fill: theme.palette.primary.alert,
-    position: "relative",
-    top: "4px",
-    fontSize: "1.2rem",
-  },
-  warningIcon: {
-    fill: theme.palette.primary.warning,
-    position: "relative",
-    top: "4px",
-    fontSize: "1.2rem",
-  },
-  alertText: {
-    color: theme.palette.primary.alert,
-    display: "inline-block",
-    marginLeft: "6px",
-  },
-  warningText: {
-    color: theme.palette.primary.warning,
-    display: "inline-block",
-    marginLeft: "6px",
-  },
-}));
 
 export default function OverdueAlert(props) {
+  const theme = useTheme();
+  const classes = {
+    alertIcon: {
+      fill: theme.palette.primary.alert,
+      position: "relative",
+      top: "4px",
+      fontSize: "1.2rem",
+    },
+    warningIcon: {
+      fill: theme.palette.primary.warning,
+      position: "relative",
+      top: "4px",
+      fontSize: "1.2rem",
+    },
+    alertText: {
+      color: theme.palette.primary.alert,
+      display: "inline-block",
+      marginLeft: "6px",
+    },
+    warningText: {
+      color: theme.palette.primary.warning,
+      display: "inline-block",
+      marginLeft: "6px",
+    },
+  };
   /*
    * 3 or 4 months before next due date
    */
@@ -106,7 +107,6 @@ export default function OverdueAlert(props) {
     if (props.message) return props.message;
     return `A ${props.type} is due for this patient on or before [duedate].`;
   };
-  const classes = useStyles();
 
   const showAlert = shouldShowAlerts(props.date);
   if (!showAlert) return null;
@@ -114,9 +114,9 @@ export default function OverdueAlert(props) {
     <div>
       <AssignmentLateIcon
         size="small"
-        className={getIconClass(props.date)}
+        sx={getIconClass(props.date)}
       ></AssignmentLateIcon>
-      <Typography variant="body2" className={getMessageClass(props.date)}>
+      <Typography variant="body2" sx={getMessageClass(props.date)}>
         {formatMessage(getMessage(), props.date)}
       </Typography>
     </div>

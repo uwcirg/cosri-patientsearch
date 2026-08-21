@@ -2,9 +2,7 @@ import React, { useContext, useRef, useMemo, useCallback } from "react";
 import dayjs from "dayjs";
 import jsonpath from "jsonpath";
 import PropTypes from "prop-types";
-import CircularProgress from "@mui/material/CircularProgress";
-import { useSettingContext } from "./SettingContextProvider";
-import { useUserContext } from "./UserContextProvider";
+import { useSettingContext, useUserContext } from "./AppContextProvider";
 import * as constants from "../constants/consts";
 import {
   capitalizeFirstLetter,
@@ -27,7 +25,7 @@ import {
 import RowData from "../models/RowData";
 import { usePatientListStore } from "../stores/patientListStore";
 
-const AppContext = React.createContext({});
+const PatientDataContext = React.createContext({});
 
 const {
   closeLoadingModal,
@@ -179,7 +177,11 @@ export default function PatientListContextProvider({ children }) {
   const handleErrorCallback = useCallback((e) => {
     const oStatus = constants.objErrorStatus[parseInt(e?.status)];
     if (oStatus) {
-      setError("Logging out due to error.");
+      setError("Unauthorized / Expired Session");
+      // Reason: intentional full-page redirect on session expiry - a one-shot
+      // imperative navigation, not a render-time mutation. Known false positive:
+      // https://github.com/facebook/react/issues/29778
+      // eslint-disable-next-line react-compiler/react-compiler
       window.location = oStatus.logoutURL;
       return;
     }
@@ -716,7 +718,7 @@ export default function PatientListContextProvider({ children }) {
     ],
   );
 
-  const appContextValue = useMemo(
+  const patientDataContextValue = useMemo(
     () => ({
       appClients,
       tableRef,
@@ -741,21 +743,13 @@ export default function PatientListContextProvider({ children }) {
     ],
   );
   return (
-    <AppContext.Provider value={appContextValue}>
-      <AppContext.Consumer>
+    <PatientDataContext.Provider value={patientDataContextValue}>
+      <PatientDataContext.Consumer>
         {() => {
-          if (isEmptyArray(Object.keys(appSettings)))
-            return (
-              <div
-                style={{ display: "flex", gap: "16px 16px", padding: "24px" }}
-              >
-                Loading... <CircularProgress color="primary"></CircularProgress>
-              </div>
-            );
           return children;
         }}
-      </AppContext.Consumer>
-    </AppContext.Provider>
+      </PatientDataContext.Consumer>
+    </PatientDataContext.Provider>
   );
 }
 
@@ -770,6 +764,6 @@ function useCtx(Context, name) {
   return ctx;
 }
 
-export function useAppContext() {
-  return useCtx(AppContext, "useAppContext");
+export function usePatientDataContext() {
+  return useCtx(PatientDataContext, "usePatientDataContext");
 }

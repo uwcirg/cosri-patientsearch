@@ -1,27 +1,14 @@
-import { memo, useCallback } from "react";
+import React, { memo, useCallback } from "react";
 import PropTypes from "prop-types";
-import { Button } from "@mui/material";
-import makeStyles from "@mui/styles/makeStyles";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
 import DialogBox from "../DialogBox";
-import { useAppContext } from "../../context/PatientListContextProvider";
+import { usePatientDataContext } from "../../context/PatientListContextProvider";
 import { useCurrentRow, useLaunchDialogState } from "../../stores/patientListSelectors";
 import { usePatientListStore } from "../../stores/patientListStore";
 import { isEmptyArray } from "../../helpers/utility";
 
-const useStyles = makeStyles((theme) => ({
-  flex: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    flexWrap: "wrap",
-  },
-  flexButton: {
-    marginRight: theme.spacing(1),
-  },
-}));
-
 const LaunchDialogBox = memo(function LaunchDialogBox({
-  classes,
   appClients,
   launchFunc,
   onCloseFunc,
@@ -35,7 +22,7 @@ const LaunchDialogBox = memo(function LaunchDialogBox({
       onClose={onCloseFunc}
       title={title}
       body={
-        <div className={classes.flex}>
+        <Box className="flex-center flex-gap-1">
           {isEmptyArray(appClients) && (
             <div>No client application is defined.</div>
           )}
@@ -46,7 +33,6 @@ const LaunchDialogBox = memo(function LaunchDialogBox({
                   key={`launchButton_${index}`}
                   color="primary"
                   variant="contained"
-                  className={classes.flexButton}
                   onClick={(e) => {
                     e.stopPropagation();
                     launchFunc(rowData, appClient);
@@ -55,14 +41,13 @@ const LaunchDialogBox = memo(function LaunchDialogBox({
                 >{`Launch ${appClient.id}`}</Button>
               );
             })}
-        </div>
+        </Box>
       }
     ></DialogBox>
   );
 });
 
 LaunchDialogBox.propTypes = {
-  classes: PropTypes.object,
   open: PropTypes.bool,
   title: PropTypes.string,
   rowData: PropTypes.object,
@@ -80,8 +65,7 @@ const MemoizedLaunchDialogBox = memo(function memoizedLaunchDialogBox(props) {
 const { closeLaunchInfoModal } = usePatientListStore.getState();
 
 export default function LaunchDialog() {
-  const classes = useStyles();
-  const { appClients, handleLaunchApp = noop} = useAppContext();
+  const { appClients, handleLaunchApp = noop } = usePatientDataContext();
   const currentRow = useCurrentRow();
   const getTitle = useCallback(() => currentRow
     ? `Launch application for ${currentRow.last_name}, ${currentRow.first_name}`
@@ -92,7 +76,6 @@ export default function LaunchDialog() {
 
   return (
     <MemoizedLaunchDialogBox
-      classes={classes}
       open={openDialog}
       title={getTitle()}
       appClients={appClients}

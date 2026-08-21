@@ -9,8 +9,8 @@ describe("Header", () => {
     render(<Header></Header>);
   });
   // use https://testing-library.com/docs/react-testing-library/intro/ for DOM testing
-  it("contains logo image", async () => {
+  it("contains welcome text", async () => {
     render(<Header></Header>);
-    expect(await screen.findByAltText("Logo")).toBeInTheDocument();
+    expect(await screen.findByText("Welcome")).toBeInTheDocument();
   });
 });

@@ -24,7 +24,7 @@ import {
   LAUNCH_BUTTON_LABEL,
 } from "../../constants/consts";
 import { useActionLabel } from "../../stores/patientListSelectors";
-import { useAppContext } from "../../context/PatientListContextProvider";
+import { usePatientDataContext } from "../../context/PatientListContextProvider";
 import { usePatientListStore } from "../../stores/patientListStore";
 import RowData from "../../models/RowData";
 
@@ -80,13 +80,19 @@ const TextFieldInput = memo(function TextFieldInput({
       onChange={onChange}
       onKeyDown={onKeyDown}
       fullWidth
-      inputProps={{ "data-lpignore": true }}
-      InputProps={{
-        startAdornment: field.icon ? (
-          <InputAdornment position="start">
-            {ICON_MAP[field.icon] ?? null}
-          </InputAdornment>
-        ) : null,
+      slotProps={{
+        input: {
+          startAdornment: field.icon ? (
+            <InputAdornment position="start">
+              {ICON_MAP[field.icon] ?? null}
+            </InputAdornment>
+          ) : null,
+          slotProps: {
+            input: {
+              "data-lpignore": true
+            }
+          }
+        }
       }}
     />
   );
@@ -104,37 +110,40 @@ const DateFieldInput = memo(function DateFieldInput({
   value,
   onChange,
   onKeyDown,
-  onClear,
+  //onClear,
 }) {
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
       <DatePicker
-        autoOk
-        variant="dialog"
-        openTo="year"
+        openTo="day"
+        views={["month", "year", "day"]}
         disableFuture
+        orientation="landscape"
+        format="YYYY-MM-DD"
+        minDate={dayjs("1900-01-01")}
+        value={value ? dayjs(value) : null}
+        onChange={onChange}
         slotProps={{
           textField: {
-            placeholder: field.placeholder || "YYYY-MM-DD",
-            InputLabelProps: { shrink: true },
-            inputProps: { "data-lpignore": true },
+            placeholder: field.placeholder || "DOB: YYYY-MM-DD",
             id: field.name,
             variant: "standard",
             fullWidth: true,
-            onKeyDown: onKeyDown
+            onKeyDown: onKeyDown,
+            slotProps: {
+              inputLabel: { shrink: true },
+              htmlInput: {
+                "data-lpignore": true,
+              },
+            },
           },
-          field: { clearable: true, onClear },
+          openPickerIcon: {
+            sx: {
+              color: "primary.main",
+            },
+          },
+          // field: { clearable: true, onClear },
         }}
-        format="YYYY-MM-DD"
-        minDate={dayjs("1900-01-01")}
-        invalidDateMessage="Date must be in YYYY-MM-DD format, e.g. 1977-01-12"
-        value={value ? dayjs(value) : null}
-        orientation="landscape"
-        clearable
-        sx={{ width: "100%" }}
-        onKeyDown={onKeyDown}
-        onChange={onChange}
-        KeyboardButtonProps={{ color: "primary", title: "Date picker" }}
       />
     </LocalizationProvider>
   );
@@ -145,7 +154,7 @@ DateFieldInput.propTypes = {
   value: PropTypes.string,
   onChange: PropTypes.func.isRequired,
   onKeyDown: PropTypes.func.isRequired,
-  onClear: PropTypes.func.isRequired,
+  //onClear: PropTypes.func.isRequired,
 };
 
 const MaskedFieldInput = memo(function MaskedFieldInput({
@@ -165,7 +174,7 @@ const MaskedFieldInput = memo(function MaskedFieldInput({
       disableFocus
       placeholder={field.placeholder}
       showMask={field.showMask !== undefined ? field.showMask : false}
-      inputClass="field-wrapper"
+      className="field-wrapper"
     />
   );
 });
@@ -182,7 +191,7 @@ const FieldWrapper = memo(function FieldWrapper({
   value,
   onTextChange,
   onDateChange,
-  onDateClear,
+  //onDateClear,
   onKeyDown,
 }) {
   let fieldContent;
@@ -194,7 +203,7 @@ const FieldWrapper = memo(function FieldWrapper({
           value={value}
           onChange={onDateChange}
           onKeyDown={onKeyDown}
-          onClear={onDateClear}
+          //onClear={onDateClear}
         />
       );
       break;
@@ -234,7 +243,7 @@ FieldWrapper.propTypes = {
   value: PropTypes.string,
   onTextChange: PropTypes.func.isRequired,
   onDateChange: PropTypes.func.isRequired,
-  onDateClear: PropTypes.func.isRequired,
+  //onDateClear: PropTypes.func.isRequired,
   onKeyDown: PropTypes.func.isRequired,
 };
 
@@ -248,7 +257,7 @@ export default forwardRef(function FilterRow(_props, ref) {
     handleSearch,
     searchFields: rawFields = defaultSearchFields,
     tableRef,
-  } = useAppContext();
+  } = usePatientDataContext();
 
   const actionLabel = useActionLabel() ?? "View";
 
@@ -346,14 +355,14 @@ export default forwardRef(function FilterRow(_props, ref) {
     return dateChangeHandlersRef.current[fieldName];
   }, []);
 
-  const dateClearHandlersRef = useRef({});
-  const getDateClearHandler = useCallback((fieldName) => {
-    if (!dateClearHandlersRef.current[fieldName]) {
-      dateClearHandlersRef.current[fieldName] = () =>
-        setFilters((prev) => ({ ...prev, [fieldName]: null }));
-    }
-    return dateClearHandlersRef.current[fieldName];
-  }, []);
+  // const dateClearHandlersRef = useRef({});
+  // const getDateClearHandler = useCallback((fieldName) => {
+  //   if (!dateClearHandlersRef.current[fieldName]) {
+  //     dateClearHandlersRef.current[fieldName] = () =>
+  //       setFilters((prev) => ({ ...prev, [fieldName]: null }));
+  //   }
+  //   return dateClearHandlersRef.current[fieldName];
+  // }, []);
 
   const handleClear = useCallback(() => {
     setFilters(buildEmptyFilters(fields));
@@ -405,7 +414,6 @@ export default forwardRef(function FilterRow(_props, ref) {
   }, [handleSearch]);
   const launchButtonLabel = actionLabel || LAUNCH_BUTTON_LABEL;
 
-
   return (
     <Box className="search-container">
       <Box className="fields-container">
@@ -416,7 +424,7 @@ export default forwardRef(function FilterRow(_props, ref) {
             value={filters[field.name]}
             onTextChange={getTextChangeHandler(field.name)}
             onDateChange={getDateChangeHandler(field.name)}
-            onDateClear={getDateClearHandler(field.name)}
+            //onDateClear={getDateClearHandler(field.name)}
             onKeyDown={handleKeyDown}
           />
         ))}

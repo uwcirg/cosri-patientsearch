@@ -1,8 +1,8 @@
-import { memo, useCallback, useEffect, useRef } from "react";
+import React, { memo, useCallback, useEffect, useRef } from "react";
 import PropTypes from "prop-types";
 import Dropdown from "../Dropdown";
-import { useAppContext } from "../../context/PatientListContextProvider";
-import { useSettingContext } from "../../context/SettingContextProvider";
+import { usePatientDataContext } from "../../context/PatientListContextProvider";
+import { useSettingContext } from "../../context/AppContextProvider";
 import { usePatientListStore } from "../../stores/patientListStore";
 import { useMenuState, useCurrentRow } from "../../stores/patientListSelectors";
 import { isEmptyArray, toggleDetailPanel } from "../../helpers/utility";
@@ -16,7 +16,7 @@ const MenuDropdown = memo(function MenuDropdown(props) {
 
 export default function DropdownMenu(props) {
   const { getAppSettingByKey = () => null } = useSettingContext();
-  const { tableRef } = useAppContext();
+  const { tableRef } = usePatientDataContext();
   const { openMenu } = useMenuState();
   const currentRow = useCurrentRow();
   const currentRowId = currentRow?.id;
@@ -76,7 +76,7 @@ export default function DropdownMenu(props) {
   const menuItems = getMenuItems();
   if (isEmptyArray(menuItems)) return null;
   if (!anchorEl) return null;
-  if (props.data.id !== currentRowId) return null;
+  if (!props.data?.id || props.data?.id !== currentRowId) return null;
   return (
     <MenuDropdown
       anchorEl={anchorEl}

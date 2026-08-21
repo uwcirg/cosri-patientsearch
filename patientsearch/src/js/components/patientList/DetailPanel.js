@@ -7,31 +7,16 @@ import React, {
   useState,
 } from "react";
 import PropTypes from "prop-types";
+import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Paper from "@mui/material/Paper";
-import makeStyles from "@mui/styles/makeStyles";
-import { usePatientListStore } from "../../stores/patientListStore";
-import { useAppContext } from "../../context/PatientListContextProvider";
+import {
+  usePatientListStore,
+  patientListStoreApi,
+} from "../../stores/patientListStore";
+import { usePatientDataContext } from "../../context/PatientListContextProvider";
 import { defaultMenuItems } from "../../constants/consts";
 import { toggleDetailPanel } from "../../helpers/utility";
-
-const useStyles = makeStyles((theme) => ({
-  detailPanelWrapper: {
-    backgroundColor: "#dde7e6",
-    padding: theme.spacing(0.25),
-  },
-  detailPanelContainer: {
-    position: "relative",
-    minHeight: theme.spacing(8),
-    backgroundColor: "#fbfbfb",
-  },
-  detailPanelCloseButton: {
-    position: "absolute",
-    top: theme.spacing(1.5),
-    right: theme.spacing(6),
-    color: theme.palette.primary.main,
-  },
-}));
 
 const getSelectedItemComponent = (key, rowData) => {
   if (!key) return null;
@@ -46,40 +31,37 @@ const getDetailPanelContent = (d, selectedItemId) =>
 
 const DetailPanelContent = memo(
   forwardRef(function DetailPanelContent(
-    { onClickFunc, selectedItemId, data, classes },
+    { onClickFunc, selectedItemId, data },
     ref,
   ) {
     return (
-      <div className={classes.detailPanelWrapper} ref={ref}>
-        <Paper elevation={1} className={classes.detailPanelContainer}>
+      <Box className="detailPanel__wrapper" ref={ref}>
+        <Paper elevation={1} className="detailPanel__container">
           {getDetailPanelContent(data, selectedItemId)}
           <Button
             onClick={onClickFunc}
-            className={classes.detailPanelCloseButton}
+            className="close-button"
             size="small"
           >
             Close X
           </Button>
         </Paper>
-      </div>
+      </Box>
     );
   }),
 );
 
 DetailPanelContent.propTypes = {
   onClickFunc: PropTypes.func,
-  classes: PropTypes.object.isRequired,
   data: PropTypes.object.isRequired,
   selectedItemId: PropTypes.string,
 };
 
-
 export default function DetailPanel({ data }) {
-  const { tableRef } = useAppContext();
+  const { tableRef } = usePatientDataContext();
   const cloneTableRef = useRef(null);
   const panelRef = useRef();
-  const classes = useStyles();
-  const { closeMenu, selectedMenuItem } = usePatientListStore.getState();
+  const { closeMenu, selectedMenuItem } = patientListStoreApi.getState();
   const [selectedItemId, setSelectedItemId] = useState(selectedMenuItem);
 
   useEffect(() => {
@@ -107,7 +89,6 @@ export default function DetailPanel({ data }) {
     <DetailPanelContent
       ref={panelRef}
       onClickFunc={handleClose}
-      classes={classes}
       selectedItemId={selectedItemId}
       data={data}
     />

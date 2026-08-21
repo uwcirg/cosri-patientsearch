@@ -1,5 +1,5 @@
 import { createTheme } from "@mui/material/styles";
-import {cyan, teal, deepPurple} from "@mui/material/colors";
+import {cyan, teal, deepPurple, grey} from "@mui/material/colors";
 
 
 const feedbackColors = {
@@ -16,8 +16,8 @@ const secondaryColors = {
 };
 
 const mutedColors = {
-  main: "#888",
-  light: "#ececec",
+  main: grey[500],
+  light: grey[300],
 };
 
 export const themes = {
@@ -26,7 +26,7 @@ export const themes = {
       dark: {
         main: "#024144",
         secondary: cyan[900],
-        disabled: "#e9e7e7"
+        disabled: "#e9e7e7",
       },
       primary: {
         lightest: teal[50],
@@ -46,13 +46,14 @@ export const themes = {
         },
       },
     },
-    overrides: {
+    components: {
       MuiTableSortLabel: {
-        icon: {
-          color: cyan[600],
-        },
-        active: {
-          color: cyan[600],
+        styleOverrides: {
+          root: {
+            "&.Mui-active": {
+              color: cyan[900],
+            },
+          },
         },
       },
     },
@@ -81,13 +82,14 @@ export const themes = {
         },
       },
     },
-    overrides: {
+    components: {
       MuiTableSortLabel: {
-        icon: {
-          color: deepPurple[700],
-        },
-        active: {
-          color: deepPurple[700],
+        styleOverrides: {
+          root: {
+            "&.Mui-active": {
+              color: deepPurple[900],
+            },
+          },
         },
       },
     },
