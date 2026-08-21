@@ -1,4 +1,4 @@
-import { memo, useCallback, useRef, useEffect } from "react";
+import React, { memo, useCallback, useRef, useEffect } from "react";
 import PropTypes from "prop-types";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Checkbox from "@mui/material/Checkbox";

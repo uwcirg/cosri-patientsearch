@@ -1,4 +1,4 @@
-import { memo } from "react";
+import React, { memo } from "react";
 import PropTypes from "prop-types";
 import Box from "@mui/material/Box";
 import {useContainNoPMPRow} from "../../stores/patientListSelectors";

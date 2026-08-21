@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect, useRef } from "react";
+import React, { memo, useCallback, useEffect, useRef } from "react";
 import PropTypes from "prop-types";
 import Dropdown from "../Dropdown";
 import { usePatientDataContext } from "../../context/PatientListContextProvider";

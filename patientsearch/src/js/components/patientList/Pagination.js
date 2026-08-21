@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, memo } from "react";
+import React, { useCallback, useEffect, useRef, memo } from "react";
 import PropTypes from "prop-types";
 import TablePagination from "@mui/material/TablePagination";
 import { usePatientDataContext } from "../../context/PatientListContextProvider";

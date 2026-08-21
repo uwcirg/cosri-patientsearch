@@ -1,4 +1,4 @@
-import { memo } from "react";
+import React, { memo } from "react";
 import PropTypes from "prop-types";
 
 const MemoizedOverlayElement = memo(function MemoizedOverlayElement(props) {
