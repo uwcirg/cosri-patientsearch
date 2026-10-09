@@ -1,40 +1,36 @@
-import React, {useCallback, useMemo} from "react";
+import React from "react";
 import PropTypes from "prop-types";
-import DOMPurify from "dompurify";
 import { useTheme } from "@mui/material/styles";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
-import CircularProgress from "@mui/material/CircularProgress";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import ExpandLessIcon from "@mui/icons-material/ExpandLess";
-import InputLabel from "@mui/material/InputLabel";
 import FormControl from "@mui/material/FormControl";
 import FormHelperText from "@mui/material/FormHelperText";
+import InputLabel from "@mui/material/InputLabel";
 import MenuItem from "@mui/material/MenuItem";
 import Paper from "@mui/material/Paper";
 import Select from "@mui/material/Select";
-import Snackbar from "@mui/material/Snackbar";
 import Typography from "@mui/material/Typography";
-import dayjs from "dayjs";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import Alert from "./Alert";
 import EditButtonGroup from "./EditButtonGroup";
-import Error from "./Error";
-import HistoryTable from "./HistoryTable";
 import FormattedInput from "./FormattedInput";
 import OverdueAlert from "./OverdueAlert";
+import HistorySection from "./HistorySection";
+import PanelError from "./PanelError";
+import ProgressOverlay from "./ProgressOverlay";
+import RecordDatePicker from "./RecordDatePicker";
+import SectionTitle from "./SectionTitle";
+import SuccessSnackbar from "./SuccessSnackbar";
+import useFhirRecordHistory from "../hooks/useFhirRecordHistory";
+import { getHistoryPanelStyles } from "../styles/historyPanelStyles";
 import {
-  fetchData,
-  dateTimeCompare,
+  hasDuplicateEntry,
+  isValidPastOrTodayDate,
+  toDateString,
   getShortDateFromISODateString,
   isAdult,
-  isValidDateString,
   isEmptyArray,
   padDateString,
-  sendRequest,
 } from "../helpers/utility";
 import {
   EHR_SYSTEM_URLS,
@@ -45,79 +41,40 @@ import {
   useUserContext,
 } from "../context/AppContextProvider";
 
+const URINE_SCREEN_TYPE_LABEL = "Urine Drug Screen Name";
+const getServiceRequestDate = (resource) => resource.authoredOn;
+const hasEhrIdentifier = (identifiers) =>
+  !isEmptyArray(identifiers) &&
+  identifiers.some((item) => EHR_SYSTEM_URLS.indexOf(item.system) !== -1);
+const hasUwLabIdentifier = (identifiers) =>
+  !isEmptyArray(identifiers) &&
+  identifiers.some((item) => item.system === UWMC_LAB_ORDER_SYSTEM_URL);
 
-export default function UrineScreen(props) {
+export default function UrineScreen({ rowData }) {
   const { user } = useUserContext();
-  const appCtx = useSettingContext();
-  const appSettingsRef = appCtx.appSettings;
+  const { appSettings } = useSettingContext();
   const theme = useTheme();
-  const palette = theme.palette;
   const classes = {
-    container: {
-      paddingLeft: theme.spacing(3),
-      paddingRight: theme.spacing(3),
-      paddingTop: theme.spacing(1),
-      paddingBottom: theme.spacing(1),
-    },
-    contentContainer: {
-      position: "relative",
-    },
+    ...getHistoryPanelStyles(theme),
     itemContainer: {
       position: "relative",
       marginBottom: theme.spacing(1),
       padding: theme.spacing(1, 2, 1),
-    },
-    typeContainer: {
-      position: "relative",
     },
     textDisplay: {
       marginTop: theme.spacing(3),
     },
     buttonsContainer: {
       marginTop: theme.spacing(1.5),
-      marginBottm: theme.spacing(1),
+      marginBottom: theme.spacing(1), // was misspelled `marginBottm` (never applied)
       position: "relative",
-    },
-    progressContainer: {
-      position: "absolute",
-      left: 0,
-      right: 0,
-      top: 0,
-      bottom: 0,
-      background: "hsl(0deg 0% 100% / 80%)",
-      zIndex: 500,
-      minHeight: theme.spacing(6),
-      boxShadow: "none",
-    },
-    progressIcon: {
-      position: "absolute",
-      top: "10%",
-      left: "10%",
     },
     recentEntryContainer: {
       position: "relative",
       marginBottom: theme.spacing(1),
       padding: theme.spacing(1, 2, 0.5),
-    },
-    historyTitle: {
-      display: "inline-block",
-      fontWeight: 500,
-      color: palette && palette.dark ? palette.dark.main : "#444",
-      marginBottom: theme.spacing(1),
-      borderBottom: `2px solid ${theme.palette.primary.lightest}`,
-    },
-    addTitle: {
-      display: "inline-block",
-      fontWeight: 500,
-      color: palette && palette.dark ? palette.dark.main : "#444",
-      marginBottom: theme.spacing(1),
-      borderBottom: `2px solid ${theme.palette.primary.lightest}`,
-    },
-    addButton: {
-      marginRight: theme.spacing(1),
-    },
-    dateInput: {
-      minWidth: "248px",
+      // Gives the overlay room before the first load renders any content.
+      minHeight: theme.spacing(6),
     },
     selectFormControl: {
       marginBottom: theme.spacing(1),
@@ -127,1092 +84,557 @@ export default function UrineScreen(props) {
       fontSize: "14px",
       marginRight: theme.spacing(0.5),
     },
-    dateLabel: {
-      fontSize: "12px",
-      marginBottom: theme.spacing(0.25),
-    },
     readonlyLabel: {
       fontSize: "12px",
       marginBottom: theme.spacing(0.5),
-    },
-    menuItem: {
-      fontSize: "14px",
     },
     editInput: {
       width: theme.spacing(10),
       border: 0,
       textAlign: "center",
     },
-    errorContainer: {
-      maxWidth: "100%",
-      marginTop: theme.spacing(3),
-    },
-    expandIcon: {
-      marginLeft: theme.spacing(2),
-      verticalAlign: "middle",
-      fontSize: "12px",
-    },
-    endIcon: {
-      marginLeft: "-4px",
-      position: "relative",
-    },
-    tableContainer: {
-      position: "relative",
-    },
     overDueContainer: {
       marginBottom: theme.spacing(2),
     },
   };
-  const configUrineScreenTypes = (() => {
-    return appSettingsRef && appSettingsRef["UDS_LAB_TYPES"]
-      ? appSettingsRef["UDS_LAB_TYPES"]
+
+  /* ---------------- configured lab types ---------------- */
+
+  const configTypes =
+    appSettings && appSettings["UDS_LAB_TYPES"]
+      ? appSettings["UDS_LAB_TYPES"]
       : null;
-  })();
-  const editableUrineScreenTypes = configUrineScreenTypes
-    ? configUrineScreenTypes.filter((item) =>
-        item.identifier
-          ? !item.identifier.find(
-              (o) => EHR_SYSTEM_URLS.indexOf(o.system) !== -1
-            )
-          : true
-      )
-    : null;
-  const entryDefaultValue = useMemo(() => ({
-    id: null,
-    date: "",
-    type: "",
-    readonly: false,
-  }), []);
-  const defaultEditValues = {
-    ...entryDefaultValue,
-    mode: false,
-  };
-  const initialHistoryState = {
-    data: [],
-    mostRecentEntry: entryDefaultValue,
-    orderInfoMessage: "",
-    initialized: false,
-    addInProgress: false,
-    updateInProgress: false,
-    snackOpen: false,
-    expand: false,
-  };
-  const initialUIState = {
-    history: initialHistoryState,
-    edit: defaultEditValues,
-  };
-
-  const uiReducer = (state, action) => {
-    switch (action.type) {
-      /** -------------------- HISTORY ACTIONS -------------------- **/
-      case "history/init":
-        return {
-          ...state,
-          history: {
-            ...state.history,
-            snackOpen: false,
-            initialized: false,
-          },
-        };
-
-      case "history/init-complete":
-        // expect action.payload: { data, mostRecentEntry, orderInfoMessage? }
-        return {
-          ...state,
-          history: {
-            ...state.history,
-            ...action.payload,
-            initialized: true,
-          },
-          edit: defaultEditValues,
-        };
-
-      case "history/add":
-        return {
-          ...state,
-          history: {
-            ...state.history,
-            addInProgress: true,
-            snackOpen: false,
-            initialized: false,
-          },
-        };
-
-      case "history/add-complete":
-        // expect action.payload: { data, mostRecentEntry, orderInfoMessage? }
-        return {
-          ...state,
-          history: {
-            ...state.history,
-            ...action.payload,
-            addInProgress: false,
-            initialized: true,
-            snackOpen: true,
-            expand: false,
-          },
-          edit: {
-            ...state.edit,
-            mode: false,
-          },
-        };
-
-      case "history/update":
-        return {
-          ...state,
-          history: {
-            ...state.history,
-            updateInProgress: true,
-            snackOpen: false,
-            initialized: false,
-          },
-        };
-
-      case "history/update-complete":
-        // expect action.payload: { data, mostRecentEntry, orderInfoMessage? }
-        return {
-          ...state,
-          history: {
-            ...state.history,
-            ...action.payload,
-            updateInProgress: false,
-            initialized: true,
-            snackOpen: true,
-            expand: false,
-          },
-          edit: {
-            ...state.edit,
-            mode: false,
-          },
-        };
-
-      case "history/expand-toggle":
-        return {
-          ...state,
-          history: {
-            ...state.history,
-            expand: !state.history.expand,
-          },
-        };
-
-      case "history/error":
-        return {
-          ...state,
-          history: {
-            ...state.history,
-            snackOpen: false,
-            initialized: true,
-            addInProgress: false,
-            updateInProgress: false,
-          },
-        };
-
-      case "history/snack-close":
-        return {
-          ...state,
-          history: {
-            ...state.history,
-            snackOpen: false,
-          },
-        };
-
-      /** -------------------- EDIT ACTIONS -------------------- **/
-      case "edit/set": {
-        // expect action.key, action.value
-        if (!action.key) return state;
-        return {
-          ...state,
-          edit: {
-            ...state.edit,
-            [action.key]: action.value,
-          },
-        };
-      }
-
-      case "edit/update":
-        // expect action.data (partial)
-        return {
-          ...state,
-          edit: {
-            ...state.edit,
-            ...action.data,
-          },
-        };
-
-      case "edit/reset":
-        return {
-          ...state,
-          edit: defaultEditValues,
-        };
-
-      /** -------------------- FALLBACK -------------------- **/
-      default:
-        return state;
-    }
-  };
-  const [uiState, dispatch] = React.useReducer(uiReducer, initialUIState);
-
-  // convenience locals (so you don’t have to refactor many reads)
-  const historyState = uiState.history;
-  const editEntry = uiState.edit;
-  const [type, setType] = React.useState(
-    !isEmptyArray(editableUrineScreenTypes) &&
-      editableUrineScreenTypes.length === 1
-      ? editableUrineScreenTypes[0].code
-      : ""
+  const editableTypes = React.useMemo(
+    () =>
+      configTypes
+        ? configTypes.filter((item) => !hasEhrIdentifier(item.identifier))
+        : [],
+    [configTypes],
   );
-  const [dateInput, setDateInput] = React.useState(null);
-  const [error, setError] = React.useState("");
-  const [dateError, setDateError] = React.useState("");
-  const URINE_SCREEN_TYPE_LABEL = "Urine Drug Screen Name";
-  const { rowData } = props;
-  const getPatientId = React.useCallback(() => {
-    if (rowData) return rowData.id;
-    return null;
-  }, [rowData]);
-  const clearDate = () => {
-    setDateInput("");
-  };
-  const clearHistory = useCallback(() => {
-    dispatch({
-      type: "history/init-complete",
-      payload: {
-        data: [],
-        mostRecentEntry: entryDefaultValue,
-      },
-    });
-  }, [entryDefaultValue]);
-  const clearFields = () => {
-    clearDate();
-    if (!onlyOneEditableUrineScreenType()) setType("");
-    setError("");
-  };
-  const handleTypeChange = (event) => {
-    setType(event.target.value);
-  };
-  const handleEditTypeChange = (event) => {
-    dispatch({ type: "edit/set", key: "type", value: event.target.value });
-  };
-  const hasValues = () => {
-    return type && dateInput && !dateError;
-  };
-  const hasError = () => {
-    return error !== "";
-  };
-  const createHistoryData = React.useCallback(
-    (data) => {
-      if (!data) return [];
-      return data.map((item, index) => {
-        const resource = item.resource;
-        if (!resource) return {};
-        let text =
-          resource.code && resource.code.text
-            ? resource.code.text
-            : resource.code && !isEmptyArray(resource.code.coding)
-            ? resource.code.coding[0].display
-            : "";
-        let date = getShortDateFromISODateString(resource.authoredOn);
-        let type =
-          resource.code && !isEmptyArray(resource.code.coding)
-            ? resource.code.coding[0].code
-            : "";
-        let readonly = !isEmptyArray(resource.identifier)
-          ? !!resource.identifier.find(
-              (item) => EHR_SYSTEM_URLS.indexOf(item.system) !== -1
-            )
-          : false;
-        let requester =
-          resource.requester && resource.requester.display
-            ? resource.requester.display
-            : null;
-        const identifiers = resource.identifier;
-        const isDawg = identifiers?.find(
-          (o) => o.system && o.system === UWMC_LAB_ORDER_SYSTEM_URL
+  const onlyOneType = editableTypes.length === 1;
+  const noEditableTypes = editableTypes.length === 0;
+  const findType = (code) => editableTypes.find((item) => item.code === code);
+
+  // What the history filter matches on
+  const { availableCodes, systemIdentifiers } = React.useMemo(() => {
+    const types = configTypes || [];
+    return {
+      availableCodes: types.map((item) => item.code),
+      systemIdentifiers: types
+        .filter((item) => !isEmptyArray(item.identifier))
+        .flatMap((item) => item.identifier.map((id) => id.system)),
+    };
+  }, [configTypes]);
+
+  /* ---------------- history ---------------- */
+
+  const patientId = rowData ? rowData.id : null;
+
+  const history = useFhirRecordHistory({
+    resourceType: "ServiceRequest",
+    patientId,
+    // Re-fetch when the type config arrives/changes; the filter depends on it
+    refreshKey: configTypes,
+    refreshDelay: 250,
+    getDate: getServiceRequestDate,
+    filterEntry: (entry) => {
+      const resource = entry.resource;
+      if (!resource.code || isEmptyArray(resource.code.coding)) return false;
+      if (!isEmptyArray(resource.identifier)) {
+        return resource.identifier.some(
+          (item) => systemIdentifiers.indexOf(item.system) !== -1,
         );
-        const readonlyOrderLabel = isDawg ? "UW lab order" : "EHR";
-        return {
-          id: resource.id,
-          index: index,
-          type: type ? type : text,
-          text: text,
-          date: date,
-          patientId: getPatientId(),
-          readonly: readonly,
-          requester: requester,
-          source: readonly
-            ? `${readonlyOrderLabel} ${
-                requester ? " (placed by " + requester + ")" : ""
-              }`
-            : requester
+      }
+      return availableCodes.indexOf(resource.code.coding[0].code) !== -1;
+    },
+    toRow: (resource, index) => {
+      const coding = resource.code && resource.code.coding;
+      const text =
+        resource.code && resource.code.text
+          ? resource.code.text
+          : !isEmptyArray(coding)
+            ? coding[0].display
+            : "";
+      const code = !isEmptyArray(coding) ? coding[0].code : "";
+      const readonly = hasEhrIdentifier(resource.identifier);
+      const requester =
+        resource.requester && resource.requester.display
+          ? resource.requester.display
+          : null;
+      const readonlyOrderLabel = hasUwLabIdentifier(resource.identifier)
+        ? "UW lab order"
+        : "EHR";
+      return {
+        id: resource.id,
+        index,
+        type: code ? code : text,
+        text,
+        date: getShortDateFromISODateString(resource.authoredOn),
+        patientId,
+        readonly,
+        requester,
+        // Cosmetic fix: the original produced a double space ("EHR  (placed by X)").
+        source: readonly
+          ? `${readonlyOrderLabel}${requester ? ` (placed by ${requester})` : ""}`
+          : requester
             ? `manually entered (placed by ${requester})`
             : "manually entered",
-        };
-      });
+      };
     },
-    [getPatientId]
-  );
-  const getHistory = React.useCallback(
-    (callback, mode) => {
-      callback = callback || function () {};
-      if (!rowData) {
-        dispatch({ type: "history/error" });
-        callback();
-        return [];
-      }
-      if (!mode) {
-        dispatch({ type: "history/init" });
-      }
-      /*
-       * retrieve urine screen history
-       */
-      sendRequest("/fhir/ServiceRequest?patient=" + rowData.id, {
-        nocache: true,
-      }).then(
-        (response) => {
-          let data = null;
-          try {
-            data = JSON.parse(response);
-          } catch (e) {
-            console.log("Eerror parsing urine screen service request data ", e);
-          }
-          if (!data || isEmptyArray(data.entry)) {
-            clearHistory();
-            callback();
-            return;
-          }
-          const availableCodes = configUrineScreenTypes.map(
-            (item) => item.code
-          );
-          const systemIdentifiers = configUrineScreenTypes
-            .filter((item) => !isEmptyArray(item.identifier))
-            .map((item) => item.identifier.map((item) => item.system))
-            .flat();
-          let urineScreenData = data.entry.filter((item) => {
-            let resource = item.resource;
-            if (!resource) return false;
-            if (!resource.code || isEmptyArray(resource.code.coding))
-              return false;
-            if (!isEmptyArray(resource.identifier)) {
-              return resource.identifier.find(
-                (item) => systemIdentifiers.indexOf(item.system) !== -1
-              );
-            }
-            return availableCodes.indexOf(resource.code.coding[0].code) !== -1;
-          });
-          if (!isEmptyArray(urineScreenData)) {
-            urineScreenData = urineScreenData.sort(function (a, b) {
-              return dateTimeCompare(
-                a.resource.authoredOn,
-                b.resource.authoredOn
-              );
-            });
-            const formattedData = createHistoryData(urineScreenData);
-            const isEHR = urineScreenData.find(
-              (o) => !isEmptyArray(o.resource.identifier)
-            );
-            const isDawg =
-              isEHR &&
-              urineScreenData.find(
-                (o) =>
-                  o.resource.identifier &&
-                  o.resource.identifier.find(
-                    (item) => item.system === UWMC_LAB_ORDER_SYSTEM_URL
-                  )
-              );
-            dispatch({
-              type: mode ? `history/${mode}-complete` : "history/init-complete",
-              payload: {
-                data: formattedData,
-                mostRecentEntry: formattedData[0],
-                orderInfoMessage: isEHR
-                  ? `Display of ${
-                      isDawg ? "UW" : "EHR"
-                    } lab orders may be delayed by 24-48 hours.`
-                  : "",
-              },
-            });
-          } else {
-            clearHistory();
-          }
-          callback();
-        },
-        (error) => {
-          console.log("Failed to retrieve data", error);
-          callback(error);
-          dispatch({ type: "history/error" });
-        }
-      );
-      return "";
+    deriveMeta: (entries) => {
+      const isEHR = entries.some((o) => !isEmptyArray(o.resource.identifier));
+      const isDawg =
+        isEHR && entries.some((o) => hasUwLabIdentifier(o.resource.identifier));
+      return {
+        orderInfoMessage: isEHR
+          ? `Display of ${isDawg ? "UW" : "EHR"} lab orders may be delayed by 24-48 hours.`
+          : "",
+      };
     },
-    [rowData, configUrineScreenTypes, createHistoryData, clearHistory]
-  );
-  const handleAdd = (params) => {
-    handleUpdate(
-      {
-        ...params,
-        mode: "add",
-      },
-      () => {
-        clearFields();
-        setTimeout(() => {
-          getHistory(null, "add");
-        }, 250);
-      }
-    );
-  };
+  });
+  const {
+    rows,
+    meta,
+    initialized,
+    loading,
+    saving,
+    snackOpen,
+    expanded,
+    error,
+  } = history;
+  
+  const mostRecent = !isEmptyArray(rows) ? rows[0] : null;
+
+  /* ---------------- add form state ---------------- */
+
+  const [type, setType] = React.useState("");
+  const selectedType = onlyOneType ? editableTypes[0].code : type;
+  const [dateValue, setDateValue] = React.useState(null);
+  const [dateError, setDateError] = React.useState("");
+
+  /* ---------------- edit state (latest entry) ---------------- */
+
+  // null when not editing, else { date, type }
+  const [editEntry, setEditEntry] = React.useState(null);
+  const editMode = editEntry !== null;
+
+  // Leave edit mode whenever history reloads (original init-complete/edit reset).
+  React.useEffect(() => {
+    //eslint-disable-next-line react-hooks/set-state-in-effect
+    setEditEntry(null);
+  }, [rows]);
+
+  const newDate = toDateString(dateValue, dateError);
+  const canAdd = !!selectedType && !!newDate && !saving;
+  const canClear = !!dateValue || !!dateError || (!onlyOneType && !!type);
+  const canSaveEdit =
+    editMode &&
+    (onlyOneType || !!editEntry.type) &&
+    isValidPastOrTodayDate(editEntry.date);
+
+  /**
+   * Build the ServiceRequest resource (also used by HistoryTable row edits).
+   */
   const submitDataFormatter = (params) => {
     params = params || {};
-    const testType = params.type ? params.type : type;
-    const testDate = params.date ? params.date : dateInput;
-    let typeMatch = editableUrineScreenTypes.filter((item) => {
-      return item.code === testType;
-    });
-    var resource = {
+    const testType = params.type ? params.type : selectedType;
+    const testDate = params.date ? params.date : newDate;
+    const match = findType(testType);
+    const resource = {
       authoredOn: padDateString(testDate),
       code: {
         coding: [
           {
             code: testType,
-            display: typeMatch[0].display,
-            system: typeMatch[0].system,
+            display: match ? match.display : params.text,
+            system: match ? match.system : undefined,
           },
         ],
-        text: typeMatch[0].text,
+        text: match ? match.text : params.text,
       },
-      requester: user
-        ? {
-            display: user.name ?? user.username,
-          }
-        : null,
+      requester: user ? { display: user.name ?? user.username } : null,
       resourceType: "ServiceRequest",
       subject: {
         reference:
-          "Patient/" + (params.patientId ? params.patientId : getPatientId()),
+          "Patient/" + (params.patientId ? params.patientId : patientId),
       },
     };
-    //include id if present, necessary for PUT request
-    if (params.id) {
-      resource = { ...resource, ...{ id: params.id } };
-    }
+    // include id if present, necessary for PUT request
+    if (params.id) resource.id = params.id;
     return resource;
   };
-  const handleUpdate = (params, callback) => {
-    params = params || {};
-    callback = callback || function () {};
-    const testType = params.type ? params.type : type;
-    const testDate = params.date ? params.date : dateInput;
-    let typeMatch = editableUrineScreenTypes.filter((item) => {
-      return item.code === testType;
-    });
-    if (String(params.method).toLowerCase() !== "delete") {
-      if (!testType || !typeMatch.length) {
-        setError("Unknown urine screen type " + testType);
-        callback();
-        return false;
+
+  /**
+   * Validate, run the duplicate guard, and save.
+   *
+   * ASSUMPTION: a urine screen duplicate is same date AND same screen type, so
+   * two different screen types ordered the same day are still allowed. Change
+   * isMatch to `row.date === date` for date-only (like Agreement).
+   */
+  const submit = ({
+    method = "POST",
+    id,
+    date,
+    type: testType,
+    text,
+    mode = "update",
+  }) => {
+    if (method !== "DELETE") {
+      const match = findType(testType);
+      if (!testType || !match) {
+        history.setError("Unknown urine screen type " + testType);
+        return Promise.resolve({ ok: false });
       }
-      if (!testDate) {
-        setError("Missing urine screen date");
-        callback();
-        return false;
+      if (!date) {
+        history.setError("Missing urine screen date");
+        return Promise.resolve({ ok: false });
+      }
+      if (
+        hasDuplicateEntry(rows, {
+          excludeId: id,
+          isMatch: (row) => row.date === date && row.type === testType,
+        })
+      ) {
+        history.setError(
+          `A ${match.text} placed on ${date} is already recorded.`,
+        );
+        return Promise.resolve({ ok: false });
       }
     }
-    let resource = submitDataFormatter(params);
-    setError("");
-
-    const mode = params.mode ? params.mode : "update";
-    dispatch({
-      type: `history/${mode}`,
+    return history.save({
+      method,
+      id,
+      mode,
+      resource: submitDataFormatter({ id, date, type: testType, text }),
     });
-    fetchData(
-      "/fhir/ServiceRequest" + (params.id ? "/" + params.id : ""),
-      {
-        method: params.method ? params.method : "POST",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-          cache: "no-cache",
-        },
-        body: JSON.stringify(resource),
-      },
-      (e) => {
-        if (e) {
-          handleSubmissionError();
-        }
-        callback(e);
-      }
-    )
-      .then(() => {
-        setTimeout(() => {
-          getHistory(callback, mode);
-        }, 250);
-      })
-      .catch((e) => {
-        callback(e);
-        console.log("error submtting request ", e);
-        handleSubmissionError();
-      });
-  };
-  const handleEditSave = (params) => {
-    params = params || {};
-    if (!Object.keys(params).length)
-      params = {
-        ...historyState.mostRecentEntry,
-        id: historyState.mostRecentEntry.id,
-        date: editEntry.date,
-        type: editEntry.type,
-      };
-    handleUpdate({
-      ...params,
-      ...{
-        method: "PUT",
-      },
-    });
-  };
-  const handleDelete = (params) => {
-    params = params || {};
-    const mostRecentEntry = historyState.mostRecentEntry;
-    if (!Object.keys(params).length)
-      params = {
-        ...mostRecentEntry,
-        date: editEntry.date ? editEntry.date : mostRecentEntry.date,
-        type: editEntry.type ? editEntry.type : mostRecentEntry.type,
-      };
-    handleUpdate({
-      ...params,
-      ...{
-        method: "DELETE",
-      },
-    });
-  };
-  const handleSubmissionError = () => {
-    dispatch({ type: "history/error" });
-    setError("Data submission failed. Unable to process your request.");
-  };
-  const handleEnableEditMode = () => {
-    const mostRecentEntry = historyState.mostRecentEntry;
-    dispatch({
-      type: "edit/update",
-      data: {
-        ...mostRecentEntry,
-        type: mostRecentEntry.type,
-        date: mostRecentEntry.date,
-        mode: true,
-      },
-    });
-    setError("");
-  };
-  const handleDisableEditMode = () => {
-    dispatch({ type: "edit/reset" });
-    setError("");
-  };
-  const isValidEditType = () => {
-    if (onlyOneEditableUrineScreenType()) return true;
-    return editEntry.type;
-  };
-  const isValidEditDate = () => {
-    if (!isValidDateString(editEntry.date)) return false;
-    let dateObj = new Date(editEntry.date).setHours(0, 0, 0, 0);
-    let today = new Date().setHours(0, 0, 0, 0);
-    return !(dateObj > today);
-  };
-  const hasValidEditEntry = () => {
-    return isValidEditType() && isValidEditDate();
-  };
-  const handleEditDateChange = (event) => {
-    dispatch({ type: "edit/set", key: "date", value: event.target.value });
-  };
-  const hasHistory = () => {
-    return !isEmptyArray(historyState.data);
-  };
-  const displayMostRecentEntry = () => {
-    if (!hasHistory()) return "";
-    const history = historyState.data;
-    const mostRecentEntry = historyState.mostRecentEntry;
-    if (history[0].text) {
-      const source = history[0].source ? ", " + history[0].source : "";
-      return `${history[0].text} on <b>${mostRecentEntry.date}</b> ${source}`;
-    }
-    return `Placed on <b>${mostRecentEntry.date}</b>`;
-  };
-  const displayEditHistoryByRow = (index) => {
-    if (!hasHistory()) return null;
-    if (!index) index = 0;
-    const history = historyState.data;
-    const selectType = history[index].type;
-    const selectDate = history[index].date;
-    const orderText = history[index].text || "";
-    const mostRecentEntry = historyState.mostRecentEntry;
-    return (
-      <React.Fragment>
-        {onlyOneEditableUrineScreenType() || mostRecentEntry?.readonly ? (
-          orderText
-        ) : (
-          <FormControl>
-            <Select
-              defaultValue={selectType}
-              onChange={handleEditTypeChange}
-              sx={classes.selectBox}
-              IconComponent={() => (
-                <ArrowDropDownIcon color="primary"></ArrowDropDownIcon>
-              )}
-              error={hasError()}
-              variant="standard"
-            >
-              {getUrineScreenTypeSelectList()}
-            </Select>
-            <FormHelperText>{`(${URINE_SCREEN_TYPE_LABEL})`}</FormHelperText>
-          </FormControl>
-        )}
-        <span> placed on </span>
-        <div style={{ display: "inline-block" }}>
-          <FormattedInput
-            defaultValue={selectDate}
-            helperText="(YYYY-MM-DD)"
-            disableFocus={!onlyOneEditableUrineScreenType()}
-            handleChange={(e) => handleEditDateChange(e)}
-            handleKeyDown={(e) => handleEditSave(e)}
-            inputClass={{ input: classes.editInput }}
-            error={hasError()}
-            readOnly={mostRecentEntry?.readonly}
-          ></FormattedInput>
-        </div>
-      </React.Fragment>
-    );
-  };
-  const getOneUrineScreenDisplayText = () => {
-    let matchedType = editableUrineScreenTypes[0];
-    if (matchedType) return matchedType.text;
-    else return "";
-  };
-  const onlyOneEditableUrineScreenType = () => {
-    return editableUrineScreenTypes && editableUrineScreenTypes?.length === 1;
   };
 
-  const hasEditableUrineScreenTypes = () => {
-    return !onlyOneEditableUrineScreenType() && !noEditableUrineScreenTypes();
+  const clearFields = () => {
+    setDateValue(null);
+    setDateError("");
+    if (!onlyOneType) setType("");
+    history.setError("");
   };
-  const noEditableUrineScreenTypes = () => {
-    return !editableUrineScreenTypes || !editableUrineScreenTypes.length;
+
+  const handleAdd = async () => {
+    if (!canAdd) return;
+    const result = await submit({
+      method: "POST",
+      date: newDate,
+      type: selectedType,
+      mode: "add",
+    });
+    if (result.ok) clearFields();
   };
-  const getUrineScreenTypeSelectList = () => {
-    return editableUrineScreenTypes.map((item, index) => {
-      return (
-        <MenuItem value={item.code} key={`${item.code}_${index}`}>
-          <Typography variant="body2">{item.text}</Typography>
-        </MenuItem>
-      );
+
+  const handleEditSave = () => {
+    if (!mostRecent || !canSaveEdit) return;
+    submit({
+      method: "PUT",
+      id: mostRecent.id,
+      date: editEntry.date,
+      type: onlyOneType ? mostRecent.type : editEntry.type,
+      text: mostRecent.text,
     });
   };
+
+  const handleDelete = () => {
+    if (!mostRecent) return;
+    submit({
+      method: "DELETE",
+      id: mostRecent.id,
+      date: editEntry && editEntry.date ? editEntry.date : mostRecent.date,
+      type: editEntry && editEntry.type ? editEntry.type : mostRecent.type,
+      text: mostRecent.text,
+    });
+  };
+
+  const enableEditMode = () => {
+    if (!mostRecent) return;
+    setEditEntry({ date: mostRecent.date, type: mostRecent.type });
+    history.setError("");
+  };
+
+  const disableEditMode = () => {
+    setEditEntry(null);
+    history.setError("");
+  };
+
+  /* ---------------- rendering ---------------- */
+
+  const renderTypeOptions = () =>
+    editableTypes.map((item, index) => (
+      <MenuItem value={item.code} key={`${item.code}_${index}`}>
+        <Typography variant="body2">{item.text}</Typography>
+      </MenuItem>
+    ));
+
   const getSelectLookupTypes = () => {
-    if (isEmptyArray(editableUrineScreenTypes)) return;
-    let types = {};
-    editableUrineScreenTypes.forEach((item) => {
+    if (noEditableTypes) return undefined;
+    const types = {};
+    editableTypes.forEach((item) => {
       types[item.code] = item.text;
     });
     return types;
   };
-  const handleSnackClose = (event, reason) => {
-    if (event) event.stopPropagation();
-    if (reason === "clickaway") {
-      return;
-    }
-    dispatch({ type: "history/snack-close" });
-  };
-  const renderTitle = () => (
-    <h3>{`Urine Drug Toxicology Screen for ${rowData.first_name} ${rowData.last_name}`}</h3>
-  );
-  const renderAddInProgressIndicator = () => {
-    if (!historyState.addInProgress) return null;
-    return (
-      <Box sx={classes.progressContainer}>
-        <CircularProgress
-          sx={classes.progressIcon}
-          color="primary"
-          size={32}
+
+  const columns = [
+    { field: "id", hidden: true },
+    {
+      title: URINE_SCREEN_TYPE_LABEL,
+      field: "type",
+      emptyValue: "--",
+      cellStyle: { padding: "4px 24px 4px 16px" },
+      lookup: !onlyOneType ? getSelectLookupTypes() : null,
+      editable: !onlyOneType ? "always" : "never",
+      render: (row) => <span>{row.text}</span>,
+    },
+    {
+      title: "Order Date",
+      field: "date",
+      emptyValue: "--",
+      cellStyle: { padding: "4px 24px 4px 16px" },
+      editComponent: (params) => (
+        <FormattedInput
+          defaultValue={params.value}
+          handleChange={(e) => params.onChange(e.target.value)}
         />
-      </Box>
-    );
-  };
+      ),
+    },
+    { title: "Source", field: "source", editable: false },
+  ];
+
+  const renderTypeSelector = () => (
+    <Box sx={{ position: "relative" }}>
+      {onlyOneType && (
+        <Box sx={classes.textDisplay}>
+          <InputLabel sx={classes.readonlyLabel}>
+            {URINE_SCREEN_TYPE_LABEL}
+          </InputLabel>
+          <Typography variant="subtitle2">{editableTypes[0].text}</Typography>
+        </Box>
+      )}
+      {!onlyOneType && !noEditableTypes && (
+        <FormControl sx={classes.selectFormControl} variant="standard">
+          <InputLabel>{URINE_SCREEN_TYPE_LABEL}</InputLabel>
+          <Select
+            value={type}
+            onChange={(event) => setType(event.target.value)}
+            sx={classes.selectBox}
+            IconComponent={() => <ArrowDropDownIcon color="primary" />}
+          >
+            {renderTypeOptions()}
+          </Select>
+        </FormControl>
+      )}
+      {noEditableTypes && (
+        <PanelError message="No urine drug screen type list is loaded." />
+      )}
+    </Box>
+  );
+
   const renderAddComponent = () => (
     <Paper sx={classes.itemContainer} elevation={1}>
-      <Typography
-        variant="caption"
-        sx={[
-          {
-            display: "block",
-          },
-          classes.addTitle,
-        ]}
-      >
-        Add New
-      </Typography>
-      {/* urine screen date/datepicker */}
       <div>
-        <LocalizationProvider dateAdapter={AdapterDayjs}>
-          <InputLabel sx={classes.dateLabel}>Order Date</InputLabel>
-          <DatePicker
-            openTo="day"
-            disableFuture
-            orientation="landscape"
-            format="YYYY-MM-DD"
-            minDate={dayjs("1950-01-01")}
-            value={dateInput ? dayjs(dateInput) : null}
-            onChange={(dateString, validationContext) => {
-              if (validationContext?.validationError) {
-                setDateInput(dateString.format());
-                return;
-              }
-              setDateInput(dateString ? dateString.format("YYYY-MM-DD") : null);
-            }}
-            onError={(reason) => {
-              const messages = {
-                invalidDate:
-                  "Date must be in YYYY-MM-DD format, e.g. 1977-01-12",
-                disableFuture: "Date must not be in the future",
-                minDate: "Date must not be earlier than 1950-01-01",
-              };
-              setDateError(reason ? messages[reason] || "Invalid date" : "");
-            }}
-            slotProps={{
-              textField: {
-                placeholder: "YYYY-MM-DD",
-                variant: "standard",
-                sx: classes.dateInput,
-                autoFocus: true,
-                error: !!dateError,
-                slotProps: {
-                  inputLabel: { shrink: true },
-                },
-              },
-              openPickerIcon: {
-                sx: {
-                  color: "primary.main",
-                },
-              },
-            }}
-          />
-          {dateError && <FormHelperText error>{dateError}</FormHelperText>}
-        </LocalizationProvider>
+        <SectionTitle>Add New</SectionTitle>
       </div>
-      {/* urine screen type selector */}
-      {renderUrineTypeSelector()}
-      {!noEditableUrineScreenTypes() && (
+      <div>
+        <RecordDatePicker
+          label="Order Date"
+          value={dateValue}
+          onChange={setDateValue}
+          error={dateError}
+          onErrorChange={setDateError}
+        />
+      </div>
+      {renderTypeSelector()}
+      {!noEditableTypes && (
         <Box sx={classes.buttonsContainer}>
           <Button
             variant="contained"
             color="primary"
             sx={classes.addButton}
-            disabled={!hasValues()}
-            onClick={() => handleAdd()}
+            disabled={!canAdd}
+            onClick={handleAdd}
           >
             Add
           </Button>
-          <Button
-            variant="outlined"
-            onClick={clearFields}
-            disabled={!hasValues()}
-          >
+          <Button variant="outlined" onClick={clearFields} disabled={!canClear}>
             Clear
           </Button>
         </Box>
       )}
     </Paper>
   );
-  const renderUrineTypeSelector = () => (
-    <Box sx={classes.typeContainer}>
-      <div>
-        {onlyOneEditableUrineScreenType() && (
-          <Box sx={classes.textDisplay}>
-            <InputLabel sx={classes.readonlyLabel}>
-              {URINE_SCREEN_TYPE_LABEL}
-            </InputLabel>
-            <Typography variant="subtitle2">
-              {getOneUrineScreenDisplayText()}
-            </Typography>
-          </Box>
-        )}
-        {hasEditableUrineScreenTypes() && (
-          <FormControl sx={classes.selectFormControl} variant="standard">
-            <InputLabel sx={classes.label}>
-              {URINE_SCREEN_TYPE_LABEL}
-            </InputLabel>
-            <Select
-              value={type}
-              onChange={handleTypeChange}
-              sx={classes.selectBox}
-              IconComponent={() => (
-                <ArrowDropDownIcon color="primary"></ArrowDropDownIcon>
-              )}
-            >
-              {getUrineScreenTypeSelectList()}
-            </Select>
-          </FormControl>
-        )}
-        {noEditableUrineScreenTypes() && (
-          <Box sx={classes.errorContainer}>
-            <Error
-              message={"No urine drug screen type list is loaded."}
-            ></Error>
-          </Box>
-        )}
-      </div>
-    </Box>
-  );
-  const renderUpdateInProgressIndicator = () => (
-    <Box sx={classes.progressContainer}>
-      <CircularProgress
-        color="primary"
-        size={32}
-        sx={classes.progressIcon}
-      />
-    </Box>
-  );
-  const columns = [
-    {
-      field: "id",
-      hidden: true,
-    },
-    {
-      title: "Urine Drug Screen Name",
-      field: "type",
-      emptyValue: "--",
-      cellStyle: {
-        padding: "4px 24px 4px 16px",
-      },
-      lookup: !onlyOneEditableUrineScreenType() ? getSelectLookupTypes() : null,
-      editable: !onlyOneEditableUrineScreenType() ? "always" : "never",
-      render: (rowData) => {
-        return <span>{rowData.text}</span>;
-      },
-    },
-    {
-      title: "Order Date",
-      field: "date",
-      emptyValue: "--",
-      cellStyle: {
-        padding: "4px 24px 4px 16px",
-      },
-      editComponent: (params) => (
-        <FormattedInput
-          defaultValue={params.value}
-          handleChange={(e) => params.onChange(e.target.value)}
-        ></FormattedInput>
-      ),
-    },
-    {
-      title: "Source",
-      field: "source",
-      editable: false,
-    },
-  ];
-  const renderMostRecentHistory = () => {
-    if (!historyState.initialized || historyState.updateInProgress)
-      return renderUpdateInProgressIndicator();
-    const mostRecentEntry = historyState.mostRecentEntry;
-    return (
-      <Paper sx={classes.recentEntryContainer} elevation={0}>
-        <Typography
-          variant="caption"
-          sx={[{
-            display: "block"
-          }, classes.historyTitle]}>
-          Last Urine Drug Screen
-        </Typography>
-        {!hasHistory() && (
-          <div
-            style={{
-              marginTop: "8px",
-              marginBottom: "8px",
-            }}
-          >
-            {renderNoData()}
-          </div>
-        )}
-        {/* most recent entry */}
-        {hasHistory() && (
-          <React.Fragment>
-            <div className="flex-gap-1">
-              {!editEntry.mode && (
-                <span
-                  dangerouslySetInnerHTML={{
-                    __html: DOMPurify.sanitize(displayMostRecentEntry()),
-                  }}
-                ></span>
-              )}
-              {editEntry.mode && displayEditHistoryByRow(0)}
-              {!mostRecentEntry.readonly && (
-                <EditButtonGroup
-                  onEnableEditMode={handleEnableEditMode}
-                  onDisableEditMode={handleDisableEditMode}
-                  isUpdateDisabled={!hasValidEditEntry()}
-                  handleEditSave={() => handleEditSave()}
-                  handleDelete={() => handleDelete()}
-                  entryDescription={displayMostRecentEntry()}
-                ></EditButtonGroup>
-              )}
-            </div>
-            {/* alerts */}
-            {isAdult(rowData.birth_date) && (
-              <Box sx={classes.overDueContainer}>
-                <OverdueAlert
-                  date={mostRecentEntry.date}
-                  type="urine drug screen"
-                ></OverdueAlert>
-              </Box>
-            )}
-          </React.Fragment>
-        )}
-      </Paper>
-    );
-  };
-  const renderHistory = () => (
-    <Paper sx={classes.itemContainer} elevation={0}>
-      <Typography
-        variant="caption"
-        sx={[{
-          display: "block"
-        }, classes.historyTitle]}>
-        History
-      </Typography>
-      <Box sx={classes.totalEntriesContainer}>
-        <span>
-          <b>{historyState.data.length}</b> record(s)
-        </span>
-        {!historyState.expand && (
-          <Button
-            arial-label="expand"
-            color="primary"
-            onClick={() => dispatch({ type: "history/expand-toggle" })}
-            endIcon={
-              <ExpandMoreIcon sx={classes.endIcon}></ExpandMoreIcon>
-            }
-            size="small"
-            sx={classes.expandIcon}
-          >
-            View
-          </Button>
-        )}
-        {historyState.expand && (
-          <Button
-            arial-label="collapse"
-            color="primary"
-            onClick={() => dispatch({ type: "history/expand-toggle" })}
-            endIcon={
-              <ExpandLessIcon sx={classes.endIcon}></ExpandLessIcon>
-            }
-            size="small"
-            sx={classes.expandIcon}
-          >
-            Hide
-          </Button>
-        )}
-      </Box>
-      <Box sx={classes.tableContainer}>
-        {historyState.expand && (
-          <div className="history-table">
-            <HistoryTable
-              data={historyState.data}
-              columns={columns}
-              APIURL="/fhir/ServiceRequest/"
-              submitDataFormatter={submitDataFormatter}
-              onRowUpdate={() => getHistory()}
-              onRowDelete={() => getHistory()}
-              options={{
-                actionsCellStyle: {
-                  width: "60%",
-                  textAlign: "left",
-                },
-              }}
-            ></HistoryTable>
-          </div>
-        )}
-      </Box>
-    </Paper>
-  );
-  const renderFeedbackSnackbar = () => (
-    <Snackbar
-      open={historyState.snackOpen}
-      autoHideDuration={2000}
-      onClose={handleSnackClose}
-    >
-      <div>
-        <Alert
-          onClose={handleSnackClose}
-          severity="success"
-          message="Request processed successfully."
-        ></Alert>
-      </div>
-    </Snackbar>
-  );
 
-  const renderOrderInfo = () => {
-    if (!historyState.orderInfoMessage) return null;
-    return (
-      <Alert
-        message={historyState.orderInfoMessage}
-        severity="warning"
-        variant="standard"
-        elevation={0}
-        sx={{
-          marginBottom: (theme) => theme.spacing(1),
-        }}
-      />
+  // Plain-text description used by EditButtonGroup (it expects an HTML string).
+  const mostRecentDescription = () => {
+    if (!mostRecent) return "";
+    if (mostRecent.text) {
+      const source = mostRecent.source ? ", " + mostRecent.source : "";
+      return `${mostRecent.text} on <b>${mostRecent?.date}</b> ${source}`;
+    }
+    return `Placed on <b>${mostRecent && mostRecent?.date ? mostRecent.date : ""}</b>`;
+  };
+
+  // JSX equivalent of the above for display (replaces sanitized innerHTML).
+  const renderMostRecentText = () => {
+    if (!mostRecent) return "";
+    return mostRecent?.text ? (
+      <span>
+        {mostRecent?.text} on <b>{mostRecent?.date}</b>
+        {mostRecent?.source ? `, ${mostRecent?.source}` : ""}
+      </span>
+    ) : (
+      <span>
+        Placed on <b>{mostRecent?.date}</b>
+      </span>
     );
   };
+
+  const renderEditMostRecent = () => (
+    <React.Fragment>
+      {onlyOneType || (mostRecent && mostRecent.readonly)
+        ? mostRecent
+          ? mostRecent.text || ""
+          : ""
+        : mostRecent && (
+            <FormControl>
+              <Select
+                defaultValue={mostRecent.type}
+                onChange={(event) =>
+                  setEditEntry((prev) => ({
+                    ...prev,
+                    type: event.target.value,
+                  }))
+                }
+                sx={classes.selectBox}
+                IconComponent={() => <ArrowDropDownIcon color="primary" />}
+                error={!!error}
+                variant="standard"
+              >
+                {renderTypeOptions()}
+              </Select>
+              <FormHelperText>{`(${URINE_SCREEN_TYPE_LABEL})`}</FormHelperText>
+            </FormControl>
+          )}
+      <span> placed on </span>
+      <div style={{ display: "inline-block" }}>
+        <FormattedInput
+          defaultValue={mostRecent?.date}
+          helperText="(YYYY-MM-DD)"
+          disableFocus={!onlyOneType}
+          handleChange={(e) =>
+            setEditEntry((prev) => ({ ...prev, date: e.target.value }))
+          }
+          handleKeyDown={() => handleEditSave()}
+          inputClass={{ input: classes.editInput }}
+          error={!!error}
+          readOnly={mostRecent.readonly}
+        />
+      </div>
+    </React.Fragment>
+  );
 
   const renderNoData = () => {
-    let message =
-      "No urine drug screen date found for this patient. Please check the last controlled substance prescription to determine if they are due for their 12 month drug screen.";
-    if (
-      appSettingsRef &&
-      String(appSettingsRef["SITE_ID"]).toLowerCase() === "uwmc"
-    ) {
-      message =
-        "No urine drug screen date found for this patient. Please check the last controlled substance prescription and Epic labs to determine if they are due for their 12 month drug screen.";
-    }
+    const isUwmc =
+      appSettings && String(appSettings["SITE_ID"]).toLowerCase() === "uwmc";
+    const message = isUwmc
+      ? "No urine drug screen date found for this patient. Please check the last controlled substance prescription and Epic labs to determine if they are due for their 12 month drug screen."
+      : "No urine drug screen date found for this patient. Please check the last controlled substance prescription to determine if they are due for their 12 month drug screen.";
     return (
       <Alert
         message={message}
         severity="warning"
         variant="standard"
         elevation={0}
-        sx={{
-          marginBottom: (theme) => theme.spacing(1),
-        }}
+        sx={{ marginBottom: (t) => t.spacing(1) }}
       />
     );
   };
 
-  const renderError = () => (
-    <Box sx={classes.errorContainer}>
-      {error && <Error message={error}></Error>}
-    </Box>
+  const renderMostRecentHistory = () => (
+    <Paper sx={classes.recentEntryContainer} elevation={0}>
+      {(!initialized || loading || saving === "update") && <ProgressOverlay />}
+      {initialized && (
+        <React.Fragment>
+          <div>
+            <SectionTitle>Last Urine Drug Screen</SectionTitle>
+          </div>
+          {!mostRecent && (
+            <div style={{ marginTop: "8px", marginBottom: "8px" }}>
+              {renderNoData()}
+            </div>
+          )}
+          {mostRecent && (
+            <React.Fragment>
+              <div className="flex-gap-1">
+                {!editMode && renderMostRecentText()}
+                {editMode && renderEditMostRecent()}
+                {!mostRecent.readonly && (
+                  <EditButtonGroup
+                    onEnableEditMode={enableEditMode}
+                    onDisableEditMode={disableEditMode}
+                    isUpdateDisabled={!canSaveEdit}
+                    handleEditSave={handleEditSave}
+                    handleDelete={handleDelete}
+                    entryDescription={mostRecentDescription()}
+                  />
+                )}
+              </div>
+              {isAdult(rowData.birth_date) && (
+                <Box sx={classes.overDueContainer}>
+                  <OverdueAlert
+                    date={mostRecent?.date}
+                    type="urine drug screen"
+                  />
+                </Box>
+              )}
+            </React.Fragment>
+          )}
+        </React.Fragment>
+      )}
+    </Paper>
   );
-
-  React.useEffect(() => {
-    getHistory();
-  }, [getHistory]);
 
   return (
     <Box sx={classes.container}>
-      {renderTitle()}
+      <h3>{`Urine Drug Toxicology Screen for ${rowData.first_name} ${rowData.last_name}`}</h3>
       <Box sx={classes.contentContainer}>
-        {renderAddInProgressIndicator()}
-        {/* UI to add new */}
+        {saving === "add" && <ProgressOverlay />}
         {renderAddComponent()}
-        {/* UI for displaying message related to orders */}
-        {renderOrderInfo()}
-        {/* most recent entry */}
+        {meta.orderInfoMessage && (
+          <Alert
+            message={meta.orderInfoMessage}
+            severity="warning"
+            variant="standard"
+            elevation={0}
+            sx={{ marginBottom: (t) => t.spacing(1) }}
+          />
+        )}
         {renderMostRecentHistory()}
-        {/* history */}
-        {hasHistory() && renderHistory()}
-        {/* feedback snack popup */}
-        {renderFeedbackSnackbar()}
-        {/* error message UI */}
-        {renderError()}
+        {rows.length > 0 && (
+          <HistorySection
+            count={rows.length}
+            expanded={expanded}
+            onToggle={history.toggleExpanded}
+            data={rows}
+            columns={columns}
+            apiUrl="/fhir/ServiceRequest/"
+            submitDataFormatter={submitDataFormatter}
+            onRowChange={history.refresh}
+            actionsCellWidth="60%"
+            elevation={0}
+            sx={classes.itemContainer}
+          />
+        )}
+        <SuccessSnackbar open={snackOpen} onClose={history.closeSnack} />
+        <PanelError message={error} />
       </Box>
     </Box>
   );
 }
+
 UrineScreen.propTypes = {
   rowData: PropTypes.object.isRequired,
 };

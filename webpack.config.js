@@ -23,7 +23,7 @@ module.exports = (env) => {
   const jsDirectory = `${outputDirectory}/js`;
   const templateDirectory = `${outputDirectory}/templates`;
   /*
-   * CSS handling depends on build
+   *
    * - development: style-loader - CSS injected via JS, fast rebuilds.
    * - production: MiniCssExtractPlugin - CSS emitted as real .css files that
    *   HtmlWebpackPlugin links in <head>, so styles load in parallel with JS
@@ -118,12 +118,6 @@ module.exports = (env) => {
     plugins: [
       new NodePolyfillPlugin(),
       new CleanWebpackPlugin(),
-      /*
-       * Production only (dev keeps style-loader).
-       * CSS files are written next to the JS bundles (output.path) and served
-       * from the same publicPath, /static/js/, so no server change is needed.
-       * Same naming pattern and content hash as the JS bundles.
-       */
       ...(isProduction
         ? [
             new MiniCssExtractPlugin({
