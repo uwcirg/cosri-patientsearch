@@ -45,29 +45,30 @@ export default function PatientListContainer() {
     }
   }, [userName, matomoSiteID]);
 
-  if (isLoading) return <LoadingModal open={isLoading} />;
-
   return (
-    <Container className="container" id="patientList">
-      <SearchTitle title={searchTitle} />
-      <Error message={errorMessage} />
-      <div className="flex">
-        <FilterRow />
-        <div className="bottom-gap-2x toolbar-side-container">
-          <MyPatientsCheckbox />
-          <TestPatientsCheckbox />
-        </div>
-      </div>
-      <PatientListTable />
-      <div className="table-footer-container flex-align-start">
-        <Legend />
+    <>
+      {isLoading && <LoadingModal open={isLoading} />}
+      <Container className={`container ${isLoading?"overlay": ""}`} id="patientList">
+        <SearchTitle title={searchTitle} />
+        <Error message={errorMessage} />
         <div className="flex">
-          <RefreshButton />
-          <Pagination />
+          <FilterRow />
+          <div className="bottom-gap-2x toolbar-side-container">
+            <MyPatientsCheckbox />
+            <TestPatientsCheckbox />
+          </div>
         </div>
-      </div>
-      <LaunchDialog />
-      <ReactivatingModal />
-    </Container>
+        <PatientListTable />
+        <div className="table-footer-container flex-align-start">
+          <Legend />
+          <div className="flex">
+            <RefreshButton />
+            <Pagination />
+          </div>
+        </div>
+        <LaunchDialog />
+        <ReactivatingModal />
+      </Container>
+    </>
   );
 }

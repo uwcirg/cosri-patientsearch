@@ -433,7 +433,12 @@ button.disabled:focus,
 }
 
 #patientList {
+  position: relative;
   min-height: calc(100vh - 280px);
+  &.overlay {
+    opacity: 0.6;
+    z-index: -1;
+  }
   input,
   .MuiInputLabel-formControl {
     font-size: $small-font-size;

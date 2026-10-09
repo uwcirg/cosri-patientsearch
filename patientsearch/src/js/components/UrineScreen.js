@@ -49,7 +49,7 @@ import {
 export default function UrineScreen(props) {
   const { user } = useUserContext();
   const appCtx = useSettingContext();
-  const appSettingsRef = React.useRef(appCtx.appSettings);
+  const appSettingsRef = appCtx.appSettings;
   const theme = useTheme();
   const palette = theme.palette;
   const classes = {
@@ -164,9 +164,8 @@ export default function UrineScreen(props) {
     },
   };
   const configUrineScreenTypes = (() => {
-    const appSettings = appSettingsRef.current;
-    return appSettings && appSettings["UDS_LAB_TYPES"]
-      ? appSettings["UDS_LAB_TYPES"]
+    return appSettingsRef && appSettingsRef["UDS_LAB_TYPES"]
+      ? appSettingsRef["UDS_LAB_TYPES"]
       : null;
   })();
   const editableUrineScreenTypes = configUrineScreenTypes
@@ -784,9 +783,9 @@ export default function UrineScreen(props) {
     if (matchedType) return matchedType.text;
     else return "";
   };
-  const onlyOneEditableUrineScreenType = React.useCallback(() => {
-    return editableUrineScreenTypes && editableUrineScreenTypes.length === 1;
-  }, [editableUrineScreenTypes]);
+  const onlyOneEditableUrineScreenType = () => {
+    return editableUrineScreenTypes && editableUrineScreenTypes?.length === 1;
+  };
 
   const hasEditableUrineScreenTypes = () => {
     return !onlyOneEditableUrineScreenType() && !noEditableUrineScreenTypes();
@@ -1161,12 +1160,11 @@ export default function UrineScreen(props) {
   };
 
   const renderNoData = () => {
-    const appSettings = appSettingsRef.current;
     let message =
       "No urine drug screen date found for this patient. Please check the last controlled substance prescription to determine if they are due for their 12 month drug screen.";
     if (
-      appSettings &&
-      String(appSettings["SITE_ID"]).toLowerCase() === "uwmc"
+      appSettingsRef &&
+      String(appSettingsRef["SITE_ID"]).toLowerCase() === "uwmc"
     ) {
       message =
         "No urine drug screen date found for this patient. Please check the last controlled substance prescription and Epic labs to determine if they are due for their 12 month drug screen.";

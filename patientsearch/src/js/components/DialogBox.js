@@ -15,6 +15,7 @@ export default function DialogBox(props) {
     if (props.onClose) props.onClose();
   };
   React.useEffect(() => {
+    //eslint-disable-next-line react-hooks/set-state-in-effect
     setOpen(props.open);
   }, [props.open]);
   return (

@@ -221,8 +221,9 @@ export default function Agreement(props) {
     },
   };
   const appCtx = useSettingContext();
-  const appSettingsRef = React.useRef(appCtx.appSettings);
-  const appSettings = appSettingsRef.current;
+  const appSettings = appCtx.appSettings;
+  // const appSettingsRef = React.useRef(appCtx.appSettings);
+  // const appSettings = appSettingsRef.current;
   const enableAddNew = !!(appSettings && appSettings["ENABLE_ADD_NEW_CS"]);
   const enablePrintNew = !enableAddNew;
   const [state, dispatch] = React.useReducer(reducer, initialState);
@@ -435,7 +436,7 @@ export default function Agreement(props) {
         dispatch({ type: "SET_HISTORY_INITIALIZED", payload: true });
       }
     },
-    [rowData?.id, createHistoryData],
+    [rowData, createHistoryData],
   ); // Depend on ID specifically, not the whole object
 
   const displayMostRecent = () => {

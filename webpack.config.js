@@ -2,6 +2,7 @@ const webpack = require("webpack");
 const path = require("path");
 const TerserWebpackPlugin = require("terser-webpack-plugin");
 const CssMinimizerPlugin = require("css-minimizer-webpack-plugin");
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const { CleanWebpackPlugin } = require("clean-webpack-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const FileManagerPlugin = require("filemanager-webpack-plugin");
@@ -21,6 +22,16 @@ module.exports = (env) => {
     : "/patientsearch/dist";
   const jsDirectory = `${outputDirectory}/js`;
   const templateDirectory = `${outputDirectory}/templates`;
+  /*
+   * CSS handling depends on build
+   * - development: style-loader - CSS injected via JS, fast rebuilds.
+   * - production: MiniCssExtractPlugin - CSS emitted as real .css files that
+   *   HtmlWebpackPlugin links in <head>, so styles load in parallel with JS
+   *   and there's no flash of unstyled content.
+   */
+  const cssOutputLoader = isProduction
+    ? MiniCssExtractPlugin.loader
+    : "style-loader";
 
   return {
     resolve: {
@@ -72,7 +83,7 @@ module.exports = (env) => {
           test: /\.css$/,
           use: [
             {
-              loader: "style-loader",
+              loader: cssOutputLoader,
             },
             {
               loader: "css-loader",
@@ -84,18 +95,18 @@ module.exports = (env) => {
         },
         {
           test: /\.(png|jpe?g|gif)$/i,
-          loader: "url-loader",
+          type: "asset/inline",
         },
         {
-          test: /\.js?/,
+          test: /\.jsx?$/,
           exclude: /node_modules/,
           use: "babel-loader",
         },
         {
           test: /\.s[ac]ss$/i,
           use: [
-            // Creates `style` nodes from JS strings
-            "style-loader",
+            // Dev: creates `style` nodes from JS strings; prod: extracts to .css files
+            cssOutputLoader,
             // Translates CSS into CommonJS
             "css-loader",
             // Compiles Sass to CSS
@@ -107,6 +118,20 @@ module.exports = (env) => {
     plugins: [
       new NodePolyfillPlugin(),
       new CleanWebpackPlugin(),
+      /*
+       * Production only (dev keeps style-loader).
+       * CSS files are written next to the JS bundles (output.path) and served
+       * from the same publicPath, /static/js/, so no server change is needed.
+       * Same naming pattern and content hash as the JS bundles.
+       */
+      ...(isProduction
+        ? [
+            new MiniCssExtractPlugin({
+              filename: "app.bundle.[name]-[contenthash].css",
+              chunkFilename: "app.bundle.[name]-[contenthash].css",
+            }),
+          ]
+        : []),
       new HtmlWebpackPlugin({
         title: appTitle,
         template: templateFilePath,
@@ -124,15 +149,6 @@ module.exports = (env) => {
         template: templateFilePath,
         filename: path.join(__dirname, `${templateDirectory}/logout.html`),
         chunks: ["logout"],
-      }),
-      new HtmlWebpackPlugin({
-        title: appTitle,
-        template: templateFilePath,
-        filename: path.join(
-          __dirname,
-          `${templateDirectory}/targetLaunch.html`,
-        ),
-        chunks: ["targetLaunch"],
       }),
       new webpack.ProvidePlugin({
         React: "react",
@@ -187,13 +203,9 @@ module.exports = (env) => {
               comments: false,
               ascii_only: true,
             },
-            sourceMap: !isProduction,
-            warnings: false,
           },
         }),
-        new CssMinimizerPlugin({
-          exclude: /[\\/]node_modules[\\/]/,
-        }),
+        new CssMinimizerPlugin(),
       ],
       splitChunks: {
         chunks: "all",
