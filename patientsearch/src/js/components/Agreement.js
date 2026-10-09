@@ -222,8 +222,6 @@ export default function Agreement(props) {
   };
   const appCtx = useSettingContext();
   const appSettings = appCtx.appSettings;
-  // const appSettingsRef = React.useRef(appCtx.appSettings);
-  // const appSettings = appSettingsRef.current;
   const enableAddNew = !!(appSettings && appSettings["ENABLE_ADD_NEW_CS"]);
   const enablePrintNew = !enableAddNew;
   const [state, dispatch] = React.useReducer(reducer, initialState);

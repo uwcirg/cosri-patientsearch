@@ -740,6 +740,7 @@ export default function PatientListContextProvider({ children }) {
   );
 
   useEffect(() => {
+    if (typeof navigation === "undefined") return;
     navigation.addEventListener("navigation", closeLoadingModal);
     return navigation.removeEventListener("navigation", closeLoadingModal);
   }, []);
