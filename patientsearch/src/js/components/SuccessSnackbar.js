@@ -4,7 +4,7 @@ import Snackbar from "@mui/material/Snackbar";
 import Alert from "./Alert";
 
 /**
- * "Request processed successfully." toast shared by the history panels.
+ * "Request processed successfully." toast 
  */
 export default function SuccessSnackbar({
   open,

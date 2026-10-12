@@ -20,14 +20,6 @@ const ERROR_MESSAGES = {
  *
  * Controlled with the raw dayjs value (or null). The parent derives the
  * submittable "YYYY-MM-DD" string with toDateString(value, error).
- *
- * DEVIATION / BUG FIX: the originals stored `dateString.format()` in state when
- * the picker reported a validation error. That produced a full ISO timestamp
- * (or the literal "Invalid Date"), and Agreement's Add button only checked
- * `!!dateInput`, so it could submit a future or invalid date. Keeping the dayjs
- * object preserves what the user typed while never treating it as submittable.
- *
- * Cosmetic: the primary-colored calendar icon (UrineScreen) now applies to both.
  */
 export default function RecordDatePicker({
   label,

@@ -5,7 +5,6 @@ import CircularProgress from "@mui/material/CircularProgress";
 
 /**
  * Translucent overlay with a spinner. The parent must be position: relative.
- * Unified values: zIndex 500 (was 99 in Agreement), icon at 15% (was 10% in UrineScreen).
  */
 export default function ProgressOverlay({ sx }) {
   return (

@@ -13,15 +13,6 @@ import SectionTitle from "./SectionTitle";
  *
  * Expanded state is controlled by the parent (via useFhirRecordHistory) so a
  * successful add/update can collapse it.
- *
- * DEVIATION (accessibility): the originals set aria-label="expand"/"collapse"
- * (UrineScreen misspelled it `arial-label`, so it was never applied). An
- * aria-label overrides the visible "View"/"Hide" text, so screen-reader and
- * voice-control users heard a different name than sighted users saw. The
- * visible text is now the accessible name, with aria-expanded for state.
- *
- * Cosmetic: the header gets marginTop spacing(1) in both panels (Agreement had
- * it; UrineScreen referenced an undefined style key, so it had none).
  */
 export default function HistorySection({
   count,

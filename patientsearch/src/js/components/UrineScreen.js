@@ -436,7 +436,7 @@ export default function UrineScreen({ rowData }) {
   const renderAddComponent = () => (
     <Paper sx={classes.itemContainer} elevation={1}>
       <div>
-        <SectionTitle>Add New</SectionTitle>
+        <SectionTitle sx={{marginBottom: theme.spacing(1.5)}}>Add New</SectionTitle>
       </div>
       <div>
         <RecordDatePicker

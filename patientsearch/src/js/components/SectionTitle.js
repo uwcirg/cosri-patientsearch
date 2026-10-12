@@ -2,10 +2,6 @@ import React from "react";
 import PropTypes from "prop-types";
 import Typography from "@mui/material/Typography";
 
-/**
- * Small underlined caption used for "Add New", "History", "Latest ..." headings in section
- * Default bottom margin is spacing(1) (= 8px); pass sx to override.
- */
 export default function SectionTitle({ children, sx }) {
   return (
     <Typography
