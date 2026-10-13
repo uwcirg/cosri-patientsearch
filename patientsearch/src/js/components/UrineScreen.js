@@ -554,7 +554,7 @@ export default function UrineScreen({ rowData }) {
   };
 
   const renderMostRecentHistory = () => (
-    <Paper sx={classes.recentEntryContainer} elevation={0}>
+    <Paper sx={classes.recentEntryContainer} elevation={1}>
       {(!initialized || loading || saving === "update") && <ProgressOverlay />}
       {initialized && (
         <React.Fragment>
@@ -624,7 +624,7 @@ export default function UrineScreen({ rowData }) {
             submitDataFormatter={submitDataFormatter}
             onRowChange={history.refresh}
             actionsCellWidth="60%"
-            elevation={0}
+            elevation={1}
             sx={classes.itemContainer}
           />
         )}
