@@ -152,9 +152,13 @@ export default function TimeoutModal() {
   }, [isRefreshing]);
 
   // Poll session validity every TRACK_INTERVAL_MS
+  let initialCheckRef = useRef(false);
   useEffect(() => {
     intervalRef.current = setInterval(checkSessionValidity, TRACK_INTERVAL_MS);
-    checkSessionValidity();
+    if (!initialCheckRef.current) {
+      initialCheckRef.current = true;
+      checkSessionValidity();
+    }
     return () => clearInterval(intervalRef.current);
   }, [appSettings, checkSessionValidity]);
 

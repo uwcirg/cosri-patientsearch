@@ -1,8 +1,6 @@
 import react from "eslint-plugin-react";
 import reactHooks from "eslint-plugin-react-hooks";
-import reactCompiler from "eslint-plugin-react-compiler";
 import compat from "eslint-plugin-compat";
-import { fixupPluginRules } from "@eslint/compat";
 import globals from "globals";
 import babelParser from "@babel/eslint-parser";
 import path from "node:path";
@@ -24,11 +22,19 @@ export default [
     "plugin:react/recommended",
     "plugin:react/jsx-runtime",
   ),
+  /*
+   * added react-hooks'. It enables the React Compiler
+   * rules (purity, refs, immutability, set-state-in-effect,
+   * set-state-in-render, static-components, preserve-manual-memoization,
+   * incompatible-library, etc.) that replace the single
+   * "react-compiler/react-compiler" rule.
+   * It registers the "react-hooks" plugin itself, so the plugin is no
+   * longer listed in the block below.
+   */
+  reactHooks.configs.flat.recommended,
   {
     plugins: {
       react,
-      "react-hooks": fixupPluginRules(reactHooks),
-      "react-compiler": reactCompiler,
     },
     files: ["**/*.{js,mjs,cjs,jsx}"],
     languageOptions: {
@@ -96,7 +102,6 @@ export default [
       "react/jsx-uses-vars": "error",
       "react-hooks/rules-of-hooks": "error",
       "react-hooks/exhaustive-deps": "warn",
-      "react-compiler/react-compiler": "error",
     },
   },
   compat.configs["flat/recommended"],

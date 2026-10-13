@@ -1,4 +1,4 @@
-import React, { useContext, useRef, useMemo, useCallback } from "react";
+import React, { useContext, useRef, useMemo, useCallback, useEffect } from "react";
 import dayjs from "dayjs";
 import jsonpath from "jsonpath";
 import PropTypes from "prop-types";
@@ -162,7 +162,7 @@ export default function PatientListContextProvider({ children }) {
       }
       setLoading();
       setLaunchURL(url);
-      setTimeout(() => closeLoadingModal(), 1000);
+      //setTimeout(() => closeLoadingModal(), 1000);
       sessionStorage.clear();
     },
     [
@@ -178,10 +178,6 @@ export default function PatientListContextProvider({ children }) {
     const oStatus = constants.objErrorStatus[parseInt(e?.status)];
     if (oStatus) {
       setError("Unauthorized / Expired Session");
-      // Reason: intentional full-page redirect on session expiry - a one-shot
-      // imperative navigation, not a render-time mutation. Known false positive:
-      // https://github.com/facebook/react/issues/29778
-      // eslint-disable-next-line react-compiler/react-compiler
       window.location = oStatus.logoutURL;
       return;
     }
@@ -742,6 +738,12 @@ export default function PatientListContextProvider({ children }) {
       SEARCH_FIELDS,
     ],
   );
+
+  useEffect(() => {
+    if (typeof navigation === "undefined") return;
+    navigation.addEventListener("navigation", closeLoadingModal);
+    return navigation.removeEventListener("navigation", closeLoadingModal);
+  }, []);
   return (
     <PatientDataContext.Provider value={patientDataContextValue}>
       <PatientDataContext.Consumer>

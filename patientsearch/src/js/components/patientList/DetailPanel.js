@@ -36,7 +36,7 @@ const DetailPanelContent = memo(
   ) {
     return (
       <Box className="detailPanel__wrapper" ref={ref}>
-        <Paper elevation={1} className="detailPanel__container">
+        <Paper elevation={0} className="detailPanel__container">
           {getDetailPanelContent(data, selectedItemId)}
           <Button
             onClick={onClickFunc}

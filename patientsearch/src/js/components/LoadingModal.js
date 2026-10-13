@@ -29,6 +29,7 @@ export default function LoadingModal({ open = false }) {
   const [openModal, setOpenModal] = useState(open);
 
   useEffect(() => {
+    //eslint-disable-next-line react-hooks/set-state-in-effect
     setOpenModal(open);
   }, [open]);
 

@@ -433,7 +433,12 @@ button.disabled:focus,
 }
 
 #patientList {
+  position: relative;
   min-height: calc(100vh - 280px);
+  &.overlay {
+    opacity: 0.6;
+    z-index: -1;
+  }
   input,
   .MuiInputLabel-formControl {
     font-size: $small-font-size;
@@ -531,7 +536,7 @@ button.disabled:focus,
 }
 
 .detailPanel__wrapper {
-  padding: 8px;
+ // padding: 8px;
   background-color: #ecf0f0;
   .detailPanel__container {
     position: relative;

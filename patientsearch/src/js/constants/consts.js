@@ -343,3 +343,4 @@ export const objErrorStatus = {
 export const UWMC_LAB_ORDER_SYSTEM_URL =
   "http://www.uwmedicine.org/lab_order_id";
 export const EHR_SYSTEM_URLS = [UWMC_LAB_ORDER_SYSTEM_URL];
+export const DATE_FORMAT = "YYYY-MM-DD";
