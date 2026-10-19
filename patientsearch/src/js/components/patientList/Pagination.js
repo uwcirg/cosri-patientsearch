@@ -82,7 +82,7 @@ export default function Pagination() {
       });
       cloneTableRef?.current?.onQueryChange();
     },
-    [pagination?.pageNumber],
+    [pagination],
   );
 
   const handleChangeRowsPerPage = useCallback((event) => {

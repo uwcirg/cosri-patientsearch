@@ -1,5 +1,7 @@
+import dayjs from "dayjs";
 import {
   ACCESS_TOKEN_KEY,
+  DATE_FORMAT,
   MIN_QUERY_COUNT,
   REALM_ACCESS_TOKEN_KEY,
   noCacheParam,
@@ -58,56 +60,70 @@ export async function fetchData(url, params, errorCallback) {
   const MAX_WAIT_TIME = 50000;
   params = params || {};
   errorCallback = errorCallback || function () {};
-  // Create a promise that rejects in maximum wait time in milliseconds
-  let timeoutPromise = new Promise((resolve, reject) => {
-    let id = setTimeout(() => {
-      clearTimeout(id);
+
+  // Our controller aborts the request on timeout. If the caller passed their
+  // own signal, forward its abort to our controller so either one cancels.
+  // (Done by hand rather than AbortSignal.any() for older Safari support.)
+  const controller = new AbortController();
+  const callerSignal = params.signal;
+  const forwardCallerAbort = () => controller.abort(callerSignal.reason);
+  if (callerSignal) {
+    if (callerSignal.aborted) controller.abort(callerSignal.reason);
+    else
+      callerSignal.addEventListener("abort", forwardCallerAbort, {
+        once: true,
+      });
+  }
+
+  let timeoutId;
+  const timeoutPromise = new Promise((resolve, reject) => {
+    timeoutId = setTimeout(() => {
+      // Reject first so the race settles with the timeout message (the abort
+      // makes fetch reject too, but race has already settled by then).
       reject(`Timed out in ${MAX_WAIT_TIME} ms.`);
+      controller.abort();
     }, MAX_WAIT_TIME);
   });
-  /*
-   * if for some reason fetching the request data doesn't resolve or reject withing the maximum waittime,
-   * then the timeout promise will kick in
-   */
-  let json = null;
-  let results = await Promise.race([fetch(url, params), timeoutPromise]).catch(
-    (e) => {
-      console.log("url ", url);
-      console.log("params ", params);
-      console.log("error retrieving data ", e);
-      errorCallback(e);
-      throw e;
-    },
-  );
+
+  let results;
   try {
-    //read response stream
+    results = await Promise.race([
+      fetch(url, { ...params, signal: controller.signal }),
+      timeoutPromise,
+    ]);
+  } catch (e) {
+    console.log("url ", url);
+    console.log("params ", params);
+    console.log("error retrieving data ", e);
+    errorCallback(e);
+    throw e;
+  } finally {
+    clearTimeout(timeoutId);
+    if (callerSignal)
+      callerSignal.removeEventListener("abort", forwardCallerAbort);
+  }
+
+  let json = null;
+  try {
+    // read response stream
     json = await results.json().catch((e) => {
       console.log("There was error processing data. ", e);
     });
-    //console.log("response json ", json);
   } catch (e) {
     console.log(`There was error parsing data:`, e);
     json = null;
   }
 
-  if (!results || !results.ok) {
-    console.log("no results returned ", results);
-    if (!results.ok) {
-      console.log("Error results ", results);
-      if (results && results.status) {
-        // raise error here to allow callee to catch it as needed
-        throw results;
-      }
-      const errorMessage =
-        json && json.message
-          ? json.message
-          : results && results.status
-            ? "Status code: " + results.status
-            : "Error occurred retrieving data";
-      errorCallback(errorMessage, results.status);
-      throw new Error(errorMessage);
+  if (!results.ok) {
+    console.log("Error results ", results);
+    if (results.status) {
+      // raise error here to allow callee to catch it as needed
+      throw results;
     }
-    return null;
+    const errorMessage =
+      json && json.message ? json.message : "Error occurred retrieving data";
+    errorCallback(errorMessage, results.status);
+    throw new Error(errorMessage);
   }
 
   return json;
@@ -262,7 +278,6 @@ export function addYearsToDate(dt, n) {
 /*
  * check if two dates are within specified number of months
  */
-const dayjs = require("dayjs");
 export function isInMonthPeriod(dateFromString, dateToString, numOfMonths) {
   const fromDate = dayjs(dateFromString);
   const toDate = dayjs(dateToString);
@@ -422,9 +437,12 @@ export function setFavicon(href) {
 }
 
 export function isEmptyArray(arrObj) {
-  return (!arrObj ||
-  !Array.isArray(arrObj) ||
-  arrObj.length === 0 || !arrObj.find((item) => item && String(item).replace(/[\[\]"']/g, "") !== ""));
+  return (
+    !arrObj ||
+    !Array.isArray(arrObj) ||
+    arrObj.length === 0 ||
+    !arrObj.find((item) => item && String(item).replace(/[\[\]"']/g, "") !== "")
+  );
 }
 
 /*
@@ -741,3 +759,33 @@ export function toggleDetailPanel(currentTableRef, rowData) {
     currentTableRef.props.detailPanel[0].render,
   );
 }
+
+/**
+ * Convert the DatePicker's value (dayjs | null) into the "YYYY-MM-DD" string
+ * submitted. Returns null when the picker is empty, holds an invalid date, or has
+ * reported a validation error (future date, before min date, ...).
+ *
+ * The parent keeps the raw dayjs value in state (so the picker keeps showing
+ * what the user typed) and only derives a submittable string through this.
+ */
+export const toDateString = (value, pickerError) => {
+  if (pickerError || !dayjs.isDayjs(value) || !value.isValid()) return null;
+  return value.format(DATE_FORMAT);
+};
+
+/**
+ * True when dateString is a valid date that is today or earlier.
+ *
+ */
+export const isValidPastOrTodayDate = (dateString) => {
+  if (!isValidDateString(dateString)) return false;
+  return !dayjs(dateString).isAfter(dayjs(), "day");
+};
+
+/**
+ * True if another row (not the one being edited, `excludeId`) matches.
+ */
+export const hasDuplicateEntry = (rows, { excludeId, isMatch }) =>
+  (rows || []).some(
+    (row) => (excludeId == null || row.id !== excludeId) && isMatch(row),
+  );

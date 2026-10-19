@@ -1,5 +1,5 @@
-import React from "react";
-import { useTheme } from "@mui/material/styles";
+import React, {useRef} from "react";
+import { useTheme} from "@mui/material/styles";
 import ClickAwayListener from "@mui/material/ClickAwayListener";
 import ExitToAppIcon from "@mui/icons-material/ExitToApp";
 import HowToRegIcon from "@mui/icons-material/HowToReg";
@@ -195,10 +195,17 @@ export default function Header() {
     );
   };
 
+
+  let appSettingRef = useRef(false);
+
   React.useEffect(() => {
+    if (appSettingRef.current) return;
     if (appSettings) {
-      if (appSettings["APPLICATION_TITLE"])
+      appSettingRef.current = true;
+      if (appSettings["APPLICATION_TITLE"]) {
+        //eslint-disable-next-line react-hooks/set-state-in-effect
         setAppTitle(appSettings["APPLICATION_TITLE"]);
+      }
       if (appSettings["PROJECT_NAME"]) {
         setProjectName(appSettings["PROJECT_NAME"]);
         setDocumentTitle(

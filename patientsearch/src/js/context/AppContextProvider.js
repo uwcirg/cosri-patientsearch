@@ -45,7 +45,6 @@ export default function AppContextProvider({ children }) {
     const status = parseInt(e?.status);
     const oStatus = objErrorStatus[status];
     if (oStatus) {
-      // eslint-disable-next-line react-compiler/react-compiler -- immediate hard navigation on auth/session error, not memoized render logic
       window.location = oStatus.logoutURL;
       return;
     }
