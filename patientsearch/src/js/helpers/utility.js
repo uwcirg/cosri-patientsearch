@@ -789,3 +789,9 @@ export const hasDuplicateEntry = (rows, { excludeId, isMatch }) =>
   (rows || []).some(
     (row) => (excludeId == null || row.id !== excludeId) && isMatch(row),
   );
+
+export const getProjectLogoPath = (projectName) =>
+  projectName ? `/static/app/img/${projectName}_logo.png` : "";
+
+export const getSiteLogoPath = (siteId) =>
+  siteId ? `/static/${String(siteId).toUpperCase()}/img/logo.png` : "";

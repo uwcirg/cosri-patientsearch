@@ -101,6 +101,9 @@ header {
   display: flex;
   justify-content: flex-start;
 }
+.flex-1 {
+  flex: 1;
+}
 .flex-gap-1 {
   gap: 8px;
 }
@@ -646,7 +649,7 @@ button.disabled:focus,
   }
 
   header + #patientList {
-    margin-top: 128px;
+    margin-top: 140px;
   }
 
   #patientList tbody td [dataColumn]:before {
