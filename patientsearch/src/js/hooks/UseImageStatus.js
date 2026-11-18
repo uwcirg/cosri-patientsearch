@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
 
 /*
- * Preloads an image off-DOM and reports whether it can be displayed.
+ * Preloads an image and reports whether it can be displayed.
  * Returns "loading" | "loaded" | "error".
  * A missing src is treated as "error" so callers render nothing.
  */
 export default function useImageStatus(src) {
   // keep the src alongside its status so a stale result for a previous src
-  // is never reported for the current one (and no sync reset is needed)
+  // is never reported
   const [result, setResult] = useState({ src: null, status: "loading" });
 
   useEffect(() => {
