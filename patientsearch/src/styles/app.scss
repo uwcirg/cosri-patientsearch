@@ -101,6 +101,9 @@ header {
   display: flex;
   justify-content: flex-start;
 }
+.flex-1 {
+  flex: 1;
+}
 .flex-gap-1 {
   gap: 8px;
 }
@@ -475,7 +478,7 @@ button.disabled:focus,
     .fields-container {
       display: flex;
       flex-wrap: wrap;
-      gap: 16px;
+      gap: 24px;
       align-items: center;
     }
     .field-wrapper {
@@ -493,6 +496,9 @@ button.disabled:focus,
       gap: 8px;
       flex-wrap: wrap;
       align-items: center;
+      button {
+        min-width: 72px;
+      }
       @media (min-width: 601px) {
         margin-left: 16px;
       }
@@ -646,7 +652,7 @@ button.disabled:focus,
   }
 
   header + #patientList {
-    margin-top: 128px;
+    margin-top: 140px;
   }
 
   #patientList tbody td [dataColumn]:before {

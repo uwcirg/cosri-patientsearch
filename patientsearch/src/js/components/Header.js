@@ -1,5 +1,5 @@
-import React, {useRef} from "react";
-import { useTheme} from "@mui/material/styles";
+import React, { useRef } from "react";
+import { useTheme } from "@mui/material/styles";
 import ClickAwayListener from "@mui/material/ClickAwayListener";
 import ExitToAppIcon from "@mui/icons-material/ExitToApp";
 import HowToRegIcon from "@mui/icons-material/HowToReg";
@@ -14,10 +14,13 @@ import Popper from "@mui/material/Popper";
 import Paper from "@mui/material/Paper";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
+import Logo from "./Logo";
 import SiteLogo from "./SiteLogo";
 import {
   getAppLaunchURL,
   getClientsByRequiredRoles,
+  getProjectLogoPath,
+  getSiteLogoPath,
   imageOK,
   isEmptyArray,
   setDocumentTitle,
@@ -37,16 +40,23 @@ export default function Header() {
   const appClients = appSettings
     ? getClientsByRequiredRoles(appSettings["SOF_CLIENTS"], userInfo?.roles)
     : null;
-  const [appTitle, setAppTitle] = React.useState("");
-  const [projectName, setProjectName] = React.useState("");
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [openPopper, setOpenPopper] = React.useState(false);
+
+  // derived straight from settings
+  const appTitle = appSettings?.APPLICATION_TITLE ?? "";
+  const projectName = appSettings?.PROJECT_NAME ?? "";
+  const siteId = appSettings?.SITE_ID ?? "";
+  const projectLogoPath = getProjectLogoPath(projectName);
+  const siteLogoPath = getSiteLogoPath(siteId);
+  // show the project logo only when it isn't the same image as the site logo
+  const showProjectLogo =
+    !!projectLogoPath &&
+    String(projectLogoPath).toLowerCase() !==
+      String(siteLogoPath).toLowerCase();
+
   const hasUserInfo = () => {
     return userInfo && (userInfo.username || userInfo.name || userInfo.email);
-  };
-  const getLogoURL = () => {
-    if (!projectName) return "";
-    return `/static/app/img/${projectName}_logo.png`;
   };
 
   const handleImageLoaded = (e) => {
@@ -124,7 +134,7 @@ export default function Header() {
     </Box>
   );
 
-  const renderUserInfoComponent = () => (
+  const renderUserInfoComponent = (isMobile) => (
     <div>
       <Typography
         component="h6"
@@ -138,7 +148,8 @@ export default function Header() {
           display: "flex",
           flexDirection: "row",
           alignItems: "center",
-          gap: "8px"
+          justifyContent: isMobile? "flex-end": "flex-start",
+          gap: "8px",
         }}
       >
         <Avatar
@@ -172,8 +183,7 @@ export default function Header() {
     if (!standaloneClients.length) return null;
     return (
       <div
-        className={`${isMobile ? "flex-column" : "flex"}`}
-        style={{ justifyContent: "flex-end", flex: 1, gap: "8px" }}
+        className={`${isMobile ? "flex-column flex-1" : "flex"}`}
       >
         {standaloneClients.map((client, index) => {
           const onClickEvent = () =>
@@ -186,6 +196,12 @@ export default function Header() {
               variant="outlined"
               onClick={onClickEvent}
               key={`${client.id}_standalone_button_${index}`}
+              sx={{
+                alignSelf: {
+                  xs: "flex-end",
+                  sm: "center"
+                }
+              }}
             >
               {client.label}
             </Button>
@@ -195,31 +211,23 @@ export default function Header() {
     );
   };
 
-
-  let appSettingRef = useRef(false);
+  const documentSetupRef = useRef(false);
 
   React.useEffect(() => {
-    if (appSettingRef.current) return;
-    if (appSettings) {
-      appSettingRef.current = true;
-      if (appSettings["APPLICATION_TITLE"]) {
-        //eslint-disable-next-line react-hooks/set-state-in-effect
-        setAppTitle(appSettings["APPLICATION_TITLE"]);
-      }
-      if (appSettings["PROJECT_NAME"]) {
-        setProjectName(appSettings["PROJECT_NAME"]);
-        setDocumentTitle(
-          `${appSettings["PROJECT_NAME"]} ${appSettings["SEARCH_TITLE_TEXT"]}`,
-        );
-        setFavicon(`/static/${appSettings["PROJECT_NAME"]}_favicon.ico`);
-      }
-    }
+    if (documentSetupRef.current || !appSettings?.PROJECT_NAME) return;
+    documentSetupRef.current = true;
+    setDocumentTitle(
+      `${appSettings.PROJECT_NAME} ${appSettings.SEARCH_TITLE_TEXT ?? ""}`.trim(),
+    );
+    setFavicon(`/static/${appSettings.PROJECT_NAME}_favicon.ico`);
+  }, [appSettings]);
+
+  // close the mobile menu on resize
+  React.useEffect(() => {
     const handleResize = () => setOpenPopper(false);
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
-  }, [appSettings]);
-
-  const logoURL = getLogoURL();
+  }, []);
 
   return (
     <AppBar
@@ -234,7 +242,7 @@ export default function Header() {
     >
       <Toolbar
         sx={{
-          padding: 0,
+          padding: "0 8px",
           background: "#FFF",
           display: "flex",
           flexDirection: "row",
@@ -245,40 +253,44 @@ export default function Header() {
         disableGutters
         variant="dense"
       >
-        <Box sx={{ width: "180px" }}>
-          {logoURL && (
-            <img
-              src={getLogoURL()}
-              alt="Logo"
-              style={{
-                width: "100%",
-                height: "100%",
-                objectFit: "cover",
-              }}
-              onLoad={handleImageLoaded}
-              onError={handleImageLoadError}
-            />
-          )}
-        </Box>
-        <SiteLogo />
-        {!userError && renderClientButtons(false)}
+        {showProjectLogo && (
+          <Logo
+            src={projectLogoPath}
+            alt="Project Logo"
+            onLoad={handleImageLoaded}
+            onError={handleImageLoadError}
+            sx={{ maxWidth: { xs: 180, sm: 220, md: 220 }, flexShrink: 0 }}
+          />
+        )}
+        <SiteLogo siteID={siteId} />
         {!userError && (
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              marginRight: theme.spacing(4),
-              marginLeft: theme.spacing(4),
-              minWidth: theme.spacing(25),
-              minHeight: theme.spacing(1),
-              [theme.breakpoints.down("md")]: {
-                display: "none",
-              },
-            }}
-          >
-            {renderUserInfoComponent()}
-            {hasUserInfo() && renderLogoutComponent()}
+          <Box className="flex flex-gap-1">
+            <Box
+              sx={{
+                [theme.breakpoints.down("md")]: {
+                  display: "none",
+                },
+              }}
+            >
+              {renderClientButtons(false)}
+            </Box>
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                marginRight: theme.spacing(4),
+                marginLeft: theme.spacing(4),
+                minWidth: theme.spacing(25),
+                minHeight: theme.spacing(1),
+                [theme.breakpoints.down("md")]: {
+                  display: "none",
+                },
+              }}
+            >
+              {renderUserInfoComponent()}
+              {hasUserInfo() && renderLogoutComponent()}
+            </Box>
           </Box>
         )}
         {!userError && (
@@ -314,9 +326,11 @@ export default function Header() {
                       variant="outlined"
                       square={true}
                     >
-                      {renderUserInfoComponent()}
-                      {renderClientButtons(true)}
-                      {hasUserInfo() && renderLogoutComponent()}
+                      {renderUserInfoComponent(true)}
+                      <Box className="flex flex-gap-1">
+                        {renderClientButtons(true)}
+                        {hasUserInfo() && renderLogoutComponent()}
+                      </Box>
                     </Paper>
                   </Fade>
                 )}
