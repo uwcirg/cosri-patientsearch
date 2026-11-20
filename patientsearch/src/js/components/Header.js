@@ -259,7 +259,7 @@ export default function Header() {
             alt="Project Logo"
             onLoad={handleImageLoaded}
             onError={handleImageLoadError}
-            sx={{ maxWidth: { xs: 200, sm: 220, md: 220 }, flexShrink: 0 }}
+            sx={{ maxWidth: { xs: 180, sm: 220, md: 220 }, flexShrink: 0 }}
           />
         )}
         <SiteLogo siteID={siteId} />
