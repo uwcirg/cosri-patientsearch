@@ -134,7 +134,7 @@ export default function Header() {
     </Box>
   );
 
-  const renderUserInfoComponent = () => (
+  const renderUserInfoComponent = (isMobile) => (
     <div>
       <Typography
         component="h6"
@@ -148,6 +148,7 @@ export default function Header() {
           display: "flex",
           flexDirection: "row",
           alignItems: "center",
+          justifyContent: isMobile? "flex-end": "flex-start",
           gap: "8px",
         }}
       >
@@ -325,7 +326,7 @@ export default function Header() {
                       variant="outlined"
                       square={true}
                     >
-                      {renderUserInfoComponent()}
+                      {renderUserInfoComponent(true)}
                       <Box className="flex flex-gap-1">
                         {renderClientButtons(true)}
                         {hasUserInfo() && renderLogoutComponent()}

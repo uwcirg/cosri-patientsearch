@@ -15,7 +15,7 @@ export default function Logo({ src, alt, onLoad, sx }) {
   return (
     <Box
       sx={[
-        { maxWidth: { xs: 200, sm: 240, md: 320 }, flexShrink: 0 },
+        { maxWidth: { xs: 240, sm: 256, md: 320 }, flexShrink: 0 },
         ...(Array.isArray(sx) ? sx : [sx]),
       ]}
     >
